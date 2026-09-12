@@ -1337,6 +1337,7 @@
       for (const path of Array.from(svg.querySelectorAll("path"))) {
         if (path.closest(CONNECTOR_SKIP_CONTAINERS)) continue;
         if (!isConnectorPath(svg, path)) continue;
+        if (shaftDashHidden(path)) continue;
         const user = pathUserEndpoints(path);
         const rendered = pathScreenEndpoints(svg, path, user);
         if (!user || !rendered) continue;
