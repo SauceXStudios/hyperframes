@@ -104,6 +104,51 @@ describe("runEnvironmentChecks", () => {
     });
   });
 
+  it("resolves Chrome via preferManagedChrome so a reported hit predicts what render will actually use", async () => {
+    // Explicit false rather than relying on the test runner's actual arch —
+    // the ARM64-skip counterpart test below only makes sense as a contrast
+    // if this one is pinned to the non-ARM64 branch regardless of host.
+    const armSpy = vi.spyOn(manager, "isLinuxArm").mockReturnValue(false);
+    const spy = vi.spyOn(manager, "findBrowser").mockResolvedValue({
+      executablePath: process.execPath,
+      source: "cache",
+    });
+
+    try {
+      await runEnvironmentChecks({ includeBrowser: true });
+
+      expect(spy).toHaveBeenCalledWith({ preferManagedChrome: true });
+    } finally {
+      armSpy.mockRestore();
+      spy.mockRestore();
+    }
+  });
+
+  it("skips preferManagedChrome on Linux ARM64, which has no hyperframes-managed cache to check", async () => {
+    // preferManagedChrome would always report "not found" here — Chrome for
+    // Testing publishes no linux-arm64 build — even on a machine with a
+    // correctly apt-get-installed system Chromium, the exact false-negative
+    // this check must not produce (ensureLinuxArmBrowser's own resolution
+    // stays unqualified for the same reason).
+    const armSpy = vi.spyOn(manager, "isLinuxArm").mockReturnValue(true);
+    const findSpy = vi.spyOn(manager, "findBrowser").mockResolvedValue({
+      executablePath: "/usr/bin/chromium-browser",
+      source: "system",
+    });
+
+    try {
+      const result = await runEnvironmentChecks({ includeBrowser: true });
+
+      expect(findSpy).toHaveBeenCalledWith(undefined);
+      expect(result.outcomes.find((outcome) => outcome.name === "Chrome")).toMatchObject({
+        ok: true,
+      });
+    } finally {
+      armSpy.mockRestore();
+      findSpy.mockRestore();
+    }
+  });
+
   it("reports Chrome as not found (no throw) when browser discovery throws on a corrupt cache", async () => {
     const spy = vi.spyOn(manager, "findBrowser").mockRejectedValue(
       Object.assign(new Error("ENOTDIR: not a directory, scandir 'chrome-headless-shell'"), {

@@ -526,12 +526,22 @@ export function findSystemBrowser(): BrowserResult | undefined {
 /**
  * Find an existing browser without downloading.
  * Resolution: env var -> cached download -> system Chrome.
+ * With `preferManagedChrome`: env var -> OUR pinned cache only (puppeteer-cache
+ * preference and system Chrome are both skipped) — the same restriction
+ * `ensureBrowser` applies, minus the auto-download this function never does.
+ * Pass it when a "found" report has to predict what a `preferManagedChrome`
+ * render will actually use (`doctor`'s Chrome check, `browser path`): the
+ * unqualified resolution reports hits that such a render re-downloads over.
  */
-export async function findBrowser(): Promise<BrowserResult | undefined> {
+export async function findBrowser(
+  options?: Pick<EnsureBrowserOptions, "preferManagedChrome">,
+): Promise<BrowserResult | undefined> {
   const fromEnv = findFromEnv();
   if (fromEnv) return fromEnv;
 
-  const fromCache = await findFromCache();
+  const fromCache = await (options?.preferManagedChrome
+    ? findFromHyperframesCache()
+    : findFromCache());
   if (fromCache.result) return fromCache.result;
   if (fromCache.staleHyperframesCachePath) {
     console.warn(
@@ -550,6 +560,11 @@ export async function findBrowser(): Promise<BrowserResult | undefined> {
       );
     }
   }
+
+  // A `preferManagedChrome` render never falls back to system Chrome (see
+  // `ensureBrowser`), so reporting it here would only relocate the false hit
+  // from the puppeteer cache to system Chrome, not remove it.
+  if (options?.preferManagedChrome) return undefined;
 
   const fromSystem = findSystemBrowser();
   if (fromSystem) {

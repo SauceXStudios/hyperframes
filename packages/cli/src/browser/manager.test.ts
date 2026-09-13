@@ -843,6 +843,83 @@ describe("findBrowser — cache resolution", () => {
   });
 });
 
+describe("findBrowser — preferManagedChrome", () => {
+  const origPlatform = process.platform;
+  const origArch = process.arch;
+
+  beforeEach(() => {
+    vi.resetModules();
+    Object.defineProperty(process, "platform", { value: "linux", configurable: true });
+    Object.defineProperty(process, "arch", { value: "x64", configurable: true });
+    delete process.env["HYPERFRAMES_BROWSER_PATH"];
+    delete process.env["PRODUCER_HEADLESS_SHELL_PATH"];
+    installChildProcessMocks();
+  });
+
+  afterEach(() => {
+    Object.defineProperty(process, "platform", { value: origPlatform, configurable: true });
+    Object.defineProperty(process, "arch", { value: origArch, configurable: true });
+    vi.restoreAllMocks();
+    vi.doUnmock("node:fs");
+    vi.doUnmock("node:os");
+    vi.doUnmock("node:child_process");
+    vi.doUnmock("@puppeteer/browsers");
+  });
+
+  it("ignores a puppeteer-cache hit and resolves to the pinned hyperframes cache instead", async () => {
+    // Same "both populated" fixture as the unqualified test above, except the
+    // HF-cache entry is pinned to CHROME_VERSION so it's actually a valid
+    // match — proving preferManagedChrome skips the puppeteer cache entirely
+    // rather than merely losing a tiebreak to it.
+    installFsMocks({
+      existing: new Set([HF_CACHE, HF_BINARY, PUPPETEER_CACHE, PUPPETEER_BINARY]),
+      dirs: { [PUPPETEER_CACHE]: ["linux-148.0.7778.97"] },
+    });
+    installPuppeteerBrowsersMock({
+      installedInHfCache: [
+        { browser: "chrome-headless-shell", executablePath: HF_BINARY, buildId: CHROME_VERSION },
+      ],
+    });
+
+    const { findBrowser } = await import("./manager.js");
+
+    expect(await findBrowser()).toEqual({ executablePath: PUPPETEER_BINARY, source: "cache" });
+    expect(await findBrowser({ preferManagedChrome: true })).toEqual({
+      executablePath: HF_BINARY,
+      source: "cache",
+    });
+  });
+
+  it("does not report a false cache hit against a puppeteer-cache build off the pinned version", async () => {
+    // The exact reported divergence: doctor's unqualified check accepted any
+    // puppeteer-cached version as "found", while a preferManagedChrome render
+    // only accepts the pinned build and would re-download here.
+    installFsMocks({
+      existing: new Set([PUPPETEER_CACHE, PUPPETEER_BINARY]),
+      dirs: { [PUPPETEER_CACHE]: ["linux-148.0.7778.97"] },
+    });
+    installPuppeteerBrowsersMock();
+
+    const { findBrowser } = await import("./manager.js");
+
+    expect(await findBrowser()).toEqual({ executablePath: PUPPETEER_BINARY, source: "cache" });
+    expect(await findBrowser({ preferManagedChrome: true })).toBeUndefined();
+  });
+
+  it("does not fall back to system Chrome, unlike the unqualified resolution", async () => {
+    installFsMocks({ existing: new Set([SYSTEM_CHROME]) });
+    installPuppeteerBrowsersMock();
+    // The unqualified call below takes the system-Chrome path, which warns.
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const { findBrowser, _resetSystemFallbackWarnForTests } = await import("./manager.js");
+    _resetSystemFallbackWarnForTests();
+
+    expect(await findBrowser()).toEqual({ executablePath: SYSTEM_CHROME, source: "system" });
+    expect(await findBrowser({ preferManagedChrome: true })).toBeUndefined();
+  });
+});
+
 describe("isCorruptArchiveError", () => {
   it("matches truncated / corrupt archive extraction failures", async () => {
     const { isCorruptArchiveError } = await import("./manager.js");
