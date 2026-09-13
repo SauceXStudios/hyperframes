@@ -1901,6 +1901,45 @@ describe("layout-audit.browser content overlap", () => {
 
     expect(issues.some((issue) => issue.code === "content_overlap")).toBe(true);
   });
+
+  // A large font-size with a tight line-height keeps its range-rect height while
+  // the real box shrinks around it, so the two geometries disagree below.
+  it("uses the real CSS box, not font-metrics text rects, for an absolutely positioned block", () => {
+    const issues = auditOverlapScene({
+      a: {
+        position: "absolute",
+        // Metrics band overlaps b's box...
+        textRect: rect({ left: 100, top: 80, width: 200, height: 100 }),
+        // ...but the real box has a genuine 10px gap before b's box starts.
+        boxRect: rect({ left: 100, top: 100, width: 200, height: 50 }),
+      },
+      b: {
+        position: "absolute",
+        textRect: rect({ left: 100, top: 160, width: 200, height: 50 }),
+        boxRect: rect({ left: 100, top: 160, width: 200, height: 50 }),
+      },
+    });
+
+    expect(issues.some((issue) => issue.code === "content_overlap")).toBe(false);
+  });
+
+  it("still flags a genuine overlap between absolutely positioned real boxes", () => {
+    const issues = auditOverlapScene({
+      a: {
+        position: "absolute",
+        textRect: rect({ left: 100, top: 80, width: 200, height: 100 }),
+        boxRect: rect({ left: 100, top: 100, width: 200, height: 50 }),
+      },
+      b: {
+        position: "absolute",
+        textRect: rect({ left: 100, top: 130, width: 200, height: 50 }),
+        // Real box genuinely overlaps a's real box by 20px this time.
+        boxRect: rect({ left: 100, top: 130, width: 200, height: 50 }),
+      },
+    });
+
+    expect(issues.some((issue) => issue.code === "content_overlap")).toBe(true);
+  });
 });
 
 describe("contrast-audit.browser clip-path visibility", () => {
@@ -2289,10 +2328,41 @@ function expectExemptFromOverlap(aOverrides: { color?: string; attrs?: string })
   expect(issues.some((issue) => issue.code === "content_overlap")).toBe(false);
 }
 
+interface OverlapBlockInput {
+  textRect: DOMRect | DOMRect[];
+  color?: string;
+  attrs?: string;
+  clipPath?: string;
+  position?: string;
+  boxRect?: DOMRect;
+}
+
+function overlapBlockRecords(blocks: Record<string, OverlapBlockInput>): {
+  colors: Record<string, string>;
+  clipPaths: Record<string, string>;
+  positions: Record<string, string>;
+  textRects: Record<string, DOMRect[]>;
+  elementRects: Record<string, DOMRect>;
+} {
+  const colors: Record<string, string> = {};
+  const clipPaths: Record<string, string> = {};
+  const positions: Record<string, string> = {};
+  const textRects: Record<string, DOMRect[]> = {};
+  const elementRects: Record<string, DOMRect> = {};
+  for (const [id, block] of Object.entries(blocks)) {
+    colors[id] = block.color ?? "rgb(0, 0, 0)";
+    clipPaths[id] = block.clipPath ?? "none";
+    positions[id] = block.position ?? "static";
+    textRects[id] = normalizeTextRects(block.textRect);
+    if (block.boxRect) elementRects[id] = block.boxRect;
+  }
+  return { colors, clipPaths, positions, textRects, elementRects };
+}
+
 function auditOverlapScene(options: {
   rootAttrs?: string;
-  a: { textRect: DOMRect | DOMRect[]; color?: string; attrs?: string; clipPath?: string };
-  b: { textRect: DOMRect | DOMRect[]; color?: string; attrs?: string; clipPath?: string };
+  a: OverlapBlockInput;
+  b: OverlapBlockInput;
 }): ReturnType<typeof runAudit> {
   document.body.innerHTML = `
     <div id="root" data-composition-id="main" data-width="1920" data-height="1080" ${options.rootAttrs ?? ""}>
@@ -2300,21 +2370,13 @@ function auditOverlapScene(options: {
       <div id="b" ${options.b.attrs ?? ""}>Block B copy</div>
     </div>
   `;
-  const colors: Record<string, string> = {
-    a: options.a.color ?? "rgb(0, 0, 0)",
-    b: options.b.color ?? "rgb(0, 0, 0)",
-  };
-  const clipPaths: Record<string, string> = {
-    a: options.a.clipPath ?? "none",
-    b: options.b.clipPath ?? "none",
-  };
-  const textRects: Record<string, DOMRect[]> = {
-    a: normalizeTextRects(options.a.textRect),
-    b: normalizeTextRects(options.b.textRect),
-  };
+  const { colors, clipPaths, positions, textRects, elementRects } = overlapBlockRecords({
+    a: options.a,
+    b: options.b,
+  });
 
-  installOverlapStyles(colors, clipPaths);
-  installOverlapGeometry(textRects);
+  installOverlapStyles(colors, clipPaths, {}, positions);
+  installOverlapGeometry(textRects, elementRects);
   installAuditScript();
   return runAudit();
 }
@@ -2346,11 +2408,15 @@ function installOverlapStyles(
   colors: Record<string, string>,
   clipPaths: Record<string, string>,
   overflows: Record<string, string> = {},
+  positions: Record<string, string> = {},
 ): void {
   vi.spyOn(window, "getComputedStyle").mockImplementation((element) => {
     const id = (element as Element).id;
     return {
       display: "block",
+      // Mirrors the real browser default, so only a scene that explicitly opts
+      // into absolute/fixed takes the out-of-flow box measurement.
+      position: positions[id] ?? "static",
       visibility: "visible",
       opacity: "1",
       color: colors[id] ?? "rgb(0, 0, 0)",

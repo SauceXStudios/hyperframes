@@ -268,10 +268,9 @@
     });
   }
 
-  function visibleTextClientRects(element, directOnly) {
-    // Range rects stay geometrically present outside an overflow clip. Reduce
-    // them in viewport coordinates so overlap measures only paintable text.
-    let rects = textClientRects(element, directOnly).map(toRect);
+  // Client rects stay geometrically present outside an ancestor's overflow clip.
+  // Reduce them in viewport coordinates so overlap measures only paintable area.
+  function clipRectsToOverflowAncestors(element, rects) {
     for (
       let ancestor = element.parentElement;
       ancestor && rects.length > 0;
@@ -294,6 +293,25 @@
         .filter(Boolean);
     }
     return rects;
+  }
+
+  function visibleTextClientRects(element, directOnly) {
+    return clipRectsToOverflowAncestors(element, textClientRects(element, directOnly).map(toRect));
+  }
+
+  // Range rects follow the font's own ascent/descent, not the CSS box: a large
+  // font-size with a tight line-height keeps the range-rect height while the real
+  // box shrinks around it, so a block can measure as colliding with a neighbor
+  // its box never touches. Only out-of-flow (absolute/fixed) blocks are measured
+  // this way, since they have no layout-engine-reserved space of their own —
+  // matching the reported scenario (an absolutely positioned data-card layout).
+  // In-flow text keeps the font-metrics measurement it has always been audited
+  // with: `isManagedFlowOverlap` only waives a same-flex/grid-container pair,
+  // not every in-flow pair, so this is a deliberately narrower fix than "in-flow
+  // is always safe" — an unrelated pair of ordinary in-flow blocks with the same
+  // font-size/line-height mismatch remains unfixed, left for a follow-up.
+  function visibleBoxClientRects(element) {
+    return clipRectsToOverflowAncestors(element, [toRect(element.getBoundingClientRect())]);
   }
 
   function textRectFor(element, directOnly) {
@@ -627,7 +645,9 @@
     const blocks = [];
     for (const element of Array.from(root.querySelectorAll("*"))) {
       if (!isSolidTextBlock(element)) continue;
-      const rects = visibleTextClientRects(element, true);
+      const rects = isInFlow(element)
+        ? visibleTextClientRects(element, true)
+        : visibleBoxClientRects(element);
       const rect = unionRects(rects);
       if (rect) blocks.push({ element, rect, rects });
     }
