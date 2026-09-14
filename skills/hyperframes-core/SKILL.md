@@ -40,7 +40,7 @@ File shape, host wiring, and the pre-render checklist → `references/sub-compos
 
 ### Root must be sized (silent layout bug)
 
-The standalone root needs an explicit **sized box** (`width`/`height` in px), and every ancestor down to a `height:100%` element must have a resolved height — otherwise a flex/`100%` child collapses to ~0 and content piles into the top-left corner. Do not rely on automated gates alone to catch this; inspect a snapshot. Skeleton → `references/minimal-composition.md`.
+The standalone root authors `width`/`height: 100%`. Canvas size is `data-width`/`data-height`; the runtime stamps those pixels onto `html, body`. Do not hardcode `1920px`/`1080px` on `#root` (that fights `--resolution`). Skeleton → `references/minimal-composition.md`.
 
 ### One paused timeline
 
@@ -65,7 +65,7 @@ A lint **error** also switches off the layout and contrast audits: `check` then 
 Surfaced here; full rationale in the linked reference. Do not violate:
 
 - No render-time clocks / unseeded `Math.random` / network / input-state; no `repeat: -1` (use a finite count). → `determinism-rules.md`
-- Never tween `display` or raw `visibility` on a clip element. The framework owns clip visibility, and `lint` rejects it. Use GSAP `autoAlpha` or a zero-duration boundary `set`. (Tweening ordinary visual properties on a clip element is fine; what lint forbids is taking over its visibility.) → `determinism-rules.md`
+- Never tween `display`, `visibility`, or `autoAlpha` on a `.clip` element. The framework owns clip visibility, and `lint` rejects it (`gsap_animates_clip_element`). Animate a child instead. → `determinism-rules.md`
 - No `<br>` in body text; transformed elements must be block-level + sized; pulsing absolute decoratives need peak clearance. → `determinism-rules.md`
 - `<video>`/`<audio>` are found by a flat document query, so the framework seeks and decodes them at **any nesting depth** (including inside a sub-comp `<template>` or wrapper). One hard limit: `lint` errors if a `<video data-start>` sits inside another **plain** element that also has `data-start`, and the failure is real (wrong source frames, then the clip vanishes mid-slot), so put the timing on the wrapper or on the video, never both. Sub-composition hosts are exempt: media inside a sub-composition renders correctly. The other caveat is timelines, not placement: a sub-comp timeline can't animate host-root elements. → `variables-and-media.md`
 - Keep every `id` unique across the **assembled** page (prefix sub-comp ids with the composition id, `#<id>-hero`) so your own `#id` CSS and `getElementById` calls resolve. Frame injection no longer depends on it: the compiler stamps a document-unique `data-hf-render-id` on every `video[src]`/`audio[src]`/`img[src]`. Media that uses `<source>` children instead of a `src` attribute is **not** stamped, so unique ids still matter there. → `composition-patterns.md`
