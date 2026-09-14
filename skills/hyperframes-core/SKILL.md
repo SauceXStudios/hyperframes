@@ -40,7 +40,7 @@ File shape, host wiring, and the pre-render checklist → `references/sub-compos
 
 ### Root must be sized (silent layout bug)
 
-The standalone root authors `width`/`height: 100%`. Canvas size is `data-width`/`data-height`; the runtime stamps those pixels onto `html, body`. Do not hardcode `1920px`/`1080px` on `#root` (that fights `--resolution`). Skeleton → `references/minimal-composition.md`.
+The standalone root authors `width`/`height: 100%`. Canvas size is `data-width`/`data-height`. The runtime stamps those pixels onto the composition root. Do not hardcode `1920px`/`1080px` on `#root`. Skeleton → `references/minimal-composition.md`.
 
 ### One paused timeline
 
