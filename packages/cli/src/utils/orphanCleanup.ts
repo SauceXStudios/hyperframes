@@ -4,7 +4,7 @@ import {
   type OwnedFfmpegProcess,
   processIdentity,
   processParentPid,
-} from "@hyperframes/engine/process-tracker";
+} from "@hyperframes/parsers/process-tracker";
 
 export { processIdentity };
 
@@ -23,6 +23,11 @@ export { processIdentity };
  *
  * Scoped to the current user via `pgrep -u` to avoid touching other
  * users' processes on shared machines.
+ *
+ * Inert on Windows (returns 0 without looking): both halves key on the POSIX
+ * PPID=1 reparenting signal, which Windows does not have, and the FFmpeg
+ * ownership registry is never written there. Windows relies solely on the
+ * in-process drain at shutdown.
  *
  * Returns the count of killed process trees.
  */

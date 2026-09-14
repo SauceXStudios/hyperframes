@@ -1,11 +1,13 @@
+// @vitest-environment node
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { spawn } from "node:child_process";
-import { mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdtempSync, readdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   beginTrackedProcessDrain,
   findOwnedOrphanedFfmpegProcesses,
+  type OwnedFfmpegProcess,
   trackChildProcess,
   killTrackedProcesses,
 } from "./processTracker.js";
@@ -110,7 +112,11 @@ describe("killTrackedProcesses", () => {
     killTrackedProcesses();
     killTrackedProcesses();
   });
+});
 
+// The registry is never written or read on win32 (no PPID=1 reparenting to
+// key orphan detection on), so these exercise the POSIX-only half.
+describe.skipIf(process.platform === "win32")("FFmpeg ownership registry", () => {
   it("registers owned FFmpeg identity and removes it on clean exit", async () => {
     const registryDir = mkdtempSync(join(tmpdir(), "hf-owned-ffmpeg-"));
     const proc = spawn("sleep", ["60"], { stdio: "ignore" });
@@ -157,7 +163,65 @@ describe("killTrackedProcesses", () => {
       rmSync(registryDir, { recursive: true, force: true });
     }
   });
+});
 
+describe.skipIf(process.platform === "win32")("registry directory trust", () => {
+  function record(pid: number): string {
+    return JSON.stringify({ version: 1, kind: "ffmpeg", pid, identity: "linux:one" });
+  }
+  function scan(registryDir: string): OwnedFfmpegProcess[] {
+    return findOwnedOrphanedFfmpegProcesses({
+      registryDir,
+      identityForPid: () => "linux:one",
+      parentPidForPid: () => 1,
+    });
+  }
+
+  it("neither writes to nor trusts a registry path that is a symlink", async () => {
+    const real = mkdtempSync(join(tmpdir(), "hf-owned-ffmpeg-real-"));
+    const holder = mkdtempSync(join(tmpdir(), "hf-owned-ffmpeg-link-"));
+    const link = join(holder, "registry");
+    symlinkSync(real, link);
+    writeFileSync(join(real, "101.json"), record(101));
+    const proc = spawn("sleep", ["60"], { stdio: "ignore" });
+    const closed = new Promise<void>((resolve) => proc.on("close", () => resolve()));
+    try {
+      expect(scan(real)).toEqual([{ pid: 101, identity: "linux:one" }]);
+      expect(scan(link)).toEqual([]);
+
+      trackChildProcess(proc, { kind: "ffmpeg", registryDir: link });
+      expect(readdirSync(real)).toEqual(["101.json"]);
+    } finally {
+      proc.kill("SIGKILL");
+      await closed;
+      rmSync(holder, { recursive: true, force: true });
+      rmSync(real, { recursive: true, force: true });
+    }
+  });
+
+  it("neither writes to nor trusts a registry directory open to other users", async () => {
+    const registryDir = mkdtempSync(join(tmpdir(), "hf-owned-ffmpeg-loose-"));
+    writeFileSync(join(registryDir, "101.json"), record(101));
+    const proc = spawn("sleep", ["60"], { stdio: "ignore" });
+    const closed = new Promise<void>((resolve) => proc.on("close", () => resolve()));
+    try {
+      expect(scan(registryDir)).toEqual([{ pid: 101, identity: "linux:one" }]);
+      chmodSync(registryDir, 0o755);
+      expect(scan(registryDir)).toEqual([]);
+
+      trackChildProcess(proc, { kind: "ffmpeg", registryDir });
+      expect(readdirSync(registryDir)).toEqual(["101.json"]);
+    } finally {
+      proc.kill("SIGKILL");
+      await closed;
+      rmSync(registryDir, { recursive: true, force: true });
+    }
+  });
+});
+
+// Last on purpose: the drain flag is module-level and never resets, so every
+// child tracked after this point is terminated on registration.
+describe("beginTrackedProcessDrain", () => {
   it("kills a child registered after the terminal drain begins", async () => {
     beginTrackedProcessDrain();
     const proc = spawn("sleep", ["60"], { stdio: "ignore" });

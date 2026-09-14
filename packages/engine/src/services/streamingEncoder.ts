@@ -16,7 +16,7 @@
 import { jpegInputError } from "../utils/jpegInput.js";
 import { spawn, type ChildProcess } from "child_process";
 import { once } from "events";
-import { trackChildProcess } from "../utils/processTracker.js";
+import { trackChildProcess } from "@hyperframes/parsers/process-tracker";
 import {
   ManagedChildProcess,
   type ManagedProcessTerminationReason,

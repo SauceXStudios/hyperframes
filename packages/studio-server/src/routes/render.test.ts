@@ -761,7 +761,10 @@ describe("render route disposal", () => {
       const disposal = routes.dispose().then(() => {
         disposed = true;
       });
-      await Promise.resolve();
+      // A macrotask, not a microtask: disposal that forgot to await the
+      // render's completion would settle within the microtask queue, and a
+      // single `await Promise.resolve()` could not tell the two apart.
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(cancel).toHaveBeenCalledOnce();
       expect(disposed).toBe(false);
@@ -787,6 +790,43 @@ describe("render route disposal", () => {
         body: JSON.stringify({ format: "mp4" }),
       });
 
+      expect(response.status).toBe(503);
+      expect(spy).not.toHaveBeenCalled();
+    } finally {
+      rmSync(rendersDir, { recursive: true, force: true });
+    }
+  });
+
+  it("rejects a render whose request was in flight when disposal began", async () => {
+    // The handler awaits project resolution before it can start the render.
+    // Disposal that begins inside that await must still win: the first
+    // shutting-down check already passed, so only the re-check before
+    // startRender stands between dispose() and an unowned render.
+    let releaseProject!: () => void;
+    const projectGate = new Promise<void>((resolve) => {
+      releaseProject = resolve;
+    });
+    const spy = vi.fn();
+    const { adapter, rendersDir } = createAdapter(spy);
+    const originalResolveProject = adapter.resolveProject;
+    adapter.resolveProject = async (id) => {
+      await projectGate;
+      return originalResolveProject(id);
+    };
+    const app = new Hono();
+    const routes = registerRenderRoutes(app, adapter);
+    try {
+      const pending = app.request("http://localhost/projects/demo/render", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ format: "mp4" }),
+      });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      const disposal = routes.dispose();
+      releaseProject();
+
+      const response = await pending;
+      await disposal;
       expect(response.status).toBe(503);
       expect(spy).not.toHaveBeenCalled();
     } finally {

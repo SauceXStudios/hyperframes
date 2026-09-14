@@ -30,11 +30,6 @@
       "import": "./src/utils/shaderTransitions.ts",
       "types": "./src/utils/shaderTransitions.ts"
     },
-    "./process-tracker": {
-      "bun": "./src/utils/processTracker.ts",
-      "import": "./src/utils/processTracker.ts",
-      "types": "./src/utils/processTracker.ts"
-    },
     "./package.json": "./package.json"
   },
   "publishConfig": {
@@ -51,10 +46,6 @@
       "./shader-transitions": {
         "import": "./dist/utils/shaderTransitions.js",
         "types": "./dist/utils/shaderTransitions.d.ts"
-      },
-      "./process-tracker": {
-        "import": "./dist/utils/processTracker.js",
-        "types": "./dist/utils/processTracker.d.ts"
       },
       "./package.json": "./package.json"
     },

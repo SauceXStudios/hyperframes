@@ -9,7 +9,7 @@
 import { spawn } from "child_process";
 import { getFfmpegBinary } from "./ffmpegBinaries.js";
 import { ManagedChildProcess } from "./managedChildProcess.js";
-import { trackChildProcess } from "./processTracker.js";
+import { trackChildProcess } from "@hyperframes/parsers/process-tracker";
 
 export type ConcreteGpuEncoder = "nvenc" | "videotoolbox" | "vaapi" | "qsv" | "amf";
 export type GpuEncoder = ConcreteGpuEncoder | null;
@@ -67,7 +67,7 @@ export async function detectGpuEncoder(): Promise<GpuEncoder> {
     // See runFfmpeg.ts: keeps a console window off the user's desktop on Windows.
     windowsHide: true,
   });
-  trackChildProcess(ffmpeg, { kind: "ffmpeg" });
+  trackChildProcess(ffmpeg);
   let stdout = "";
   ffmpeg.stdout.on("data", (data) => {
     stdout += data.toString();
@@ -181,7 +181,7 @@ async function canUseGpuEncoder(encoder: ConcreteGpuEncoder): Promise<boolean> {
     stdio: ["ignore", "ignore", "pipe"],
     windowsHide: true,
   });
-  trackChildProcess(ffmpeg, { kind: "ffmpeg" });
+  trackChildProcess(ffmpeg);
   const outcome = await new ManagedChildProcess(ffmpeg, {
     deadlineAtMs: Date.now() + GPU_PROBE_TIMEOUT_MS,
     terminationGraceMs: GPU_PROBE_KILL_GRACE_MS,

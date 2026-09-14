@@ -106,6 +106,84 @@ describe("owned FFmpeg orphan cleanup", () => {
   });
 });
 
+// These run the REAL killProcessTree against a live child. The identity fake
+// stands in for the OS handing the recorded PID to an unrelated process: it
+// returns the recorded birth identity at discovery time and a different one
+// afterwards, exactly as `processIdentity` would once the PID is recycled.
+// The child must survive — a kill that reaches it means a revalidation is gone.
+describe.skipIf(!IS_UNIX)("owned FFmpeg orphan cleanup — PID reuse with the real kill path", () => {
+  function isAlive(pid: number): boolean {
+    try {
+      process.kill(pid, 0);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  it("does not signal a PID whose identity changed between discovery and kill", async () => {
+    const proc = spawn("sleep", ["60"], { stdio: "ignore" });
+    const closed = new Promise<void>((resolve) => proc.on("close", () => resolve()));
+    const pid = proc.pid!;
+    const identity = processIdentity(pid);
+    expect(identity).not.toBeNull();
+    try {
+      let lookups = 0;
+      const identityForPid = () => (++lookups === 1 ? identity : `${identity}:recycled`);
+
+      killOwnedOrphanedFfmpegProcesses(
+        [{ pid, identity: identity! }],
+        killProcessTree,
+        identityForPid,
+      );
+
+      // Longer than the 500 ms SIGKILL grace so a skipped escalation counts too.
+      await new Promise((resolve) => setTimeout(resolve, 700));
+      expect(lookups).toBeGreaterThanOrEqual(2);
+      expect(isAlive(pid)).toBe(true);
+    } finally {
+      proc.kill("SIGKILL");
+      await closed;
+    }
+  }, 5000);
+
+  it("does not escalate to SIGKILL when ownership is lost during the grace period", async () => {
+    // Ignores SIGTERM so only the escalation could end it.
+    const proc = spawn("bash", ["-c", "trap '' TERM; sleep 60"], { stdio: "ignore" });
+    const closed = new Promise<void>((resolve) => proc.on("close", () => resolve()));
+    const pid = proc.pid!;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    const identity = processIdentity(pid);
+    expect(identity).not.toBeNull();
+    try {
+      let owned = true;
+      let lookupsAfterLoss = 0;
+      const identityForPid = () => {
+        if (!owned) lookupsAfterLoss++;
+        return owned ? identity : `${identity}:recycled`;
+      };
+
+      killOwnedOrphanedFfmpegProcesses(
+        [{ pid, identity: identity! }],
+        killProcessTree,
+        identityForPid,
+      );
+      expect(isAlive(pid)).toBe(true);
+      // The PID is handed to someone else before the grace period elapses.
+      owned = false;
+
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      // Proves the escalation timer ran and revalidated — a still-alive child
+      // is not just a timer that has yet to fire.
+      expect(lookupsAfterLoss).toBeGreaterThanOrEqual(1);
+      expect(isAlive(pid)).toBe(true);
+    } finally {
+      killProcessTree(pid, "SIGKILL");
+      await closed;
+    }
+  }, 5000);
+});
+
 describe.skipIf(!IS_UNIX)("killProcessTree", () => {
   it("kills a process and all its children", async () => {
     // Spawn a parent that spawns two sleeping children

@@ -337,7 +337,7 @@ export {
   beginTrackedProcessDrain,
   killTrackedProcesses,
   trackChildProcess,
-} from "./utils/processTracker.js";
+} from "@hyperframes/parsers/process-tracker";
 
 // drawElement self-verify comparison — shared by the streaming drain
 // (producer) and the parallel disk-path verify (parallelCoordinator).

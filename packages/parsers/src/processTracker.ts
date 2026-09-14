@@ -1,12 +1,50 @@
 import { execFileSync, type ChildProcess } from "node:child_process";
-import { mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from "node:fs";
+import {
+  lstatSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  unlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+
+/**
+ * Shared child-process ownership for every package that shells out to
+ * FFmpeg/FFprobe (engine, producer, cli, studio-server). Node-only: import via
+ * the `@hyperframes/parsers/process-tracker` subpath, never from a browser
+ * bundle. Lives here (next to `ff-binaries`) rather than in the engine because
+ * studio-server cannot depend on the engine without closing a package cycle,
+ * and the drain set below only works when every spawn site shares ONE module
+ * instance.
+ *
+ * Two layers, both process-scoped:
+ * - the in-memory drain set: `killTrackedProcesses` / `beginTrackedProcessDrain`
+ *   terminate every tracked child from the owning process's own shutdown path.
+ *   This is the layer that covers Ctrl+C on every platform, Windows included.
+ * - the on-disk ownership registry (`kind: "ffmpeg"` only): a per-user
+ *   directory of `<pid>.json` records carrying the child's birth identity, so
+ *   a LATER CLI run can recover encoders that survived a crash of their
+ *   parent. Recovery is inert on Windows: the registry is never written there
+ *   and `findOwnedOrphanedFfmpegProcesses` returns `[]`, because orphan
+ *   detection keys on the POSIX "reparented to PID 1" signal, which has no
+ *   Windows equivalent — a child of a dead parent keeps its stale parent PID.
+ */
 
 const tracked = new Set<ChildProcess>();
 let draining = false;
 
 export interface TrackChildProcessOptions {
+  /**
+   * `"ffmpeg"` additionally records the child in the on-disk ownership
+   * registry so a later run can recover it if this process crashes. Reserve it
+   * for long-running encoders/transcodes/decodes — the ones worth recovering.
+   * Leave probes (ffprobe, `ffmpeg -filters`) untagged: they are bounded by
+   * their own deadlines, and registration resolves the child's identity
+   * synchronously (a `ps` fork on macOS), which must stay off the per-file
+   * probe fan-out path.
+   */
   kind?: "ffmpeg";
   registryDir?: string;
 }
@@ -56,6 +94,28 @@ export function ownedProcessRegistryDir(): string {
   return join(tmpdir(), `hyperframes-owned-processes-${uid}`);
 }
 
+/**
+ * The registry lives at a predictable path under the shared OS temp dir, so
+ * another local user can pre-create it. Records are only written to, and only
+ * read from, a real directory (not a symlink) that this uid owns with no
+ * group/other permission bits — anything else is treated as absent, which
+ * fails closed on both sides: no record is written, and no record is trusted
+ * as a kill authorization. The writer creates the directory 0o700 when
+ * missing and then calls this, because a recursive `mkdirSync` silently
+ * accepts an existing entry of any kind — the `lstatSync` below is what
+ * rejects a pre-existing impostor.
+ */
+function isTrustedRegistryDir(registryDir: string): boolean {
+  try {
+    const stat = lstatSync(registryDir);
+    if (!stat.isDirectory()) return false;
+    if (typeof process.getuid === "function" && stat.uid !== process.getuid()) return false;
+    return (stat.mode & 0o077) === 0;
+  } catch {
+    return false;
+  }
+}
+
 export function processParentPid(pid: number): number | null {
   if (!Number.isInteger(pid) || pid <= 0) return null;
   try {
@@ -92,6 +152,31 @@ export interface OwnedFfmpegProcess {
   identity: string;
 }
 
+/** Parse one registry record; null for anything that is not a well-formed v1 ffmpeg record. */
+function readOwnedRecord(path: string): OwnedFfmpegProcess | null {
+  try {
+    const record = JSON.parse(readFileSync(path, "utf8")) as {
+      version?: unknown;
+      kind?: unknown;
+      pid?: unknown;
+      identity?: unknown;
+    };
+    if (
+      record.version !== 1 ||
+      record.kind !== "ffmpeg" ||
+      typeof record.pid !== "number" ||
+      !Number.isInteger(record.pid) ||
+      record.pid <= 0 ||
+      typeof record.identity !== "string"
+    ) {
+      return null;
+    }
+    return { pid: record.pid, identity: record.identity };
+  } catch {
+    return null;
+  }
+}
+
 export function findOwnedOrphanedFfmpegProcesses(
   options: {
     registryDir?: string;
@@ -103,6 +188,7 @@ export function findOwnedOrphanedFfmpegProcesses(
   const registryDir = options.registryDir ?? ownedProcessRegistryDir();
   const identityForPid = options.identityForPid ?? processIdentity;
   const parentPidForPid = options.parentPidForPid ?? processParentPid;
+  if (!isTrustedRegistryDir(registryDir)) return [];
   let files: string[];
   try {
     files = readdirSync(registryDir).filter((file) => file.endsWith(".json"));
@@ -113,36 +199,18 @@ export function findOwnedOrphanedFfmpegProcesses(
   const orphans: OwnedFfmpegProcess[] = [];
   for (const file of files) {
     const path = join(registryDir, file);
-    try {
-      const record = JSON.parse(readFileSync(path, "utf8")) as {
-        version?: unknown;
-        kind?: unknown;
-        pid?: unknown;
-        identity?: unknown;
-      };
-      if (
-        record.version !== 1 ||
-        record.kind !== "ffmpeg" ||
-        !Number.isInteger(record.pid) ||
-        (record.pid as number) <= 0 ||
-        typeof record.identity !== "string"
-      ) {
-        unlinkSync(path);
-        continue;
-      }
-      const pid = record.pid as number;
-      if (identityForPid(pid) !== record.identity) {
-        unlinkSync(path);
-        continue;
-      }
-      if (parentPidForPid(pid) === 1) orphans.push({ pid, identity: record.identity });
-    } catch {
+    const record = readOwnedRecord(path);
+    // A malformed record, or one whose PID now belongs to a different process,
+    // is stale: drop it so the next scan does not re-read it.
+    if (record === null || identityForPid(record.pid) !== record.identity) {
       try {
         unlinkSync(path);
       } catch {
         // Stale record already removed.
       }
+      continue;
     }
+    if (parentPidForPid(record.pid) === 1) orphans.push(record);
   }
   return orphans.sort((a, b) => a.pid - b.pid);
 }
@@ -150,12 +218,13 @@ export function findOwnedOrphanedFfmpegProcesses(
 function registerOwnedFfmpeg(
   proc: ChildProcess,
   registryDir = ownedProcessRegistryDir(),
-): string | null {
+): { path: string; identity: string } | null {
   if (!proc.pid || process.platform === "win32") return null;
   const identity = processIdentity(proc.pid);
   if (!identity) return null;
   try {
     mkdirSync(registryDir, { recursive: true, mode: 0o700 });
+    if (!isTrustedRegistryDir(registryDir)) return null;
     const path = join(registryDir, `${proc.pid}.json`);
     try {
       unlinkSync(path);
@@ -166,7 +235,7 @@ function registerOwnedFfmpeg(
       flag: "wx",
       mode: 0o600,
     });
-    return path;
+    return { path, identity };
   } catch {
     return null;
   }
@@ -176,15 +245,21 @@ export function trackChildProcess(
   proc: ChildProcess,
   options: TrackChildProcessOptions = {},
 ): void {
-  let ownershipPath =
-    options.kind === "ffmpeg" ? registerOwnedFfmpeg(proc, options.registryDir) : null;
+  let ownership = options.kind === "ffmpeg" ? registerOwnedFfmpeg(proc, options.registryDir) : null;
   const remove = () => {
     tracked.delete(proc);
-    const path = ownershipPath;
-    ownershipPath = null;
-    if (path) {
+    const owned = ownership;
+    ownership = null;
+    if (owned) {
       try {
-        unlinkSync(path);
+        // The file is named by PID. Another HyperFrames process can have been
+        // handed this PID and written its own record between the child's
+        // reap and this listener running; only remove the record we wrote.
+        // The read→unlink pair is not atomic, so a writer landing in between
+        // still loses its record — that costs one missed recovery, never a
+        // wrong kill, because the scan revalidates identity before acting.
+        const record = JSON.parse(readFileSync(owned.path, "utf8")) as { identity?: unknown };
+        if (record.identity === owned.identity) unlinkSync(owned.path);
       } catch {
         // Already removed or unavailable.
       }
