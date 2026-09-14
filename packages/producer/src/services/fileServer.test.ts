@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { createServer } from "node:http";
 import path, { join } from "node:path";
 import { tmpdir } from "node:os";
 import {
@@ -102,6 +103,38 @@ describe("file server health", () => {
     expect(health.healthy).toBe(false);
     expect(health.error).toBeTruthy();
     expect(health.durationMs).toBeLessThan(1_000);
+  });
+
+  it("rejects a foreign listener that answers 200 without the identity header", async () => {
+    // A stale port can be re-bound by an unrelated process between the probe
+    // and the restart decision; a bare 200 must not read as "our server".
+    const foreign = createServer((_request, response) => response.end("ok"));
+    await new Promise<void>((resolve) => foreign.listen(0, "127.0.0.1", resolve));
+    const address = foreign.address();
+    if (!address || typeof address === "string") throw new Error("foreign server has no port");
+    try {
+      const health = await probeFileServerHealth({ url: `http://127.0.0.1:${address.port}` }, 500);
+
+      expect(health).toMatchObject({ healthy: false, status: 200 });
+      expect(health.error).toBeUndefined();
+    } finally {
+      await new Promise<void>((resolve) => foreign.close(() => resolve()));
+    }
+  });
+
+  it("names the connection-refused code of a probe against a closed port", async () => {
+    const vacated = createServer();
+    await new Promise<void>((resolve) => vacated.listen(0, "127.0.0.1", resolve));
+    const address = vacated.address();
+    if (!address || typeof address === "string") throw new Error("server has no port");
+    await new Promise<void>((resolve) => vacated.close(() => resolve()));
+
+    const health = await probeFileServerHealth({ url: `http://127.0.0.1:${address.port}` }, 500);
+
+    expect(health.healthy).toBe(false);
+    // Bun reports `ConnectionRefused` on the error itself; Node buries
+    // `ECONNREFUSED` in `.cause`. Either must surface in the diagnostic.
+    expect(health.error).toMatch(/ConnectionRefused|ECONNREFUSED/);
   });
 
   it("bounds a health endpoint that never responds", async () => {
