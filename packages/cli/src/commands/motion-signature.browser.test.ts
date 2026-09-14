@@ -32,6 +32,11 @@ const BASE_STYLE: StyleOverride = {
   opacity: "1",
   fontVariationSettings: "normal",
   clipPath: "none",
+  stroke: "none",
+  strokeWidth: "1px",
+  strokeOpacity: "1",
+  strokeDasharray: "none",
+  strokeDashoffset: "0px",
   counterReset: "none",
   counterIncrement: "none",
   counterSet: "none",
@@ -117,6 +122,14 @@ const ROOT = { left: 0, top: 0, width: 640, height: 360 };
 const COUNTDOWN = { left: 280, top: 140, width: 80, height: 48 };
 const ZERO_BOX = { left: 0, top: 0, width: 0, height: 0 };
 const COUNTER_CONSUMER = { after: { content: "counter(countdown)" } };
+// The real Chromium bbox of a horizontal stroked path: the object bounding
+// box excludes the stroke, so height is 0 regardless of stroke-width.
+const FLAT_CONNECTOR = { left: 10, top: 10, width: 290, height: 0 };
+const DASHED_STROKE: StyleOverride = {
+  stroke: "rgb(0, 0, 0)",
+  strokeWidth: "4px",
+  strokeDasharray: "290px",
+};
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -259,6 +272,203 @@ describe("motion-signature.browser media and geometry channels", () => {
     const collect = installScript();
 
     expect(collect()).toBe(collect());
+  });
+
+  // A "draw the line in" SVG entrance (stroke-dashoffset animating on a path
+  // whose `d` never changes) shares the font-axis blind spot: no box change,
+  // no opacity change. The connector rect is deliberately degenerate (height
+  // 0) so the test also pins that a stroked straight line passes the
+  // visibility gate at all — the common real shape for this animation.
+  it("changes the sweep fingerprint when only stroke-dashoffset moves on a straight connector", () => {
+    document.body.innerHTML = `
+      <div id="root" data-composition-id="main" data-width="640" data-height="360">
+        <svg id="diagram"><path id="connector" d="M 10 10 L 300 10" /></svg>
+      </div>
+    `;
+    let dashOffset = "290px";
+    installFixture({
+      rects: { root: ROOT, diagram: ROOT, connector: FLAT_CONNECTOR },
+      styles: {
+        connector: {
+          ...DASHED_STROKE,
+          get strokeDashoffset() {
+            return dashOffset;
+          },
+        } as StyleOverride,
+      },
+    });
+
+    const collect = installScript();
+    const hidden = collect();
+    dashOffset = "145px"; // half drawn in
+    const half = collect();
+    dashOffset = "0px"; // fully revealed
+    const drawn = collect();
+
+    expect(half).not.toBe(hidden);
+    expect(drawn).not.toBe(half);
+  });
+
+  it("keeps the sweep fingerprint identical when nothing moves, stroke dash included", () => {
+    document.body.innerHTML = `
+      <div id="root" data-composition-id="main" data-width="640" data-height="360">
+        <svg id="diagram"><path id="connector" d="M 10 10 L 300 10" /></svg>
+      </div>
+    `;
+    installFixture({
+      rects: { root: ROOT, diagram: ROOT, connector: FLAT_CONNECTOR },
+      styles: { connector: { ...DASHED_STROKE, strokeDashoffset: "0px" } },
+    });
+
+    const collect = installScript();
+
+    expect(collect()).toBe(collect());
+  });
+
+  // `display` is not inherited: the fake getComputedStyle reports the child as
+  // display:block, so only the classifier's ancestor walk can hide it.
+  it("ignores stroke-dash motion under a display:none ancestor", () => {
+    document.body.innerHTML = `
+      <div id="root" data-composition-id="main" data-width="640" data-height="360">
+        <svg id="diagram"><g id="offstage"><path id="connector" d="M 10 10 L 300 10" /></g></svg>
+      </div>
+    `;
+    let dashOffset = "290px";
+    installFixture({
+      rects: { root: ROOT, diagram: ROOT, offstage: ROOT, connector: FLAT_CONNECTOR },
+      styles: {
+        offstage: { display: "none" },
+        connector: {
+          ...DASHED_STROKE,
+          get strokeDashoffset() {
+            return dashOffset;
+          },
+        } as StyleOverride,
+      },
+    });
+
+    const collect = installScript();
+    const before = collect();
+    dashOffset = "0px";
+
+    expect(collect()).toBe(before);
+  });
+
+  // The stroke is never painted, so the dash pattern on it is not motion — and
+  // the connector must not report as visible on the strength of its stroke.
+  it("ignores stroke-dash motion on a stroke-opacity:0 connector", () => {
+    document.body.innerHTML = `
+      <div id="root" data-composition-id="main" data-width="640" data-height="360">
+        <svg id="diagram"><path id="connector" d="M 10 10 L 300 10" /></svg>
+      </div>
+    `;
+    let dashOffset = "290px";
+    installFixture({
+      rects: { root: ROOT, diagram: ROOT, connector: FLAT_CONNECTOR },
+      styles: {
+        connector: {
+          ...DASHED_STROKE,
+          strokeOpacity: "0",
+          get strokeDashoffset() {
+            return dashOffset;
+          },
+        } as StyleOverride,
+      },
+    });
+
+    const collect = installScript();
+    const before = collect();
+    dashOffset = "0px";
+
+    expect(collect()).toBe(before);
+  });
+
+  // Blink reports an empty box for descendants of these containers; the
+  // fixture deliberately gives them a rendered path's box so this pins the
+  // container rule itself rather than the box gate.
+  it("ignores stroke-dash motion inside unpainted SVG containers", () => {
+    document.body.innerHTML = `
+      <div id="root" data-composition-id="main" data-width="640" data-height="360">
+        <svg id="diagram">
+          <defs><path id="template" d="M 10 10 L 300 10" /></defs>
+          <clipPath id="reveal"><path id="clip" d="M 10 20 L 300 20" /></clipPath>
+          <mask id="fade"><path id="masked" d="M 10 30 L 300 30" /></mask>
+          <symbol id="glyph"><path id="instanced" d="M 10 40 L 300 40" /></symbol>
+          <pattern id="tile"><path id="tiled" d="M 10 50 L 300 50" /></pattern>
+          <marker id="head"><path id="vertex" d="M 10 60 L 300 60" /></marker>
+        </svg>
+      </div>
+    `;
+    let dashOffset = "290px";
+    const animated = {
+      ...DASHED_STROKE,
+      get strokeDashoffset() {
+        return dashOffset;
+      },
+    } as StyleOverride;
+    installFixture({
+      rects: {
+        root: ROOT,
+        diagram: ROOT,
+        defs: ROOT,
+        reveal: ROOT,
+        fade: ROOT,
+        glyph: ROOT,
+        tile: ROOT,
+        head: ROOT,
+        template: FLAT_CONNECTOR,
+        clip: { left: 10, top: 20, width: 290, height: 0 },
+        masked: { left: 10, top: 30, width: 290, height: 0 },
+        instanced: { left: 10, top: 40, width: 290, height: 0 },
+        tiled: { left: 10, top: 50, width: 290, height: 0 },
+        vertex: { left: 10, top: 60, width: 290, height: 0 },
+      },
+      styles: {
+        template: animated,
+        clip: animated,
+        masked: animated,
+        instanced: animated,
+        tiled: animated,
+        vertex: animated,
+      },
+    });
+
+    const collect = installScript();
+    const before = collect();
+    dashOffset = "0px";
+
+    expect(collect()).toBe(before);
+  });
+
+  // The container rule is namespaced: an HTML element that merely shares a
+  // name with an unpainted SVG container paints its subtree like any other.
+  it("keeps signing content inside an HTML element named <defs>", () => {
+    document.body.innerHTML = `
+      <div id="root" data-composition-id="main" data-width="640" data-height="360">
+        <defs id="panel"><span id="label">Q3</span></defs>
+      </div>
+    `;
+    let labelOpacity = "1";
+    installFixture({
+      rects: {
+        root: ROOT,
+        panel: { left: 40, top: 40, width: 200, height: 48 },
+        label: { left: 40, top: 40, width: 40, height: 48 },
+      },
+      styles: {
+        label: {
+          get opacity() {
+            return labelOpacity;
+          },
+        } as StyleOverride,
+      },
+    });
+
+    const collect = installScript();
+    const before = collect();
+    labelOpacity = "0.5";
+
+    expect(collect()).not.toBe(before);
   });
 
   it("changes the sweep fingerprint when only clip-path moves", () => {
