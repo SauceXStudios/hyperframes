@@ -229,48 +229,6 @@ Timeline math: the still owns its hold duration. Source math: final-source frame
 
 Timeline math: duration is authored timeline time. Source math: consumed source = timeline duration × rate; natural timeline duration = remaining source / rate. Audio follows: matching separate audio track uses the same constant rate. Owner: `/hyperframes-core`. Limit: normalized 0.1..5 constant only; no speed ramp envelope.
 
-## Zoom / punch
-
-```js
-tl.to("#clip .inner", { scale: 1.35, xPercent: -8, duration: 0.18 }, 1);
-```
-
-Timeline math: tween positions are composition seconds. Source math: unchanged; the core clip still selects source time. Audio follows: unchanged unless separately edited. Owner: `/hyperframes-keyframes`. Limit: target the inner wrapper, not the timed clip element.
-
-## Pan / Ken Burns
-
-```js
-tl.fromTo(
-  "#clip .inner",
-  { scale: 1.05, xPercent: 0 },
-  { scale: 1.2, xPercent: -12, duration: 4, ease: "none" },
-  0,
-);
-```
-
-Timeline math: move spans four authored seconds. Source math: unchanged. Audio follows: matching clip timing remains separate. Owner: `/hyperframes-keyframes`. Limit: authored geometry, not automatic face tracking.
-
-## Crop / reframe
-
-```js
-tl.to("#clip .inner", { clipPath: "inset(8% 12% 6% 10%)", xPercent: -4, duration: 1 }, 2);
-```
-
-Timeline math: crop interpolates over `[2,3]`. Source math: unchanged. Audio follows: no automatic change. Owner: `/hyperframes-keyframes`. Limit: inner wrapper only, not temporal trim.
-
-## Clip-path wipe / reveal / mask / split-screen
-
-```js
-tl.fromTo(
-  "#next .inner",
-  { clipPath: "polygon(0 0,0 0,0 100%,0 100%)" },
-  { clipPath: "polygon(0 0,100% 0,100% 100%,0 100%)", duration: 0.5 },
-  2,
-);
-```
-
-Timeline math: overlap placed clips for the 0.5s handoff. Source math: each clip keeps its own range. Audio follows: place matching audio on its own tracks. Owner: `/hyperframes-keyframes` + `/hyperframes-animation`. Limit: visual mask/polygon/split-screen only; source cuts stay `/hyperframes-core`.
-
 ## Crossfade
 
 ```html
@@ -314,11 +272,10 @@ Timeline math: overlap placed clips for the 0.5s handoff. Source math: each clip
 ></audio>
 <script>
   const tl = gsap.timeline({ paused: true });
-  tl.set("#b-visual", { autoAlpha: 0 }, 0)
-    .to("#a-visual", { autoAlpha: 0, duration: 0.5 }, 2.5)
-    .to("#b-visual", { autoAlpha: 1, duration: 0.5 }, 2.5);
-  window.__timelines = window.__timelines || {};
-  window.__timelines.main = tl;
+  tl.set("#b-visual", { opacity: 0 }, 0)
+    .to("#a-visual", { opacity: 0, duration: 0.5 }, 2.5)
+    .to("#b-visual", { opacity: 1, duration: 0.5 }, 2.5);
+  window.__timelines["main"] = tl;
 </script>
 ```
 
