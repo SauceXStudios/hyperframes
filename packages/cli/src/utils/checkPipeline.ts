@@ -500,7 +500,7 @@ const ZERO_LAYOUT_RECT: LayoutRect = {
 
 /**
  * Frozen-sweep guard (#U10): if every layout-grid sample produced the exact
- * same visible-state fingerprint (see layout-audit.browser.js), the seek
+ * same visible-state fingerprint (see motion-signature.browser.js), the seek
  * never actually advanced the composition's timeline — every other green
  * verdict from this run is meaningless, not just a missed defect. Skips
  * short (<3s) compositions, single-sample runs (nothing to compare), and

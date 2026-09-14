@@ -196,7 +196,9 @@ export interface CheckAuditDriver {
   collectOverlap(time: number): Promise<AnchoredLayoutIssue[]>;
   /** Frozen-sweep guard (#U10): an opaque fingerprint of the current seeked
    * visual state, for detecting a timeline that never advances under seek.
-   * The method keeps its legacy name for driver compatibility. */
+   * Produced by motion-signature.browser.js — the same classifier that feeds
+   * motion-sample's liveness signature. The method keeps its legacy name for
+   * driver compatibility. */
   collectLayoutGeometry(): Promise<string>;
   /** rotation_pivot_drift: every rotatable element's bbox center/size/angle at
    * the current seeked state. Accumulated across the grid — see checkPipeline. */
