@@ -9,6 +9,24 @@ Recent HyperFrames releases, including user-facing features, fixes, and migratio
 {/* New release entries are prepended by `bun run changelog:draft <version> --write`. */}
 
 <Update
+  label="HyperFrames v0.8.38"
+  description="Released - 2026-09-14"
+  tags={["Release", "CLI", "Skills"]}
+>
+Starting a project now gives a centered title on a dark frame with no extra flags. Local renders use the faster capture path. Agents writing a composition get the HTML contract only.
+
+## Features
+
+- **CLI:** `hyperframes init` scaffolds a centered title. Local render defaults to BeginFrame. `looks` is a named quality preset ([f059a6eb5](https://github.com/heygen-com/hyperframes/commit/f059a6eb539e6289d20156f04eb04a43ddc8b806), [#3927](https://github.com/heygen-com/hyperframes/pull/3927)).
+
+## Skills
+
+- **Authoring:** The core skill is how to write composition HTML. Briefing and review docs live on the router skill ([95bea1631](https://github.com/heygen-com/hyperframes/commit/95bea1631ff51dd38332f69daef3a1e1849d51c6), [#3928](https://github.com/heygen-com/hyperframes/pull/3928)).
+
+[View the full commit range](https://github.com/heygen-com/hyperframes/compare/v0.8.37...v0.8.38).
+</Update>
+
+<Update
   label="HyperFrames v0.8.37"
   description="Released - 2026-09-13"
   tags={["Release", "Core/bundler", "Render", "Engine"]}
