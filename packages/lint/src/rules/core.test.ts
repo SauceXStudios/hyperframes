@@ -116,7 +116,9 @@ describe("core rules", () => {
       'gsap.to(".box", { x: 10, scrollTrigger: { trigger: "#123-frame" } });',
     ],
     ["ScrollTrigger.create", 'ScrollTrigger.create({ trigger: "#123-frame", pin: true });'],
-    [":is() wrapper", 'document.querySelector(":is(#123-frame)");'],
+    [":not()", 'document.querySelector(":not(#123-frame)");'],
+    [":has()", 'document.querySelector(".stage:has(#123-frame)");'],
+    [":nth-child(of)", 'document.querySelector("li:nth-child(2 of #123-frame)");'],
     ["descendant compound", 'document.querySelector(".stage #123-frame > span");'],
     ["template literal", "document.querySelector(`#123-frame`);"],
   ])("errors when %s executes a raw digit-leading id selector", async (_sink, statement) => {
@@ -140,6 +142,39 @@ describe("core rules", () => {
       result.findings.find((finding) => finding.code === "id_requires_css_escape"),
     ).toBeUndefined();
   });
+
+  it.each([
+    ":is(#123-frame)",
+    ":where(#123-frame)",
+    ":is(.a, #123-frame)",
+    ":is(#123-frame) span",
+    ".a:is(#123-frame)",
+    ":is(:not(#123-frame))",
+    ":not(:is(#123-frame))",
+  ])(
+    "keeps warning-only behavior for %s, where :is()/:where() forgiveness prevents the throw",
+    async (selector) => {
+      const html = `
+<html><body>
+  <div data-composition-id="c1" data-width="1920" data-height="1080">
+    <div id="123-frame"></div>
+  </div>
+  <script>
+    document.querySelector(${JSON.stringify(selector)});
+    window.__timelines = {};
+  </script>
+</body></html>`;
+
+      const result = await lintHyperframeHtml(html);
+
+      expect(
+        result.findings.filter((finding) => finding.code === "invalid_raw_selector_execution"),
+      ).toEqual([]);
+      expect(
+        result.findings.find((finding) => finding.code === "id_requires_css_escape")?.elementId,
+      ).toBe("123-frame");
+    },
+  );
 
   it("errors when the executed invalid selector has no matching element", async () => {
     const html = `

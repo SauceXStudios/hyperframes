@@ -23,18 +23,35 @@ function idRequiresCssEscape(id: string): boolean {
   return /^\d/.test(id);
 }
 
+/** Pseudo-classes taking a forgiving selector list: invalid arguments are dropped, not thrown. */
+const FORGIVING_LIST_PSEUDOS = new Set([":is", ":where"]);
+
+function isForgivingListPseudo(node: selectorParser.Base): boolean {
+  return node.type === "pseudo" && FORGIVING_LIST_PSEUDOS.has(node.value?.toLowerCase() ?? "");
+}
+
+/** True when `node` is an argument (at any depth) of `:is()` / `:where()`. */
+function insideForgivingList(node: selectorParser.Node): boolean {
+  for (let parent = node.parent; parent; parent = parent.parent) {
+    if (isForgivingListPseudo(parent)) return true;
+  }
+  return false;
+}
+
 /**
  * Every id whose unescaped `#id` token makes `selector` throw a SyntaxError.
  * Parses the selector rather than scanning the string, so `#…` inside an
- * attribute value (`a[href="#123"]`) is not an id token, while `:is(#123)` and
- * `.card #123 > span` are. The raw token is checked so an already-escaped
- * `#\\31 23` passes.
+ * attribute value (`a[href="#123"]`) is not an id token, while `:not(#123)`,
+ * `:has(#123)` and `.card #123 > span` are. Ids under `:is()` / `:where()` are
+ * skipped: those lists are forgiving, so the selector parses and merely never
+ * matches. The raw token is checked so an already-escaped `#\\31 23` passes.
  */
 function browserInvalidIdTokens(selector: string): string[] {
   const invalid: string[] = [];
   try {
     selectorParser((root) => {
       root.walkIds((node) => {
+        if (insideForgivingList(node)) return;
         if (idRequiresCssEscape(rawIdToken(node))) invalid.push(node.value);
       });
     }).processSync(selector);
@@ -60,7 +77,7 @@ function repeatedDescendantId(selector: string): string | null {
   let repeated: string | null = null;
 
   const requiredPseudoIds = (pseudo: selectorParser.Pseudo): Set<string> => {
-    if (![":is", ":where"].includes(pseudo.value.toLowerCase()) || pseudo.nodes.length === 0) {
+    if (!isForgivingListPseudo(pseudo) || pseudo.nodes.length === 0) {
       return new Set<string>();
     }
 
