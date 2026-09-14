@@ -1,4 +1,5 @@
 import type { LintContext, HyperframeLintFinding } from "../context";
+import type { LintRule } from "../types";
 import postcss from "postcss";
 import selectorParser from "postcss-selector-parser";
 import {
@@ -16,6 +17,44 @@ import {
   TIMELINE_REGISTRY_OBJECT_LITERAL_PATTERN,
   INVALID_SCRIPT_CLOSE_PATTERN,
 } from "../utils";
+
+/** CSS identifiers cannot start with a digit, so an unescaped `#<id>` token throws. */
+function idRequiresCssEscape(id: string): boolean {
+  return /^\d/.test(id);
+}
+
+/**
+ * Every id whose unescaped `#id` token makes `selector` throw a SyntaxError.
+ * Parses the selector rather than scanning the string, so `#…` inside an
+ * attribute value (`a[href="#123"]`) is not an id token, while `:is(#123)` and
+ * `.card #123 > span` are. The raw token is checked so an already-escaped
+ * `#\\31 23` passes.
+ */
+function browserInvalidIdTokens(selector: string): string[] {
+  const invalid: string[] = [];
+  try {
+    selectorParser((root) => {
+      root.walkIds((node) => {
+        if (idRequiresCssEscape(rawIdToken(node))) invalid.push(node.value);
+      });
+    }).processSync(selector);
+  } catch {
+    // Unparsable selector: the browser may still reject it, but no id token can
+    // be proven at fault, so stay silent rather than guess one.
+    return [];
+  }
+  return invalid;
+}
+
+/** The id token as written in source; `raws` is missing from the v7 id typings. */
+function rawIdToken(node: selectorParser.Identifier): string {
+  return (
+    (node as selectorParser.Identifier & { raws?: { value?: string } }).raws?.value ?? node.value
+  );
+}
+
+const CSS_ESCAPE_ID_FIX_HINT =
+  "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime.";
 
 function repeatedDescendantId(selector: string): string | null {
   let repeated: string | null = null;
@@ -232,20 +271,52 @@ function findVisibleMarkupCommentLeak(source: string): string | null {
   return null;
 }
 
-export const coreRules: Array<(ctx: LintContext) => HyperframeLintFinding[]> = [
-  // id_requires_css_escape
-  ({ tags }) => {
+/**
+ * Digit-leading ids the scripts provably execute as literal selectors, keyed to
+ * the first sink that executes each one.
+ */
+async function executedInvalidIds(scripts: LintContext["scripts"]): Promise<Map<string, string>> {
+  const executed = new Map<string, string>();
+  if (scripts.length === 0) return executed;
+  const { extractLiteralSelectorCalls } = await import("@hyperframes/parsers/gsap-parser-acorn");
+  for (const script of scripts) {
+    for (const call of extractLiteralSelectorCalls(script.content)) {
+      for (const id of browserInvalidIdTokens(call.selector)) {
+        if (!executed.has(id)) executed.set(id, call.raw);
+      }
+    }
+  }
+  return executed;
+}
+
+export const coreRules: LintRule<LintContext>[] = [
+  // invalid_raw_selector_execution + id_requires_css_escape
+  // One owner for "this digit-leading id breaks `#id`": an id the scripts
+  // provably execute as a literal selector is a browser SyntaxError (error);
+  // any other digit-leading id is a hazard (warning). An id gets one or the other.
+  async ({ tags, scripts }) => {
     const findings: HyperframeLintFinding[] = [];
+    const executed = await executedInvalidIds(scripts);
+    for (const [id, raw] of executed) {
+      findings.push({
+        code: "invalid_raw_selector_execution",
+        severity: "error",
+        message: `The raw selector "#${id}" is executed, but digit-leading ids are not valid unescaped CSS selectors and throw a SyntaxError in the browser.`,
+        selector: `#${id}`,
+        elementId: id,
+        fixHint: CSS_ESCAPE_ID_FIX_HINT,
+        snippet: truncateSnippet(raw),
+      });
+    }
     for (const tag of tags) {
       const id = readAttr(tag.raw, "id");
-      if (!id || !/^\d/.test(id)) continue;
+      if (!id || !idRequiresCssEscape(id) || executed.has(id)) continue;
       findings.push({
         code: "id_requires_css_escape",
         severity: "warning",
         message: `id="${id}" starts with a digit, so the common selector \`#${id}\` throws a SyntaxError in querySelector().`,
         elementId: id,
-        fixHint:
-          "Rename the id to start with a letter (recommended), or build selectors with `#${CSS.escape(id)}` at runtime.",
+        fixHint: CSS_ESCAPE_ID_FIX_HINT,
         snippet: truncateSnippet(tag.raw),
       });
     }
