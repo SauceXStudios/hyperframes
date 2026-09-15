@@ -3703,20 +3703,13 @@ describe("GSAP seek-order safety rules", () => {
   });
 
   it("gsap_callback_dom_measurement: an unrelated regex/division ambiguity EARLIER in the script doesn't poison masking for a later, unrelated function", async () => {
-    // stripJsStringLiterals has its own documented fail-safe: if it can't
-    // resolve a regex-vs-division ambiguity anywhere in the text it scans, it
-    // returns that ENTIRE input untouched (fully unmasked), not just a
-    // locally-degraded region. `const ratio = {}/2;` is ordinary, valid JS
-    // that trips this (a `/` right after `}` defaults to "regex allowed",
-    // finds no closing `/` before the line ends, and gives up). Naively
-    // masking the WHOLE script for every matchBalanced/sliceExpression call
-    // would let that one unrelated line silently disable masking — and thus
-    // reintroduce the exact "unmasked string content corrupts bracket
-    // counting" bug this refactor exists to fix — for every OTHER function in
-    // the same script, including ones with nothing to do with the trigger.
-    // matchBalanced/sliceExpression now mask only source.slice(fromIndex),
-    // not the whole script, so a trigger textually BEFORE the region a call
-    // actually needs can no longer poison it.
+    // `const ratio = {}/2;` is ordinary, valid JS that trips stripJsStringLiterals's
+    // regex-vs-division ambiguity: the `/` right after `}` defaults to "regex
+    // allowed" and then finds no closing `/` before the line ends. That misread is
+    // recovered LOCALLY (see the scanner's own doc comment), so it must not affect
+    // masking for any OTHER function in the same script — here one whose real
+    // closing brace this rule can only find by bracket-depth counting, which needs
+    // the genuine `}` inside `"clo}se"` to stay masked.
     const html = `
 <html><body>
   <div data-composition-id="c1" data-width="1920" data-height="1080"><div id="cardA"></div></div>
@@ -3727,6 +3720,32 @@ describe("GSAP seek-order safety rules", () => {
       const label = useSafe ? "safe" : "clo}se";
       document.getElementById('cardA').getBoundingClientRect();
     }
+    const tl = gsap.timeline({ paused: true });
+    tl.to('#cardA', { x: 10, duration: 1, onUpdate: () => measureFn(true) }, 0);
+    window.__timelines["c1"] = tl;
+  </script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    const finding = result.findings.find((f) => f.code === "gsap_callback_dom_measurement");
+    expect(finding).toBeDefined();
+  });
+
+  it("gsap_callback_dom_measurement: an unrelated regex/division ambiguity LATER in the script doesn't poison masking for an earlier function", async () => {
+    // The mirror of the test above, and the direction that needs the recovery to be
+    // local rather than merely scoped: matchBalanced scans FORWARD from a function's
+    // own start index to the end of the script, so a misread sitting after that
+    // function is inside the span it masks no matter how narrowly the caller slices.
+    // Only correcting the misread in place keeps it away from `"clo}se"`.
+    const html = `
+<html><body>
+  <div data-composition-id="c1" data-width="1920" data-height="1080"><div id="cardA"></div></div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    function measureFn(useSafe) {
+      const label = useSafe ? "safe" : "clo}se";
+      document.getElementById('cardA').getBoundingClientRect();
+    }
+    const ratio = {}/2;
     const tl = gsap.timeline({ paused: true });
     tl.to('#cardA', { x: 10, duration: 1, onUpdate: () => measureFn(true) }, 0);
     window.__timelines["c1"] = tl;

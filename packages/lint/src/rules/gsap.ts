@@ -745,22 +745,43 @@ function targetsShareElement(
  *
  * The literal awareness itself is delegated, never re-derived here:
  * `stripJsStringLiterals` already handles escape sequences and, crucially,
- * regex-vs-division disambiguation — so a quote inside a sanitizer regex
- * (`/'/g`) cannot open a string that never closes and silently desync every
- * depth count downstream.
+ * regex-vs-division disambiguation — including recovering locally from a
+ * misread — so neither a quote inside a sanitizer regex (`/'/g`) nor an
+ * unrelated `{}/2`-shaped division elsewhere in the script can desync the
+ * depth counts below.
  *
- * Memoized on the last input: callers below re-mask the same script once per
- * regex match, and `stripJsStringLiterals` is a character-at-a-time scan, so
- * re-deriving it per match is quadratic in script size.
+ * Cached by exact input string, since the scanners below mask the SAME text
+ * repeatedly (once per regex match, once per function signature, ...) and
+ * `stripJsStringLiterals` walks a character at a time, so re-deriving it per
+ * call is quadratic in script size. This is a small LRU, not a single slot:
+ * callers legitimately interleave masking the whole script, one function's
+ * body, and a small param/arg list within the same pass, and a single-slot
+ * cache would evict the (expensive) whole-script entry on every (cheap) small
+ * one — quadratic again, just with a smaller constant. A handful of entries
+ * comfortably covers that real interleaving without unbounded growth.
  */
-let lastMaskedSource: string | null = null;
-let lastMaskedResult = "";
+const MASK_CACHE_LIMIT = 16;
+const maskCache = new Map<string, string>();
 function maskLiterals(source: string): string {
-  if (source !== lastMaskedSource) {
-    lastMaskedResult = stripJsStringLiterals(source);
-    lastMaskedSource = source;
+  const cached = maskCache.get(source);
+  if (cached !== undefined) {
+    // Re-inserting moves this key to the END of the Map's iteration order —
+    // Maps preserve insertion order — so eviction below (oldest-first) is
+    // true least-recently-USED, not merely least-recently-inserted. Without
+    // this, a frequently reused entry (typically the whole script, masked
+    // once but read on nearly every call) could still be evicted the moment
+    // enough OTHER distinct strings are masked, even though it was just used.
+    maskCache.delete(source);
+    maskCache.set(source, cached);
+    return cached;
   }
-  return lastMaskedResult;
+  const masked = stripJsStringLiterals(source);
+  maskCache.set(source, masked);
+  if (maskCache.size > MASK_CACHE_LIMIT) {
+    const oldestKey = maskCache.keys().next().value;
+    if (oldestKey !== undefined) maskCache.delete(oldestKey);
+  }
+  return masked;
 }
 
 /**
@@ -768,17 +789,6 @@ function maskLiterals(source: string): string {
  * Only REAL brackets count toward depth — one inside a string, template or
  * regex literal (a default value `a = "("`, a sanitizer regex `/{/g`) has been
  * masked out before the scan.
- *
- * Masks only `source.slice(openIndex)`, not the whole `source`, even though
- * every caller already has the full script/body in hand: `stripJsStringLiterals`
- * has its own documented fail-safe of returning its ENTIRE input untouched
- * (fully unmasked) if regex-vs-division disambiguation goes wrong anywhere
- * within it — one unrelated, ordinary line like `const ratio = {}/2;`
- * *anywhere later in an unsliced whole script* could otherwise silently
- * disable masking for every other call sharing that same source. Slicing to
- * `openIndex` first — always a real bracket, itself a valid regex-preceding
- * context either way — keeps that blast radius scoped to text this call
- * actually needs, not unrelated code before it.
  */
 function matchBalanced(
   source: string,
@@ -786,18 +796,29 @@ function matchBalanced(
   open: string,
   close: string,
 ): string | null {
-  const relevant = source.slice(openIndex);
-  const masked = maskLiterals(relevant);
+  const masked = maskLiterals(source);
   let depth = 0;
-  for (let i = 0; i < relevant.length; i++) {
+  for (let i = openIndex; i < source.length; i++) {
     const ch = masked[i] ?? "";
     if (ch === open) depth++;
     else if (ch === close) {
       depth--;
-      if (depth === 0) return relevant.slice(0, i + 1);
+      if (depth === 0) return source.slice(openIndex, i + 1);
     }
   }
   return null;
+}
+
+/**
+ * +1 for an opening bracket, -1 for a closing one, 0 otherwise — the one
+ * definition of "which masked characters move nesting depth" that every
+ * depth-tracking scanner below shares, instead of each re-testing its own copy
+ * of the `({[` / `)}]` character sets.
+ */
+function bracketDelta(ch: string): number {
+  if ("({[".includes(ch)) return 1;
+  if (")}]".includes(ch)) return -1;
+  return 0;
 }
 
 /**
@@ -820,10 +841,7 @@ function enclosingOpenBraceIndex(masked: string, index: number): number {
 
 /** The nearest object literal `{...}` enclosing `index` (comment-stripped source). */
 function enclosingObjectLiteral(source: string, index: number): string | null {
-  // Masks only the PREFIX up to `index` (text after it is irrelevant to a
-  // backward search) — same blast-radius reasoning as matchBalanced/
-  // sliceExpression above.
-  const braceIndex = enclosingOpenBraceIndex(maskLiterals(source.slice(0, index + 1)), index);
+  const braceIndex = enclosingOpenBraceIndex(maskLiterals(source), index);
   if (braceIndex < 0) return null;
   return matchBalanced(source, braceIndex, "{", "}");
 }
@@ -840,14 +858,15 @@ function objectLiteralHasTopLevelRelativeValue(objectLiteral: string): boolean {
       // ORIGINAL text. Testing at closing quotes too is harmless: only an
       // OPENING quote can be followed by `+=`/`-=`.
       if (depth === 1 && /^[+-]=/.test(objectLiteral.slice(i + 1))) return true;
-    } else if ("({[".includes(ch)) depth++;
-    else if (")}]".includes(ch)) depth--;
+    } else {
+      depth += bracketDelta(ch);
+    }
   }
   return false;
 }
 
 function isInsideGsapTweenVars(source: string, index: number, timelineVars: string[]): boolean {
-  const braceIndex = enclosingOpenBraceIndex(maskLiterals(source.slice(0, index + 1)), index);
+  const braceIndex = enclosingOpenBraceIndex(maskLiterals(source), index);
   if (braceIndex < 0) return false;
   const before = source.slice(Math.max(0, braceIndex - 240), braceIndex).replace(/\s+/g, " ");
   const receivers = ["gsap", ...timelineVars].map(escapeRegExp).join("|");
@@ -859,21 +878,18 @@ function isInsideGsapTweenVars(source: string, index: number, timelineVars: stri
  * at depth 0 outside any literal.
  */
 function sliceExpression(source: string, start: number): string {
-  // Sliced to `source.slice(start)` before masking, not the whole `source` —
-  // see matchBalanced's comment on why (shrinks stripJsStringLiterals's
-  // all-or-nothing fail-safe blast radius to text this call actually needs).
-  const relevant = source.slice(start);
-  const masked = maskLiterals(relevant);
+  const masked = maskLiterals(source);
   let depth = 0;
-  for (let i = 0; i < relevant.length; i++) {
+  for (let i = start; i < source.length; i++) {
     const ch = masked[i] ?? "";
-    if ("({[".includes(ch)) depth++;
-    else if (")}]".includes(ch)) {
-      if (depth === 0) return relevant.slice(0, i);
+    const delta = bracketDelta(ch);
+    if (delta > 0) depth++;
+    else if (delta < 0) {
+      if (depth === 0) return source.slice(start, i);
       depth--;
-    } else if (ch === "," && depth === 0) return relevant.slice(0, i);
+    } else if (ch === "," && depth === 0) return source.slice(start, i);
   }
-  return relevant;
+  return source.slice(start);
 }
 
 type ParsedFunctionValue = { firstParam: string | null; body: string };
@@ -948,11 +964,11 @@ function splitTopLevelByComma(text: string): string[] {
   let start = 0;
   for (let i = 0; i < text.length; i++) {
     const ch = masked[i] ?? "";
-    if ("({[".includes(ch)) depth++;
-    else if (")}]".includes(ch)) depth--;
-    else if (ch === "," && depth === 0) {
+    if (ch === "," && depth === 0) {
       parts.push(text.slice(start, i));
       start = i + 1;
+    } else {
+      depth += bracketDelta(ch);
     }
   }
   parts.push(text.slice(start));
@@ -1088,8 +1104,9 @@ function sliceUntilNextCase(text: string, start: number): string {
   for (let i = start; i < text.length; i++) {
     const ch = masked[i] ?? "";
     const prev = masked[i - 1] ?? "";
-    if ("({[".includes(ch)) depth++;
-    else if (")}]".includes(ch)) {
+    const delta = bracketDelta(ch);
+    if (delta > 0) depth++;
+    else if (delta < 0) {
       if (depth === 0) return text.slice(start, i);
       depth--;
     } else if (depth === 0 && !/[\w$]/.test(prev) && /^(?:case|default)\b/.test(masked.slice(i))) {
@@ -1223,8 +1240,7 @@ function findTopLevelCaseMatch(switchBody: string, value: string): RegExpExecArr
   while ((match = casePattern.exec(switchBody)) !== null) {
     for (; cursor < match.index; cursor++) {
       const ch = masked[cursor] ?? "";
-      if ("({[".includes(ch)) depth++;
-      else if (")}]".includes(ch)) depth--;
+      depth += bracketDelta(ch);
     }
     // The match itself must sit OUTSIDE any literal too: masking blanks a
     // literal's contents to spaces, so a case-label-shaped substring inside
@@ -1248,9 +1264,10 @@ function splitTopLevelStatements(text: string): string[] {
   let start = 0;
   for (let i = 0; i < text.length; i++) {
     const ch = masked[i] ?? "";
-    if ("({[".includes(ch)) {
+    const delta = bracketDelta(ch);
+    if (delta > 0) {
       stack.push(ch);
-    } else if (")}]".includes(ch)) {
+    } else if (delta < 0) {
       const opener = stack.pop();
       if (stack.length === 0 && opener === "{" && ch === "}") {
         statements.push(text.slice(start, i + 1));
@@ -1319,6 +1336,15 @@ function resolveSwitchCaseBranch(
 // branch. Returns null when the call can't be resolved this way (non-literal
 // argument, or no recognized branch shape) — callers fall back to the old,
 // conservative whole-function taint in that case.
+//
+// Two exotic shapes are known misses, documented rather than handled: (1) a
+// measurement reached only through a sibling case LABEL's own expression
+// (`case getMeasurement():`) — this resolver reads case BODIES, never case
+// expressions; (2) sloppy-mode `arguments[1] = true` aliasing a named
+// parameter — `arguments` is a live view onto non-strict parameters, so it can
+// flip which literal a parameter holds without the assignment-to-that-name
+// this resolver looks for ever appearing. Closing either needs AST-level
+// analysis, not text scanning.
 function resolveCallSiteMeasurement(
   calleeName: string,
   argsText: string,
@@ -1360,6 +1386,15 @@ function resolveCallSiteMeasurement(
 // deliberate, documented scope trade — there is no call syntax in the
 // callback's own text to resolve, because the invocation (and whatever
 // arguments it passes) happens inside setTimeout's/forEach's implementation.
+//
+// Known scaling characteristic, pre-existing and out of scope here: this is
+// called once per callback call-site, and loops `measuring` (every DOM-touching
+// named function in the WHOLE script) on each call — O(call sites × measuring
+// names). A script with many call sites, each naming its OWN distinct measuring
+// function, scales quadratically; one with many call sites sharing a SMALL,
+// shared set of measuring functions (the realistic shape) does not. Not a
+// regression from this pass's `maskLiterals` caching change — a follow-up would
+// need to invert the loop (index calls by name once, not per callback).
 function expressionReachesMeasurement(
   expression: string,
   measuring: Set<string>,
@@ -2714,7 +2749,11 @@ export const gsapRules: LintRule<LintContext>[] = [
           const parenIndex = match.index + match[0].length - 1;
           const argsWithParens = matchBalanced(source, parenIndex, "(", ")");
           if (!argsWithParens) continue;
-          const firstArg = sliceExpression(argsWithParens.slice(1, -1), 0);
+          // Passes `source` + an absolute index, like every sibling call below —
+          // never a fresh slice (`argsWithParens.slice(1, -1)`), which would mask
+          // a brand-new string and evict `source`'s own cached mask, undoing the
+          // whole point of `maskLiterals`'s single-slot memo.
+          const firstArg = sliceExpression(source, parenIndex + 1);
           const site = match[0] + firstArg + ", ...)";
           if (callbackExpressionHazard(firstArg)) report(site, site);
         }

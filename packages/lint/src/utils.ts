@@ -515,6 +515,15 @@ const REGEX_ALLOWED_KEYWORDS = new Set([
 
 const WORD_CHAR = /[A-Za-z0-9_$]/;
 
+/** A copy of `CodeContext`'s incremental state, so a wrong regex guess can be rewound. */
+type CodeContextSnapshot = {
+  last: string;
+  prev: string;
+  word: string;
+  wordEnded: boolean;
+  wordAfterDot: boolean;
+};
+
 /**
  * Tracks just enough emitted context to tell a regex literal from a division: the last
  * two significant characters and the trailing identifier. Carried incrementally because
@@ -552,45 +561,109 @@ class CodeContext {
     if ((this.last === "+" || this.last === "-") && this.prev === this.last) return false;
     return REGEX_ALLOWED_BEFORE.has(this.last);
   }
+
+  snapshot(): CodeContextSnapshot {
+    return {
+      last: this.last,
+      prev: this.prev,
+      word: this.word,
+      wordEnded: this.wordEnded,
+      wordAfterDot: this.wordAfterDot,
+    };
+  }
+
+  restore(snapshot: CodeContextSnapshot): void {
+    this.last = snapshot.last;
+    this.prev = snapshot.prev;
+    this.word = snapshot.word;
+    this.wordEnded = snapshot.wordEnded;
+    this.wordAfterDot = snapshot.wordAfterDot;
+  }
 }
+
+/**
+ * A "/" currently being scanned AS a regex literal, carrying the state to rewind to
+ * if that guess turns out wrong. Non-null exactly while the scan sits inside a
+ * candidate regex — the same "value doubles as the mode flag" shape `quote` uses for
+ * strings below.
+ */
+type RegexGuess = { index: number; context: CodeContextSnapshot };
 
 /**
  * Blanks string, template-literal and regex-literal *contents* (delimiters, length
  * and newline positions kept) so a rule scanning for an API call does not match one
  * a composition merely renders as on-screen text. Template `${…}` expressions stay —
- * they are code. Returns the source untouched if the scan ends mid-literal, so a
- * parse this scanner cannot model degrades to the caller's pre-existing behaviour
- * rather than silently blanking real code on an `error`-severity gate.
+ * they are code. Returns the source untouched if the scan ends mid-literal (an
+ * unterminated string/template, or a regex still open at end of input), so a parse
+ * this scanner cannot model degrades to the caller's pre-existing behaviour rather
+ * than silently blanking real code on an `error`-severity gate.
+ *
+ * A candidate "/" is only ever a GUESS at starting a regex literal, since regex and
+ * division are genuinely ambiguous in text. Real regex literals can't span a line, so
+ * a "/" whose "regex" runs past a line end was misread, and everything blanked since
+ * it is ordinary (division) code. The scan then rewinds to that "/" and re-walks the
+ * span as code (see `recoverFromMisread`), so a misread costs only its own span —
+ * every literal correctly masked elsewhere in `source`, before it or after it, stays
+ * masked.
  */
 // fallow-ignore-next-line complexity
 export function stripJsStringLiterals(source: string): string {
   let out = "";
+  // Content emitted WHILE a regex guess is live, held apart from `out` rather
+  // than appended to it directly. `out` is built by repeated `+=` (a rope of
+  // chunks under the hood), so slicing it back on a misread would force it to
+  // flatten to a plain string proportional to `out`'s ENTIRE length so far, on
+  // every single misread — quadratic for input with many of them, even though
+  // each misread's own span is bounded (it can't cross a line). Buffering the
+  // guess's content separately makes recovery an O(1) discard instead: only
+  // `regexBuffer` (bounded by one line) is ever thrown away, `out` is never
+  // touched until a guess is confirmed real.
+  let regexBuffer = "";
   let i = 0;
   const templateBraces: number[] = [];
   const ctx = new CodeContext();
   let quote: "'" | '"' | "`" | null = null;
   let escaped = false;
-  let inRegex = false;
+  let regexGuess: RegexGuess | null = null;
   let inRegexClass = false;
-  let regexMisread = false;
+  // The one "/" a misread has already proven to be division, so the re-walk reads it
+  // as ordinary code instead of guessing "regex" at it again. A single slot is enough:
+  // a rewind only ever returns to the guess it is about to step past, so a resolved
+  // index can never come round a second time.
+  let knownDivisionIndex = -1;
 
   const blank = (ch: string) => (ch === "\n" || ch === "\r" ? ch : " ");
   const emit = (text: string) => {
-    out += text;
+    if (regexGuess) regexBuffer += text;
+    else out += text;
     for (const ch of text) ctx.push(ch);
+  };
+
+  // Undoes a regex guess a line boundary just disproved: discard the buffered
+  // guess content, rewind `ctx` and `i` to the "/" itself so the span is
+  // re-walked as code, leaving no regex-scan flag still set. `out` is never
+  // touched (nothing of the guess ever reached it). `quote`/`templateBraces`
+  // need no rewinding either — neither can change while inside a regex guess.
+  const recoverFromMisread = (guess: RegexGuess): void => {
+    regexBuffer = "";
+    ctx.restore(guess.context);
+    knownDivisionIndex = guess.index;
+    i = guess.index;
+    regexGuess = null;
+    inRegexClass = false;
+    escaped = false;
   };
 
   while (i < source.length) {
     const ch = source[i] ?? "";
     const next = source[i + 1] ?? "";
 
-    if (inRegex) {
+    if (regexGuess) {
       if (escaped) {
         escaped = false;
         if (ch === "\n" || ch === "\r") {
-          inRegex = false;
-          inRegexClass = false;
-          regexMisread = true;
+          recoverFromMisread(regexGuess);
+          continue;
         }
         emit(blank(ch));
       } else if (ch === "\\") {
@@ -603,14 +676,16 @@ export function stripJsStringLiterals(source: string): string {
         inRegexClass = false;
         emit(" ");
       } else if (ch === "/" && !inRegexClass) {
-        inRegex = false;
+        // Confirmed a real regex: fold its buffered content into `out` before
+        // clearing the guess, so `emit` below (now that `regexGuess` is null)
+        // appends the closing "/" straight to `out` right after it.
+        out += regexBuffer;
+        regexBuffer = "";
+        regexGuess = null;
         emit(ch);
       } else if (ch === "\n" || ch === "\r") {
-        inRegex = false;
-        inRegexClass = false;
-        escaped = false;
-        regexMisread = true;
-        emit(ch);
+        recoverFromMisread(regexGuess);
+        continue;
       } else {
         emit(" ");
       }
@@ -648,8 +723,14 @@ export function stripJsStringLiterals(source: string): string {
       continue;
     }
 
-    if (ch === "/" && next !== "/" && next !== "*" && ctx.startsRegexLiteral()) {
-      inRegex = true;
+    if (
+      ch === "/" &&
+      next !== "/" &&
+      next !== "*" &&
+      i !== knownDivisionIndex &&
+      ctx.startsRegexLiteral()
+    ) {
+      regexGuess = { index: i, context: ctx.snapshot() };
       emit(ch);
       i += 1;
       continue;
@@ -674,7 +755,7 @@ export function stripJsStringLiterals(source: string): string {
     i += 1;
   }
 
-  if (quote !== null || templateBraces.length > 0 || inRegex || regexMisread) return source;
+  if (quote !== null || templateBraces.length > 0 || regexGuess !== null) return source;
   return out;
 }
 
