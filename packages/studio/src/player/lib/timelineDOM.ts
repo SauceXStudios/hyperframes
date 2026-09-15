@@ -247,9 +247,55 @@ function collectImplicitLayerScopes(
   return scopes;
 }
 
-// Guards only against two distinct elements sharing a duplicate `id` across
-// sibling clips (invalid HTML some compositions still ship) emitting a row
-// under the same key — each candidate otherwise visits exactly one scope.
+/** Null when `child` resolves no selector — the candidate can't be identified as a layer. */
+function buildImplicitLayerEntry(
+  child: HTMLElement,
+  scope: ImplicitLayerScope,
+  doc: Document,
+  fallbackIndex: number,
+  track: number,
+): { layer: TimelineElement; key: string; id: string } | null {
+  const selector = getTimelineElementSelector(child);
+  if (!selector) return null;
+
+  const selectorIndex = getTimelineElementSelectorIndex(doc, child, selector);
+  const sourceFile = getTimelineElementSourceFile(child);
+  const label = getImplicitTimelineLayerLabel(child);
+  const identity = buildTimelineElementIdentity({
+    preferredId: child.id || null,
+    label,
+    fallbackIndex,
+    domId: child.id || undefined,
+    selector,
+    selectorIndex,
+    sourceFile,
+  });
+
+  return {
+    key: identity.key,
+    id: identity.id,
+    layer: {
+      domId: child.id || undefined,
+      hfId: child.getAttribute("data-hf-id") || undefined,
+      zIndex: readTimelineElementZIndex(child),
+      duration: scope.duration,
+      id: identity.id,
+      key: identity.key,
+      label,
+      selector,
+      selectorIndex,
+      sourceFile,
+      stackingContextId: resolveCssStackingContextId(child),
+      start: scope.start,
+      tag: child.tagName.toLowerCase(),
+      timingSource: "implicit",
+      track,
+    },
+  };
+}
+
+// Drops (not renames) a candidate whose key already exists — a duplicate `id`
+// across sibling clips, or a match already in existingKeys.
 // fallow-ignore-next-line complexity
 function buildImplicitLayers(
   scopes: readonly ImplicitLayerScope[],
@@ -265,41 +311,19 @@ function buildImplicitLayers(
     for (const child of Array.from(scope.container.children)) {
       if (!isImplicitTimelineLayerCandidate(scope.container, child)) continue;
 
-      const selector = getTimelineElementSelector(child);
-      if (!selector) continue;
-      const selectorIndex = getTimelineElementSelectorIndex(doc, child, selector);
-      const sourceFile = getTimelineElementSourceFile(child);
-      const label = getImplicitTimelineLayerLabel(child);
-      const identity = buildTimelineElementIdentity({
-        preferredId: child.id || null,
-        label,
-        fallbackIndex: existingElementsLength + layers.length,
-        domId: child.id || undefined,
-        selector,
-        selectorIndex,
-        sourceFile,
-      });
-      if (existingKeys.has(identity.key) || existingKeys.has(identity.id)) continue;
-      if (seenKeys.has(identity.key)) continue;
-      seenKeys.add(identity.key);
+      const entry = buildImplicitLayerEntry(
+        child,
+        scope,
+        doc,
+        existingElementsLength + layers.length,
+        maxTrack + 1 + layers.length,
+      );
+      if (!entry) continue;
+      if (existingKeys.has(entry.key) || existingKeys.has(entry.id)) continue;
+      if (seenKeys.has(entry.key)) continue;
+      seenKeys.add(entry.key);
 
-      layers.push({
-        domId: child.id || undefined,
-        hfId: child.getAttribute("data-hf-id") || undefined,
-        zIndex: readTimelineElementZIndex(child),
-        duration: scope.duration,
-        id: identity.id,
-        key: identity.key,
-        label,
-        selector,
-        selectorIndex,
-        sourceFile,
-        stackingContextId: resolveCssStackingContextId(child),
-        start: scope.start,
-        tag: child.tagName.toLowerCase(),
-        timingSource: "implicit",
-        track: maxTrack + 1 + layers.length,
-      });
+      layers.push(entry.layer);
     }
   }
 

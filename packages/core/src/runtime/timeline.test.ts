@@ -1020,4 +1020,38 @@ describe("collectRuntimeTimelinePayload", () => {
     expect(clip?.start).toBeCloseTo(8.5233, 3);
     expect(clip?.duration).toBeCloseTo(4.7867, 3);
   });
+
+  it("locks start and duration to the SAME ancestor when the nearest one uses data-end", () => {
+    const root = document.createElement("div");
+    root.setAttribute("data-composition-id", "root");
+    root.setAttribute("data-duration", "50");
+    document.body.appendChild(root);
+
+    // clipA's real window is 30..35; clipB nests inside it and expresses its
+    // (narrower) window as data-end instead of data-duration.
+    const clipA = document.createElement("div");
+    clipA.id = "clipA";
+    clipA.setAttribute("data-start", "30");
+    clipA.setAttribute("data-duration", "5");
+    root.appendChild(clipA);
+
+    const clipB = document.createElement("div");
+    clipB.id = "clipB";
+    clipB.setAttribute("data-start", "31");
+    clipB.setAttribute("data-end", "35");
+    clipA.appendChild(clipB);
+
+    const img = document.createElement("img");
+    img.id = "untimed";
+    img.setAttribute("src", "x.png");
+    clipB.appendChild(img);
+
+    const result = collectRuntimeTimelinePayload(defaultParams);
+    const clip = result.clips.find((c) => c.id === "untimed");
+
+    // clipB's own window (31..35), not clipA's start paired with clipA's
+    // duration and not a window that runs past either ancestor.
+    expect(clip?.start).toBeCloseTo(31, 3);
+    expect(clip?.duration).toBeCloseTo(4, 3);
+  });
 });

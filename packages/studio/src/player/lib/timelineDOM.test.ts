@@ -387,7 +387,7 @@ describe("createImplicitTimelineLayersFromDOM — hfId from data-hf-id", () => {
     expect(layers).toEqual([]);
   });
 
-  it("scopes an untimed child of a clip to that clip's own window, not the full root duration", () => {
+  it("emits a row for a clip's untimed children, scoped to that clip's own window", () => {
     const doc = makeDoc(`
       <div data-composition-id="root">
         <div id="ground"></div>
