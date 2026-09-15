@@ -78,22 +78,30 @@ export function MediaSection({
   const mediaStartMax = Math.max(30, Math.ceil(sourceDuration || mediaStart + 10));
 
   const srcAttr = el.getAttribute("src") ?? "";
+  const authoredSrc = el.getAttribute("data-hf-authored-src") ?? "";
   const [copied, setCopied] = useState(false);
   const [removeBusy, setRemoveBusy] = useState(false);
   const [removeProgress, setRemoveProgress] = useState<BackgroundRemovalProgress | null>(null);
   const [createPlate, setCreatePlate] = useState(false);
   const [quality, setQuality] = useState<"fast" | "balanced" | "best">("balanced");
 
+  const sourceFile = element.sourceFile || "index.html";
+  const projectSrc =
+    resolveProjectAssetPath(authoredSrc, sourceFile) ??
+    resolveProjectAssetPath(srcAttr, sourceFile) ??
+    "";
+  const displaySrc = projectSrc || authoredSrc || srcAttr;
   const absoluteSrc =
-    projectDir && srcAttr && !srcAttr.startsWith("http") ? `${projectDir}/${srcAttr}` : srcAttr;
-  const projectSrc = resolveProjectAssetPath(srcAttr, element.sourceFile || "index.html") ?? "";
+    projectDir && displaySrc && !displaySrc.startsWith("http") && !displaySrc.startsWith("data:")
+      ? `${projectDir}/${displaySrc}`
+      : displaySrc;
   const canRemoveBackground = Boolean(onRemoveBackground && isVisualMedia && projectSrc);
   const panelTitle = isImage ? "Image" : isVideo ? "Video" : "Audio";
 
   useEffect(() => {
     setRemoveProgress(null);
     setCreatePlate(false);
-  }, [srcAttr]);
+  }, [srcAttr, authoredSrc]);
 
   const applyCutoutResult = async (result: BackgroundRemovalResult) => {
     await onSetHtmlAttribute("src", result.outputPath);
@@ -136,7 +144,7 @@ export function MediaSection({
   return (
     <Section title={panelTitle} icon={isAudio ? <Music size={15} /> : <Film size={15} />}>
       <div className="space-y-4">
-        {srcAttr && (
+        {displaySrc && (
           <div className="min-w-0">
             <div className="flex items-center justify-between gap-2">
               <div className="text-[11px] font-medium text-neutral-500">Source</div>

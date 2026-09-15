@@ -574,4 +574,46 @@ describe("FlatMediaSection — image cutout", () => {
     expect(removeBgButton?.disabled).toBe(true);
     act(() => root.unmount());
   });
+
+  it("preserves Remove BG for an inlined data-URL image via data-hf-authored-src", async () => {
+    const onRemoveBackground = vi
+      .fn()
+      .mockResolvedValue({ outputPath: "assets/cutouts/portrait-cutout.png" });
+    const el = document.createElement("img");
+    el.setAttribute("src", "data:image/jpeg;base64,abc");
+    el.setAttribute("data-hf-authored-src", "assets/portrait.jpg");
+    const element = makeImageElement("data:image/jpeg;base64,abc");
+    element.element = el;
+    const host = document.createElement("div");
+    document.body.append(host);
+    const root = createRoot(host);
+    act(() => {
+      root.render(
+        <FlatMediaSection
+          projectDir={null}
+          element={element}
+          styles={{}}
+          onSetStyle={vi.fn()}
+          onSetAttribute={vi.fn()}
+          onSetHtmlAttribute={vi.fn()}
+          onRemoveBackground={onRemoveBackground}
+        />,
+      );
+    });
+    const removeBgButton = host.querySelector<HTMLButtonElement>(
+      '[data-flat-media-remove-bg="true"]',
+    );
+    expect(removeBgButton?.disabled).toBe(false);
+    expect(host.textContent).toContain("assets/portrait.jpg");
+    await act(async () => {
+      removeBgButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(onRemoveBackground).toHaveBeenCalledWith(
+      "assets/portrait.jpg",
+      expect.objectContaining({ createBackgroundPlate: false }),
+    );
+    act(() => root.unmount());
+  });
 });
