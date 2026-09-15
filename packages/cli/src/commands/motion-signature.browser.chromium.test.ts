@@ -47,7 +47,8 @@ interface Samples {
 declare global {
   interface Window {
     __hyperframesLayoutGeometry: () => string;
-    __hyperframesMotionSample: (options: { livenessScopes: string[] }) => {
+    __hyperframesMotionSample: (options: { selectors?: string[]; livenessScopes?: string[] }) => {
+      data: Record<string, { visible: boolean } | null>;
       liveness: Record<string, string>;
     };
   }
@@ -104,6 +105,15 @@ describe.skipIf(!RUNS_CHROMIUM)("motion-signature.browser in Chromium", () => {
 
   async function mutate(script: string): Promise<void> {
     await page.evaluate(script);
+  }
+
+  // motion-sample's per-selector visibility bit (isVisibleElement on an
+  // explicitly asserted element).
+  async function visible(selector: string): Promise<boolean | undefined> {
+    return page.evaluate(
+      (sel) => window.__hyperframesMotionSample({ selectors: [sel] }).data[sel]?.visible,
+      selector,
+    );
   }
 
   it("treats an attr()-backed fixed-width countdown as motion in both samplers", async () => {
@@ -558,5 +568,84 @@ describe.skipIf(!RUNS_CHROMIUM)("motion-signature.browser in Chromium", () => {
 
     expect(afterContents).toEqual(start);
     expect(afterMove.sweep).not.toBe(start.sweep);
+  });
+
+  // A display:contents host has no box of its own, so the platform cannot tell
+  // it apart from skipped contents; inside a content-visibility:hidden host its
+  // pseudo-elements paint nothing and must not keep a counter consumed.
+  it("ignores a counter painted only by a display:contents host's pseudo-element inside skipped contents", async () => {
+    await load(
+      composition(
+        "body { counter-reset: countdown 10; } #wrap { content-visibility: hidden; width: 80px; height: 48px; } #host { display: contents; } #host::after { content: counter(countdown); font: 32px/48px monospace; }",
+        '<div id="wrap"><div id="host"></div></div>',
+      ),
+    );
+    const before = await sample();
+    await mutate('document.body.style.counterReset = "countdown 9"');
+    const after = await sample();
+
+    expect(after).toEqual(before);
+  });
+
+  // Chromium (152) skips the contents of a table-cell host but not of a
+  // table-caption host; NOT_CONTAINABLE_DISPLAY mirrors the platform here
+  // rather than css-contain-2's exemption list. This test and the next pin
+  // both halves.
+  it("ignores a table-cell content-visibility:hidden host's own text and pseudo content", async () => {
+    await load(
+      composition(
+        "#host { display: table-cell; content-visibility: hidden; width: 80px; height: 48px; font: 32px/48px monospace; } #host::after { content: attr(data-txt); }",
+        '<div id="host" data-txt="10">10</div><span class="fixed">10</span>',
+      ),
+    );
+    const before = await sample();
+    await mutate('document.getElementById("host").firstChild.textContent = "09"');
+    await mutate('document.getElementById("host").setAttribute("data-txt", "09")');
+    const after = await sample();
+
+    expect(after).toEqual(before);
+  });
+
+  it("keeps signing a table-caption content-visibility:hidden host's own text and pseudo content", async () => {
+    await load(
+      composition(
+        "#host { content-visibility: hidden; width: 80px; height: 48px; font: 32px/48px monospace; } #host::after { content: attr(data-txt); }",
+        '<table><caption id="host" data-txt="10">10</caption></table>',
+      ),
+    );
+    const start = await sample();
+    await mutate('document.getElementById("host").firstChild.textContent = "09"');
+    const afterText = await sample();
+    await mutate('document.getElementById("host").setAttribute("data-txt", "09")');
+    const afterPseudo = await sample();
+
+    expect(afterText.sweep).not.toBe(start.sweep);
+    expect(afterText.liveness).not.toBe(start.liveness);
+    expect(afterPseudo.sweep).not.toBe(afterText.sweep);
+  });
+
+  // The only counter consumers are the hidden pseudo-elements (::marker,
+  // ::after) of a host that skips its contents; a static painted counter
+  // `shown` exists so the host's hidden counter-increment has a consumed name
+  // to reach for. Nothing the host declares or paints may enter the signature:
+  // its child is not visible for motion-sample, a change of the countdown
+  // owner is not motion, and a change of the hidden ::after's counter-increment
+  // is not motion either (the pseudo box does not exist).
+  it("ignores a counter reachable only through a skipped host's hidden pseudo-elements", async () => {
+    await load(
+      composition(
+        "html { counter-reset: shown 1; } body { counter-reset: countdown 10; } #host { content-visibility: hidden; display: list-item; list-style-position: inside; width: 80px; height: 48px; } #host::marker { content: counter(countdown); } #host::after { content: counter(countdown); counter-increment: shown 0; } #host.stepped::after { counter-increment: shown 5; } #shown::after { content: counter(shown); }",
+        '<div id="host"><span id="kid" class="fixed"></span></div><span id="shown" class="fixed"></span>',
+      ),
+    );
+    const before = await sample();
+    await mutate('document.body.style.counterReset = "countdown 9"');
+    const afterOwner = await sample();
+    await mutate('document.getElementById("host").classList.add("stepped")');
+    const afterHiddenIncrement = await sample();
+
+    expect(await visible("#kid")).toBe(false);
+    expect(afterOwner).toEqual(before);
+    expect(afterHiddenIncrement).toEqual(before);
   });
 });

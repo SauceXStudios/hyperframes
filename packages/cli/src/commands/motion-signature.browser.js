@@ -67,11 +67,15 @@
   const SKIPPED_PSEUDO = Object.freeze({ before: NO_BOX, after: NO_BOX });
   // content-visibility only skips contents where size containment applies
   // (css-contain-2): not on non-atomic inline boxes, display:contents, table
-  // boxes and internal table boxes (a caption is neither), or the inline ruby
-  // container and internal ruby boxes. Such a host paints everything. Replaced
-  // elements (MEDIA_TAGS) are atomic even at display:inline.
+  // boxes and internal table boxes, or the inline ruby container and internal
+  // ruby boxes. Such a host paints everything. The guard mirrors Chromium (152)
+  // where it parts ways with that list, since the platform's behaviour is what
+  // decides what paints: a table-cell host does skip its contents, and a
+  // table-caption host does not (the spec would have it the other way round
+  // for both). Replaced elements (MEDIA_TAGS) are atomic even at
+  // display:inline.
   const NOT_CONTAINABLE_DISPLAY =
-    /^(inline( list-item)?|contents|table|inline-table|table-(?!caption$)[a-z-]+|ruby[a-z-]*)$/;
+    /^(inline( list-item)?|contents|table|inline-table|table-(?!cell$)[a-z-]+|ruby[a-z-]*)$/;
 
   function skipsContents(element, style) {
     if (style.contentVisibility !== "hidden") return false;
@@ -390,16 +394,24 @@
     // nothing and cannot feed a painted counter(). The platform decides where it
     // can; the fallback is display:none and content-visibility:hidden hosts,
     // propagated to descendants. display:contents has no box of its own but its
-    // pseudo-elements and children render, so it stays an owner.
+    // pseudo-elements and children render, so it stays an owner — except as
+    // the child of a host that skips its contents, where its pseudo-elements
+    // paint nothing either. The platform check cannot tell that from an
+    // ordinary display:contents host (both have no box), so the parent's
+    // skipsContents verdict decides; a display:contents child of an off-screen
+    // `auto` host is not caught (see below).
     const unrenderedBelow = new Set();
+    const skippedHosts = new Set();
     for (const element of [root, ...root.querySelectorAll("*")]) {
       if (IGNORE_TAGS.has(element.tagName)) continue;
       const style = getComputedStyle(element);
+      const parent = element.parentElement;
       const platformDecides = typeof element.checkVisibility === "function";
       const noBox = platformDecides
         ? !element.checkVisibility(RENDERED_BOX_OPTIONS)
         : style.display === "none";
-      if (unrenderedBelow.has(element.parentElement) || (noBox && style.display !== "contents")) {
+      const boxlessOwner = style.display === "contents" && !skippedHosts.has(parent);
+      if (unrenderedBelow.has(parent) || (noBox && !boxlessOwner)) {
         unrenderedBelow.add(element);
         continue;
       }
@@ -408,10 +420,11 @@
       // counter-increment / counter-set still reach a sibling's painted
       // counter() (counter-reset does not; keeping it is an over-count accepted
       // for a guard). An `auto` host that is currently off-screen skips its
-      // contents too but is not detected here; its descendants are pruned by
-      // the platform check above, only its own direct text / pseudo content
-      // would still be signed.
+      // contents too but is not detected here; its boxed descendants are pruned
+      // by the platform check above, while its own direct text / pseudo content
+      // and a display:contents child's pseudo content would still be signed.
       const skipped = skipsContents(element, style);
+      if (skipped) skippedHosts.add(element);
       if (skipped && !platformDecides) unrenderedBelow.add(element);
       const pseudo = skipped
         ? SKIPPED_PSEUDO
