@@ -3,9 +3,15 @@
 // (motion-signature.browser.test.ts) mocks getComputedStyle, so it asserts the
 // classifier's control flow against a fake; this suite asserts the same
 // branches against the platform — Blink's attr() substitution in computed
-// pseudo content, unsubstituted counter(), display:none subtrees, clip-path,
+// pseudo content, unsubstituted counter(), display:none and
+// content-visibility:hidden subtrees, opt-outs on a measured scope, clip-path,
 // and form control state — using the exact scripts `hyperframes check` injects.
-// Skipped when no Chrome/Chromium binary is available without downloading.
+// Skipped when no Chrome/Chromium binary is available without downloading. On
+// Windows the suite is opt-in (HYPERFRAMES_BROWSER_TESTS=1): in the shared
+// Windows package test lane the launch of the runner's Chrome did not complete
+// within the package hookTimeout (cause not established; no other suite in this
+// package launches a browser), and the suite already runs on Linux CI, where
+// the runner's Chrome is found as a system browser.
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -26,6 +32,12 @@ function resolveExecutable(): string | undefined {
 }
 
 const executablePath = resolveExecutable();
+const RUNS_CHROMIUM =
+  !!executablePath &&
+  (process.platform !== "win32" || process.env.HYPERFRAMES_BROWSER_TESTS === "1");
+// The package hookTimeout is sized for cold module imports, not for launching
+// a browser; give the launch its own ceiling.
+const BROWSER_LAUNCH_TIMEOUT_MS = 120_000;
 
 interface Samples {
   sweep: string;
@@ -52,7 +64,7 @@ function composition(css: string, body: string): string {
   </body></html>`;
 }
 
-describe.skipIf(!executablePath)("motion-signature.browser in Chromium", () => {
+describe.skipIf(!RUNS_CHROMIUM)("motion-signature.browser in Chromium", () => {
   let browser: Browser;
   let page: Page;
 
@@ -65,7 +77,7 @@ describe.skipIf(!executablePath)("motion-signature.browser in Chromium", () => {
     });
     page = await browser.newPage();
     await page.setViewport({ width: 640, height: 360 });
-  });
+  }, BROWSER_LAUNCH_TIMEOUT_MS);
 
   afterAll(async () => {
     await browser?.close();
@@ -77,11 +89,17 @@ describe.skipIf(!executablePath)("motion-signature.browser in Chromium", () => {
     await page.addScriptTag({ content: motionSampleScript });
   }
 
-  async function sample(): Promise<Samples> {
-    return page.evaluate(() => ({
-      sweep: window.__hyperframesLayoutGeometry(),
-      liveness: window.__hyperframesMotionSample({ livenessScopes: ["*"] }).liveness["*"] ?? "",
-    }));
+  async function sample(scope = "*"): Promise<Samples> {
+    return page.evaluate(
+      (livenessScope) => ({
+        sweep: window.__hyperframesLayoutGeometry(),
+        liveness:
+          window.__hyperframesMotionSample({ livenessScopes: [livenessScope] }).liveness[
+            livenessScope
+          ] ?? "",
+      }),
+      scope,
+    );
   }
 
   async function mutate(script: string): Promise<void> {
@@ -380,5 +398,165 @@ describe.skipIf(!executablePath)("motion-signature.browser in Chromium", () => {
     const after = await sample();
 
     expect(after).toEqual(before);
+  });
+
+  // A keepsMoving scope names the element explicitly, so the layout-audit
+  // opt-out on the scope itself does not empty its signature (which the Node
+  // side would otherwise report as motion_selector_missing for an element that
+  // exists). Opt-outs INSIDE the scope still apply.
+  it("measures a keepsMoving scope that is itself data-layout-ignore, but not opted-out layers inside it", async () => {
+    await load(
+      composition(
+        "#scene { position: absolute; width: 300px; height: 200px; } #logo, #glow { position: absolute; width: 50px; height: 50px; background: #00f; }",
+        '<div id="scene" data-layout-ignore><div id="logo"></div><div id="glow" data-layout-ignore></div></div>',
+      ),
+    );
+    const before = await sample("#scene");
+    expect(before.liveness).not.toBe("");
+    await mutate('document.getElementById("glow").style.left = "100px"');
+    const afterIgnoredMove = await sample("#scene");
+    await mutate('document.getElementById("logo").style.left = "100px"');
+    const afterMove = await sample("#scene");
+
+    expect(afterIgnoredMove.liveness).toBe(before.liveness);
+    expect(afterMove.liveness).not.toBe(before.liveness);
+  });
+
+  it("ignores text mutations inside content-visibility:hidden contents", async () => {
+    await load(
+      composition(
+        "#wrap { content-visibility: hidden; }",
+        '<div id="wrap"><span id="skipped" class="fixed">10</span></div><span class="fixed">10</span>',
+      ),
+    );
+    const before = await sample();
+    await mutate('document.getElementById("skipped").textContent = "09"');
+    const after = await sample();
+
+    expect(after).toEqual(before);
+  });
+
+  it("ignores a decoy counter owner inside content-visibility:hidden contents", async () => {
+    await load(
+      composition(
+        "#wrap { content-visibility: hidden; } #decoy { counter-reset: countdown 10; } #countdown::after { content: counter(countdown); }",
+        '<div id="wrap"><div id="decoy"></div></div><span id="countdown" class="fixed"></span>',
+      ),
+    );
+    const before = await sample();
+    await mutate('document.getElementById("decoy").style.counterReset = "countdown 9"');
+    const after = await sample();
+
+    expect(after).toEqual(before);
+  });
+
+  it("ignores a decoy counter owner inside off-screen content-visibility:auto contents", async () => {
+    await load(
+      composition(
+        "#far { content-visibility: auto; position: absolute; top: 5000px; width: 10px; height: 10px; } #decoy { counter-reset: countdown 10; } #countdown::after { content: counter(countdown); }",
+        '<div id="far"><div id="decoy"></div></div><span id="countdown" class="fixed"></span>',
+      ),
+    );
+    const before = await sample();
+    await mutate('document.getElementById("decoy").style.counterReset = "countdown 9"');
+    const after = await sample();
+
+    expect(after).toEqual(before);
+  });
+
+  it("ignores a repaint of a canvas whose contents are skipped by content-visibility:hidden", async () => {
+    await load(
+      composition(
+        "#c { content-visibility: hidden; width: 100px; height: 100px; }",
+        '<canvas id="c" width="100" height="100"></canvas>',
+      ),
+    );
+    const before = await sample();
+    await mutate(
+      'const ctx = document.getElementById("c").getContext("2d"); ctx.fillStyle = "#f00"; ctx.fillRect(0, 0, 100, 100);',
+    );
+    const after = await sample();
+
+    expect(after).toEqual(before);
+  });
+
+  // content-visibility only skips contents where size containment applies; on
+  // a non-atomic inline host it is a no-op and everything inside still paints.
+  it("keeps signing text and pseudo content inside an inline content-visibility:hidden host", async () => {
+    await load(
+      composition(
+        "#host { content-visibility: hidden; } #host::after { content: attr(data-txt); }",
+        '<span id="host" data-txt="10"><span id="kid" class="fixed">10</span></span>',
+      ),
+    );
+    const start = await sample();
+    await mutate('document.getElementById("kid").textContent = "09"');
+    const afterText = await sample();
+    await mutate('document.getElementById("host").setAttribute("data-txt", "09")');
+    const afterPseudo = await sample();
+
+    expect(afterText.sweep).not.toBe(start.sweep);
+    expect(afterText.liveness).not.toBe(start.liveness);
+    expect(afterPseudo.sweep).not.toBe(afterText.sweep);
+  });
+
+  it("sees a checkbox toggle on a content-visibility:hidden control", async () => {
+    await load(
+      composition(
+        "#toggle { content-visibility: hidden; width: 24px; height: 24px; }",
+        '<input id="toggle" type="checkbox" />',
+      ),
+    );
+    const before = await sample();
+    await mutate('document.getElementById("toggle").checked = true');
+    const after = await sample();
+
+    expect(after.sweep).not.toBe(before.sweep);
+  });
+
+  it("ignores a value change on a text input whose contents are skipped by content-visibility:hidden", async () => {
+    await load(
+      composition(
+        "#note { content-visibility: hidden; width: 120px; height: 40px; font: 24px monospace; }",
+        '<input id="note" value="10" />',
+      ),
+    );
+    const before = await sample();
+    await mutate('document.getElementById("note").value = "09"');
+    const after = await sample();
+
+    expect(after).toEqual(before);
+  });
+
+  it("sees a counter painted only by a display:contents host's pseudo-element", async () => {
+    await load(
+      composition(
+        "body { counter-reset: countdown 10; } #host { display: contents; } #host::after { content: counter(countdown); font: 32px/48px monospace; }",
+        '<div id="host"></div>',
+      ),
+    );
+    const before = await sample();
+    await mutate('document.body.style.counterReset = "countdown 9"');
+    const after = await sample();
+
+    expect(after.sweep).not.toBe(before.sweep);
+  });
+
+  it("ignores a content-visibility:hidden host's own text and pseudo content but still sees its box move", async () => {
+    await load(
+      composition(
+        "#host { content-visibility: hidden; position: absolute; width: 80px; height: 48px; background: #f00; } #host::after { content: attr(data-txt); }",
+        '<div id="host" data-txt="10">10</div>',
+      ),
+    );
+    const start = await sample();
+    await mutate('document.getElementById("host").firstChild.textContent = "09"');
+    await mutate('document.getElementById("host").setAttribute("data-txt", "09")');
+    const afterContents = await sample();
+    await mutate('document.getElementById("host").style.left = "100px"');
+    const afterMove = await sample();
+
+    expect(afterContents).toEqual(start);
+    expect(afterMove.sweep).not.toBe(start.sweep);
   });
 });

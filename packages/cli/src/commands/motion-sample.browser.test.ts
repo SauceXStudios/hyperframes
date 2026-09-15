@@ -77,9 +77,12 @@ describe("motion-sample.browser", () => {
     Reflect.deleteProperty(window, "__hyperframesLayoutGeometry");
   });
 
-  it("throws at install when the shared motion classifier is missing", () => {
+  it("installs without the shared motion classifier and names it on the first call", () => {
+    // Installing must not throw: addScriptTag resolves on load regardless, so
+    // the driver only ever sees the error from its evaluate call.
     // eslint-disable-next-line no-new-func
-    expect(() => new Function(script)()).toThrow(/motion-signature\.browser\.js/);
+    expect(() => new Function(script)()).not.toThrow();
+    expect(() => sample({ livenessScopes: ["*"] })).toThrow(/motion-signature\.browser\.js/);
   });
 
   it("samples a present, visible selector and returns null for an absent one", () => {

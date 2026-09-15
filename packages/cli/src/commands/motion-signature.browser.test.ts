@@ -306,6 +306,36 @@ describe("motion-signature.browser media and geometry channels", () => {
     expect(collect()).toBe(before);
   });
 
+  it("measures a root that is itself data-layout-ignore while still excluding opted-out layers inside it", () => {
+    document.body.innerHTML = `
+      <div id="root" data-composition-id="main" data-width="640" data-height="360">
+        <div id="scene" data-layout-ignore>
+          <div id="logo"></div>
+          <div id="glow" data-layout-ignore></div>
+        </div>
+      </div>
+    `;
+    let logoLeft = 40;
+    let glowLeft = 40;
+    installFixture({ rects: { root: ROOT, scene: { left: 0, top: 0, width: 300, height: 200 } } });
+    vi.spyOn(document.getElementById("logo")!, "getBoundingClientRect").mockImplementation(() =>
+      rect({ left: logoLeft, top: 40, width: 50, height: 50 }),
+    );
+    vi.spyOn(document.getElementById("glow")!, "getBoundingClientRect").mockImplementation(() =>
+      rect({ left: glowLeft, top: 40, width: 50, height: 50 }),
+    );
+    installScript();
+    const { compositionSignature } = signatureWindow().__hyperframesMotionSignature;
+    const scene = document.getElementById("scene")!;
+
+    const before = compositionSignature(scene);
+    expect(before).not.toBe("");
+    glowLeft = 200;
+    expect(compositionSignature(scene)).toBe(before);
+    logoLeft = 200;
+    expect(compositionSignature(scene)).not.toBe(before);
+  });
+
   it("buckets sub-threshold moves out of the quantized liveness signature only", () => {
     document.body.innerHTML = `
       <div id="root" data-composition-id="main" data-width="640" data-height="360">

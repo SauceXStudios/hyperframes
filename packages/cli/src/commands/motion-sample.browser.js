@@ -7,23 +7,19 @@
   // Visibility, opacity, and the liveness signature all come from the shared
   // motion classifier so this sampler and the frozen-sweep guard can never
   // disagree on what counts as motion (see motion-signature.browser.js).
+  // Resolved at install, checked at call: addScriptTag resolves on load, so an
+  // install-time throw would only surface as a page error and an opaque
+  // "__hyperframesMotionSample is not a function" from the driver's evaluate.
   const shared = window.__hyperframesMotionSignature;
-  if (!shared) {
-    throw new Error("motion-signature.browser.js must be injected before motion-sample.browser.js");
-  }
-
-  function round(value) {
-    return Math.round(value * 100) / 100;
-  }
 
   function toRect(rect) {
     return {
-      left: round(rect.left),
-      top: round(rect.top),
-      right: round(rect.right),
-      bottom: round(rect.bottom),
-      width: round(rect.width),
-      height: round(rect.height),
+      left: shared.round(rect.left),
+      top: shared.round(rect.top),
+      right: shared.round(rect.right),
+      bottom: shared.round(rect.bottom),
+      width: shared.round(rect.width),
+      height: shared.round(rect.height),
     };
   }
 
@@ -31,7 +27,7 @@
     const rect = element.getBoundingClientRect();
     return {
       rect: toRect(rect),
-      opacity: round(shared.opacityChain(element)),
+      opacity: shared.round(shared.opacityChain(element)),
       visible: shared.isVisibleElement(element),
     };
   }
@@ -69,6 +65,11 @@
   }
 
   window.__hyperframesMotionSample = function motionSample(options) {
+    if (!shared) {
+      throw new Error(
+        "motion-signature.browser.js must be injected before motion-sample.browser.js",
+      );
+    }
     const { selectors = [], livenessScopes = [] } = options || {};
     return { data: sampleSelectors(selectors), liveness: sampleLiveness(livenessScopes) };
   };
