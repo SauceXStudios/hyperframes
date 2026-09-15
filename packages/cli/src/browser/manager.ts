@@ -521,17 +521,34 @@ export function findSystemBrowser(): BrowserResult | undefined {
   return undefined;
 }
 
+/**
+ * Whether resolution is restricted to OUR pinned cache. `preferManagedChrome`
+ * is a no-op on Linux ARM64: Chrome for Testing publishes no linux-arm64
+ * chrome-headless-shell, so the only browser a render can use there is system
+ * Chromium (`ensureLinuxArmBrowser`), and a managed-only lookup would report
+ * "not found" on a correctly set-up machine. Shared by `findBrowser` and
+ * `ensureBrowser` so the two halves of the API cannot disagree.
+ */
+function resolvesManagedOnly(options?: Pick<EnsureBrowserOptions, "preferManagedChrome">): boolean {
+  return options?.preferManagedChrome === true && !isLinuxArm();
+}
+
 // --- Public API -------------------------------------------------------------
 
 /**
  * Find an existing browser without downloading.
  * Resolution: env var -> cached download -> system Chrome.
+ *
+ * A stale hyperframes-cache entry (manifest present, executable missing) is
+ * "not found" here — the re-download belongs to `ensureBrowser`.
+ *
  * With `preferManagedChrome`: env var -> OUR pinned cache only (puppeteer-cache
  * preference and system Chrome are both skipped) — the same restriction
- * `ensureBrowser` applies, minus the auto-download this function never does.
- * Pass it when a "found" report has to predict what a `preferManagedChrome`
- * render will actually use (`doctor`'s Chrome check, `browser path`): the
- * unqualified resolution reports hits that such a render re-downloads over.
+ * `ensureBrowser` applies, minus its auto-download. Pass it when a "found"
+ * report has to predict what a `preferManagedChrome` render will actually use
+ * (`doctor`'s Chrome check, `browser path`): the unqualified resolution
+ * reports hits that such a render re-downloads over. No-op on Linux ARM64
+ * (see `resolvesManagedOnly`).
  */
 export async function findBrowser(
   options?: Pick<EnsureBrowserOptions, "preferManagedChrome">,
@@ -539,32 +556,14 @@ export async function findBrowser(
   const fromEnv = findFromEnv();
   if (fromEnv) return fromEnv;
 
-  const fromCache = await (options?.preferManagedChrome
-    ? findFromHyperframesCache()
-    : findFromCache());
+  const managedOnly = resolvesManagedOnly(options);
+  const fromCache = await (managedOnly ? findFromHyperframesCache() : findFromCache());
   if (fromCache.result) return fromCache.result;
-  if (fromCache.staleHyperframesCachePath) {
-    console.warn(
-      `[browser] Cached binary missing at ${fromCache.staleHyperframesCachePath} — re-downloading...`,
-    );
-    try {
-      return await withInstallLock(async () => {
-        if (fromCache.staleInstallPath) purgeStaleInstall(fromCache.staleInstallPath);
-        return downloadBrowser();
-      });
-    } catch (err) {
-      const cause = normalizeErrorMessage(err);
-      throw new Error(
-        `Cached Chrome binary was missing at ${fromCache.staleHyperframesCachePath}, and re-download failed: ${cause}\n` +
-          `Run \`hyperframes browser ensure --force\` to re-download.`,
-      );
-    }
-  }
 
-  // A `preferManagedChrome` render never falls back to system Chrome (see
+  // A managed-only render never falls back to system Chrome (see
   // `ensureBrowser`), so reporting it here would only relocate the false hit
   // from the puppeteer cache to system Chrome, not remove it.
-  if (options?.preferManagedChrome) return undefined;
+  if (managedOnly) return undefined;
 
   const fromSystem = findSystemBrowser();
   if (fromSystem) {
@@ -626,16 +625,16 @@ async function ensureLinuxArmBrowser(options?: EnsureBrowserOptions): Promise<Br
  * Find or download a browser.
  * Resolution: env var -> cached download -> system Chrome -> auto-download.
  * With `preferManagedChrome`: env var -> OUR pinned cache -> auto-download
- * (puppeteer-cache preference and system Chrome are both skipped).
+ * (puppeteer-cache preference and system Chrome are both skipped). No-op on
+ * Linux ARM64 (see `resolvesManagedOnly`).
  */
 export async function ensureBrowser(options?: EnsureBrowserOptions): Promise<BrowserResult> {
   const fromEnv = findFromEnv();
   if (fromEnv) return fromEnv;
 
+  const managedOnly = resolvesManagedOnly(options);
   if (!options?.force) {
-    const fromCache = await (options?.preferManagedChrome
-      ? findFromHyperframesCache()
-      : findFromCache());
+    const fromCache = await (managedOnly ? findFromHyperframesCache() : findFromCache());
     if (fromCache.result) return fromCache.result;
     if (fromCache.staleHyperframesCachePath) {
       console.warn(
@@ -647,7 +646,7 @@ export async function ensureBrowser(options?: EnsureBrowserOptions): Promise<Bro
       });
     }
 
-    if (!options?.preferManagedChrome) {
+    if (!managedOnly) {
       const fromSystem = findSystemBrowser();
       if (fromSystem) {
         warnSystemFallbackOnce(fromSystem.executablePath);
@@ -670,9 +669,7 @@ export async function ensureBrowser(options?: EnsureBrowserOptions): Promise<Bro
     // result instead of downloading and extracting a second time. Skipped
     // under --force, which already purged and always wants a fresh download.
     if (!options?.force) {
-      const afterLock = await (options?.preferManagedChrome
-        ? findFromHyperframesCache()
-        : findFromCache());
+      const afterLock = await (managedOnly ? findFromHyperframesCache() : findFromCache());
       if (afterLock.result) return afterLock.result;
       if (afterLock.staleInstallPath) purgeStaleInstall(afterLock.staleInstallPath);
     }

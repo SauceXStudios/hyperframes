@@ -300,7 +300,7 @@ describe("findBrowser — cache resolution", () => {
     expect(result).toEqual({ executablePath: macArm64Binary, source: "cache" });
   });
 
-  it("re-downloads when the hyperframes cache manifest points at a missing binary", async () => {
+  it("ensureBrowser re-downloads when the hyperframes cache manifest points at a missing binary", async () => {
     const redownloadedBinary = join(
       HF_CACHE,
       "chrome-headless-shell",
@@ -326,8 +326,8 @@ describe("findBrowser — cache resolution", () => {
     });
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-    const { findBrowser } = await import("./manager.js");
-    const result = await findBrowser();
+    const { ensureBrowser } = await import("./manager.js");
+    const result = await ensureBrowser();
 
     expect(result).toEqual({ executablePath: redownloadedBinary, source: "download" });
     expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("Cached binary missing"));
@@ -335,6 +335,32 @@ describe("findBrowser — cache resolution", () => {
     // sees it — otherwise install() throws "folder exists but exe missing"
     // instead of re-extracting (the exact bug both feedback reports hit).
     expect(paths.has(staleInstallDir)).toBe(false);
+  });
+
+  it("findBrowser reports a stale hyperframes-cache entry as not found instead of downloading", async () => {
+    // findBrowser is the find-only half of the API (doctor, `browser path`):
+    // a manifest whose executable is gone must not trigger a download from a
+    // diagnostic, and must not be reported as a hit either.
+    const staleInstallDir = join(HF_CACHE, "chrome-headless-shell", "linux-131.0.6778.85");
+    installFsMocks({ existing: new Set([HF_CACHE, staleInstallDir]) });
+    const install = vi.fn(async () => ({ executablePath: HF_BINARY }));
+    installPuppeteerBrowsersMock({
+      installedInHfCache: [
+        {
+          browser: "chrome-headless-shell",
+          executablePath: HF_BINARY,
+          path: staleInstallDir,
+          buildId: CHROME_VERSION,
+        },
+      ],
+      installImpl: install,
+    });
+
+    const { findBrowser } = await import("./manager.js");
+
+    expect(await findBrowser()).toBeUndefined();
+    expect(await findBrowser({ preferManagedChrome: true })).toBeUndefined();
+    expect(install).not.toHaveBeenCalled();
   });
 
   it("ensureBrowser({force: true}) purges the whole cache before downloading, bypassing any cache/system shortcut", async () => {
@@ -917,6 +943,67 @@ describe("findBrowser — preferManagedChrome", () => {
 
     expect(await findBrowser()).toEqual({ executablePath: SYSTEM_CHROME, source: "system" });
     expect(await findBrowser({ preferManagedChrome: true })).toBeUndefined();
+  });
+
+  it("still resolves the env var override first", async () => {
+    // An explicit HYPERFRAMES_BROWSER_PATH must win even when the pinned
+    // managed cache is populated — same precedence as ensureBrowser.
+    const envBinary = join(FAKE_HOME, "custom", "chrome-headless-shell");
+    process.env["HYPERFRAMES_BROWSER_PATH"] = envBinary;
+    installFsMocks({ existing: new Set([HF_CACHE, HF_BINARY, envBinary]) });
+    installPuppeteerBrowsersMock({
+      installedInHfCache: [
+        { browser: "chrome-headless-shell", executablePath: HF_BINARY, buildId: CHROME_VERSION },
+      ],
+    });
+
+    const { findBrowser } = await import("./manager.js");
+
+    expect(await findBrowser({ preferManagedChrome: true })).toEqual({
+      executablePath: envBinary,
+      source: "env",
+    });
+  });
+
+  it("still finds system Chromium on Linux ARM64, where no managed build exists", async () => {
+    // Chrome for Testing publishes no linux-arm64 chrome-headless-shell, so a
+    // preferManagedChrome render reroutes to system Chromium there
+    // (ensureLinuxArmBrowser). A managed-only lookup would report "not found"
+    // on a correctly set-up machine — the option has to be a no-op on ARM64.
+    Object.defineProperty(process, "arch", { value: "arm64", configurable: true });
+    installFsMocks({ existing: new Set([SYSTEM_CHROME]) });
+    installPuppeteerBrowsersMock();
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const { findBrowser } = await import("./manager.js");
+
+    expect(await findBrowser({ preferManagedChrome: true })).toEqual({
+      executablePath: SYSTEM_CHROME,
+      source: "system",
+    });
+  });
+
+  it("ensureBrowser also resolves system Chromium directly on Linux ARM64, without taking the install lock", async () => {
+    // Same decision as findBrowser (resolvesManagedOnly): a render on ARM64
+    // must not detour through the download path — and serialize on the
+    // install lock — just to end up at the system Chromium it could have
+    // found up front.
+    Object.defineProperty(process, "arch", { value: "arm64", configurable: true });
+    const paths = installFsMocks({ existing: new Set([SYSTEM_CHROME]) });
+    const install = vi.fn(async () => ({ executablePath: HF_BINARY }));
+    installPuppeteerBrowsersMock({ installImpl: install });
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const { ensureBrowser } = await import("./manager.js");
+
+    expect(await ensureBrowser({ preferManagedChrome: true })).toEqual({
+      executablePath: SYSTEM_CHROME,
+      source: "system",
+    });
+    expect(install).not.toHaveBeenCalled();
+    // withInstallLock creates the cache root before locking; the fixture
+    // starts without it, so its absence proves the download path never ran.
+    expect(paths.has(CACHE_ROOT)).toBe(false);
   });
 });
 

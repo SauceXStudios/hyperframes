@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { platform } from "node:os";
-import { findBrowser, isLinuxArm, type BrowserResult } from "./manager.js";
+import { findBrowser, type BrowserResult } from "./manager.js";
 import {
   FFMPEG_PATH_ENV,
   FFPROBE_PATH_ENV,
@@ -248,7 +248,7 @@ async function checkChrome(browserPath?: string): Promise<EnvironmentCheckOutcom
   }
 
   // A corrupt/partial browser cache (stub files where a version dir is
-  // expected, missing executable, malformed metadata) makes findBrowser throw.
+  // expected, malformed metadata) makes findBrowser throw.
   // That is the exact condition this check exists to report, so treat any
   // failure as "Chrome not found" rather than letting it crash the caller
   // (notably `doctor`, which is documented to exit 0 even when checks fail).
@@ -257,14 +257,8 @@ async function checkChrome(browserPath?: string): Promise<EnvironmentCheckOutcom
     // `preferManagedChrome` so a hit here predicts what render's
     // `ensureBrowser({ preferManagedChrome: true })` will use — the unqualified
     // resolution also accepts any puppeteer-cached version or system Chrome,
-    // neither of which render's pinned-version path honors. Skipped on Linux
-    // ARM64: there is no hyperframes-managed chrome-headless-shell build for
-    // that platform at all (Chrome for Testing doesn't publish linux-arm64),
-    // so `preferManagedChrome` there would always report "not found" even on
-    // a machine with a correctly apt-get-installed system Chromium — the
-    // exact false-negative this check exists to avoid, not produce. Matches
-    // `ensureLinuxArmBrowser`'s own unqualified resolution on that platform.
-    info = await findBrowser(isLinuxArm() ? undefined : { preferManagedChrome: true });
+    // neither of which render's pinned-version path honors.
+    info = await findBrowser({ preferManagedChrome: true });
   } catch {
     info = undefined;
   }
