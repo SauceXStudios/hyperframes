@@ -965,6 +965,32 @@ describe("findBrowser — preferManagedChrome", () => {
     });
   });
 
+  it("ensureBrowser ignores a puppeteer-cache hit and returns the pinned hyperframes cache without installing", async () => {
+    // ensureBrowser's own first cache lookup must make the same managed-only
+    // decision as findBrowser — otherwise render launches the puppeteer-cache
+    // build that doctor / `browser path` just said it would skip.
+    installFsMocks({
+      existing: new Set([HF_CACHE, HF_BINARY, PUPPETEER_CACHE, PUPPETEER_BINARY]),
+      dirs: { [PUPPETEER_CACHE]: ["linux-148.0.7778.97"] },
+    });
+    const install = vi.fn(async () => ({ executablePath: HF_BINARY }));
+    installPuppeteerBrowsersMock({
+      installedInHfCache: [
+        { browser: "chrome-headless-shell", executablePath: HF_BINARY, buildId: CHROME_VERSION },
+      ],
+      installImpl: install,
+    });
+
+    const { ensureBrowser } = await import("./manager.js");
+
+    expect(await ensureBrowser()).toEqual({ executablePath: PUPPETEER_BINARY, source: "cache" });
+    expect(await ensureBrowser({ preferManagedChrome: true })).toEqual({
+      executablePath: HF_BINARY,
+      source: "cache",
+    });
+    expect(install).not.toHaveBeenCalled();
+  });
+
   it("still finds system Chromium on Linux ARM64, where no managed build exists", async () => {
     // Chrome for Testing publishes no linux-arm64 chrome-headless-shell, so a
     // preferManagedChrome render reroutes to system Chromium there

@@ -247,11 +247,12 @@ async function checkChrome(browserPath?: string): Promise<EnvironmentCheckOutcom
     };
   }
 
-  // A corrupt/partial browser cache (stub files where a version dir is
-  // expected, malformed metadata) makes findBrowser throw.
-  // That is the exact condition this check exists to report, so treat any
-  // failure as "Chrome not found" rather than letting it crash the caller
-  // (notably `doctor`, which is documented to exit 0 even when checks fail).
+  // Both cache lookups inside findBrowser swallow their own read errors, but
+  // it can still throw — e.g. `@puppeteer/browsers` failing to load when the
+  // dependency is missing. An unusable browser setup is the exact condition
+  // this check exists to report, so treat any failure as "Chrome not found"
+  // rather than letting it crash the caller (notably `doctor`, which is
+  // documented to exit 0 even when checks fail).
   let info: Awaited<ReturnType<typeof findBrowser>>;
   try {
     // `preferManagedChrome` so a hit here predicts what render's

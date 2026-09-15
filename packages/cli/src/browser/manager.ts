@@ -533,6 +533,16 @@ function resolvesManagedOnly(options?: Pick<EnsureBrowserOptions, "preferManaged
   return options?.preferManagedChrome === true && !isLinuxArm();
 }
 
+/**
+ * The cache leg of resolution, keyed on `resolvesManagedOnly`: OUR pinned cache
+ * alone when managed-only, otherwise puppeteer's cache first (see
+ * `findFromCache`). One function so every lookup in `findBrowser` and
+ * `ensureBrowser` picks the same source.
+ */
+function lookupCache(managedOnly: boolean): Promise<CacheLookupResult> {
+  return managedOnly ? findFromHyperframesCache() : findFromCache();
+}
+
 // --- Public API -------------------------------------------------------------
 
 /**
@@ -557,7 +567,7 @@ export async function findBrowser(
   if (fromEnv) return fromEnv;
 
   const managedOnly = resolvesManagedOnly(options);
-  const fromCache = await (managedOnly ? findFromHyperframesCache() : findFromCache());
+  const fromCache = await lookupCache(managedOnly);
   if (fromCache.result) return fromCache.result;
 
   // A managed-only render never falls back to system Chrome (see
@@ -634,7 +644,7 @@ export async function ensureBrowser(options?: EnsureBrowserOptions): Promise<Bro
 
   const managedOnly = resolvesManagedOnly(options);
   if (!options?.force) {
-    const fromCache = await (managedOnly ? findFromHyperframesCache() : findFromCache());
+    const fromCache = await lookupCache(managedOnly);
     if (fromCache.result) return fromCache.result;
     if (fromCache.staleHyperframesCachePath) {
       console.warn(
@@ -669,7 +679,7 @@ export async function ensureBrowser(options?: EnsureBrowserOptions): Promise<Bro
     // result instead of downloading and extracting a second time. Skipped
     // under --force, which already purged and always wants a fresh download.
     if (!options?.force) {
-      const afterLock = await (managedOnly ? findFromHyperframesCache() : findFromCache());
+      const afterLock = await lookupCache(managedOnly);
       if (afterLock.result) return afterLock.result;
       if (afterLock.staleInstallPath) purgeStaleInstall(afterLock.staleInstallPath);
     }

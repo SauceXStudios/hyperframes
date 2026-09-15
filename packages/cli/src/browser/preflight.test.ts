@@ -119,7 +119,7 @@ describe("runEnvironmentChecks", () => {
     }
   });
 
-  it("reports Chrome as not found (no throw) when browser discovery throws on a corrupt cache", async () => {
+  it("reports Chrome as not found (no throw) when browser discovery throws", async () => {
     const spy = vi.spyOn(manager, "findBrowser").mockRejectedValue(
       Object.assign(new Error("ENOTDIR: not a directory, scandir 'chrome-headless-shell'"), {
         code: "ENOTDIR",
