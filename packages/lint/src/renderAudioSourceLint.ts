@@ -8,19 +8,28 @@ import {
   type MediaStreamProbeResults,
 } from "./mediaStreamProbe.js";
 
-/** One element the render will mix as an audio track. */
+/** One element the render will probe for an audio stream. */
 export interface RenderAudioSource {
   tag: "audio" | "video";
   elementId: string;
   /** The authored src as written (display value), not the resolved path. */
   src: string;
+  /**
+   * `<video>` only (always false for `<audio>`): whether `data-has-audio="true"`
+   * is authored. A `<video>` with this false is still in the mixer's set: the
+   * timing compiler marks every unmuted `<video>` audible (`timingCompiler.ts`
+   * compileTag step 2).
+   */
+  declaredHasAudio: boolean;
 }
 
 /**
  * Parent `src`, else a descendant `<source src>`, preferring a local path over
  * http(s) so a localized sibling wins. Mirrors the engine's
- * `resolveMediaElementSrc` (packages/engine/src/services/videoFrameExtractor.ts),
- * which the lint package cannot import without a dependency cycle.
+ * `resolveMediaElementSrc` (packages/engine/src/services/videoFrameExtractor.ts).
+ * The lint package cannot import the engine (dependency cycle), and lint's own
+ * `mediaHasResolvableSrc` (rules/media.ts) reads regex `OpenTag` tokens rather
+ * than DOM elements, so this rule carries its own DOM copy.
  */
 function resolveMediaElementSrc(el: Element): string | null {
   const direct = el.getAttribute("src");
@@ -52,31 +61,78 @@ function isKnownOrPossiblyInactiveWindow(el: Element): boolean {
   return start == null || end <= start;
 }
 
-/** The render's two audio-bearing element kinds, in the order `parseAudioElements` walks them. */
-const AUDIO_SOURCE_SELECTORS = [
-  ["audio", "audio[id]"],
-  ["video", 'video[id][data-has-audio="true"]'],
-] as const;
+/**
+ * Whether the compile gate probes this `<audio>`. The gate is the producer's
+ * `compileHtmlFile` (packages/producer/src/services/htmlCompiler.ts), whose
+ * prober calls `assertAssetMediaTypeProfile("audio", …)`; it never looks at
+ * `data-hidden`, so a hidden element it probes still fails the render. Both
+ * phases keep only elements with their own `src` (a `<source>` child does not
+ * count):
+ *
+ *   Phase 1 (core `compileTimingAttrs` → `compileTag` step 1, then the
+ *   producer's "resolve missing durations" filter): no `data-end` and no
+ *   parseable `data-duration` — the file is probed to supply the duration.
+ *
+ *   Phase 2 (core `extractResolvedMedia`, then the producer's `!el.loop`
+ *   filter): parseable `data-duration > 0` and no `loop` — the file is probed
+ *   to clamp the slot.
+ *
+ * Everything else — `data-end`-bounded, `loop`ed, `<source>`-only, or
+ * `data-duration <= 0` — reaches the render only through the mixer gate.
+ *
+ * Mirror limit: core reads attributes with a regex that only sees quoted
+ * values (`getAttr` in timingCompiler.ts); this reads the DOM, so an unquoted
+ * `src=x` or `data-duration=5` is visible here and invisible to the compiler.
+ */
+function compileGateProbes(el: Element): boolean {
+  if (!el.getAttribute("src")) return false;
+  const duration = parseNumeric(el.getAttribute("data-duration"));
+  if (duration == null) return !el.hasAttribute("data-end");
+  return duration > 0 && !el.hasAttribute("loop");
+}
+
+/**
+ * Whether the mixer (`parseAudioElements`, packages/engine/src/services/
+ * audioMixer.ts) picks this `<video>` up as a track. Its selector is
+ * `video[id][data-has-audio="true"]`, but it runs on compiled HTML: the timing
+ * compiler (packages/core/src/compiler/timingCompiler.ts, `compileTag` step 2)
+ * has already injected `data-has-audio="true"` on every unmuted `<video>`
+ * lacking the attribute (and `"false"` on a muted one). An authored value
+ * always wins over `muted`.
+ */
+function mixerTreatsVideoAsAudible(el: Element): boolean {
+  const declared = el.getAttribute("data-has-audio");
+  if (declared != null) return declared === "true";
+  return !el.hasAttribute("muted");
+}
 
 /**
  * Every element the render will probe for an audio stream, which is the union
  * of two gates in the producer:
  *
- *   1. The compile gate (`compileForRender` → `assertAssetMediaTypeProfile`)
- *      resolves the duration of every `audio[id]` with a positive
- *      `data-duration` and an existing local src — regardless of `data-hidden`
- *      — and throws when the file has no audio stream.
+ *   1. The compile gate — see `compileGateProbes`. `<audio>` only (it probes
+ *      `<video>` as video); ignores `data-hidden`.
  *   2. The mixer/preflight gate (`parseAudioElements` →
- *      `preflightCompositionAssetMediaTypes`) covers the rest: `audio[id]` and
- *      `video[id][data-has-audio="true"]`, minus `data-hidden` on the element
- *      or an ancestor, minus members of a hidden `<hf-audio-group>` bus
- *      (membership is the member's `data-audio-group`, so an ancestor walk
- *      cannot see it; audio only in v1), minus known inactive timing windows.
+ *      `preflightCompositionAssetMediaTypes`): `audio[id]` plus every
+ *      `video[id]` the compiled HTML marks `data-has-audio="true"` (see
+ *      `mixerTreatsVideoAsAudible`), minus `data-hidden` on the element or an
+ *      ancestor, minus members of a hidden `<hf-audio-group>` bus (membership
+ *      is the member's `data-audio-group`, so an ancestor walk cannot see it;
+ *      audio only in v1), minus known inactive timing windows.
  *
- * So a hidden `<audio>` bounded by `data-duration` is still a candidate (gate 1
- * rejects it), while a hidden `<audio>` bounded only by `data-end` is not (gate
- * 1 never sees it and gate 2 drops it). `<video data-has-audio>` is checked as
- * video by gate 1, so only gate 2's exclusions apply to it.
+ * So a hidden `<audio src>` bounded by `data-duration`, or with no timing at
+ * all, is a candidate (gate 1 rejects it), while a hidden `<audio>` bounded by
+ * `data-end`, or `loop`ed, or with only a `<source>` child, is not (gate 1
+ * never sees it and gate 2 drops it).
+ *
+ * Known gaps:
+ *   - A sub-composition host that is `data-hidden` only in the parent file.
+ *     The mixer's ancestor walk sees that across inlining; a scan of the
+ *     sub-composition file on its own cannot, so a `data-end`-bounded silent
+ *     `<audio>` inside it is reported although the render would drop it.
+ *   - Elements without an `id`. The compiler assigns one (`hf-audio-N`) and
+ *     probes them like any other; this rule selects `[id]` so it can name the
+ *     element, and leaves the missing id to `media_missing_id`.
  *
  * Each candidate needs a resolvable src (own `src` or a `<source src>`) that is
  * an existing local file — remote and missing files are other rules' business.
@@ -99,19 +155,16 @@ export function collectRenderAudioCandidates(
         .map((group) => group.getAttribute("id"))
         .filter((id): id is string => Boolean(id)),
     );
-    const sources: Array<{ el: Element; tag: RenderAudioSource["tag"] }> = [];
-    for (const [tag, selector] of AUDIO_SOURCE_SELECTORS) {
-      for (const el of querySelectorAllIncludingTemplates(document, selector)) {
-        sources.push({ el, tag });
-      }
-    }
 
-    for (const { el, tag } of sources) {
+    for (const el of querySelectorAllIncludingTemplates(document, "audio[id], video[id]")) {
+      const tag: RenderAudioSource["tag"] =
+        el.tagName.toLowerCase() === "audio" ? "audio" : "video";
       const elementId = el.getAttribute("id");
       if (!elementId) continue;
-      const compileGateProbes =
-        tag === "audio" && (parseNumeric(el.getAttribute("data-duration")) ?? 0) > 0;
-      if (!compileGateProbes) {
+      if (tag === "video" && !mixerTreatsVideoAsAudible(el)) continue;
+      // The compile gate probes `<audio>` only; it reads `<video>` as video.
+      const probedByCompileGate = tag === "audio" && compileGateProbes(el);
+      if (!probedByCompileGate) {
         if (el.closest("[data-hidden]")) continue;
         const groupId = tag === "audio" ? el.getAttribute("data-audio-group") : null;
         if (groupId && hiddenGroupIds.has(groupId)) continue;
@@ -124,13 +177,27 @@ export function collectRenderAudioCandidates(
 
       const refs = candidates.get(candidate.resolved) ?? [];
       if (!refs.some((ref) => ref.tag === tag && ref.elementId === elementId)) {
-        refs.push({ tag, elementId, src: candidate.src });
+        refs.push({
+          tag,
+          elementId,
+          src: candidate.src,
+          declaredHasAudio: tag === "video" && el.getAttribute("data-has-audio") === "true",
+        });
       }
       candidates.set(candidate.resolved, refs);
     }
   }
 
   return candidates;
+}
+
+function mismatchFixHint(tag: RenderAudioSource["tag"], declaredHasAudio: boolean): string {
+  if (tag === "audio") {
+    return "Point the <audio> src at media containing an audio stream, or remove the element if no audio is intended.";
+  }
+  return declaredHasAudio
+    ? 'Remove data-has-audio="true" from a silent <video>, or point it at media containing an audio stream.'
+    : "Add muted to a silent <video>, or point it at media containing an audio stream.";
 }
 
 /**
@@ -152,17 +219,18 @@ export function lintRenderAudioSourceStreams(
   for (const [filePath, refs] of candidates) {
     const streams = probes.get(filePath);
     if (!streams || streams.some((stream) => stream.codec_type === "audio")) continue;
-    for (const { tag, elementId, src } of refs) {
-      const attrs = tag === "video" ? ' data-has-audio="true"' : "";
+    for (const { tag, elementId, src, declaredHasAudio } of refs) {
+      const hasAudioAttr = declaredHasAudio ? ' data-has-audio="true"' : "";
+      const consequence =
+        tag === "video" && !declaredHasAudio
+          ? "but the render mixes an unmuted <video> as audio and fail-closes when that track has no audio stream."
+          : "so it is not audio. The producer fail-closes when the tag and file kind disagree.";
       findings.push({
         code: "media_src_kind_mismatch",
         severity: "error",
-        message: `<${tag} id="${elementId}"${attrs}> src "${src}" has no audio stream, so it is not audio. The producer fail-closes when the tag and file kind disagree.`,
+        message: `<${tag} id="${elementId}"${hasAudioAttr}> src "${src}" has no audio stream, ${consequence}`,
         elementId,
-        fixHint:
-          tag === "audio"
-            ? "Point the <audio> src at media containing an audio stream, or remove the element if no audio is intended."
-            : 'Remove data-has-audio="true" from a silent <video>, or point it at media containing an audio stream.',
+        fixHint: mismatchFixHint(tag, declaredHasAudio),
       });
     }
   }
