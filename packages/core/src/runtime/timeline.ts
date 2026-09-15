@@ -223,6 +223,10 @@ export function collectRuntimeTimelinePayload(params: {
         if (!parentCompositionId && cursor !== root) {
           parentCompositionId = compositionId;
         }
+      }
+      // A plain authored clip (`data-start` with no `data-composition-id`)
+      // bounds its untimed descendants the same way a sub-composition does.
+      if (compositionId || cursor.hasAttribute("data-start")) {
         if (inheritedStart == null) {
           inheritedStart = startResolver.resolveStartForElement(cursor, 0);
         }

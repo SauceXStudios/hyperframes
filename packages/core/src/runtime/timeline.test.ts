@@ -990,4 +990,34 @@ describe("collectRuntimeTimelinePayload", () => {
     const result = collectRuntimeTimelinePayload(defaultParams);
     expect(result.clips.find((c) => c.id === "my-script")).toBeUndefined();
   });
+
+  it("scopes an untimed img nested in a plain authored clip to that clip's window", () => {
+    const root = document.createElement("div");
+    root.setAttribute("data-composition-id", "root");
+    root.setAttribute("data-duration", "50.3666");
+    document.body.appendChild(root);
+
+    // A scene clip authored with data-start/data-duration but no
+    // data-composition-id of its own — the shape build.mjs-style pipelines
+    // emit for each unit/scene.
+    const scene = document.createElement("div");
+    scene.id = "u04";
+    scene.className = "clip";
+    scene.setAttribute("data-start", "8.5233");
+    scene.setAttribute("data-duration", "4.7867");
+    root.appendChild(scene);
+
+    // The scene's own script draws from this off-screen source image; it
+    // carries no timing of its own.
+    const img = document.createElement("img");
+    img.id = "u04-mosaicsrc";
+    img.setAttribute("src", "mosaic.png");
+    scene.appendChild(img);
+
+    const result = collectRuntimeTimelinePayload(defaultParams);
+    const clip = result.clips.find((c) => c.id === "u04-mosaicsrc");
+
+    expect(clip?.start).toBeCloseTo(8.5233, 3);
+    expect(clip?.duration).toBeCloseTo(4.7867, 3);
+  });
 });
