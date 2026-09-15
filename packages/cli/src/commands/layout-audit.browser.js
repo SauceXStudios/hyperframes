@@ -302,8 +302,8 @@
 
   // Geometry rule for content-overlap, decided once here and applied to every
   // block so any pair compares like with like: glyph (Range) rects, with
-  // font-metric bleed past the element's own border-box clamped back to it, then
-  // clipped by overflow ancestors.
+  // font-metric bleed past the element's own content box clamped back to it,
+  // then clipped by overflow ancestors.
   //
   // Range rects follow the font's ascent/descent (the content area), not the CSS
   // box: a large font-size with a tight line-height keeps the range-rect height
@@ -321,30 +321,51 @@
   // the box edge collides with for real (over 20% shared ink from about 0.4em
   // down), so it is kept. A further wrapped line spills (line-height +
   // content-area) / 2, always more, and is kept too. Measuring the bound from the
-  // rect itself keeps it exact under any transform scale. In horizontal writing
-  // the spill is vertical by nature — glyph advances never exceed the box unless
-  // the text genuinely overflows — so the horizontal extent is never trimmed;
-  // vertical writing modes swap the axes, so they are left untrimmed entirely
-  // rather than trimming real overflow. The clamp does not help text wrapped in a
-  // bare inline element (a span): its own box already follows the font's content
-  // area, so the bleed is measured as inside the box.
+  // rect itself keeps it valid under any transform scale.
+  //
+  // The spill is measured against the content box, not the border box
+  // getBoundingClientRect() reports: line boxes are laid out inside the content
+  // box, so the tips spill into the padding band first and past the border edge
+  // only once they outgrow it. Against the border box, any bleed narrower than
+  // the padding reads as spill <= 0 and stays as ink for a neighbour set at the
+  // content edge to collide with. Padding must not change the answer, so the
+  // vertical padding and border widths come off the border box first and the
+  // clamp lands on the content edges. The computed widths are local px while the
+  // client rect is post-transform, so they are scaled by the ratio of the
+  // rendered border-box height to offsetHeight (the same box in local px) —
+  // otherwise a scaled-down block would subtract too much and read its own
+  // padding band as spill, or vanish entirely once the band outgrew the box.
+  //
+  // In horizontal writing the spill is vertical by nature — glyph advances never
+  // exceed the box unless the text genuinely overflows — so the horizontal extent
+  // is never trimmed; vertical writing modes swap the axes, so they are left
+  // untrimmed entirely rather than trimming real overflow. The clamp does not
+  // help text wrapped in a bare inline element (a span): its own box already
+  // follows the font's content area, so the bleed is measured as inside the box.
   function overlapTextRects(element) {
     const glyphRects = textClientRects(element, true).map(toRect);
     if (glyphRects.length === 0) return [];
-    if (getComputedStyle(element).writingMode !== "horizontal-tb") {
+    const style = getComputedStyle(element);
+    if (style.writingMode !== "horizontal-tb") {
       return clipRectsToOverflowAncestors(element, glyphRects);
     }
     const box = toRect(element.getBoundingClientRect());
+    const localHeight = element.offsetHeight;
+    const scale = localHeight > 0 ? box.height / localHeight : 1;
+    const contentTop =
+      box.top + (parsePx(style.borderTopWidth) + parsePx(style.paddingTop)) * scale;
+    const contentBottom =
+      box.bottom - (parsePx(style.borderBottomWidth) + parsePx(style.paddingBottom)) * scale;
     const topLine = glyphRects.reduce((top, rect) => (rect.top < top.top ? rect : top));
     const bottomLine = glyphRects.reduce((bottom, rect) =>
       rect.bottom > bottom.bottom ? rect : bottom,
     );
-    const topSpill = box.top - topLine.top;
-    const bottomSpill = bottomLine.bottom - box.bottom;
+    const topSpill = contentTop - topLine.top;
+    const bottomSpill = bottomLine.bottom - contentBottom;
     const isBleed = (spill, line) => spill > 0 && spill <= line.height / 5;
     const clip = {
-      top: isBleed(topSpill, topLine) ? box.top : topLine.top,
-      bottom: isBleed(bottomSpill, bottomLine) ? box.bottom : bottomLine.bottom,
+      top: isBleed(topSpill, topLine) ? contentTop : topLine.top,
+      bottom: isBleed(bottomSpill, bottomLine) ? contentBottom : bottomLine.bottom,
     };
     return clipRectsToOverflowAncestors(element, clampRectsTo(glyphRects, clip, false, true));
   }
