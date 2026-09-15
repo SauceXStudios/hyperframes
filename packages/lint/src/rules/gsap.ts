@@ -998,6 +998,36 @@ function collectMeasuringFunctionNames(signatures: Map<string, FunctionSignature
 
 type LiteralArg = { kind: "boolean"; value: boolean } | { kind: "string"; value: string };
 
+// Replaces the contents of every string/template literal in `text` with `#`
+// placeholders (same length, so positions are preserved) — lets a later
+// keyword scan (e.g. "does this end in a break/return/throw statement?")
+// ignore a keyword-shaped substring that's actually just string content, like
+// `el.setAttribute("mode", "break")` not being an actual `break` statement.
+function maskStringLiterals(text: string): string {
+  let result = "";
+  let inString: '"' | "'" | "`" | null = null;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i] ?? "";
+    const prev = text[i - 1] ?? "";
+    if (inString) {
+      if (ch === inString && prev !== "\\") {
+        inString = null;
+        result += ch; // closing quote — keep visible
+      } else {
+        result += "#";
+      }
+      continue;
+    }
+    if (ch === '"' || ch === "'" || ch === "`") {
+      inString = ch;
+      result += ch; // opening quote — keep visible
+      continue;
+    }
+    result += ch;
+  }
+  return result;
+}
+
 function parseLiteralArg(argText: string): LiteralArg | null {
   const trimmed = argText.trim();
   if (trimmed === "true") return { kind: "boolean", value: true };
@@ -1026,7 +1056,13 @@ function sliceUntilNextCase(text: string, start: number): string {
     else if (")}]".includes(ch)) {
       if (depth === 0) return text.slice(start, i);
       depth--;
-    } else if (depth === 0 && /^(?:case|default)\b/.test(text.slice(i))) {
+    } else if (depth === 0 && !/[\w$]/.test(prev) && /^(?:case|default)\b/.test(text.slice(i))) {
+      // The LEADING word-boundary check (`prev`) matters as much as the
+      // trailing `\b`: without it the "case" inside an identifier such as
+      // "lowercase(" reads as a case label and truncates the body here,
+      // silently dropping the rest — including any measurement — from both
+      // this slice and the caller's outside-the-statement remainder scan
+      // (which only covers text outside the whole switch statement).
       return text.slice(start, i);
     }
   }
@@ -1045,6 +1081,41 @@ function measuresOutsideStatement(
   return textReachesMeasurement(body.slice(0, start) + body.slice(end), measuring);
 }
 
+// Substituting the caller's literal for `paramName` is only sound if nothing
+// between the start of the function body and `beforeIndex` could have changed
+// what that name refers to or holds: a reassignment (`m = !m`, `m ||= x`,
+// `m++`) or a shadowing rebinding (a nested function/arrow/method/catch
+// parameter, or a let/const/var/destructured declaration reusing the same
+// name). Either one breaks the "still holds the caller's literal" assumption
+// the branch resolution depends on, so callers bail to unresolved rather than
+// risk resolving the wrong branch.
+function paramMayBeRebound(body: string, paramName: string, beforeIndex: number): boolean {
+  const before = body.slice(0, beforeIndex);
+  const name = escapeRegExp(paramName);
+  const assignmentPattern = new RegExp(
+    `\\b${name}\\s*(?:=(?!=)|\\+=|-=|\\*\\*=|\\*=|/=|%=|<<=|>>>=|>>=|&=|\\|=|\\^=|\\|\\|=|&&=|\\?\\?=|\\+\\+|--)` +
+      `|(?:\\+\\+|--)\\s*${name}\\b`,
+  );
+  const inParamList = `\\([^)]*\\b${name}\\b[^)]*\\)`;
+  const shadowPattern = new RegExp(
+    [
+      `\\bfunction\\b[^(]*${inParamList}`, // nested function's parameter
+      `${inParamList}\\s*=>`, // arrow's parenthesized parameter
+      `\\b${name}\\s*=>`, // arrow's bare single parameter
+      `\\b(?:let|const|var)\\s+${name}\\b`, // redeclaration
+      `[{[][^}\\]]*\\b${name}\\b[^}\\]]*[}\\]]\\s*=`, // destructured binding
+      `\\bcatch\\s*${inParamList}`, // catch clause parameter
+      // Object/class method shorthand parameter (`run(paramName) {`) — has
+      // neither `function` nor `=>`, so it needs its own alternative. The
+      // control-flow keywords are excluded so an EARLIER, unrelated
+      // if/while/switch/for/catch using the same real (non-shadowed) name
+      // doesn't force a gratuitous bail.
+      `\\b(?!if\\b|while\\b|switch\\b|for\\b|catch\\b|function\\b)[A-Za-z_$][\\w$]*\\s*${inParamList}\\s*\\{`,
+    ].join("|"),
+  );
+  return assignmentPattern.test(before) || shadowPattern.test(before);
+}
+
 // A literal boolean argument resolves `if (paramName) {A} else {B}` (or its
 // negation) to exactly one branch.
 function resolveBooleanIfElseBranch(
@@ -1056,6 +1127,7 @@ function resolveBooleanIfElseBranch(
   const ifPattern = new RegExp(`\\bif\\s*\\(\\s*(!)?\\s*${escapeRegExp(paramName)}\\s*\\)\\s*\\{`);
   const ifMatch = ifPattern.exec(body);
   if (!ifMatch) return null;
+  if (paramMayBeRebound(body, paramName, ifMatch.index)) return null;
   const thenBraceIndex = ifMatch.index + ifMatch[0].length - 1;
   const thenBlock = matchBalanced(body, thenBraceIndex, "{", "}");
   if (!thenBlock) return null;
@@ -1081,6 +1153,7 @@ function resolveSwitchCaseBranch(
   const switchPattern = new RegExp(`\\bswitch\\s*\\(\\s*${escapeRegExp(paramName)}\\s*\\)\\s*\\{`);
   const switchMatch = switchPattern.exec(body);
   if (!switchMatch) return null;
+  if (paramMayBeRebound(body, paramName, switchMatch.index)) return null;
   const braceIndex = switchMatch.index + switchMatch[0].length - 1;
   const switchBody = matchBalanced(body, braceIndex, "{", "}");
   if (!switchBody) return null;
@@ -1088,7 +1161,19 @@ function resolveSwitchCaseBranch(
   const caseMatch = casePattern.exec(switchBody);
   if (!caseMatch) return null;
   const caseBody = sliceUntilNextCase(switchBody, caseMatch.index + caseMatch[0].length);
-  if (!caseBody.trim()) return null; // fell through with no body of its own — unresolved
+  // Both guards below mean the same thing: the matched case falls through into
+  // the NEXT case at runtime, which this slice does not include and which may
+  // measure — so it can't be resolved as "just this case's body."
+  const trimmedCaseBody = caseBody.trim();
+  if (!trimmedCaseBody) return null; // no body of its own
+  // The trailing `\}?` tolerates one level of the case's own `{ ... }` block
+  // wrapping (`case "x": { ...; break; }`), which the slice keeps verbatim.
+  // Masked first so a keyword-shaped SUBSTRING inside a string literal (e.g.
+  // `el.setAttribute("mode", "break")`) can't be mistaken for a real
+  // terminator.
+  if (!/\b(?:break|return|throw)\b[^;{}]*;?\s*\}?\s*$/.test(maskStringLiterals(trimmedCaseBody))) {
+    return null;
+  }
   const statementEnd = braceIndex + switchBody.length;
   if (measuresOutsideStatement(body, switchMatch.index, statementEnd, measuring)) return null;
   return caseBody;
