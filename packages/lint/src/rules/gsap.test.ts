@@ -3422,6 +3422,435 @@ describe("GSAP seek-order safety rules", () => {
     expect(findings.length).toBe(1);
     expect(findings[0]?.selector).toContain("cardA");
   });
+
+  it("gsap_callback_dom_measurement: a break nested inside a conditional does not terminate the case (fails closed)", async () => {
+    // The `break` only fires when `window.__cond` is true — it does NOT
+    // unconditionally end case "a", so the case can still fall through into
+    // case "b"'s measurement. A terminator check that only looks at the
+    // TRAILING text (not whether the terminator sits at the case's own
+    // top level) would be fooled by the nested `break` into treating "a" as
+    // safely terminated.
+    const html = `
+<html><body>
+  <div data-composition-id="c1" data-width="1920" data-height="1080"><div id="cardA"></div></div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    function alignPanel(el, mode) {
+      switch (mode) {
+        case "a":
+          el.style.opacity = "0.5";
+          if (window.__cond) {
+            break;
+          }
+        case "b":
+          el.getBoundingClientRect();
+          break;
+      }
+    }
+    const tl = gsap.timeline({ paused: true });
+    tl.to('#cardA', { x: 10, duration: 1, onUpdate: () => alignPanel(document.getElementById('cardA'), "a") }, 0);
+    window.__timelines["c1"] = tl;
+  </script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    const finding = result.findings.find((f) => f.code === "gsap_callback_dom_measurement");
+    expect(finding).toBeDefined();
+  });
+
+  it("gsap_callback_dom_measurement: a case search is depth-aware and doesn't match a same-valued case nested in a sibling case (fails closed)", async () => {
+    // The REAL case "b" (top-level, measures) sits after case "a", which
+    // itself contains an unrelated NESTED switch with its own (non-measuring)
+    // case "b". A depth-unaware search for `case "b":` would match the
+    // nested one first — the first TEXTUAL occurrence — and wrongly resolve
+    // using its body instead of the real top-level case's.
+    const html = `
+<html><body>
+  <div data-composition-id="c1" data-width="1920" data-height="1080"><div id="cardA"></div></div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    function alignPanel(el, mode) {
+      switch (mode) {
+        case "a":
+          switch (window.__inner) {
+            case "b":
+              el.style.opacity = "0.5";
+              break;
+          }
+          break;
+        case "b":
+          el.getBoundingClientRect();
+          break;
+      }
+    }
+    const tl = gsap.timeline({ paused: true });
+    tl.to('#cardA', { x: 10, duration: 1, onUpdate: () => alignPanel(document.getElementById('cardA'), "b") }, 0);
+    window.__timelines["c1"] = tl;
+  </script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    const finding = result.findings.find((f) => f.code === "gsap_callback_dom_measurement");
+    expect(finding).toBeDefined();
+  });
+
+  it("gsap_callback_dom_measurement: a literal with no matching TOP-LEVEL case anywhere in the switch bails closed (every occurrence is nested)", async () => {
+    // Every textual occurrence of `case "b":` is nested inside case "a"'s own
+    // inner switch — there is no top-level case "b" at all. findTopLevelCaseMatch
+    // must reject every candidate and return null, and the caller must treat
+    // that as unresolved (conservative) rather than as "case not found, so
+    // nothing to worry about." The measurement lives in case "c" (unreached
+    // by this call's "b" argument) purely so `alignPanel` enters the
+    // `measuring` set to begin with — without ANY measurement anywhere in the
+    // body, the function is never tainted in the first place and this
+    // resolution path never runs.
+    const html = `
+<html><body>
+  <div data-composition-id="c1" data-width="1920" data-height="1080"><div id="cardA"></div></div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    function alignPanel(el, mode) {
+      switch (mode) {
+        case "a":
+          switch (window.__inner) {
+            case "b":
+              el.style.opacity = "0.5";
+              break;
+          }
+          break;
+        case "c":
+          el.getBoundingClientRect();
+          break;
+      }
+    }
+    const tl = gsap.timeline({ paused: true });
+    tl.to('#cardA', { x: 10, duration: 1, onUpdate: () => alignPanel(document.getElementById('cardA'), "b") }, 0);
+    window.__timelines["c1"] = tl;
+  </script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    const finding = result.findings.find((f) => f.code === "gsap_callback_dom_measurement");
+    expect(finding).toBeDefined();
+  });
+
+  it("gsap_callback_dom_measurement: a spread argument before a literal is not substituted (fails closed)", async () => {
+    // `...args` can expand to any number of elements at runtime, so the
+    // textually-later `false` doesn't reliably bind to `useMeasurement` —
+    // resolving it anyway (as if positions were unaffected by the spread)
+    // could substitute the wrong branch.
+    const html = `
+<html><body>
+  <div data-composition-id="c1" data-width="1920" data-height="1080"><div id="cardA"></div></div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    function applyPhaseStyle(el, useMeasurement) {
+      if (useMeasurement) {
+        el.getBoundingClientRect();
+      } else {
+        el.style.opacity = "0.5";
+      }
+    }
+    const extraArgs = [document.getElementById('cardA')];
+    const tl = gsap.timeline({ paused: true });
+    tl.to('#cardA', { x: 10, duration: 1, onUpdate: () => applyPhaseStyle(...extraArgs, false) }, 0);
+    window.__timelines["c1"] = tl;
+  </script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    const finding = result.findings.find((f) => f.code === "gsap_callback_dom_measurement");
+    expect(finding).toBeDefined();
+  });
+
+  it("gsap_callback_dom_measurement: a rebind inside a loop-wrapped branch is not substituted, even though it's textually after the if (fails closed)", async () => {
+    // On the first loop iteration `useMeasurement` is false (style only), but
+    // the else branch flips it to true — so the SECOND iteration's `if`
+    // measures. A rebind scan limited to the text BEFORE the if misses this,
+    // since the reassignment sits inside the else branch, textually after.
+    const html = `
+<html><body>
+  <div data-composition-id="c1" data-width="1920" data-height="1080"><div id="cardA"></div></div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    function applyPhaseStyle(el, useMeasurement) {
+      for (let i = 0; i < 2; i++) {
+        if (useMeasurement) {
+          el.getBoundingClientRect();
+        } else {
+          el.style.opacity = "0.5";
+          useMeasurement = true;
+        }
+      }
+    }
+    const tl = gsap.timeline({ paused: true });
+    tl.to('#cardA', { x: 10, duration: 1, onUpdate: () => applyPhaseStyle(document.getElementById('cardA'), false) }, 0);
+    window.__timelines["c1"] = tl;
+  </script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    const finding = result.findings.find((f) => f.code === "gsap_callback_dom_measurement");
+    expect(finding).toBeDefined();
+  });
+
+  it("gsap_callback_dom_measurement: a param shadowed by a nested function DECLARATION reusing its name is not substituted (fails closed)", async () => {
+    // `function useMeasurement() {}` re-declares the identifier inside the
+    // function's own scope — the shadow patterns for nested parameters
+    // (`function foo(useMeasurement)`) don't cover a nested function whose
+    // own NAME, not parameter, reuses the outer param.
+    const html = `
+<html><body>
+  <div data-composition-id="c1" data-width="1920" data-height="1080"><div id="cardA"></div></div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    function applyPhaseStyle(el, useMeasurement) {
+      function useMeasurement() {}
+      if (useMeasurement) {
+        el.getBoundingClientRect();
+      } else {
+        el.style.opacity = "0.5";
+      }
+    }
+    const tl = gsap.timeline({ paused: true });
+    tl.to('#cardA', { x: 10, duration: 1, onUpdate: () => applyPhaseStyle(document.getElementById('cardA'), false) }, 0);
+    window.__timelines["c1"] = tl;
+  </script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    const finding = result.findings.find((f) => f.code === "gsap_callback_dom_measurement");
+    expect(finding).toBeDefined();
+  });
+
+  it("gsap_callback_dom_measurement: a default parameter value containing '(' doesn't throw off body extraction for an unrelated helper", async () => {
+    // `a = "("` puts an unbalanced `(` inside a string default value —
+    // a matchBalanced that isn't string-literal-aware over-counts depth and
+    // mis-locates (or fails to find) this function's own body, so it's never
+    // collected as measuring and a caller invoking it is missed entirely.
+    const html = `
+<html><body>
+  <div data-composition-id="c1" data-width="1920" data-height="1080"><div id="cardA"></div></div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    function measureWithDefault(a = "(") {
+      document.getElementById('cardA').getBoundingClientRect();
+    }
+    const tl = gsap.timeline({ paused: true });
+    tl.to('#cardA', { x: 10, duration: 1, onUpdate: () => measureWithDefault() }, 0);
+    window.__timelines["c1"] = tl;
+  </script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    const finding = result.findings.find((f) => f.code === "gsap_callback_dom_measurement");
+    expect(finding).toBeDefined();
+  });
+
+  it("gsap_callback_dom_measurement: measureFn.call/.apply/.bind() are direct invocations and must still be flagged", async () => {
+    const html = `
+<html><body>
+  <div data-composition-id="c1" data-width="1920" data-height="1080">
+    <div id="cardA"></div>
+    <div id="cardB"></div>
+    <div id="cardC"></div>
+  </div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    function measureFn() {
+      document.body.getBoundingClientRect();
+    }
+    const tl = gsap.timeline({ paused: true });
+    tl.to('#cardA', { x: 10, duration: 1, onUpdate: () => measureFn.call(this) }, 0);
+    tl.to('#cardB', { x: 10, duration: 1, onUpdate: () => measureFn.apply(this) }, 0);
+    tl.to('#cardC', { x: 10, duration: 1, onUpdate: () => measureFn.bind(this)() }, 0);
+    window.__timelines["c1"] = tl;
+  </script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    const findings = result.findings.filter((f) => f.code === "gsap_callback_dom_measurement");
+    expect(findings.length).toBe(3);
+  });
+
+  it("gsap_callback_dom_measurement: a named wrapper that reaches measurement only via .call/.apply/.bind is still flagged when passed by reference", async () => {
+    // Exercises the OTHER call/apply/bind path: not the leaf-callback check in
+    // expressionReachesMeasurement (covered above), but the two-hop named-
+    // function taint closure (collectMeasuringFunctionNames -> invokesName),
+    // where `wrapper` itself measures only indirectly through `.call`.
+    const html = `
+<html><body>
+  <div data-composition-id="c1" data-width="1920" data-height="1080"><div id="cardA"></div></div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    function measureFn() {
+      document.body.getBoundingClientRect();
+    }
+    function wrapper() {
+      measureFn.call(this);
+    }
+    const tl = gsap.timeline({ paused: true });
+    tl.to('#cardA', { x: 10, duration: 1, onUpdate: wrapper }, 0);
+    window.__timelines["c1"] = tl;
+  </script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    const finding = result.findings.find((f) => f.code === "gsap_callback_dom_measurement");
+    expect(finding).toBeDefined();
+  });
+
+  it("gsap_callback_dom_measurement: measureFn?.() and measureFn?.call(this) (optional chaining) are still flagged (fails closed)", async () => {
+    const html = `
+<html><body>
+  <div data-composition-id="c1" data-width="1920" data-height="1080">
+    <div id="cardA"></div>
+    <div id="cardB"></div>
+  </div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    function measureFn() {
+      document.body.getBoundingClientRect();
+    }
+    const tl = gsap.timeline({ paused: true });
+    tl.to('#cardA', { x: 10, duration: 1, onUpdate: () => { measureFn?.(); } }, 0);
+    tl.to('#cardB', { x: 10, duration: 1, onUpdate: () => { measureFn?.call(this); } }, 0);
+    window.__timelines["c1"] = tl;
+  </script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    const findings = result.findings.filter((f) => f.code === "gsap_callback_dom_measurement");
+    expect(findings.length).toBe(2);
+  });
+
+  it("gsap_callback_dom_measurement: a for-of/for-in reuse of the param as the loop variable is not substituted (fails closed)", async () => {
+    const html = `
+<html><body>
+  <div data-composition-id="c1" data-width="1920" data-height="1080"><div id="cardA"></div></div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    function handler(mode) {
+      for (mode of [true, false]) {}
+      if (mode) {
+        document.getElementById('cardA').style.opacity = "0.5";
+      } else {
+        document.getElementById('cardA').getBoundingClientRect();
+      }
+    }
+    const tl = gsap.timeline({ paused: true });
+    tl.to('#cardA', { x: 10, duration: 1, onUpdate: () => handler(true) }, 0);
+    window.__timelines["c1"] = tl;
+  </script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    const finding = result.findings.find((f) => f.code === "gsap_callback_dom_measurement");
+    expect(finding).toBeDefined();
+  });
+
+  it("gsap_callback_dom_measurement: an unrelated post-branch rebind with NO loop anywhere in the function is still conservatively flagged (documented, accepted trade-off)", async () => {
+    // paramMayBeRebound scans the WHOLE body unconditionally, on purpose: an
+    // earlier draft tried to narrow this to "only widen the scan when the
+    // function contains a loop/repetition construct," but two independent
+    // adversarial reviews each found a real repetition shape that narrower
+    // gate missed (see git history). Enumerating every way a branch might
+    // re-execute is an open-ended text-only classification problem, so this
+    // rule always takes the conservative path instead: an ordinary,
+    // unrelated reassignment after the branch — even with no loop anywhere
+    // in the function — still forces a bail to conservative flagging. A
+    // false positive here is tolerated by design; a false negative is not.
+    const html = `
+<html><body>
+  <div data-composition-id="c1" data-width="1920" data-height="1080"><div id="cardA"></div></div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    function applyPhaseStyle(useMeasurement) {
+      if (useMeasurement) {
+        document.getElementById('cardA').getBoundingClientRect();
+      } else {
+        document.getElementById('cardA').style.opacity = "0.5";
+      }
+      useMeasurement = false;
+    }
+    const tl = gsap.timeline({ paused: true });
+    tl.to('#cardA', { x: 10, duration: 1, onUpdate: () => applyPhaseStyle(false) }, 0);
+    window.__timelines["c1"] = tl;
+  </script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    const finding = result.findings.find((f) => f.code === "gsap_callback_dom_measurement");
+    expect(finding).toBeDefined();
+  });
+
+  it("gsap_callback_dom_measurement: a rebind inside an Array#forEach/map-based repetition is not substituted (fails closed)", async () => {
+    // paramMayBeRebound's whole-body scan catches this regardless of which
+    // repetition construct (for/while/do, .forEach/.map, recursion, ...) the
+    // rebind sits inside — the scan doesn't try to classify the repetition
+    // shape at all (see the comment above), it just always looks at the
+    // whole body.
+    const html = `
+<html><body>
+  <div data-composition-id="c1" data-width="1920" data-height="1080"><div id="cardA"></div></div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    function onUpdate(skip) {
+      [true, false].forEach(() => {
+        if (skip) {
+          document.getElementById('cardA').style.opacity = "0.5";
+        } else {
+          document.getElementById('cardA').getBoundingClientRect();
+        }
+        skip = !skip;
+      });
+    }
+    const tl = gsap.timeline({ paused: true });
+    tl.to('#cardA', { x: 10, duration: 1, onUpdate: () => onUpdate(true) }, 0);
+    window.__timelines["c1"] = tl;
+  </script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    const finding = result.findings.find((f) => f.code === "gsap_callback_dom_measurement");
+    expect(finding).toBeDefined();
+  });
+
+  it("gsap_callback_dom_measurement: does NOT flag a by-reference handoff to setTimeout or Array#forEach", async () => {
+    // Deliberate, documented scope trade: unlike .call/.apply/.bind (direct
+    // invocations, flagged above), passing a tainted name BY REFERENCE to
+    // something else that invokes it later has no call syntax in the
+    // callback's own text to resolve.
+    const html = `
+<html><body>
+  <div data-composition-id="c1" data-width="1920" data-height="1080"><div id="cardA"></div></div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    function measureFn() {
+      document.body.getBoundingClientRect();
+    }
+    const tl = gsap.timeline({ paused: true });
+    tl.to('#cardA', { x: 10, duration: 1, onUpdate: () => setTimeout(measureFn, 0) }, 0);
+    tl.eventCallback("onRepeat", () => { [1].forEach(measureFn); });
+    window.__timelines["c1"] = tl;
+  </script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    const finding = result.findings.find((f) => f.code === "gsap_callback_dom_measurement");
+    expect(finding).toBeUndefined();
+  });
+
+  it("gsap_callback_dom_measurement: mid-identifier case match still fires when preceded by a unicode identifier character", async () => {
+    const html = `
+<html><body>
+  <div data-composition-id="c1" data-width="1920" data-height="1080"><div id="cardA"></div></div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    function alignPanel(el, mode) {
+      switch (mode) {
+        case "measure":
+          el.style.opacity = "0.5";
+          var cafécase = 1;
+          el.getBoundingClientRect();
+          break;
+      }
+    }
+    const tl = gsap.timeline({ paused: true });
+    tl.to('#cardA', { x: 10, duration: 1, onUpdate: () => alignPanel(document.getElementById('cardA'), "measure") }, 0);
+    window.__timelines["c1"] = tl;
+  </script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    const finding = result.findings.find((f) => f.code === "gsap_callback_dom_measurement");
+    expect(finding).toBeDefined();
+  });
 });
 
 describe("SVG draw-on rules", () => {
@@ -4268,32 +4697,5 @@ describe("SVG draw-on rules", () => {
         result.findings.find((f) => f.code === "gsap_timeline_return_used_as_tween"),
       ).toBeUndefined();
     });
-  });
-});
-
-describe("SCRATCH adversarial probe 3", () => {
-  it("mid-identifier case match still fires when preceded by a unicode identifier character", async () => {
-    const html = `
-<html><body>
-  <div data-composition-id="c1" data-width="1920" data-height="1080"><div id="cardA"></div></div>
-  <script>
-    window.__timelines = window.__timelines || {};
-    function alignPanel(el, mode) {
-      switch (mode) {
-        case "measure":
-          el.style.opacity = "0.5";
-          var cafécase = 1;
-          el.getBoundingClientRect();
-          break;
-      }
-    }
-    const tl = gsap.timeline({ paused: true });
-    tl.to('#cardA', { x: 10, duration: 1, onUpdate: () => alignPanel(document.getElementById('cardA'), "measure") }, 0);
-    window.__timelines["c1"] = tl;
-  </script>
-</body></html>`;
-    const result = await lintHyperframeHtml(html);
-    const finding = result.findings.find((f) => f.code === "gsap_callback_dom_measurement");
-    expect(finding).toBeDefined();
   });
 });

@@ -735,7 +735,50 @@ function targetsShareElement(
   return false;
 }
 
-/** Source from the delimiter at `openIndex` to its matching closer, inclusive. */
+/**
+ * Where the character just consumed sits relative to string/template literals:
+ * `outside` = ordinary code, `open`/`close` = a literal's own delimiter,
+ * `content` = inside a literal (escape sequences included).
+ */
+type StringScanRole = "outside" | "open" | "content" | "close";
+
+// Immutable: `advanceStringScan` returns a new state per character, and hands
+// back the shared `OUTSIDE_STRING_SCAN_STATE` instance for ordinary code.
+type StringScanState = {
+  readonly inString: '"' | "'" | "`" | null;
+  readonly escaped: boolean;
+  /** Role of the character just consumed; `outside` before the scan starts. */
+  readonly role: StringScanRole;
+};
+
+const OUTSIDE_STRING_SCAN_STATE: StringScanState = {
+  inString: null,
+  escaped: false,
+  role: "outside",
+};
+
+// The single shared implementation of every string-literal-aware scan in this
+// file: bracket depth, statement splitting and keyword searches all have to
+// ignore text that is really just string content. Escapes are tracked with an
+// explicit `escaped` flag rather than "is the previous character a backslash",
+// so an escaped backslash right before the closing quote (`"a\\"`, i.e. the
+// string `a\`) can't hide the real closing quote behind a literal backslash.
+function advanceStringScan(state: StringScanState, ch: string): StringScanState {
+  if (state.inString) {
+    if (state.escaped) return { inString: state.inString, escaped: false, role: "content" };
+    if (ch === "\\") return { inString: state.inString, escaped: true, role: "content" };
+    if (ch === state.inString) return { inString: null, escaped: false, role: "close" };
+    return { inString: state.inString, escaped: false, role: "content" };
+  }
+  if (ch === '"' || ch === "'" || ch === "`") return { inString: ch, escaped: false, role: "open" };
+  return OUTSIDE_STRING_SCAN_STATE;
+}
+
+/**
+ * Source from the delimiter at `openIndex` to its matching closer, inclusive.
+ * String-aware: a `(`/`)`/`{`/`}` inside a string literal (e.g. a default
+ * value `a = "("`) doesn't count toward depth.
+ */
 function matchBalanced(
   source: string,
   openIndex: number,
@@ -743,8 +786,11 @@ function matchBalanced(
   close: string,
 ): string | null {
   let depth = 0;
+  let scan = OUTSIDE_STRING_SCAN_STATE;
   for (let i = openIndex; i < source.length; i++) {
-    const ch = source[i];
+    const ch = source[i] ?? "";
+    scan = advanceStringScan(scan, ch);
+    if (scan.role !== "outside") continue;
     if (ch === open) depth++;
     else if (ch === close) {
       depth--;
@@ -770,19 +816,17 @@ function enclosingObjectLiteral(source: string, index: number): string | null {
 
 function objectLiteralHasTopLevelRelativeValue(objectLiteral: string): boolean {
   let depth = 0;
-  let inString: '"' | "'" | "`" | null = null;
+  let scan = OUTSIDE_STRING_SCAN_STATE;
   for (let i = 0; i < objectLiteral.length; i++) {
     const ch = objectLiteral[i] ?? "";
-    const prev = objectLiteral[i - 1] ?? "";
-    if (inString) {
-      if (ch === inString && prev !== "\\") inString = null;
-      continue;
-    }
-    if (ch === '"' || ch === "'" || ch === "`") {
-      inString = ch;
+    scan = advanceStringScan(scan, ch);
+    if (scan.role === "open") {
+      // A relative value is always a string (`x: "+=10"`), so the check runs
+      // at the opening quote of a property value directly inside the literal.
       if (depth === 1 && /^[+-]=/.test(objectLiteral.slice(i + 1))) return true;
       continue;
     }
+    if (scan.role !== "outside") continue;
     if (ch === "{" || ch === "(" || ch === "[") depth++;
     else if (ch === "}" || ch === ")" || ch === "]") depth--;
   }
@@ -808,11 +852,17 @@ function isInsideGsapTweenVars(source: string, index: number, timelineVars: stri
   return false;
 }
 
-/** An expression starting at `start`, ending at the first `,` / closer at depth 0. */
+/**
+ * An expression starting at `start`, ending at the first `,` / closer that sits
+ * at depth 0 outside any string literal.
+ */
 function sliceExpression(source: string, start: number): string {
   let depth = 0;
+  let scan = OUTSIDE_STRING_SCAN_STATE;
   for (let i = start; i < source.length; i++) {
     const ch = source[i] ?? "";
+    scan = advanceStringScan(scan, ch);
+    if (scan.role !== "outside") continue;
     if ("({[".includes(ch)) depth++;
     else if (")}]".includes(ch)) {
       if (depth === 0) return source.slice(start, i);
@@ -891,18 +941,11 @@ function splitTopLevelByComma(text: string): string[] {
   const parts: string[] = [];
   let depth = 0;
   let start = 0;
-  let inString: '"' | "'" | "`" | null = null;
+  let scan = OUTSIDE_STRING_SCAN_STATE;
   for (let i = 0; i < text.length; i++) {
     const ch = text[i] ?? "";
-    const prev = text[i - 1] ?? "";
-    if (inString) {
-      if (ch === inString && prev !== "\\") inString = null;
-      continue;
-    }
-    if (ch === '"' || ch === "'" || ch === "`") {
-      inString = ch;
-      continue;
-    }
+    scan = advanceStringScan(scan, ch);
+    if (scan.role !== "outside") continue;
     if ("({[".includes(ch)) depth++;
     else if (")}]".includes(ch)) depth--;
     else if (ch === "," && depth === 0) {
@@ -967,11 +1010,40 @@ function collectNamedFunctionSignatures(source: string): Map<string, FunctionSig
   return signatures;
 }
 
+// The regex source for a direct call `name(...)`, tolerating optional
+// chaining (`name?.(...)`) — still a real, synchronous call site, just one
+// that no-ops instead of throwing when `name` is nullish.
+function directCallPatternSource(name: string): string {
+  return `\\b${escapeRegExp(name)}\\s*(?:\\?\\.)?\\(`;
+}
+
+// `name.call(...)` / `name.apply(...)` / `name.bind(...)()`, and their
+// optional-chained forms `name?.call(...)` etc. — the Function.prototype
+// invocation forms. Split out from `invokesName` because
+// `expressionReachesMeasurement` needs this half on its own.
+function invokesNameViaCallApplyBind(text: string, name: string): boolean {
+  return new RegExp(
+    `\\b${escapeRegExp(name)}\\s*(?:\\?\\.|\\.)\\s*(?:call|apply|bind)\\s*\\(`,
+  ).test(text);
+}
+
+// Does `text` invoke `name` directly — `name(...)` or one of the
+// Function.prototype forms above? All of them call the function synchronously,
+// right here. Only a BY-REFERENCE handoff (`setTimeout(name, 0)`,
+// `[1].forEach(name)`) is not a call and is deliberately excluded: the
+// invocation there happens inside setTimeout's/forEach's own implementation,
+// out of view here.
+function invokesName(text: string, name: string): boolean {
+  return (
+    new RegExp(directCallPatternSource(name)).test(text) || invokesNameViaCallApplyBind(text, name)
+  );
+}
+
 /** Does `text` measure directly, or call an already-tainted function? Requires a call — a bare name mention is not enough. */
 function textReachesMeasurement(text: string, measuring: Set<string>): boolean {
   if (CALLBACK_MEASUREMENT_PATTERN.test(text)) return true;
   for (const name of measuring) {
-    if (new RegExp(`\\b${escapeRegExp(name)}\\s*\\(`).test(text)) return true;
+    if (invokesName(text, name)) return true;
   }
   return false;
 }
@@ -998,36 +1070,6 @@ function collectMeasuringFunctionNames(signatures: Map<string, FunctionSignature
 
 type LiteralArg = { kind: "boolean"; value: boolean } | { kind: "string"; value: string };
 
-// Replaces the contents of every string/template literal in `text` with `#`
-// placeholders (same length, so positions are preserved) — lets a later
-// keyword scan (e.g. "does this end in a break/return/throw statement?")
-// ignore a keyword-shaped substring that's actually just string content, like
-// `el.setAttribute("mode", "break")` not being an actual `break` statement.
-function maskStringLiterals(text: string): string {
-  let result = "";
-  let inString: '"' | "'" | "`" | null = null;
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i] ?? "";
-    const prev = text[i - 1] ?? "";
-    if (inString) {
-      if (ch === inString && prev !== "\\") {
-        inString = null;
-        result += ch; // closing quote — keep visible
-      } else {
-        result += "#";
-      }
-      continue;
-    }
-    if (ch === '"' || ch === "'" || ch === "`") {
-      inString = ch;
-      result += ch; // opening quote — keep visible
-      continue;
-    }
-    result += ch;
-  }
-  return result;
-}
-
 function parseLiteralArg(argText: string): LiteralArg | null {
   const trimmed = argText.trim();
   if (trimmed === "true") return { kind: "boolean", value: true };
@@ -1040,18 +1082,12 @@ function parseLiteralArg(argText: string): LiteralArg | null {
 /** Body text of the case matching `value` in a `switch (paramName)`, up to the next `case`/`default`. */
 function sliceUntilNextCase(text: string, start: number): string {
   let depth = 0;
-  let inString: '"' | "'" | "`" | null = null;
+  let scan = OUTSIDE_STRING_SCAN_STATE;
   for (let i = start; i < text.length; i++) {
     const ch = text[i] ?? "";
     const prev = text[i - 1] ?? "";
-    if (inString) {
-      if (ch === inString && prev !== "\\") inString = null;
-      continue;
-    }
-    if (ch === '"' || ch === "'" || ch === "`") {
-      inString = ch;
-      continue;
-    }
+    scan = advanceStringScan(scan, ch);
+    if (scan.role !== "outside") continue;
     if ("({[".includes(ch)) depth++;
     else if (")}]".includes(ch)) {
       if (depth === 0) return text.slice(start, i);
@@ -1082,15 +1118,30 @@ function measuresOutsideStatement(
 }
 
 // Substituting the caller's literal for `paramName` is only sound if nothing
-// between the start of the function body and `beforeIndex` could have changed
-// what that name refers to or holds: a reassignment (`m = !m`, `m ||= x`,
-// `m++`) or a shadowing rebinding (a nested function/arrow/method/catch
-// parameter, or a let/const/var/destructured declaration reusing the same
-// name). Either one breaks the "still holds the caller's literal" assumption
-// the branch resolution depends on, so callers bail to unresolved rather than
-// risk resolving the wrong branch.
-function paramMayBeRebound(body: string, paramName: string, beforeIndex: number): boolean {
-  const before = body.slice(0, beforeIndex);
+// in the WHOLE function body could have changed what that name refers to or
+// holds: a reassignment (`m = !m`, `m ||= x`, `m++`), or a shadowing rebinding
+// (a nested function/arrow/method/catch parameter, a function declaration, a
+// for-of/for-in reuse of the name as the loop variable, or a
+// let/const/var/destructured declaration reusing the name). Either breaks
+// the "still holds the caller's literal" assumption branch resolution
+// depends on, so callers bail to unresolved rather than risk the wrong
+// branch.
+//
+// The scan covers the whole body, not just the text before the branch: a
+// rebind that appears textually AFTER the branch still matters whenever the
+// branch can re-execute — inside a `for`/`while`/`do` loop, an
+// `Array#forEach`/`map`/etc. callback, a recursive call, or any other
+// repetition shape — since a later pass re-reads the (now-mutated) value.
+// Enumerating every repetition construct a real author might use to decide
+// "does this specific rebind matter" is an open-ended, unwinnable text-only
+// classification problem (a prior, narrower version of this function tried
+// exactly that — gating the wide scan behind a loop-keyword check — and two
+// independent reviews each found a real repetition shape it missed). Always
+// scanning the whole body costs some precision (an ordinary, unrelated
+// reassignment after the branch with no repetition anywhere still forces a
+// conservative bail), but that's a tolerated false positive, not a false
+// negative — consistent with this rule's fail-closed design.
+function paramMayBeRebound(body: string, paramName: string): boolean {
   const name = escapeRegExp(paramName);
   const assignmentPattern = new RegExp(
     `\\b${name}\\s*(?:=(?!=)|\\+=|-=|\\*\\*=|\\*=|/=|%=|<<=|>>>=|>>=|&=|\\|=|\\^=|\\|\\|=|&&=|\\?\\?=|\\+\\+|--)` +
@@ -1100,11 +1151,17 @@ function paramMayBeRebound(body: string, paramName: string, beforeIndex: number)
   const shadowPattern = new RegExp(
     [
       `\\bfunction\\b[^(]*${inParamList}`, // nested function's parameter
+      `\\bfunction\\s+${name}\\s*\\(`, // nested function DECLARATION reusing the name
       `${inParamList}\\s*=>`, // arrow's parenthesized parameter
       `\\b${name}\\s*=>`, // arrow's bare single parameter
       `\\b(?:let|const|var)\\s+${name}\\b`, // redeclaration
       `[{[][^}\\]]*\\b${name}\\b[^}\\]]*[}\\]]\\s*=`, // destructured binding
       `\\bcatch\\s*${inParamList}`, // catch clause parameter
+      // `for (name of ...)` / `for (name in ...)` reusing the param as the
+      // loop variable — reassigns on every iteration without ever matching
+      // the assignment or declaration alternatives above (no `=`, no
+      // let/const/var).
+      `\\bfor\\s*(?:await\\s+)?\\(\\s*${name}\\s+(?:of|in)\\s+`,
       // Object/class method shorthand parameter (`run(paramName) {`) — has
       // neither `function` nor `=>`, so it needs its own alternative. The
       // control-flow keywords are excluded so an EARLIER, unrelated
@@ -1113,7 +1170,7 @@ function paramMayBeRebound(body: string, paramName: string, beforeIndex: number)
       `\\b(?!if\\b|while\\b|switch\\b|for\\b|catch\\b|function\\b)[A-Za-z_$][\\w$]*\\s*${inParamList}\\s*\\{`,
     ].join("|"),
   );
-  return assignmentPattern.test(before) || shadowPattern.test(before);
+  return assignmentPattern.test(body) || shadowPattern.test(body);
 }
 
 // A literal boolean argument resolves `if (paramName) {A} else {B}` (or its
@@ -1127,7 +1184,7 @@ function resolveBooleanIfElseBranch(
   const ifPattern = new RegExp(`\\bif\\s*\\(\\s*(!)?\\s*${escapeRegExp(paramName)}\\s*\\)\\s*\\{`);
   const ifMatch = ifPattern.exec(body);
   if (!ifMatch) return null;
-  if (paramMayBeRebound(body, paramName, ifMatch.index)) return null;
+  if (paramMayBeRebound(body, paramName)) return null;
   const thenBraceIndex = ifMatch.index + ifMatch[0].length - 1;
   const thenBlock = matchBalanced(body, thenBraceIndex, "{", "}");
   if (!thenBlock) return null;
@@ -1142,6 +1199,94 @@ function resolveBooleanIfElseBranch(
   return conditionHolds ? thenBlock : elseBlock;
 }
 
+// Advances `{depth, scan}` by one character — depth only counts brackets found
+// outside string literals. `findTopLevelCaseMatch` below drives this one
+// character at a time, resuming between regex matches.
+type DepthScanState = { depth: number; scan: StringScanState };
+function advanceDepthScan(state: DepthScanState, ch: string): DepthScanState {
+  const scan = advanceStringScan(state.scan, ch);
+  if (scan.role !== "outside") return { depth: state.depth, scan };
+  let depth = state.depth;
+  if ("({[".includes(ch)) depth++;
+  else if (")}]".includes(ch)) depth--;
+  return { depth, scan };
+}
+
+// Finds `case "value":` at depth 0 of `switchBody` — i.e. belonging to THIS
+// switch, not to a switch/if/object-literal nested inside an earlier case's
+// own block. A plain (non-depth-aware) regex `.exec` would match the first
+// TEXTUAL occurrence, which can be a same-valued case label nested inside a
+// sibling case's inner switch.
+function findTopLevelCaseMatch(switchBody: string, value: string): RegExpExecArray | null {
+  const casePattern = new RegExp(`case\\s*(["'])${escapeRegExp(value)}\\1\\s*:`, "g");
+  // Starts at -1, not 0: `switchBody` itself begins with the switch's own
+  // wrapping `{`, so depth reaches 0 only once we're immediately inside it —
+  // that's what "top-level" (belonging to THIS switch) means here.
+  let state: DepthScanState = { depth: -1, scan: OUTSIDE_STRING_SCAN_STATE };
+  // Scans forward only: each match resumes where the previous one stopped, so
+  // every character is still fed to the depth scan exactly once, in order.
+  let cursor = 0;
+  let match: RegExpExecArray | null;
+  while ((match = casePattern.exec(switchBody)) !== null) {
+    while (cursor < match.index) {
+      state = advanceDepthScan(state, switchBody[cursor] ?? "");
+      cursor++;
+    }
+    if (state.depth === 0 && !state.scan.inString) return match;
+  }
+  return null;
+}
+
+// Splits `text` into its top-level (depth-0) statements: `;`-terminated
+// spans, and `{...}` BLOCK statements (if/for/while/switch/try/a bare block)
+// — but not a `(...)`/`[...]` closing back to depth 0, which doesn't end a
+// statement (e.g. an `if (x)` condition's own closing paren).
+function splitTopLevelStatements(text: string): string[] {
+  const statements: string[] = [];
+  const stack: string[] = [];
+  let scan = OUTSIDE_STRING_SCAN_STATE;
+  let start = 0;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i] ?? "";
+    scan = advanceStringScan(scan, ch);
+    if (scan.role !== "outside") continue;
+    if (ch === "{" || ch === "(" || ch === "[") {
+      stack.push(ch);
+    } else if (ch === "}" || ch === ")" || ch === "]") {
+      const opener = stack.pop();
+      if (stack.length === 0 && opener === "{" && ch === "}") {
+        statements.push(text.slice(start, i + 1));
+        start = i + 1;
+      }
+    } else if (ch === ";" && stack.length === 0) {
+      statements.push(text.slice(start, i + 1));
+      start = i + 1;
+    }
+  }
+  const rest = text.slice(start).trim();
+  if (rest) statements.push(rest);
+  return statements;
+}
+
+// True when `text`'s own LAST top-level statement is an unconditional
+// break/return/throw. Checking the last STATEMENT (rather than the trailing
+// text) is what keeps a conditional terminator — `if (x) { break; }`, which
+// still falls through when `x` is false — from reading as termination of the
+// case itself. When the case body is one whole wrapping block
+// (`case "x": { ...; break; }`), the check recurses into that block's own
+// last statement.
+function lastStatementIsTerminator(text: string): boolean {
+  const statements = splitTopLevelStatements(text)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const last = statements[statements.length - 1];
+  if (!last) return false;
+  if (last.startsWith("{") && last.endsWith("}")) {
+    return lastStatementIsTerminator(last.slice(1, -1));
+  }
+  return /^(?:break|return|throw)\b/.test(last);
+}
+
 // Same idea for `switch (paramName) { case "value": ... }` — only resolved
 // when the literal's case doesn't fall through into the next case's body.
 function resolveSwitchCaseBranch(
@@ -1153,12 +1298,11 @@ function resolveSwitchCaseBranch(
   const switchPattern = new RegExp(`\\bswitch\\s*\\(\\s*${escapeRegExp(paramName)}\\s*\\)\\s*\\{`);
   const switchMatch = switchPattern.exec(body);
   if (!switchMatch) return null;
-  if (paramMayBeRebound(body, paramName, switchMatch.index)) return null;
+  if (paramMayBeRebound(body, paramName)) return null;
   const braceIndex = switchMatch.index + switchMatch[0].length - 1;
   const switchBody = matchBalanced(body, braceIndex, "{", "}");
   if (!switchBody) return null;
-  const casePattern = new RegExp(`case\\s*(["'])${escapeRegExp(value)}\\1\\s*:`);
-  const caseMatch = casePattern.exec(switchBody);
+  const caseMatch = findTopLevelCaseMatch(switchBody, value);
   if (!caseMatch) return null;
   const caseBody = sliceUntilNextCase(switchBody, caseMatch.index + caseMatch[0].length);
   // Both guards below mean the same thing: the matched case falls through into
@@ -1166,14 +1310,7 @@ function resolveSwitchCaseBranch(
   // measure — so it can't be resolved as "just this case's body."
   const trimmedCaseBody = caseBody.trim();
   if (!trimmedCaseBody) return null; // no body of its own
-  // The trailing `\}?` tolerates one level of the case's own `{ ... }` block
-  // wrapping (`case "x": { ...; break; }`), which the slice keeps verbatim.
-  // Masked first so a keyword-shaped SUBSTRING inside a string literal (e.g.
-  // `el.setAttribute("mode", "break")`) can't be mistaken for a real
-  // terminator.
-  if (!/\b(?:break|return|throw)\b[^;{}]*;?\s*\}?\s*$/.test(maskStringLiterals(trimmedCaseBody))) {
-    return null;
-  }
+  if (!lastStatementIsTerminator(trimmedCaseBody)) return null;
   const statementEnd = braceIndex + switchBody.length;
   if (measuresOutsideStatement(body, switchMatch.index, statementEnd, measuring)) return null;
   return caseBody;
@@ -1194,9 +1331,16 @@ function resolveCallSiteMeasurement(
   if (!signature) return null;
   const args = splitTopLevelByComma(argsText);
   for (let i = 0; i < signature.params.length; i++) {
+    const argText = (args[i] ?? "").trim();
+    // A spread argument (`h(...args, false)`) makes every POSITIONAL argument
+    // from here on unreliable — the spread can expand to any number of
+    // elements at runtime, so a textually-later literal doesn't necessarily
+    // bind to the param at its textual index. Positions before the spread are
+    // unaffected and have already been resolved by the iterations above.
+    if (argText.startsWith("...")) break;
     const paramName = signature.params[i];
     if (!paramName) continue;
-    const literal = parseLiteralArg(args[i] ?? "");
+    const literal = parseLiteralArg(argText);
     if (!literal) continue;
     const branch =
       literal.kind === "boolean"
@@ -1207,15 +1351,17 @@ function resolveCallSiteMeasurement(
   return null;
 }
 
-// Deliberately narrower than the old bare-`\bname\b` check: a callback that
-// passes a tainted name BY REFERENCE to something else that invokes it later
-// (e.g. `onUpdate: () => setTimeout(measureFn, 0)`) is no longer flagged,
-// since there's no actual call syntax in the callback's own text to resolve.
-// That's the same "requires a call" standard the taint-propagation closure
-// above already applies between named functions — this fix only makes the
-// per-callback check consistent with it, at the cost of that narrow
-// by-reference shape, in exchange for fixing the reported false positive
-// (a bare, uncalled mention was enough to trip the rule).
+// Requires a CALL, the same standard the taint-propagation closure above
+// applies between named functions (see `invokesName`) — a bare, uncalled
+// mention of a tainted name is not enough to trip the rule.
+//
+// Direct invocation forms (`measureFn()`, `measureFn.call(this)`,
+// `.apply(...)`, `.bind(this)()`) are flagged: they run the tainted function
+// synchronously, right here. A BY-REFERENCE handoff
+// (`onUpdate: () => setTimeout(measureFn, 0)`, `[el].forEach(measureFn)`) is a
+// deliberate, documented scope trade — there is no call syntax in the
+// callback's own text to resolve, because the invocation (and whatever
+// arguments it passes) happens inside setTimeout's/forEach's implementation.
 function expressionReachesMeasurement(
   expression: string,
   measuring: Set<string>,
@@ -1223,7 +1369,7 @@ function expressionReachesMeasurement(
 ): boolean {
   if (CALLBACK_MEASUREMENT_PATTERN.test(expression)) return true;
   for (const name of measuring) {
-    const callPattern = new RegExp(`\\b${escapeRegExp(name)}\\s*\\(`, "g");
+    const callPattern = new RegExp(directCallPatternSource(name), "g");
     let match: RegExpExecArray | null;
     while ((match = callPattern.exec(expression)) !== null) {
       const parenIndex = match.index + match[0].length - 1;
@@ -1235,6 +1381,11 @@ function expressionReachesMeasurement(
       // callback; only a resolved, provably-safe branch (false) clears it.
       if (resolved !== false) return true;
     }
+    // `.call`/`.apply`/`.bind` are direct invocations too, but their argument
+    // shape (a leading `this`, or a further `()` for bind) doesn't match the
+    // plain-call branch-resolution shape above — always conservative here,
+    // same as an unresolved plain call would be.
+    if (invokesNameViaCallApplyBind(expression, name)) return true;
   }
   return false;
 }
