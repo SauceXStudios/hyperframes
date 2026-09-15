@@ -3640,6 +3640,134 @@ describe("GSAP seek-order safety rules", () => {
     expect(finding).toBeDefined();
   });
 
+  it("gsap_callback_dom_measurement: a regex literal containing a quote (e.g. a sanitizer /'/g) doesn't desync bracket matching", async () => {
+    // A quote character inside a regex literal (a very common sanitizer
+    // shape) used to open a string that never closed under the prior
+    // hand-rolled string scanner, since it only recognized `"`/`'`/`` ` ``
+    // delimiters and had no concept of regex literals at all — matchBalanced
+    // then silently failed to find the function's closing brace, dropping it
+    // from the taint set entirely. Delegating to the shared
+    // stripJsStringLiterals utility (which already disambiguates regex
+    // literals from division and blanks their contents) fixes this class of
+    // bug for every bracket-depth-counting helper in this file at once.
+    const html = `
+<html><body>
+  <div data-composition-id="c1" data-width="1920" data-height="1080"><div id="cardA"></div></div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    function measureFn(el) {
+      const s = el.id.replace(/'/g, "");
+      return el.getBoundingClientRect();
+    }
+    const tl = gsap.timeline({ paused: true });
+    tl.to('#cardA', { x: 10, duration: 1, onUpdate: () => measureFn(document.getElementById('cardA')) }, 0);
+    window.__timelines["c1"] = tl;
+  </script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    const finding = result.findings.find((f) => f.code === "gsap_callback_dom_measurement");
+    expect(finding).toBeDefined();
+  });
+
+  it("gsap_callback_dom_measurement: a case-label-shaped substring inside a template literal at depth 0 is not mistaken for the real case", async () => {
+    // findTopLevelCaseMatch's label regex runs against the ORIGINAL text (it
+    // has to read the quoted value literally), so a template literal like
+    // `` label = `case "b":` `` sitting at the switch's own top level (no
+    // enclosing brackets of its own) reads as depth 0 — same as the genuine
+    // `case "b":` label — and bracket depth alone can't tell them apart.
+    // Requiring the match SITE itself to be unmasked (masked[match.index]
+    // must still read "c", not a blanked space) rejects the bogus match.
+    const html = `
+<html><body>
+  <div data-composition-id="c1" data-width="1920" data-height="1080"><div id="cardA"></div></div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    function handler(mode) {
+      switch (mode) {
+        case "a":
+          window.label = \`case "b":\`;
+          break;
+        case "b":
+          document.getElementById('cardA').getBoundingClientRect();
+          break;
+      }
+    }
+    const tl = gsap.timeline({ paused: true });
+    tl.to('#cardA', { x: 10, duration: 1, onUpdate: () => handler("b") }, 0);
+    window.__timelines["c1"] = tl;
+  </script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    const finding = result.findings.find((f) => f.code === "gsap_callback_dom_measurement");
+    expect(finding).toBeDefined();
+  });
+
+  it("gsap_callback_dom_measurement: an unrelated regex/division ambiguity EARLIER in the script doesn't poison masking for a later, unrelated function", async () => {
+    // stripJsStringLiterals has its own documented fail-safe: if it can't
+    // resolve a regex-vs-division ambiguity anywhere in the text it scans, it
+    // returns that ENTIRE input untouched (fully unmasked), not just a
+    // locally-degraded region. `const ratio = {}/2;` is ordinary, valid JS
+    // that trips this (a `/` right after `}` defaults to "regex allowed",
+    // finds no closing `/` before the line ends, and gives up). Naively
+    // masking the WHOLE script for every matchBalanced/sliceExpression call
+    // would let that one unrelated line silently disable masking — and thus
+    // reintroduce the exact "unmasked string content corrupts bracket
+    // counting" bug this refactor exists to fix — for every OTHER function in
+    // the same script, including ones with nothing to do with the trigger.
+    // matchBalanced/sliceExpression now mask only source.slice(fromIndex),
+    // not the whole script, so a trigger textually BEFORE the region a call
+    // actually needs can no longer poison it.
+    const html = `
+<html><body>
+  <div data-composition-id="c1" data-width="1920" data-height="1080"><div id="cardA"></div></div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    const ratio = {}/2;
+    function measureFn(useSafe) {
+      const label = useSafe ? "safe" : "clo}se";
+      document.getElementById('cardA').getBoundingClientRect();
+    }
+    const tl = gsap.timeline({ paused: true });
+    tl.to('#cardA', { x: 10, duration: 1, onUpdate: () => measureFn(true) }, 0);
+    window.__timelines["c1"] = tl;
+  </script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    const finding = result.findings.find((f) => f.code === "gsap_callback_dom_measurement");
+    expect(finding).toBeDefined();
+  });
+
+  it("gsap_callback_dom_measurement: an escaped backslash right before a string's closing quote doesn't mis-locate the closing quote", async () => {
+    // `"a\\"` (the string `a\`) has a literal backslash immediately before
+    // the real closing quote. Escape tracking based on "is the previous
+    // character a backslash" misreads this as an escaped closing quote,
+    // extending the string past its real end and potentially corrupting
+    // downstream branch resolution. stripJsStringLiterals tracks a true
+    // escaped flag (odd/even backslash parity) rather than a naive
+    // prev-char check, so this resolves correctly.
+    const html = `
+<html><body>
+  <div data-composition-id="c1" data-width="1920" data-height="1080"><div id="cardA"></div></div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    function measureFn(useSafe) {
+      const label = "a\\\\";
+      if (useSafe) {
+        document.getElementById('cardA').style.opacity = "0.5";
+      } else {
+        document.getElementById('cardA').getBoundingClientRect();
+      }
+    }
+    const tl = gsap.timeline({ paused: true });
+    tl.to('#cardA', { x: 10, duration: 1, onUpdate: () => measureFn(true) }, 0);
+    window.__timelines["c1"] = tl;
+  </script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    const finding = result.findings.find((f) => f.code === "gsap_callback_dom_measurement");
+    expect(finding).toBeUndefined();
+  });
+
   it("gsap_callback_dom_measurement: measureFn.call/.apply/.bind() are direct invocations and must still be flagged", async () => {
     const html = `
 <html><body>

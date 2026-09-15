@@ -39,6 +39,7 @@ import {
   readDecodedAttr,
   truncateSnippet,
   stripJsComments,
+  stripJsStringLiterals,
   hasCaptionStyles,
   WINDOW_TIMELINE_ASSIGN_PATTERN,
   TIMELINE_REGISTRY_OBJECT_LITERAL_PATTERN,
@@ -736,48 +737,48 @@ function targetsShareElement(
 }
 
 /**
- * Where the character just consumed sits relative to string/template literals:
- * `outside` = ordinary code, `open`/`close` = a literal's own delimiter,
- * `content` = inside a literal (escape sequences included).
+ * The structure-only view of `source`: string, template and regex literal
+ * CONTENTS blanked to spaces, with delimiters, length and newline positions
+ * preserved. Every text scanner below shares one shape — mask once, take each
+ * structural decision (bracket depth, keyword, delimiter) from `masked[i]`, and
+ * slice the ORIGINAL text, which the preserved length keeps index-aligned 1:1.
+ *
+ * The literal awareness itself is delegated, never re-derived here:
+ * `stripJsStringLiterals` already handles escape sequences and, crucially,
+ * regex-vs-division disambiguation — so a quote inside a sanitizer regex
+ * (`/'/g`) cannot open a string that never closes and silently desync every
+ * depth count downstream.
+ *
+ * Memoized on the last input: callers below re-mask the same script once per
+ * regex match, and `stripJsStringLiterals` is a character-at-a-time scan, so
+ * re-deriving it per match is quadratic in script size.
  */
-type StringScanRole = "outside" | "open" | "content" | "close";
-
-// Immutable: `advanceStringScan` returns a new state per character, and hands
-// back the shared `OUTSIDE_STRING_SCAN_STATE` instance for ordinary code.
-type StringScanState = {
-  readonly inString: '"' | "'" | "`" | null;
-  readonly escaped: boolean;
-  /** Role of the character just consumed; `outside` before the scan starts. */
-  readonly role: StringScanRole;
-};
-
-const OUTSIDE_STRING_SCAN_STATE: StringScanState = {
-  inString: null,
-  escaped: false,
-  role: "outside",
-};
-
-// The single shared implementation of every string-literal-aware scan in this
-// file: bracket depth, statement splitting and keyword searches all have to
-// ignore text that is really just string content. Escapes are tracked with an
-// explicit `escaped` flag rather than "is the previous character a backslash",
-// so an escaped backslash right before the closing quote (`"a\\"`, i.e. the
-// string `a\`) can't hide the real closing quote behind a literal backslash.
-function advanceStringScan(state: StringScanState, ch: string): StringScanState {
-  if (state.inString) {
-    if (state.escaped) return { inString: state.inString, escaped: false, role: "content" };
-    if (ch === "\\") return { inString: state.inString, escaped: true, role: "content" };
-    if (ch === state.inString) return { inString: null, escaped: false, role: "close" };
-    return { inString: state.inString, escaped: false, role: "content" };
+let lastMaskedSource: string | null = null;
+let lastMaskedResult = "";
+function maskLiterals(source: string): string {
+  if (source !== lastMaskedSource) {
+    lastMaskedResult = stripJsStringLiterals(source);
+    lastMaskedSource = source;
   }
-  if (ch === '"' || ch === "'" || ch === "`") return { inString: ch, escaped: false, role: "open" };
-  return OUTSIDE_STRING_SCAN_STATE;
+  return lastMaskedResult;
 }
 
 /**
  * Source from the delimiter at `openIndex` to its matching closer, inclusive.
- * String-aware: a `(`/`)`/`{`/`}` inside a string literal (e.g. a default
- * value `a = "("`) doesn't count toward depth.
+ * Only REAL brackets count toward depth — one inside a string, template or
+ * regex literal (a default value `a = "("`, a sanitizer regex `/{/g`) has been
+ * masked out before the scan.
+ *
+ * Masks only `source.slice(openIndex)`, not the whole `source`, even though
+ * every caller already has the full script/body in hand: `stripJsStringLiterals`
+ * has its own documented fail-safe of returning its ENTIRE input untouched
+ * (fully unmasked) if regex-vs-division disambiguation goes wrong anywhere
+ * within it — one unrelated, ordinary line like `const ratio = {}/2;`
+ * *anywhere later in an unsliced whole script* could otherwise silently
+ * disable masking for every other call sharing that same source. Slicing to
+ * `openIndex` first — always a real bracket, itself a valid regex-preceding
+ * context either way — keeps that blast radius scoped to text this call
+ * actually needs, not unrelated code before it.
  */
 function matchBalanced(
   source: string,
@@ -785,91 +786,94 @@ function matchBalanced(
   open: string,
   close: string,
 ): string | null {
+  const relevant = source.slice(openIndex);
+  const masked = maskLiterals(relevant);
   let depth = 0;
-  let scan = OUTSIDE_STRING_SCAN_STATE;
-  for (let i = openIndex; i < source.length; i++) {
-    const ch = source[i] ?? "";
-    scan = advanceStringScan(scan, ch);
-    if (scan.role !== "outside") continue;
+  for (let i = 0; i < relevant.length; i++) {
+    const ch = masked[i] ?? "";
     if (ch === open) depth++;
     else if (ch === close) {
       depth--;
-      if (depth === 0) return source.slice(openIndex, i + 1);
+      if (depth === 0) return relevant.slice(0, i + 1);
     }
   }
   return null;
+}
+
+/**
+ * Index of the `{` opening the innermost object literal or block enclosing
+ * `index`, or -1 when `index` sits inside none. Scans masked text backwards, so
+ * a brace that is really literal content opens and closes nothing.
+ */
+function enclosingOpenBraceIndex(masked: string, index: number): number {
+  let depth = 0;
+  for (let i = index; i >= 0; i--) {
+    const ch = masked[i];
+    if (ch === "}") depth++;
+    else if (ch === "{") {
+      if (depth === 0) return i;
+      depth--;
+    }
+  }
+  return -1;
 }
 
 /** The nearest object literal `{...}` enclosing `index` (comment-stripped source). */
 function enclosingObjectLiteral(source: string, index: number): string | null {
-  let depth = 0;
-  for (let i = index; i >= 0; i--) {
-    const ch = source[i];
-    if (ch === "}") depth++;
-    else if (ch === "{") {
-      if (depth === 0) return matchBalanced(source, i, "{", "}");
-      depth--;
-    }
-  }
-  return null;
+  // Masks only the PREFIX up to `index` (text after it is irrelevant to a
+  // backward search) — same blast-radius reasoning as matchBalanced/
+  // sliceExpression above.
+  const braceIndex = enclosingOpenBraceIndex(maskLiterals(source.slice(0, index + 1)), index);
+  if (braceIndex < 0) return null;
+  return matchBalanced(source, braceIndex, "{", "}");
 }
 
 function objectLiteralHasTopLevelRelativeValue(objectLiteral: string): boolean {
+  const masked = maskLiterals(objectLiteral);
   let depth = 0;
-  let scan = OUTSIDE_STRING_SCAN_STATE;
   for (let i = 0; i < objectLiteral.length; i++) {
-    const ch = objectLiteral[i] ?? "";
-    scan = advanceStringScan(scan, ch);
-    if (scan.role === "open") {
-      // A relative value is always a string (`x: "+=10"`), so the check runs
-      // at the opening quote of a property value directly inside the literal.
+    const ch = masked[i] ?? "";
+    if (ch === '"' || ch === "'" || ch === "`") {
+      // Masking blanks literal contents but keeps their delimiters, so every
+      // quote still standing here is a genuine one. A relative value is always
+      // a string (`x: "+=10"`), and its contents have to be read back from the
+      // ORIGINAL text. Testing at closing quotes too is harmless: only an
+      // OPENING quote can be followed by `+=`/`-=`.
       if (depth === 1 && /^[+-]=/.test(objectLiteral.slice(i + 1))) return true;
-      continue;
-    }
-    if (scan.role !== "outside") continue;
-    if (ch === "{" || ch === "(" || ch === "[") depth++;
-    else if (ch === "}" || ch === ")" || ch === "]") depth--;
+    } else if ("({[".includes(ch)) depth++;
+    else if (")}]".includes(ch)) depth--;
   }
   return false;
 }
 
 function isInsideGsapTweenVars(source: string, index: number, timelineVars: string[]): boolean {
-  let depth = 0;
-  for (let i = index; i >= 0; i--) {
-    const ch = source[i];
-    if (ch === "}") depth++;
-    else if (ch === "{") {
-      if (depth === 0) {
-        const before = source.slice(Math.max(0, i - 240), i).replace(/\s+/g, " ");
-        const receivers = ["gsap", ...timelineVars].map(escapeRegExp).join("|");
-        return new RegExp(`(?:${receivers})\\.(?:set|to|from|fromTo|timeline)\\b[\\s\\S]*$`).test(
-          before,
-        );
-      }
-      depth--;
-    }
-  }
-  return false;
+  const braceIndex = enclosingOpenBraceIndex(maskLiterals(source.slice(0, index + 1)), index);
+  if (braceIndex < 0) return false;
+  const before = source.slice(Math.max(0, braceIndex - 240), braceIndex).replace(/\s+/g, " ");
+  const receivers = ["gsap", ...timelineVars].map(escapeRegExp).join("|");
+  return new RegExp(`(?:${receivers})\\.(?:set|to|from|fromTo|timeline)\\b[\\s\\S]*$`).test(before);
 }
 
 /**
  * An expression starting at `start`, ending at the first `,` / closer that sits
- * at depth 0 outside any string literal.
+ * at depth 0 outside any literal.
  */
 function sliceExpression(source: string, start: number): string {
+  // Sliced to `source.slice(start)` before masking, not the whole `source` —
+  // see matchBalanced's comment on why (shrinks stripJsStringLiterals's
+  // all-or-nothing fail-safe blast radius to text this call actually needs).
+  const relevant = source.slice(start);
+  const masked = maskLiterals(relevant);
   let depth = 0;
-  let scan = OUTSIDE_STRING_SCAN_STATE;
-  for (let i = start; i < source.length; i++) {
-    const ch = source[i] ?? "";
-    scan = advanceStringScan(scan, ch);
-    if (scan.role !== "outside") continue;
+  for (let i = 0; i < relevant.length; i++) {
+    const ch = masked[i] ?? "";
     if ("({[".includes(ch)) depth++;
     else if (")}]".includes(ch)) {
-      if (depth === 0) return source.slice(start, i);
+      if (depth === 0) return relevant.slice(0, i);
       depth--;
-    } else if (ch === "," && depth === 0) return source.slice(start, i);
+    } else if (ch === "," && depth === 0) return relevant.slice(0, i);
   }
-  return source.slice(start);
+  return relevant;
 }
 
 type ParsedFunctionValue = { firstParam: string | null; body: string };
@@ -938,14 +942,12 @@ type FunctionSignature = { params: Array<string | null>; body: string };
 
 /** Split `text` on top-level commas — depth-aware, so a comma inside `(...)`/`[...]`/`{...}` doesn't split. */
 function splitTopLevelByComma(text: string): string[] {
+  const masked = maskLiterals(text);
   const parts: string[] = [];
   let depth = 0;
   let start = 0;
-  let scan = OUTSIDE_STRING_SCAN_STATE;
   for (let i = 0; i < text.length; i++) {
-    const ch = text[i] ?? "";
-    scan = advanceStringScan(scan, ch);
-    if (scan.role !== "outside") continue;
+    const ch = masked[i] ?? "";
     if ("({[".includes(ch)) depth++;
     else if (")}]".includes(ch)) depth--;
     else if (ch === "," && depth === 0) {
@@ -1081,24 +1083,24 @@ function parseLiteralArg(argText: string): LiteralArg | null {
 
 /** Body text of the case matching `value` in a `switch (paramName)`, up to the next `case`/`default`. */
 function sliceUntilNextCase(text: string, start: number): string {
+  const masked = maskLiterals(text);
   let depth = 0;
-  let scan = OUTSIDE_STRING_SCAN_STATE;
   for (let i = start; i < text.length; i++) {
-    const ch = text[i] ?? "";
-    const prev = text[i - 1] ?? "";
-    scan = advanceStringScan(scan, ch);
-    if (scan.role !== "outside") continue;
+    const ch = masked[i] ?? "";
+    const prev = masked[i - 1] ?? "";
     if ("({[".includes(ch)) depth++;
     else if (")}]".includes(ch)) {
       if (depth === 0) return text.slice(start, i);
       depth--;
-    } else if (depth === 0 && !/[\w$]/.test(prev) && /^(?:case|default)\b/.test(text.slice(i))) {
+    } else if (depth === 0 && !/[\w$]/.test(prev) && /^(?:case|default)\b/.test(masked.slice(i))) {
       // The LEADING word-boundary check (`prev`) matters as much as the
       // trailing `\b`: without it the "case" inside an identifier such as
       // "lowercase(" reads as a case label and truncates the body here,
       // silently dropping the rest — including any measurement — from both
       // this slice and the caller's outside-the-statement remainder scan
-      // (which only covers text outside the whole switch statement).
+      // (which only covers text outside the whole switch statement). Both
+      // checks read `masked`, so a "case"/"default"-shaped substring inside a
+      // string or regex literal cannot be mistaken for a real case label.
       return text.slice(start, i);
     }
   }
@@ -1199,40 +1201,38 @@ function resolveBooleanIfElseBranch(
   return conditionHolds ? thenBlock : elseBlock;
 }
 
-// Advances `{depth, scan}` by one character — depth only counts brackets found
-// outside string literals. `findTopLevelCaseMatch` below drives this one
-// character at a time, resuming between regex matches.
-type DepthScanState = { depth: number; scan: StringScanState };
-function advanceDepthScan(state: DepthScanState, ch: string): DepthScanState {
-  const scan = advanceStringScan(state.scan, ch);
-  if (scan.role !== "outside") return { depth: state.depth, scan };
-  let depth = state.depth;
-  if ("({[".includes(ch)) depth++;
-  else if (")}]".includes(ch)) depth--;
-  return { depth, scan };
-}
-
 // Finds `case "value":` at depth 0 of `switchBody` — i.e. belonging to THIS
 // switch, not to a switch/if/object-literal nested inside an earlier case's
 // own block. A plain (non-depth-aware) regex `.exec` would match the first
 // TEXTUAL occurrence, which can be a same-valued case label nested inside a
-// sibling case's inner switch.
+// sibling case's inner switch. The label pattern runs against the ORIGINAL text
+// (its own quoted value has to read literally, not blanked), while the depth it
+// is judged at comes from `masked` — a literal's bracket-like characters (a
+// `{n,m}` regex quantifier, say) must not desync the count.
 function findTopLevelCaseMatch(switchBody: string, value: string): RegExpExecArray | null {
+  const masked = maskLiterals(switchBody);
   const casePattern = new RegExp(`case\\s*(["'])${escapeRegExp(value)}\\1\\s*:`, "g");
   // Starts at -1, not 0: `switchBody` itself begins with the switch's own
   // wrapping `{`, so depth reaches 0 only once we're immediately inside it —
   // that's what "top-level" (belonging to THIS switch) means here.
-  let state: DepthScanState = { depth: -1, scan: OUTSIDE_STRING_SCAN_STATE };
-  // Scans forward only: each match resumes where the previous one stopped, so
-  // every character is still fed to the depth scan exactly once, in order.
+  let depth = -1;
+  // Forward-only: each match resumes the depth scan where the previous one
+  // stopped, so every character is counted exactly once, in order.
   let cursor = 0;
   let match: RegExpExecArray | null;
   while ((match = casePattern.exec(switchBody)) !== null) {
-    while (cursor < match.index) {
-      state = advanceDepthScan(state, switchBody[cursor] ?? "");
-      cursor++;
+    for (; cursor < match.index; cursor++) {
+      const ch = masked[cursor] ?? "";
+      if ("({[".includes(ch)) depth++;
+      else if (")}]".includes(ch)) depth--;
     }
-    if (state.depth === 0 && !state.scan.inString) return match;
+    // The match itself must sit OUTSIDE any literal too: masking blanks a
+    // literal's contents to spaces, so a case-label-shaped substring inside
+    // a string/template literal (e.g. `` label = `case "b":` ``) reads as
+    // whitespace at `match.index` in `masked` rather than a real `c` —
+    // depth alone can't tell the two apart, since a same-level string sitting
+    // at the switch's own top level doesn't touch bracket depth at all.
+    if (depth === 0 && masked[match.index] === "c") return match;
   }
   return null;
 }
@@ -1242,17 +1242,15 @@ function findTopLevelCaseMatch(switchBody: string, value: string): RegExpExecArr
 // — but not a `(...)`/`[...]` closing back to depth 0, which doesn't end a
 // statement (e.g. an `if (x)` condition's own closing paren).
 function splitTopLevelStatements(text: string): string[] {
+  const masked = maskLiterals(text);
   const statements: string[] = [];
   const stack: string[] = [];
-  let scan = OUTSIDE_STRING_SCAN_STATE;
   let start = 0;
   for (let i = 0; i < text.length; i++) {
-    const ch = text[i] ?? "";
-    scan = advanceStringScan(scan, ch);
-    if (scan.role !== "outside") continue;
-    if (ch === "{" || ch === "(" || ch === "[") {
+    const ch = masked[i] ?? "";
+    if ("({[".includes(ch)) {
       stack.push(ch);
-    } else if (ch === "}" || ch === ")" || ch === "]") {
+    } else if (")}]".includes(ch)) {
       const opener = stack.pop();
       if (stack.length === 0 && opener === "{" && ch === "}") {
         statements.push(text.slice(start, i + 1));
