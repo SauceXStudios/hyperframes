@@ -128,9 +128,12 @@ type CompactSelectionPayload = Pick<
 
 const DEFAULT_CONTEXT_FIELDS: ContextField[] = ["server", "selection", "lint", "capabilities"];
 
+/** JSON error code for an explicit --port that no same-project server is on. */
+const PREVIEW_PORT_MISMATCH_CODE = "preview-port-mismatch";
+
 /** Distinguishes an unhonoured explicit --port from a generic launch failure. */
 function backgroundStartFailureCode(error: unknown): string {
-  if (error instanceof PreviewServerPortMismatchError) return "preview-port-mismatch";
+  if (error instanceof PreviewServerPortMismatchError) return PREVIEW_PORT_MISMATCH_CODE;
   if (error instanceof PreviewPortUnavailableError) return "preview-port-unavailable";
   return "preview-start-failed";
 }
@@ -911,7 +914,7 @@ async function printCurrentSelection(
       return;
     }
     if (err instanceof PreviewServerPortMismatchError) {
-      printSelectionFailure("preview-port-mismatch", err.message, json);
+      printSelectionFailure(PREVIEW_PORT_MISMATCH_CODE, err.message, json);
       return;
     }
     throw err;
@@ -1033,7 +1036,7 @@ async function printCurrentContext(
       return;
     }
     if (err instanceof PreviewServerPortMismatchError) {
-      printSelectionFailure("preview-port-mismatch", err.message, options.json);
+      printSelectionFailure(PREVIEW_PORT_MISMATCH_CODE, err.message, options.json);
       return;
     }
     throw err;
