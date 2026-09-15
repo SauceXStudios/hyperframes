@@ -9,6 +9,10 @@ import { resolveWithinProject } from "../helpers/safePath.js";
 import { isVariablesPayload, VARIABLES_PAYLOAD_ERROR } from "../helpers/variablesPayload.js";
 
 const VALID_RESOLUTIONS = new Set<string>(VALID_CANVAS_RESOLUTIONS);
+// Rejected both before project resolution and again after the awaits that
+// precede startRender; one definition keeps the two answers identical.
+const SHUTTING_DOWN_BODY = { error: "studio is shutting down" } as const;
+const SHUTTING_DOWN_STATUS = 503;
 
 export interface RenderRoutesHandle {
   dispose(): Promise<void>;
@@ -67,7 +71,7 @@ export function registerRenderRoutes(api: Hono, adapter: StudioApiAdapter): Rend
 
   // Start a render
   api.post("/projects/:id/render", async (c) => {
-    if (disposalPromise) return c.json({ error: "studio is shutting down" }, 503);
+    if (disposalPromise) return c.json(SHUTTING_DOWN_BODY, SHUTTING_DOWN_STATUS);
     const project = await adapter.resolveProject(c.req.param("id"));
     if (!project) return c.json({ error: "not found" }, 404);
 
@@ -137,7 +141,7 @@ export function registerRenderRoutes(api: Hono, adapter: StudioApiAdapter): Rend
     const ext = FORMAT_EXT[format] ?? ".mp4";
     const outputPath = join(rendersDir, `${jobId}${ext}`);
 
-    if (disposalPromise) return c.json({ error: "studio is shutting down" }, 503);
+    if (disposalPromise) return c.json(SHUTTING_DOWN_BODY, SHUTTING_DOWN_STATUS);
     const jobState = adapter.startRender({
       project,
       outputPath,

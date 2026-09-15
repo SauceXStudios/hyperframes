@@ -4,6 +4,7 @@ import {
   mkdirSync,
   readFileSync,
   readdirSync,
+  type Stats,
   unlinkSync,
   writeFileSync,
 } from "node:fs";
@@ -106,14 +107,48 @@ export function ownedProcessRegistryDir(): string {
  * rejects a pre-existing impostor.
  */
 function isTrustedRegistryDir(registryDir: string): boolean {
+  let stat: Stats;
   try {
-    const stat = lstatSync(registryDir);
-    if (!stat.isDirectory()) return false;
-    if (typeof process.getuid === "function" && stat.uid !== process.getuid()) return false;
-    return (stat.mode & 0o077) === 0;
+    stat = lstatSync(registryDir);
   } catch {
+    // Absent is the normal reader-side state (nothing was ever registered):
+    // untrusted, but nothing to warn about.
     return false;
   }
+  const rejection = registryDirTrustRejection(stat);
+  if (rejection === null) return true;
+  warnUntrustedRegistryDir(registryDir, rejection);
+  return false;
+}
+
+/** The first failing trust property of an existing entry, or null when it is trusted. */
+function registryDirTrustRejection(stat: Stats): string | null {
+  if (!stat.isDirectory()) {
+    return stat.isSymbolicLink() ? "path is a symlink" : "path is not a directory";
+  }
+  if (typeof process.getuid === "function" && stat.uid !== process.getuid()) {
+    return `owned by uid ${stat.uid}, not ${process.getuid()}`;
+  }
+  if ((stat.mode & 0o077) !== 0) {
+    return `mode ${(stat.mode & 0o777).toString(8)} grants group/other access (need 700)`;
+  }
+  return null;
+}
+
+const warnedUntrustedRegistryDirs = new Set<string>();
+
+/**
+ * Both halves fail closed on an untrusted directory, and a stale one under the
+ * shared temp dir would otherwise disable crash recovery silently for good.
+ * Warn once per path per process: the writer runs per encoder spawn.
+ */
+function warnUntrustedRegistryDir(registryDir: string, rejection: string): void {
+  if (warnedUntrustedRegistryDirs.has(registryDir)) return;
+  warnedUntrustedRegistryDirs.add(registryDir);
+  console.warn(
+    `[process-tracker] ignoring ffmpeg ownership registry ${registryDir}: ${rejection}; ` +
+      "crash recovery is disabled until it is removed or fixed",
+  );
 }
 
 export function processParentPid(pid: number): number | null {

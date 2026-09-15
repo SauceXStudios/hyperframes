@@ -1,7 +1,15 @@
 // @vitest-environment node
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { spawn } from "node:child_process";
-import { chmodSync, mkdtempSync, readdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import {
+  chmodSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -135,6 +143,33 @@ describe.skipIf(process.platform === "win32")("FFmpeg ownership registry", () =>
     }
   });
 
+  it("leaves a record on exit when another owner has since claimed the PID", async () => {
+    const registryDir = mkdtempSync(join(tmpdir(), "hf-owned-ffmpeg-reclaimed-"));
+    const proc = spawn("sleep", ["60"], { stdio: "ignore" });
+    const exitPromise = new Promise<void>((resolve) => proc.on("close", () => resolve()));
+    try {
+      trackChildProcess(proc, { kind: "ffmpeg", registryDir });
+      const path = join(registryDir, `${proc.pid}.json`);
+      // Another process was handed this PID and wrote its own record before
+      // our exit listener ran; the record is not ours to remove.
+      const foreign = JSON.stringify({
+        version: 1,
+        kind: "ffmpeg",
+        pid: proc.pid,
+        identity: "linux:someone-else",
+      });
+      writeFileSync(path, foreign);
+
+      proc.kill("SIGTERM");
+      await exitPromise;
+      expect(readFileSync(path, "utf8")).toBe(foreign);
+    } finally {
+      proc.kill("SIGKILL");
+      await exitPromise;
+      rmSync(registryDir, { recursive: true, force: true });
+    }
+  });
+
   it("recovers only identity-matched FFmpeg records reparented to init", () => {
     const registryDir = mkdtempSync(join(tmpdir(), "hf-owned-ffmpeg-scan-"));
     try {
@@ -176,6 +211,45 @@ describe.skipIf(process.platform === "win32")("registry directory trust", () => 
       parentPidForPid: () => 1,
     });
   }
+
+  it("names the path and the failing property when either side rejects the directory", async () => {
+    // Fail-closed is right, but silent fail-closed leaves a stale loose
+    // directory disabling recovery forever with nothing to grep for. Two
+    // directories so the reader and the writer each produce their own line.
+    const readerDir = mkdtempSync(join(tmpdir(), "hf-owned-ffmpeg-warn-read-"));
+    const writerDir = mkdtempSync(join(tmpdir(), "hf-owned-ffmpeg-warn-write-"));
+    chmodSync(readerDir, 0o750);
+    chmodSync(writerDir, 0o705);
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const proc = spawn("sleep", ["60"], { stdio: "ignore" });
+    const closed = new Promise<void>((resolve) => proc.on("close", () => resolve()));
+    try {
+      // The usual reader-side state: nothing was ever registered. Silent.
+      expect(scan(join(readerDir, "never-created"))).toEqual([]);
+      expect(warn).not.toHaveBeenCalled();
+
+      expect(scan(readerDir)).toEqual([]);
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn.mock.calls[0][0]).toContain(readerDir);
+      expect(warn.mock.calls[0][0]).toContain("mode 750");
+
+      trackChildProcess(proc, { kind: "ffmpeg", registryDir: writerDir });
+      expect(readdirSync(writerDir)).toEqual([]);
+      expect(warn).toHaveBeenCalledTimes(2);
+      expect(warn.mock.calls[1][0]).toContain(writerDir);
+      expect(warn.mock.calls[1][0]).toContain("mode 705");
+
+      // Once per path per process: a second rejection of the same path is quiet.
+      expect(scan(readerDir)).toEqual([]);
+      expect(warn).toHaveBeenCalledTimes(2);
+    } finally {
+      warn.mockRestore();
+      proc.kill("SIGKILL");
+      await closed;
+      rmSync(readerDir, { recursive: true, force: true });
+      rmSync(writerDir, { recursive: true, force: true });
+    }
+  });
 
   it("neither writes to nor trusts a registry path that is a symlink", async () => {
     const real = mkdtempSync(join(tmpdir(), "hf-owned-ffmpeg-real-"));

@@ -46,20 +46,23 @@ export function killOrphanedProcesses(): number {
   return killed;
 }
 
+type IdentityLookup = (pid: number) => string | null;
+
 export function killOwnedOrphanedFfmpegProcesses(
   records: OwnedFfmpegProcess[] = findOwnedOrphanedFfmpegProcesses(),
   kill: (
     pid: number,
     signal?: NodeJS.Signals,
     stillOwned?: () => boolean,
+    identityForPid?: IdentityLookup,
   ) => void = killProcessTree,
-  identityForPid: (pid: number) => string | null = processIdentity,
+  identityForPid: IdentityLookup = processIdentity,
 ): number {
   let killed = 0;
   for (const record of records) {
     const stillOwned = () => identityForPid(record.pid) === record.identity;
     if (!stillOwned()) continue;
-    kill(record.pid, "SIGTERM", stillOwned);
+    kill(record.pid, "SIGTERM", stillOwned, identityForPid);
     killed++;
   }
   return killed;
@@ -83,6 +86,7 @@ export function killProcessTree(
   pid: number,
   signal: NodeJS.Signals = "SIGTERM",
   stillOwned: () => boolean = () => true,
+  identityForPid: IdentityLookup = processIdentity,
 ): void {
   if (!stillOwned()) return;
   if (process.platform === "win32") {
@@ -100,7 +104,7 @@ export function killProcessTree(
 
   const descendants = getDescendants(pid);
   const allPids = [...descendants.reverse(), pid];
-  const identities = new Map(allPids.map((candidate) => [candidate, processIdentity(candidate)]));
+  const identities = new Map(allPids.map((candidate) => [candidate, identityForPid(candidate)]));
 
   for (const p of allPids) {
     if (!stillOwned()) return;
@@ -116,8 +120,10 @@ export function killProcessTree(
     setTimeout(() => {
       if (!stillOwned()) return;
       for (const p of allPids) {
+        // Per-PID re-check: a descendant that already exited can have had its
+        // PID handed to an unrelated process during the grace period.
         const identity = identities.get(p);
-        if (!identity || processIdentity(p) !== identity) continue;
+        if (!identity || identityForPid(p) !== identity) continue;
         try {
           process.kill(p, "SIGKILL");
         } catch {
