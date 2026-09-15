@@ -42,8 +42,10 @@
   // <marker> content reaches the screen only through the element that
   // references it (as a mask buffer, a fill tile, a vertex glyph), and
   // <symbol> only as <use> instances, whose shadow trees querySelectorAll
-  // cannot reach. Motion inside them is therefore attributable only to the
-  // referencing element, which this walk visits on its own. Blink reports an
+  // cannot reach. This walk visits the referencing element on its own, so
+  // motion OF that element (its box, opacity, clip-path) is signed; motion of
+  // the referenced CONTENT (a shape animating inside a <mask> or <pattern>)
+  // does change pixels through it but has no channel today. Blink reports an
   // empty box for descendants of all six, but a subtree that never paints in
   // place should be excluded by rule, not by one engine's bbox behaviour.
   // The names match layout-audit's CONNECTOR_SKIP_CONTAINERS (kept in step by
