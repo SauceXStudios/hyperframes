@@ -884,17 +884,73 @@ function collectTimelineVarNames(source: string): string[] {
     .filter(Boolean);
 }
 
-// Named function bodies in a script (declarations plus `const f = ...` function
+type FunctionSignature = { params: Array<string | null>; body: string };
+
+/** Split `text` on top-level commas — depth-aware, so a comma inside `(...)`/`[...]`/`{...}` doesn't split. */
+function splitTopLevelByComma(text: string): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let start = 0;
+  let inString: '"' | "'" | "`" | null = null;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i] ?? "";
+    const prev = text[i - 1] ?? "";
+    if (inString) {
+      if (ch === inString && prev !== "\\") inString = null;
+      continue;
+    }
+    if (ch === '"' || ch === "'" || ch === "`") {
+      inString = ch;
+      continue;
+    }
+    if ("({[".includes(ch)) depth++;
+    else if (")}]".includes(ch)) depth--;
+    else if (ch === "," && depth === 0) {
+      parts.push(text.slice(start, i));
+      start = i + 1;
+    }
+  }
+  parts.push(text.slice(start));
+  return parts;
+}
+
+/** Parameter names of a parameter list (without its parentheses); null per destructured/rest param. */
+function paramNames(paramList: string): Array<string | null> {
+  return splitTopLevelByComma(paramList).map(normalizeFirstParam);
+}
+
+// Parameter names for a `const name = ...` prefix already matched by
+// `assignPattern` below — mirrors that pattern's own three shapes
+// (function expression / parenthesized arrow / bare-identifier arrow), the
+// same three shapes `parseFunctionValueSource` also matches independently.
+// If a shape is ever added to one, it won't automatically apply to the
+// others; an unmatched shape here just yields `[]` (params unresolved),
+// which falls back to the old conservative whole-function taint rather than
+// silently misbehaving.
+function extractAssignedParamNames(prefix: string): Array<string | null> {
+  const match =
+    prefix.match(/function\b[^(]*\(([^)]*)\)/) ??
+    prefix.match(/\(([^)]*)\)\s*=>\s*$/) ??
+    prefix.match(/([A-Za-z_$][\w$]*)\s*=>\s*$/);
+  return match ? paramNames(match[1] ?? "") : [];
+}
+
+// Named function signatures in a script (declarations plus `const f = ...` function
 // expressions and arrows). Expression-bodied arrows keep their single line.
-function collectNamedFunctionBodies(source: string): Map<string, string> {
-  const bodies = new Map<string, string>();
+function collectNamedFunctionSignatures(source: string): Map<string, FunctionSignature> {
+  const signatures = new Map<string, FunctionSignature>();
   const declPattern = /(?:^|[^.\w$])function\s+([A-Za-z_$][\w$]*)\s*\(/g;
   let match: RegExpExecArray | null;
   while ((match = declPattern.exec(source)) !== null) {
-    const braceIndex = source.indexOf("{", declPattern.lastIndex);
+    const parenIndex = declPattern.lastIndex - 1;
+    const paramsWithParens = matchBalanced(source, parenIndex, "(", ")");
+    if (!paramsWithParens) continue;
+    const braceIndex = source.indexOf("{", parenIndex + paramsWithParens.length);
     if (braceIndex < 0) continue;
     const body = matchBalanced(source, braceIndex, "{", "}");
-    if (body) bodies.set(match[1] ?? "", body);
+    if (!body) continue;
+    const params = paramNames(paramsWithParens.slice(1, -1));
+    signatures.set(match[1] ?? "", { params, body });
   }
   const assignPattern =
     /(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?(?:function\b[^{]*|\([^)]*\)\s*=>\s*|[A-Za-z_$][\w$]*\s*=>\s*)/g;
@@ -904,39 +960,196 @@ function collectNamedFunctionBodies(source: string): Map<string, string> {
       source[bodyStart] === "{"
         ? matchBalanced(source, bodyStart, "{", "}")
         : sliceExpression(source, bodyStart);
-    if (body) bodies.set(match[1] ?? "", body);
+    if (!body) continue;
+    const params = extractAssignedParamNames(match[0]);
+    signatures.set(match[1] ?? "", { params, body });
   }
-  return bodies;
+  return signatures;
+}
+
+/** Does `text` measure directly, or call an already-tainted function? Requires a call — a bare name mention is not enough. */
+function textReachesMeasurement(text: string, measuring: Set<string>): boolean {
+  if (CALLBACK_MEASUREMENT_PATTERN.test(text)) return true;
+  for (const name of measuring) {
+    if (new RegExp(`\\b${escapeRegExp(name)}\\s*\\(`).test(text)) return true;
+  }
+  return false;
 }
 
 // Two-hop closure: functions whose body measures the DOM directly, plus
 // functions that call one of those (bounded fixpoint — no deep recursion).
-function collectMeasuringFunctionNames(bodies: Map<string, string>): Set<string> {
+function collectMeasuringFunctionNames(signatures: Map<string, FunctionSignature>): Set<string> {
   const measuring = new Set<string>();
-  for (const [name, body] of bodies) {
+  for (const [name, { body }] of signatures) {
     if (CALLBACK_MEASUREMENT_PATTERN.test(body)) measuring.add(name);
   }
   for (let pass = 0; pass < 3; pass++) {
     let grew = false;
-    for (const [name, body] of bodies) {
+    for (const [name, { body }] of signatures) {
       if (measuring.has(name)) continue;
-      for (const measured of measuring) {
-        if (new RegExp(`\\b${escapeRegExp(measured)}\\s*\\(`).test(body)) {
-          measuring.add(name);
-          grew = true;
-          break;
-        }
-      }
+      if (!textReachesMeasurement(body, measuring)) continue;
+      measuring.add(name);
+      grew = true;
     }
     if (!grew) break;
   }
   return measuring;
 }
 
-function expressionReachesMeasurement(expression: string, measuring: Set<string>): boolean {
+type LiteralArg = { kind: "boolean"; value: boolean } | { kind: "string"; value: string };
+
+function parseLiteralArg(argText: string): LiteralArg | null {
+  const trimmed = argText.trim();
+  if (trimmed === "true") return { kind: "boolean", value: true };
+  if (trimmed === "false") return { kind: "boolean", value: false };
+  const stringMatch = trimmed.match(/^(["'])([^"'`]*)\1$/);
+  if (stringMatch) return { kind: "string", value: stringMatch[2] ?? "" };
+  return null;
+}
+
+/** Body text of the case matching `value` in a `switch (paramName)`, up to the next `case`/`default`. */
+function sliceUntilNextCase(text: string, start: number): string {
+  let depth = 0;
+  let inString: '"' | "'" | "`" | null = null;
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i] ?? "";
+    const prev = text[i - 1] ?? "";
+    if (inString) {
+      if (ch === inString && prev !== "\\") inString = null;
+      continue;
+    }
+    if (ch === '"' || ch === "'" || ch === "`") {
+      inString = ch;
+      continue;
+    }
+    if ("({[".includes(ch)) depth++;
+    else if (")}]".includes(ch)) {
+      if (depth === 0) return text.slice(start, i);
+      depth--;
+    } else if (depth === 0 && /^(?:case|default)\b/.test(text.slice(i))) {
+      return text.slice(start, i);
+    }
+  }
+  return text.slice(start);
+}
+
+// A branch is only decisive when nothing OUTSIDE the branching statement (the
+// half-open span `[start, end)` of `body`) measures: an unconditional
+// measurement elsewhere in the function applies whichever branch a call took.
+function measuresOutsideStatement(
+  body: string,
+  start: number,
+  end: number,
+  measuring: Set<string>,
+): boolean {
+  return textReachesMeasurement(body.slice(0, start) + body.slice(end), measuring);
+}
+
+// A literal boolean argument resolves `if (paramName) {A} else {B}` (or its
+// negation) to exactly one branch.
+function resolveBooleanIfElseBranch(
+  body: string,
+  paramName: string,
+  value: boolean,
+  measuring: Set<string>,
+): string | null {
+  const ifPattern = new RegExp(`\\bif\\s*\\(\\s*(!)?\\s*${escapeRegExp(paramName)}\\s*\\)\\s*\\{`);
+  const ifMatch = ifPattern.exec(body);
+  if (!ifMatch) return null;
+  const thenBraceIndex = ifMatch.index + ifMatch[0].length - 1;
+  const thenBlock = matchBalanced(body, thenBraceIndex, "{", "}");
+  if (!thenBlock) return null;
+  const elseMatch = /^\s*else\s*\{/.exec(body.slice(thenBraceIndex + thenBlock.length));
+  if (!elseMatch) return null;
+  const elseBraceIndex = thenBraceIndex + thenBlock.length + elseMatch[0].length - 1;
+  const elseBlock = matchBalanced(body, elseBraceIndex, "{", "}");
+  if (!elseBlock) return null;
+  const statementEnd = elseBraceIndex + elseBlock.length;
+  if (measuresOutsideStatement(body, ifMatch.index, statementEnd, measuring)) return null;
+  const conditionHolds = ifMatch[1] === "!" ? !value : value;
+  return conditionHolds ? thenBlock : elseBlock;
+}
+
+// Same idea for `switch (paramName) { case "value": ... }` — only resolved
+// when the literal's case doesn't fall through into the next case's body.
+function resolveSwitchCaseBranch(
+  body: string,
+  paramName: string,
+  value: string,
+  measuring: Set<string>,
+): string | null {
+  const switchPattern = new RegExp(`\\bswitch\\s*\\(\\s*${escapeRegExp(paramName)}\\s*\\)\\s*\\{`);
+  const switchMatch = switchPattern.exec(body);
+  if (!switchMatch) return null;
+  const braceIndex = switchMatch.index + switchMatch[0].length - 1;
+  const switchBody = matchBalanced(body, braceIndex, "{", "}");
+  if (!switchBody) return null;
+  const casePattern = new RegExp(`case\\s*(["'])${escapeRegExp(value)}\\1\\s*:`);
+  const caseMatch = casePattern.exec(switchBody);
+  if (!caseMatch) return null;
+  const caseBody = sliceUntilNextCase(switchBody, caseMatch.index + caseMatch[0].length);
+  if (!caseBody.trim()) return null; // fell through with no body of its own — unresolved
+  const statementEnd = braceIndex + switchBody.length;
+  if (measuresOutsideStatement(body, switchMatch.index, statementEnd, measuring)) return null;
+  return caseBody;
+}
+
+// Resolves whether ONE specific call to a tainted helper reaches measurement,
+// by substituting any literal argument into the helper's own param-keyed
+// branch. Returns null when the call can't be resolved this way (non-literal
+// argument, or no recognized branch shape) — callers fall back to the old,
+// conservative whole-function taint in that case.
+function resolveCallSiteMeasurement(
+  calleeName: string,
+  argsText: string,
+  signatures: Map<string, FunctionSignature>,
+  measuring: Set<string>,
+): boolean | null {
+  const signature = signatures.get(calleeName);
+  if (!signature) return null;
+  const args = splitTopLevelByComma(argsText);
+  for (let i = 0; i < signature.params.length; i++) {
+    const paramName = signature.params[i];
+    if (!paramName) continue;
+    const literal = parseLiteralArg(args[i] ?? "");
+    if (!literal) continue;
+    const branch =
+      literal.kind === "boolean"
+        ? resolveBooleanIfElseBranch(signature.body, paramName, literal.value, measuring)
+        : resolveSwitchCaseBranch(signature.body, paramName, literal.value, measuring);
+    if (branch !== null) return textReachesMeasurement(branch, measuring);
+  }
+  return null;
+}
+
+// Deliberately narrower than the old bare-`\bname\b` check: a callback that
+// passes a tainted name BY REFERENCE to something else that invokes it later
+// (e.g. `onUpdate: () => setTimeout(measureFn, 0)`) is no longer flagged,
+// since there's no actual call syntax in the callback's own text to resolve.
+// That's the same "requires a call" standard the taint-propagation closure
+// above already applies between named functions — this fix only makes the
+// per-callback check consistent with it, at the cost of that narrow
+// by-reference shape, in exchange for fixing the reported false positive
+// (a bare, uncalled mention was enough to trip the rule).
+function expressionReachesMeasurement(
+  expression: string,
+  measuring: Set<string>,
+  signatures: Map<string, FunctionSignature>,
+): boolean {
   if (CALLBACK_MEASUREMENT_PATTERN.test(expression)) return true;
   for (const name of measuring) {
-    if (new RegExp(`\\b${escapeRegExp(name)}\\b`).test(expression)) return true;
+    const callPattern = new RegExp(`\\b${escapeRegExp(name)}\\s*\\(`, "g");
+    let match: RegExpExecArray | null;
+    while ((match = callPattern.exec(expression)) !== null) {
+      const parenIndex = match.index + match[0].length - 1;
+      const argsWithParens = matchBalanced(expression, parenIndex, "(", ")");
+      const resolved = argsWithParens
+        ? resolveCallSiteMeasurement(name, argsWithParens.slice(1, -1), signatures, measuring)
+        : null;
+      // null (unresolved) and true (resolved branch measures) both taint this
+      // callback; only a resolved, provably-safe branch (false) clears it.
+      if (resolved !== false) return true;
+    }
   }
   return false;
 }
@@ -2222,8 +2435,8 @@ export const gsapRules: LintRule<LintContext>[] = [
     for (const script of scripts) {
       const source = stripJsComments(script.content);
       if (!/gsap\.timeline/.test(source)) continue;
-      const bodies = collectNamedFunctionBodies(source);
-      const measuring = collectMeasuringFunctionNames(bodies);
+      const signatures = collectNamedFunctionSignatures(source);
+      const measuring = collectMeasuringFunctionNames(signatures);
 
       // A callback argument is hazardous when it is an inline function whose body
       // reaches a measurement, or a bare reference to a measuring function. Call
@@ -2232,7 +2445,7 @@ export const gsapRules: LintRule<LintContext>[] = [
       const callbackExpressionHazard = (expression: string): boolean => {
         const trimmed = expression.trim();
         const inline = parseFunctionValueSource(trimmed);
-        if (inline) return expressionReachesMeasurement(inline.body, measuring);
+        if (inline) return expressionReachesMeasurement(inline.body, measuring, signatures);
         if (/^[A-Za-z_$][\w$]*$/.test(trimmed)) return measuring.has(trimmed);
         return false;
       };

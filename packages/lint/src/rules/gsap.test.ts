@@ -2879,6 +2879,156 @@ describe("GSAP seek-order safety rules", () => {
     const finding = result.findings.find((f) => f.code === "gsap_callback_dom_measurement");
     expect(finding).toBeUndefined();
   });
+
+  it("gsap_callback_dom_measurement: flags a shared helper's measuring branch but clears its non-measuring branch (boolean)", async () => {
+    // Distilled from a production report: a shared style-update helper's `if`
+    // branch measures, its `else` branch only writes style. A caller passing a
+    // literal `true`/`false` for that branch's own parameter should be judged
+    // by which branch it actually reaches, not by "does the helper measure ANYWHERE."
+    const html = `
+<html><body>
+  <div data-composition-id="c1" data-width="1920" data-height="1080">
+    <div id="cardA"></div>
+    <div id="cardB"></div>
+  </div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    function applyPhaseStyle(el, useMeasurement) {
+      if (useMeasurement) {
+        const rect = el.getBoundingClientRect();
+        el.style.left = rect.width + "px";
+      } else {
+        el.style.opacity = "0.5";
+      }
+    }
+    const tl = gsap.timeline({ paused: true });
+    tl.to('#cardA', { x: 10, duration: 1, onUpdate: () => applyPhaseStyle(document.getElementById('cardA'), true) }, 0);
+    tl.to('#cardB', { x: 10, duration: 1, onUpdate: () => applyPhaseStyle(document.getElementById('cardB'), false) }, 0);
+    window.__timelines["c1"] = tl;
+  </script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    const findings = result.findings.filter((f) => f.code === "gsap_callback_dom_measurement");
+    expect(findings.length).toBe(1);
+    expect(findings[0]?.selector).toContain("cardA");
+  });
+
+  it("gsap_callback_dom_measurement: resolves a switch/string-mode shared helper's literal branch the same way", async () => {
+    const html = `
+<html><body>
+  <div data-composition-id="c1" data-width="1920" data-height="1080">
+    <div id="cardA"></div>
+    <div id="cardB"></div>
+  </div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    function alignPanel(el, mode) {
+      switch (mode) {
+        case "measure": {
+          const rect = el.getBoundingClientRect();
+          el.style.left = rect.width + "px";
+          break;
+        }
+        case "style": {
+          el.style.opacity = "0.5";
+          break;
+        }
+      }
+    }
+    const tl = gsap.timeline({ paused: true });
+    tl.to('#cardA', { x: 10, duration: 1, onUpdate: () => alignPanel(document.getElementById('cardA'), "measure") }, 0);
+    tl.to('#cardB', { x: 10, duration: 1, onUpdate: () => alignPanel(document.getElementById('cardB'), "style") }, 0);
+    window.__timelines["c1"] = tl;
+  </script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    const findings = result.findings.filter((f) => f.code === "gsap_callback_dom_measurement");
+    expect(findings.length).toBe(1);
+    expect(findings[0]?.selector).toContain("cardA");
+  });
+
+  it("gsap_callback_dom_measurement: does NOT flag a bare, uncalled mention of a measuring function's name", async () => {
+    // A callback that merely references a tainted helper's identifier (no
+    // invocation) never reaches its measurement — unlike the transitive-call
+    // propagation between named functions, which already requires a call.
+    const html = `
+<html><body>
+  <div data-composition-id="c1" data-width="1920" data-height="1080"><div id="a"></div></div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    function applyPhaseStyle(el, useMeasurement) {
+      if (useMeasurement) {
+        const rect = el.getBoundingClientRect();
+        el.style.left = rect.width + "px";
+      } else {
+        el.style.opacity = "0.5";
+      }
+    }
+    const tl = gsap.timeline({ paused: true });
+    tl.eventCallback("onRepeat", () => { const ref = applyPhaseStyle; void ref; });
+    window.__timelines["c1"] = tl;
+  </script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    const finding = result.findings.find((f) => f.code === "gsap_callback_dom_measurement");
+    expect(finding).toBeUndefined();
+  });
+
+  it("gsap_callback_dom_measurement: still conservatively flags a shared-helper call whose branch argument isn't a literal", async () => {
+    const html = `
+<html><body>
+  <div data-composition-id="c1" data-width="1920" data-height="1080"><div id="cardC"></div></div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    function applyPhaseStyle(el, useMeasurement) {
+      if (useMeasurement) {
+        const rect = el.getBoundingClientRect();
+        el.style.left = rect.width + "px";
+      } else {
+        el.style.opacity = "0.5";
+      }
+    }
+    const dynamicFlag = Math.random() > 0.5;
+    const tl = gsap.timeline({ paused: true });
+    tl.to('#cardC', { x: 10, duration: 1, onUpdate: () => applyPhaseStyle(document.getElementById('cardC'), dynamicFlag) }, 0);
+    window.__timelines["c1"] = tl;
+  </script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    const finding = result.findings.find((f) => f.code === "gsap_callback_dom_measurement");
+    expect(finding).toBeDefined();
+  });
+
+  it("gsap_callback_dom_measurement: a comma inside a string argument doesn't misalign later literal arguments", async () => {
+    // A string argument whose text itself contains a bare "true"/"false"
+    // token between commas (e.g. "x, true, y") must not let a naive
+    // (non-string-aware) comma split misread that inner token as a LATER
+    // param's literal — here `useMeasurement` is really `false` (real
+    // branch: getBoundingClientRect, must flag), but a split that doesn't
+    // track string boundaries produces a stray " true" fragment that lands
+    // on useMeasurement's index and incorrectly clears this call.
+    const html = `
+<html><body>
+  <div data-composition-id="c1" data-width="1920" data-height="1080"><div id="cardA"></div></div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    function applyPhaseStyle(label, useMeasurement) {
+      var el = document.getElementById('cardA');
+      if (useMeasurement) {
+        el.style.opacity = "0.5";
+      } else {
+        el.getBoundingClientRect();
+      }
+    }
+    const tl = gsap.timeline({ paused: true });
+    tl.to('#cardA', { x: 10, duration: 1, onUpdate: () => applyPhaseStyle("x, true, y", false) }, 0);
+    window.__timelines["c1"] = tl;
+  </script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    const finding = result.findings.find((f) => f.code === "gsap_callback_dom_measurement");
+    expect(finding).toBeDefined();
+  });
 });
 
 describe("SVG draw-on rules", () => {
