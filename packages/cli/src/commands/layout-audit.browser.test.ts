@@ -1905,23 +1905,25 @@ describe("layout-audit.browser content overlap", () => {
   // Overlap measures glyph rects with font-metric bleed past the element's own
   // CSS box trimmed back to it: neither the bare font-metrics band nor the bare
   // box. The scenes below pull the geometries apart so only that measurement
-  // gives the right answer. Spill counts as bleed up to half the spilling glyph
-  // rect's own height (its font content area), never more.
-  it("does not flag when only font-metrics bands overlap but the real CSS boxes have a gap", () => {
+  // gives the right answer. Spill counts as bleed up to a fifth of the spilling
+  // glyph rect's own height (its font content area): the box still encloses the
+  // cap band and only ascender/descender tips lie outside. Tighter than that is
+  // negative leading deep into the glyphs, and the spill is kept as real ink.
+  it("does not flag when only font-metrics bands overlap but the real CSS boxes just touch", () => {
     // A large font-size with a tight line-height keeps the range-rect height
-    // while the real box shrinks around it: 20px above, 30px below.
+    // while the real box shrinks around it: 15px above and below an 80px line.
     const issues = auditOverlapScene({
       a: {
         position: "absolute",
         // Metrics band overlaps b's box...
-        textRect: rect({ left: 100, top: 80, width: 200, height: 100 }),
-        // ...but the real box has a genuine 10px gap before b's box starts.
+        textRect: rect({ left: 100, top: 85, width: 200, height: 80 }),
+        // ...but the real box ends exactly where b's box starts.
         boxRect: rect({ left: 100, top: 100, width: 200, height: 50 }),
       },
       b: {
         position: "absolute",
-        textRect: rect({ left: 100, top: 160, width: 200, height: 50 }),
-        boxRect: rect({ left: 100, top: 160, width: 200, height: 50 }),
+        textRect: rect({ left: 100, top: 150, width: 200, height: 50 }),
+        boxRect: rect({ left: 100, top: 150, width: 200, height: 50 }),
       },
     });
 
@@ -1965,8 +1967,8 @@ describe("layout-audit.browser content overlap", () => {
   });
 
   it("still flags text that overflows its own box into a neighbour", () => {
-    // Glyphs run 100px past a's 50px box — beyond half the 150px glyph rect —
-    // and into b. A bare unpainted box is not an overflow constraint, so overlap
+    // Glyphs run 100px past a's 50px box — far beyond a fifth of the 150px
+    // glyph rect — and into b. A bare unpainted box is not an overflow constraint, so overlap
     // must keep owning this: the spill is real ink, not font-metric bleed.
     const issues = auditOverlapScene({
       a: {
@@ -1984,41 +1986,97 @@ describe("layout-audit.browser content overlap", () => {
     expect(issues.some((issue) => issue.code === "content_overlap")).toBe(true);
   });
 
-  it("trims spill of exactly half the glyph rect height as bleed", () => {
-    // 50px of a 100px rect: the largest bleed a line can produce (line-height
-    // 0 spills exactly half the content area past each edge of the box).
+  it("trims spill of exactly a fifth of the glyph rect height as bleed", () => {
+    // 20px of a 100px line: line-height at 60% of the content area, the
+    // tightest leading whose spill is still only ascender/descender tips.
     const issues = auditOverlapScene({
       a: {
         position: "absolute",
         textRect: rect({ left: 100, top: 100, width: 200, height: 100 }),
-        boxRect: rect({ left: 100, top: 100, width: 200, height: 50 }),
+        boxRect: rect({ left: 100, top: 100, width: 200, height: 80 }),
       },
       b: {
         position: "absolute",
-        textRect: rect({ left: 100, top: 160, width: 200, height: 50 }),
-        boxRect: rect({ left: 100, top: 160, width: 200, height: 50 }),
+        textRect: rect({ left: 100, top: 185, width: 200, height: 50 }),
+        boxRect: rect({ left: 100, top: 185, width: 200, height: 50 }),
       },
     });
 
     expect(issues.some((issue) => issue.code === "content_overlap")).toBe(false);
   });
 
-  it("keeps spill just past half the glyph rect height as real ink", () => {
-    // 51px of a 101px rect: more than any half-leading, so it stays in play.
+  it("keeps spill just past a fifth of the glyph rect height as real ink", () => {
+    // 21px of a 100px line stays in play, so the neighbour set against the box
+    // edge collides.
     const issues = auditOverlapScene({
       a: {
         position: "absolute",
-        textRect: rect({ left: 100, top: 100, width: 200, height: 101 }),
-        boxRect: rect({ left: 100, top: 100, width: 200, height: 50 }),
+        textRect: rect({ left: 100, top: 100, width: 200, height: 100 }),
+        boxRect: rect({ left: 100, top: 100, width: 200, height: 79 }),
       },
       b: {
         position: "absolute",
-        textRect: rect({ left: 100, top: 160, width: 200, height: 50 }),
-        boxRect: rect({ left: 100, top: 160, width: 200, height: 50 }),
+        textRect: rect({ left: 100, top: 179, width: 200, height: 50 }),
+        boxRect: rect({ left: 100, top: 179, width: 200, height: 50 }),
       },
     });
 
     expect(issues.some((issue) => issue.code === "content_overlap")).toBe(true);
+  });
+
+  it("flags a neighbour at the box edge of a line with deep negative leading", () => {
+    // line-height 0 on a 100px line: half the content area spills past each
+    // box edge and the box sits inside the cap band. The spill is dense glyph
+    // ink, so b, set against a's box bottom, collides for real.
+    const issues = auditOverlapScene({
+      a: {
+        position: "absolute",
+        textRect: rect({ left: 100, top: 100, width: 200, height: 100 }),
+        boxRect: rect({ left: 100, top: 125, width: 200, height: 50 }),
+      },
+      b: {
+        position: "absolute",
+        textRect: rect({ left: 100, top: 175, width: 200, height: 50 }),
+        boxRect: rect({ left: 100, top: 175, width: 200, height: 50 }),
+      },
+    });
+
+    expect(issues.some((issue) => issue.code === "content_overlap")).toBe(true);
+  });
+
+  it("flags a neighbour at the box edge of a 25px box holding a 100px line", () => {
+    const issues = auditOverlapScene({
+      a: {
+        position: "absolute",
+        textRect: rect({ left: 100, top: 100, width: 200, height: 100 }),
+        boxRect: rect({ left: 100, top: 137, width: 200, height: 25 }),
+      },
+      b: {
+        position: "absolute",
+        textRect: rect({ left: 100, top: 162, width: 200, height: 50 }),
+        boxRect: rect({ left: 100, top: 162, width: 200, height: 50 }),
+      },
+    });
+
+    expect(issues.some((issue) => issue.code === "content_overlap")).toBe(true);
+  });
+
+  it("trims bleed above the box when the neighbour sits above", () => {
+    // Same 15px bleed on an 80px line, spilling upward into b's box this time.
+    const issues = auditOverlapScene({
+      a: {
+        position: "absolute",
+        textRect: rect({ left: 100, top: 85, width: 200, height: 80 }),
+        boxRect: rect({ left: 100, top: 100, width: 200, height: 50 }),
+      },
+      b: {
+        position: "absolute",
+        textRect: rect({ left: 100, top: 50, width: 200, height: 50 }),
+        boxRect: rect({ left: 100, top: 50, width: 200, height: 50 }),
+      },
+    });
+
+    expect(issues.some((issue) => issue.code === "content_overlap")).toBe(false);
   });
 
   it("trims bleed on only the first and last lines of a multi-line block", () => {
@@ -2044,9 +2102,9 @@ describe("layout-audit.browser content overlap", () => {
     expect(issues.some((issue) => issue.code === "content_overlap")).toBe(false);
   });
 
-  it("keeps a wrapped line spilling more than half its own height, however tall the block", () => {
+  it("keeps a wrapped line spilling more than a fifth of its own height, however tall the block", () => {
     // Two 100px lines; the 140px box cuts 60px off the second line. That is
-    // more than half of that line's own rect, so it is real overflow — the
+    // more than a fifth of that line's own rect, so it is real overflow — the
     // 200px block height must not widen the bleed allowance.
     const issues = auditOverlapScene({
       a: {
@@ -2072,12 +2130,12 @@ describe("layout-audit.browser content overlap", () => {
     // pair: the bleed trim is what keeps this clean.
     const issues = auditOverlapScene({
       a: {
-        textRect: rect({ left: 100, top: 80, width: 200, height: 100 }),
+        textRect: rect({ left: 100, top: 85, width: 200, height: 80 }),
         boxRect: rect({ left: 100, top: 100, width: 200, height: 50 }),
       },
       b: {
-        textRect: rect({ left: 100, top: 160, width: 200, height: 50 }),
-        boxRect: rect({ left: 100, top: 160, width: 200, height: 50 }),
+        textRect: rect({ left: 100, top: 150, width: 200, height: 50 }),
+        boxRect: rect({ left: 100, top: 150, width: 200, height: 50 }),
       },
     });
 
@@ -2086,8 +2144,8 @@ describe("layout-audit.browser content overlap", () => {
 
   it("leaves a vertical writing-mode column untrimmed, so its real overflow still collides", () => {
     // In vertical-rl the glyph rect's height is the inline advance: 200px past
-    // a 300px column is genuine overflow, not bleed, even though it is under
-    // half the rect height. The clamp steps aside rather than swallow it.
+    // a 300px column is genuine overflow, not bleed, whatever its share of the
+    // rect height. The clamp steps aside rather than swallow it.
     const issues = auditOverlapScene({
       a: {
         position: "absolute",
@@ -2130,13 +2188,13 @@ describe("layout-audit.browser content overlap", () => {
     // not register as a collision with the free-positioned neighbour.
     const issues = auditOverlapScene({
       a: {
-        textRect: rect({ left: 100, top: 80, width: 200, height: 100 }),
+        textRect: rect({ left: 100, top: 85, width: 200, height: 80 }),
         boxRect: rect({ left: 100, top: 100, width: 200, height: 50 }),
       },
       b: {
         position: "absolute",
-        textRect: rect({ left: 100, top: 160, width: 200, height: 50 }),
-        boxRect: rect({ left: 100, top: 160, width: 200, height: 50 }),
+        textRect: rect({ left: 100, top: 150, width: 200, height: 50 }),
+        boxRect: rect({ left: 100, top: 150, width: 200, height: 50 }),
       },
     });
 

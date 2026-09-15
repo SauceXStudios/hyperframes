@@ -301,34 +301,36 @@
   }
 
   // Geometry rule for content-overlap, decided once here and applied to every
-  // block so any pair compares like with like: glyph (Range) rects, with any
-  // font-metric bleed past the element's own border-box clamped back to it,
-  // then clipped by overflow ancestors.
+  // block so any pair compares like with like: glyph (Range) rects, with
+  // font-metric bleed past the element's own border-box clamped back to it, then
+  // clipped by overflow ancestors.
   //
-  // Range rects follow the font's ascent/descent, not the CSS box: a large
-  // font-size with a tight line-height keeps the range-rect height while the
-  // real box shrinks around it, so a block can measure as colliding with a
-  // neighbour its box never touches. The bare box overshoots the other way: a
-  // box wider or taller than the text it holds would register collisions its
-  // glyphs never make. So the box is only used to trim glyph spill it can
-  // account for. That spill is half-leading, (content-area - line-height) / 2
-  // per side, so it can never exceed half the spilling line's own rect height
-  // (its content area); a further wrapped line spills (line-height +
-  // content-area) / 2, more for any positive line-height. Anything past that
-  // bound is real ink the box says nothing about, so it is kept and still
-  // collides. Measuring the bound from the rect itself keeps it exact under any
-  // transform scale. The cost: a box that cuts a line within its first half is
-  // indistinguishable from bleed and is trimmed with it. In horizontal writing
+  // Range rects follow the font's ascent/descent (the content area), not the CSS
+  // box: a large font-size with a tight line-height keeps the range-rect height
+  // while the real box shrinks around it, so a block can measure as colliding
+  // with a neighbour its box never touches. The bare box overshoots the other
+  // way: a box wider or taller than the text it holds would register collisions
+  // its glyphs never make. So the box only trims glyph spill that is sparse ink.
+  // With negative leading (line-height below the content area) the line spills
+  // (content-area - line-height) / 2 past each box edge. While that is at most a
+  // fifth of the line's rect height — line-height at least 60% of the content
+  // area, roughly 0.7em for a typical 1.2em content area — the box still encloses
+  // the cap band and only ascender/descender tips lie outside, so a neighbour set
+  // against the box edge shares ~1% of its ink with them. Any tighter and the box
+  // sits inside the cap band: the spill is dense glyph ink that a neighbour at
+  // the box edge collides with for real (over 20% shared ink from about 0.4em
+  // down), so it is kept. A further wrapped line spills (line-height +
+  // content-area) / 2, always more, and is kept too. Measuring the bound from the
+  // rect itself keeps it exact under any transform scale. In horizontal writing
   // the spill is vertical by nature — glyph advances never exceed the box unless
   // the text genuinely overflows — so the horizontal extent is never trimmed;
   // vertical writing modes swap the axes, so they are left untrimmed entirely
-  // rather than trimming real overflow. The clamp does not help text wrapped
-  // in a bare inline element (a span): its own box already follows the font's
-  // content area, so the bleed is measured as inside the box.
+  // rather than trimming real overflow. The clamp does not help text wrapped in a
+  // bare inline element (a span): its own box already follows the font's content
+  // area, so the bleed is measured as inside the box.
   function overlapTextRects(element) {
     const glyphRects = textClientRects(element, true).map(toRect);
-    const glyphUnion = unionRects(glyphRects);
-    if (!glyphUnion) return [];
+    if (glyphRects.length === 0) return [];
     if (getComputedStyle(element).writingMode !== "horizontal-tb") {
       return clipRectsToOverflowAncestors(element, glyphRects);
     }
@@ -337,10 +339,12 @@
     const bottomLine = glyphRects.reduce((bottom, rect) =>
       rect.bottom > bottom.bottom ? rect : bottom,
     );
-    const isBleed = (spill, line) => spill > 0 && spill <= line.height / 2;
+    const topSpill = box.top - topLine.top;
+    const bottomSpill = bottomLine.bottom - box.bottom;
+    const isBleed = (spill, line) => spill > 0 && spill <= line.height / 5;
     const clip = {
-      top: isBleed(box.top - topLine.top, topLine) ? box.top : glyphUnion.top,
-      bottom: isBleed(bottomLine.bottom - box.bottom, bottomLine) ? box.bottom : glyphUnion.bottom,
+      top: isBleed(topSpill, topLine) ? box.top : topLine.top,
+      bottom: isBleed(bottomSpill, bottomLine) ? box.bottom : bottomLine.bottom,
     };
     return clipRectsToOverflowAncestors(element, clampRectsTo(glyphRects, clip, false, true));
   }
