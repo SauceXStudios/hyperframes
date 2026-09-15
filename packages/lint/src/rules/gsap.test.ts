@@ -3030,6 +3030,37 @@ describe("GSAP seek-order safety rules", () => {
     expect(finding).toBeDefined();
   });
 
+  it("gsap_callback_dom_measurement: a comma inside an array-literal argument doesn't misalign a later literal argument", async () => {
+    // An array-literal argument (`[1, 2]`) contains a comma that must NOT be
+    // treated as a top-level argument separator — bracket-depth tracking has
+    // to count `[`/`]` just like `(`/`)`/`{`/`}`, or the split misaligns
+    // every argument after it. Here `useMeasurement` (real value: `true`,
+    // selecting the SAFE branch) would land one position later than the real
+    // literal reaches with a broken split, leaving it unresolved and
+    // conservatively (here, incorrectly) flagged.
+    const html = `
+<html><body>
+  <div data-composition-id="c1" data-width="1920" data-height="1080"><div id="cardA"></div></div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    function applyPhaseStyle(items, useMeasurement) {
+      var el = document.getElementById('cardA');
+      if (useMeasurement) {
+        el.style.opacity = "0.5";
+      } else {
+        el.getBoundingClientRect();
+      }
+    }
+    const tl = gsap.timeline({ paused: true });
+    tl.to('#cardA', { x: 10, duration: 1, onUpdate: () => applyPhaseStyle([1, 2], true) }, 0);
+    window.__timelines["c1"] = tl;
+  </script>
+</body></html>`;
+    const result = await lintHyperframeHtml(html);
+    const finding = result.findings.find((f) => f.code === "gsap_callback_dom_measurement");
+    expect(finding).toBeUndefined();
+  });
+
   it("gsap_callback_dom_measurement: a param reassigned before the branch is not substituted (fails closed)", async () => {
     // useMeasurement is flipped before the `if`, so the caller's literal
     // `false` no longer reflects what the branch actually tests (it becomes

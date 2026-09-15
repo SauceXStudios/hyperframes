@@ -2751,8 +2751,9 @@ export const gsapRules: LintRule<LintContext>[] = [
           if (!argsWithParens) continue;
           // Passes `source` + an absolute index, like every sibling call below —
           // never a fresh slice (`argsWithParens.slice(1, -1)`), which would mask
-          // a brand-new string and evict `source`'s own cached mask, undoing the
-          // whole point of `maskLiterals`'s single-slot memo.
+          // a brand-new string: an unnecessary `stripJsStringLiterals` scan of the
+          // whole script on every call, and one more entry competing for space in
+          // `maskLiterals`'s LRU alongside `source`'s own (already cached) mask.
           const firstArg = sliceExpression(source, parenIndex + 1);
           const site = match[0] + firstArg + ", ...)";
           if (callbackExpressionHazard(firstArg)) report(site, site);

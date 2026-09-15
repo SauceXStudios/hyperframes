@@ -91,6 +91,27 @@ describe("stripJsStringLiterals", () => {
     expect(findsRaf(src)).toBe(true);
   });
 
+  it("recovers a misread regex that runs all the way to end-of-input with no trailing newline", () => {
+    // A real regex literal can't extend past EOF either, so a "/" whose guessed
+    // regex reaches the very end of `source` without a newline in between is
+    // just as much a misread as one that hits a mid-file line boundary — it
+    // must get the same local recovery, not the whole-input bail (there is no
+    // newline left for the OLD newline-only recovery trigger to ever fire on).
+    const src = 'const label = "clo}se";\nconst ratio = {}/2;';
+    expect(scan(src)).toBe('const label = "      ";\nconst ratio = {}/2;');
+  });
+
+  it("keeps output length equal to input length across a misread immediately followed by a real regex", () => {
+    // Guards `recoverFromMisread` actually clearing its buffered guess content:
+    // if a misread's `regexBuffer` were ever left un-cleared, its stale
+    // characters would leak into the very next CONFIRMED regex literal's own
+    // buffered content, inflating the output past the input's length.
+    const src = "a = {}/2;\nr = /x/;\nrequestAnimationFrame(step);";
+    const out = scan(src);
+    expect(out.length).toBe(src.length);
+    expect(findsRaf(src)).toBe(true);
+  });
+
   it("keeps a backslash-escaped quote immediately followed by a real bracket masked as string content", () => {
     // If escape-tracking on this branch were ever dropped, the escaped quote
     // in `"x\"}"` would misread as the string's REAL closing quote, exposing

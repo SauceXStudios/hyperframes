@@ -594,17 +594,19 @@ type RegexGuess = { index: number; context: CodeContextSnapshot };
  * and newline positions kept) so a rule scanning for an API call does not match one
  * a composition merely renders as on-screen text. Template `${…}` expressions stay —
  * they are code. Returns the source untouched if the scan ends mid-literal (an
- * unterminated string/template, or a regex still open at end of input), so a parse
- * this scanner cannot model degrades to the caller's pre-existing behaviour rather
- * than silently blanking real code on an `error`-severity gate.
+ * unterminated string/template), so a parse this scanner cannot model degrades to
+ * the caller's pre-existing behaviour rather than silently blanking real code on an
+ * `error`-severity gate.
  *
  * A candidate "/" is only ever a GUESS at starting a regex literal, since regex and
- * division are genuinely ambiguous in text. Real regex literals can't span a line, so
- * a "/" whose "regex" runs past a line end was misread, and everything blanked since
- * it is ordinary (division) code. The scan then rewinds to that "/" and re-walks the
- * span as code (see `recoverFromMisread`), so a misread costs only its own span —
- * every literal correctly masked elsewhere in `source`, before it or after it, stays
- * masked.
+ * division are genuinely ambiguous in text. Real regex literals can't span a line —
+ * or run past the end of input — so a "/" whose "regex" reaches either was misread,
+ * and everything blanked since it is ordinary (division) code. The scan then rewinds
+ * to that "/" and re-walks the span as code (see `recoverFromMisread`), so a misread
+ * costs only its own span — every literal correctly masked elsewhere in `source`,
+ * before it or after it, stays masked. Because end-of-input gets the same recovery
+ * as a line boundary, a still-open guess can never survive to the final fail-safe
+ * check below — only a genuinely unterminated string/template can.
  */
 // fallow-ignore-next-line complexity
 export function stripJsStringLiterals(source: string): string {
@@ -654,7 +656,18 @@ export function stripJsStringLiterals(source: string): string {
     escaped = false;
   };
 
-  while (i < source.length) {
+  while (true) {
+    if (i >= source.length) {
+      // End of input while still guessing a regex is the same misread signal
+      // as a line boundary — a real regex literal can't extend past EOF
+      // either — so it gets the identical recovery, not a silent whole-input
+      // bail: without this, a misread on the source's LAST line (no trailing
+      // newline) would never be caught, since the newline check below is the
+      // only other place recovery triggers.
+      if (!regexGuess) break;
+      recoverFromMisread(regexGuess);
+      continue;
+    }
     const ch = source[i] ?? "";
     const next = source[i + 1] ?? "";
 
@@ -755,7 +768,11 @@ export function stripJsStringLiterals(source: string): string {
     i += 1;
   }
 
-  if (quote !== null || templateBraces.length > 0 || regexGuess !== null) return source;
+  // `regexGuess` can never be non-null here: the only way out of the loop
+  // above is its `break`, which is itself gated on `!regexGuess` — a guess
+  // still open at EOF is recovered (and re-walked) exactly like one open at
+  // a line boundary, never left to fall out of the loop.
+  if (quote !== null || templateBraces.length > 0) return source;
   return out;
 }
 
