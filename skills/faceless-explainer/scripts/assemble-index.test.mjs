@@ -193,6 +193,7 @@ test("voice clips get a short edge fade baked in, not a hard cut", { skip: !HAS_
   const rawMidDb = rmsDbAt(join(dir, "assets", "voice", "01.wav"), 1.5, 0.005);
   const fadedStartDb = rmsDbAt(outPath, 0, 0.002);
   const fadedMidDb = rmsDbAt(outPath, 1.5, 0.005);
+  const fadedEndDb = rmsDbAt(outPath, 2.998, 0.002);
 
   // The clip's steady middle is unaffected by the edge fade.
   assert.ok(
@@ -200,10 +201,18 @@ test("voice clips get a short edge fade baked in, not a hard cut", { skip: !HAS_
     `mid-clip level should be ~unchanged: raw ${rawMidDb} dB vs faded ${fadedMidDb} dB`,
   );
   // The very start of the faded clip should read markedly quieter than the
-  // steady-state level — the fade-in ramp, not a hard cut at full volume.
+  // steady-state level — the fade-in ramp, not a hard cut at full volume. On
+  // the raw (unfaded) source, start and mid are within ~0.5dB of each other,
+  // so this margin only passes once a real fade is present.
   assert.ok(
     fadedStartDb < fadedMidDb - 6,
     `start-of-clip level should be well below mid-clip level: start ${fadedStartDb} dB vs mid ${fadedMidDb} dB`,
+  );
+  // Same check at the tail end, for the fade-out half — a fixed start-window
+  // assertion alone would miss a fade-in-only regression.
+  assert.ok(
+    fadedEndDb < fadedMidDb - 6,
+    `end-of-clip level should be well below mid-clip level: end ${fadedEndDb} dB vs mid ${fadedMidDb} dB`,
   );
 });
 
@@ -239,15 +248,31 @@ test(
     assert.ok(voiceEl, "expected a voice <audio> element in index.html");
     const outPath = join(dir, voiceEl[1]);
     assert.equal(existsSync(outPath), true);
+
     const probe = spawnSync(
       "ffprobe",
       ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", "--", outPath],
       { encoding: "utf8" },
     );
     const outDur = parseFloat(probe.stdout.trim());
+    assert.ok(outDur > 0.008, `faded clip should preserve its ~10ms length: ${outDur}s`);
+
+    // Duration alone doesn't prove a fade happened — an untouched raw 10ms clip
+    // would pass the length check above too. With the half-duration clamp each 5ms
+    // edge fades from/to silence while the midpoint keeps most of its energy:
+    // measured on this exact fixture+filter, start/end ≈ -33dB vs mid ≈ -22dB,
+    // well outside the ~1dB spread a raw unfaded 10ms tone shows across the same
+    // three windows.
+    const startDb = rmsDbAt(outPath, 0, 0.002);
+    const midDb = rmsDbAt(outPath, 0.004, 0.002);
+    const endDb = rmsDbAt(outPath, 0.008, 0.002);
     assert.ok(
-      outDur > 0.005,
-      `faded clip should not have collapsed to near-zero length: ${outDur}s`,
+      startDb < midDb - 8,
+      `start should be well below the clip's own midpoint: start ${startDb} dB vs mid ${midDb} dB`,
+    );
+    assert.ok(
+      endDb < midDb - 8,
+      `end should be well below the clip's own midpoint: end ${endDb} dB vs mid ${midDb} dB`,
     );
   },
 );
