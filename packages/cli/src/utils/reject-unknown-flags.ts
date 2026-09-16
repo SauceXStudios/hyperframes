@@ -1,4 +1,4 @@
-import type { ArgsDef, CommandDef } from "citty";
+import type { ArgDef, ArgsDef, CommandDef } from "citty";
 
 // citty is permissive: an unrecognized flag (e.g. `render --out x` when the flag
 // is `--output`/`-o`) is silently ignored instead of rejected, so the value is
@@ -16,14 +16,19 @@ function nameVariants(name: string): string[] {
   return [name, kebab, camel];
 }
 
+// Add every spelling of one declared arg — its name variants plus any aliases.
+// `def` is tolerated as undefined: this guard runs on every CLI invocation, so a
+// malformed args entry must not turn a valid command into a crash.
+function addSpellings(into: Set<string>, name: string, def: ArgDef | undefined): void {
+  for (const v of nameVariants(name)) into.add(v);
+  const alias = def && "alias" in def ? def.alias : undefined;
+  if (typeof alias === "string") into.add(alias);
+  else if (Array.isArray(alias)) for (const a of alias) into.add(a);
+}
+
 function knownFlags(args: ArgsDef | undefined): Set<string> {
   const known = new Set(ALWAYS_KNOWN);
-  for (const [name, def] of Object.entries(args ?? {})) {
-    for (const v of nameVariants(name)) known.add(v);
-    const alias = (def as { alias?: string | string[] })?.alias;
-    if (typeof alias === "string") known.add(alias);
-    else if (Array.isArray(alias)) for (const a of alias) known.add(a);
-  }
+  for (const [name, def] of Object.entries(args ?? {})) addSpellings(known, name, def);
   return known;
 }
 
@@ -65,5 +70,48 @@ export function assertKnownFlags(cmd: CommandDef<ArgsDef>, rawArgs: string[]): v
     if (tok === "--") break;
     const bad = unknownFlagIn(tok, known);
     if (bad) throw new Error(`Unknown flag: ${bad}`);
+  }
+}
+
+/**
+ * Throw when an already-parsed `type: "string"`/`"enum"` arg's value is
+ * itself the exact spelling of a flag this command (or the global set)
+ * declares. This is the shape citty's parser produces when the value is
+ * missing: `node:util.parseArgs` (which citty delegates to, `strict: false`)
+ * unconditionally consumes the next token as a string arg's value with no
+ * guard against it being another flag, so `catalog --query --json` parses to
+ * `args.query === "--json"`, `args.json` never set — the JSON-mode caller
+ * silently gets human-readable stdout instead of erroring.
+ *
+ * A value that exactly matches a declared flag spelling being a *genuine*
+ * value is vanishingly unlikely, so callers should reject rather than
+ * silently mis-parse. Opt-in per command (not part of `assertKnownFlags`,
+ * which every command goes through before its own `run()`): some commands
+ * legitimately let a string flag stand bare with a following flag right
+ * after it (e.g. `check --frame-check --json`, resolved by that command's
+ * own raw-args preprocessing before citty ever parses it) — a blanket check
+ * at that shared, pre-parse layer can't tell that case apart from this bug.
+ */
+export function rejectSwallowedFlagValues(
+  // `CommandDef<any>`, not `<ArgsDef>`: citty's `CommandContext` is invariant
+  // in its args type (via `setup`), so a caller's own concretely-typed `cmd`
+  // (e.g. `CommandDef<typeof CATALOG_ARGS>`) doesn't structurally satisfy
+  // `CommandDef<ArgsDef>` — this mirrors `AnyCommandDef` in
+  // command-failure-tracking.ts, which hits the same variance issue.
+  // Optional: a unit test that calls a command's `run()` directly (bypassing
+  // citty's `runCommand`, which always supplies `cmd`) may omit it entirely.
+  cmd: CommandDef<any> | undefined,
+  args: Record<string, unknown>,
+): void {
+  const rawDef = cmd?.args;
+  const argsDef = rawDef && typeof rawDef === "object" ? (rawDef as ArgsDef) : undefined;
+  const known = knownFlags(argsDef);
+  for (const [name, def] of Object.entries(argsDef ?? {})) {
+    if (def?.type !== "string" && def?.type !== "enum") continue;
+    const value = args[name];
+    if (typeof value !== "string" || value === "-" || !value.startsWith("-")) continue;
+    if (unknownFlagIn(value, known) === null) {
+      throw new Error(`Missing value for --${name} (got "${value}", which is itself a flag)`);
+    }
   }
 }

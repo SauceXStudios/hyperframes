@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ArgsDef, CommandDef } from "citty";
-import { assertKnownFlags } from "./reject-unknown-flags.js";
+import { assertKnownFlags, rejectSwallowedFlagValues } from "./reject-unknown-flags.js";
 
 const cmd = {
   args: {
@@ -48,5 +48,42 @@ describe("assertKnownFlags", () => {
   it("checks each char of a combined short group", () => {
     expect(ok(["-ow"])).not.toThrow(); // both known aliases
     expect(ok(["-ox"])).toThrow(/Unknown flag: -x/); // x unknown
+  });
+});
+
+describe("rejectSwallowedFlagValues", () => {
+  const checkAgainst = (args: Record<string, unknown>) => () =>
+    rejectSwallowedFlagValues(cmd, args);
+
+  it("rejects a string flag's value that is itself a known flag spelling", () => {
+    expect(checkAgainst({ output: "--json" })).toThrow(/Missing value for --output/);
+    expect(checkAgainst({ output: "--help" })).toThrow(/Missing value for --output/);
+  });
+
+  it("does not reject an ordinary value, even one that starts with a dash but isn't a known flag", () => {
+    expect(checkAgainst({ output: "-out.mp4" })).not.toThrow();
+  });
+
+  it("does not reject undefined, boolean, or bare-dash values", () => {
+    expect(checkAgainst({ output: undefined })).not.toThrow();
+    expect(checkAgainst({ docker: true })).not.toThrow();
+    expect(checkAgainst({ output: "-" })).not.toThrow();
+  });
+
+  it("ignores boolean-typed args entirely, even if their value happens to look flag-shaped", () => {
+    expect(checkAgainst({ docker: "--json" } as unknown as Record<string, unknown>)).not.toThrow();
+  });
+
+  it("rejects the exact reported repro: `catalog --query --json`", async () => {
+    const catalogCommand = (await import("../commands/catalog.js"))
+      .default as unknown as CommandDef<ArgsDef>;
+    // Simulates what citty's parser actually produces for `catalog --query --json`.
+    expect(() =>
+      rejectSwallowedFlagValues(catalogCommand, { query: "--json", json: false }),
+    ).toThrow(/Missing value for --query/);
+    // The control case from the ticket must keep working.
+    expect(() =>
+      rejectSwallowedFlagValues(catalogCommand, { query: "kinetic type", json: true }),
+    ).not.toThrow();
   });
 });
