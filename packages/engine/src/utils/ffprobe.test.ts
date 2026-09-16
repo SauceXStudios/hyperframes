@@ -838,7 +838,9 @@ describe("ffprobe missing-binary fallback", () => {
     // A single-GOP file (one keyframe at t=0) is the worst case this check
     // exists to catch: every seek past 0 spans the whole file. Regression for
     // #3460, where fewer than 2 keyframes short-circuited to isProblematic:false.
-    const { spawn } = createSpawnSpy([{ kind: "exit", code: 0, stdout: "0.000000\n" }]);
+    // Real `csv=p=0` output carries a trailing comma per row, so parseFloat
+    // tolerating it is load-bearing for this parser.
+    const { spawn } = createSpawnSpy([{ kind: "exit", code: 0, stdout: "0.000000,\n" }]);
     vi.resetModules();
     vi.doMock("child_process", () => ({ spawn }));
 
@@ -854,6 +856,27 @@ describe("ffprobe missing-binary fallback", () => {
       maxIntervalSeconds: 6.5,
       keyframeCount: 1,
       isProblematic: true,
+    });
+  });
+
+  it("analyzeKeyframeIntervals leaves a single keyframe exactly at the 2s threshold healthy", async () => {
+    // isProblematic compares with a strict `>`, so exactly 2s must stay healthy.
+    const { spawn } = createSpawnSpy([{ kind: "exit", code: 0, stdout: "0.000000\n" }]);
+    vi.resetModules();
+    vi.doMock("child_process", () => ({ spawn }));
+
+    const { analyzeKeyframeIntervals } = await import("./ffprobe.js");
+
+    await expect(
+      analyzeKeyframeIntervals("/tmp/exactly-two-seconds.mp4", {
+        videoStreamDurationSeconds: 2,
+        videoStreamStartSeconds: 0,
+      }),
+    ).resolves.toEqual({
+      avgIntervalSeconds: 2,
+      maxIntervalSeconds: 2,
+      keyframeCount: 1,
+      isProblematic: false,
     });
   });
 

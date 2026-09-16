@@ -816,6 +816,22 @@ export async function extractMediaMetadata(filePath: string): Promise<VideoMetad
 }
 
 /**
+ * Normalized span of a video stream (not of its container), plus the cache key
+ * that identifies it. Both live here so the consumers below cannot normalize —
+ * or key their caches — differently.
+ */
+function resolveStreamWindow(
+  filePath: string,
+  metadata: Pick<VideoMetadata, "videoStreamDurationSeconds" | "videoStreamStartSeconds">,
+): { videoStreamStartSeconds: number; videoStreamDurationSeconds: number; cacheKey: string } {
+  const videoStreamDurationSeconds = metadata.videoStreamDurationSeconds;
+  const candidateStart = metadata.videoStreamStartSeconds ?? 0;
+  const videoStreamStartSeconds = Number.isFinite(candidateStart) ? candidateStart : 0;
+  const cacheKey = `${filePath}\0${String(videoStreamStartSeconds)}\0${String(videoStreamDurationSeconds)}`;
+  return { videoStreamStartSeconds, videoStreamDurationSeconds, cacheKey };
+}
+
+/**
  * Return the FFmpeg input-seek position of the final decoded video frame.
  *
  * A fixed seek window near EOF is not sufficient: sub-1fps and sparse VFR
@@ -834,10 +850,11 @@ export async function extractFinalVideoFrameTimestamp(
   metadata: Pick<VideoMetadata, "videoStreamDurationSeconds" | "videoStreamStartSeconds">,
   signal?: AbortSignal,
 ): Promise<number> {
-  const videoDurationSeconds = metadata.videoStreamDurationSeconds;
-  const candidateStreamStart = metadata.videoStreamStartSeconds ?? 0;
-  const videoStreamStartSeconds = Number.isFinite(candidateStreamStart) ? candidateStreamStart : 0;
-  const cacheKey = `${filePath}\0${String(videoStreamStartSeconds)}\0${String(videoDurationSeconds)}`;
+  const {
+    videoStreamStartSeconds,
+    videoStreamDurationSeconds: videoDurationSeconds,
+    cacheKey,
+  } = resolveStreamWindow(filePath, metadata);
   // A caller-owned abort signal cannot safely own a globally shared process
   // promise: aborting one render would fail unrelated consumers. Calls in the
   // SAME cancellation scope should still share the expensive interval +
@@ -1037,10 +1054,10 @@ export async function analyzeKeyframeIntervals(
   filePath: string,
   metadata: Pick<VideoMetadata, "videoStreamDurationSeconds" | "videoStreamStartSeconds">,
 ): Promise<KeyframeAnalysis> {
-  const videoStreamDurationSeconds = metadata.videoStreamDurationSeconds;
-  const candidateStreamStart = metadata.videoStreamStartSeconds ?? 0;
-  const videoStreamStartSeconds = Number.isFinite(candidateStreamStart) ? candidateStreamStart : 0;
-  const cacheKey = `${filePath}\0${String(videoStreamStartSeconds)}\0${String(videoStreamDurationSeconds)}`;
+  const { videoStreamStartSeconds, videoStreamDurationSeconds, cacheKey } = resolveStreamWindow(
+    filePath,
+    metadata,
+  );
   const cached = keyframeCache.get(cacheKey);
   if (cached) return cached;
 
@@ -1097,6 +1114,8 @@ async function analyzeKeyframeIntervalsUncached(
     // absolute end (start + duration), not against duration alone — see the
     // docstring above.
     const streamEnd = videoStreamStartSeconds + videoStreamDurationSeconds;
+    // The fallback is unreachable (length === 1); it only satisfies
+    // noUncheckedIndexedAccess.
     const rawInterval = streamEnd - (timestamps[0] ?? videoStreamStartSeconds);
     const singleGopInterval = Number.isFinite(rawInterval) ? Math.max(rawInterval, 0) : 0;
     const roundedInterval = Math.round(singleGopInterval * 100) / 100;
