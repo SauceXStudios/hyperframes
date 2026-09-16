@@ -744,6 +744,21 @@ export async function injectVideoFramesBatch(
             ? 1
             : opacityParsed;
 
+        // Measure the video's used box BEFORE creating/inserting/styling its
+        // replacement <img> sibling. A freshly-created sibling starts out
+        // in-flow (position:absolute is only applied below, once this
+        // measurement is done) and, now that MEDIA_VISUAL_STYLE_PROPERTIES
+        // includes border-width, carries a border as soon as the copy loop
+        // below runs -- in a flex layout that in-flow bordered sibling
+        // shrinks the video's own flex box, so measuring afterward reads the
+        // video's shrunk-by-its-own-replacement box instead of its authored
+        // one.
+        const videoRect = video.getBoundingClientRect();
+        const offsetLeft = Number.isFinite(video.offsetLeft) ? video.offsetLeft : 0;
+        const offsetTop = Number.isFinite(video.offsetTop) ? video.offsetTop : 0;
+        const offsetWidth = video.offsetWidth > 0 ? video.offsetWidth : videoRect.width;
+        const offsetHeight = video.offsetHeight > 0 ? video.offsetHeight : videoRect.height;
+
         if (isNewImage) {
           img = document.createElement("img");
           img.classList.add("__render_frame__");
@@ -780,23 +795,24 @@ export async function injectVideoFramesBatch(
         // stack vertically — the <img> lands below the video and gets clipped
         // by any overflow:hidden ancestor (e.g., border-radius wrappers).
         //
-        // Apply this after visual style copying so the measured used box is
-        // the final authority for replacement frame geometry.
-        {
-          const videoRect = video.getBoundingClientRect();
-          const offsetLeft = Number.isFinite(video.offsetLeft) ? video.offsetLeft : 0;
-          const offsetTop = Number.isFinite(video.offsetTop) ? video.offsetTop : 0;
-          const offsetWidth = video.offsetWidth > 0 ? video.offsetWidth : videoRect.width;
-          const offsetHeight = video.offsetHeight > 0 ? video.offsetHeight : videoRect.height;
-          img.style.position = "absolute";
-          img.style.inset = "auto";
-          img.style.left = `${offsetLeft}px`;
-          img.style.top = `${offsetTop}px`;
-          img.style.right = "auto";
-          img.style.bottom = "auto";
-          img.style.width = `${offsetWidth}px`;
-          img.style.height = `${offsetHeight}px`;
-        }
+        // The used box was captured above, before this <img> was
+        // created/inserted/styled, so it reflects the video's own authored
+        // layout rather than a box already perturbed by its replacement.
+        img.style.position = "absolute";
+        img.style.inset = "auto";
+        img.style.left = `${offsetLeft}px`;
+        img.style.top = `${offsetTop}px`;
+        img.style.right = "auto";
+        img.style.bottom = "auto";
+        img.style.width = `${offsetWidth}px`;
+        img.style.height = `${offsetHeight}px`;
+        // offsetWidth/offsetHeight (and the getBoundingClientRect fallback)
+        // are always the video's border-box, so the <img> must also interpret
+        // its own width/height as border-box -- regardless of what box-sizing
+        // value the copy loop above just copied from the video's own computed
+        // style (which could be content-box), since that would otherwise size
+        // the <img>'s content area past the measured box by its own border.
+        img.style.boxSizing = "border-box";
         img.style.objectFit = computedStyle.objectFit;
         img.style.objectPosition = computedStyle.objectPosition;
         img.style.zIndex = computedStyle.zIndex;
