@@ -229,16 +229,14 @@ describe("hyperframes init flag rename", () => {
   });
 
   it("strips the scaffolded <audio> placeholder for a video with no audio track", () => {
+    // Checked-in fixture (not generated with ffmpeg at test time): the CI job
+    // that runs this suite doesn't guarantee a working `ffmpeg` binary on
+    // PATH, only whatever satisfies ffmpeg-static's postinstall check.
     const dir = mkdtempSync(join(tmpdir(), "hf-init-test-"));
     const target = join(dir, "proj");
     const silentVideo = join(dir, "silent.mp4");
+    copyFileSync(new URL("./__fixtures__/silent.mp4", import.meta.url), silentVideo);
     try {
-      const gen = spawnSync(
-        "ffmpeg",
-        ["-y", "-f", "lavfi", "-i", "color=c=blue:s=64x64:d=1", "-pix_fmt", "yuv420p", silentVideo],
-        { encoding: "utf-8", timeout: 15_000 },
-      );
-      expect(gen.status, gen.stderr).toBe(0);
       const res = runInit([
         target,
         "--non-interactive",
