@@ -130,25 +130,27 @@ describe("video border/border-radius/clip-path on the replacement render frame",
     expectWhitePageBackground(await readPixel(page, screenshot, CLIPPED_CORNER));
   });
 
-  // Regression case: adding border-width to the copy allow-list can change the
-  // replacement <img>'s LAYOUT, not just its paint. Before the video is
-  // measured, the freshly-created (or freshly re-styled) <img> sibling is
-  // briefly an in-flow flex item -- once it carries a border, it competes for
-  // space in the flex row and shrinks the video's own box, so a naive
-  // "measure after styling" order bakes in the wrong (shrunk) geometry. This
-  // exact layout shape (flex row, centered, video width:100%, global
-  // border-box reset) is what a real fixture (style-9-prod) hit in CI; the
-  // pixel-probe tests above use position:absolute layouts that were never
-  // exposed to this bug, so they can't catch a regression here.
+  // Regression case: border-width on the copy allow-list changes the
+  // replacement <img>'s LAYOUT, not just its paint. A freshly created (or
+  // re-styled) <img> sibling is briefly an in-flow flex item, and once it
+  // carries a border it competes for space in the flex row and shrinks the
+  // video's own box — so measuring the video after styling the <img> bakes in
+  // the wrong, shrunk geometry. This layout shape (flex row, centered, video
+  // width:100%, global border-box reset) is what a real fixture (style-9-prod)
+  // hit in CI; the pixel-probe tests above use position:absolute layouts that
+  // were never exposed to the bug, so they can't catch a regression here.
   it("keeps the replacement <img>'s box identical to the video's own box in a flex-centered layout", async () => {
-    await page.setViewport({ width: 500, height: 300 });
+    const FLEX_ROW_WIDTH = 500;
+    const FLEX_ROW_HEIGHT = 300;
+
+    await page.setViewport({ width: FLEX_ROW_WIDTH, height: FLEX_ROW_HEIGHT });
     await page.setContent(`<!doctype html>
       <style>
         * { box-sizing: border-box; }
         html, body { margin: 0; padding: 0; background: #ffffff; }
         #aroll-container {
           display: flex; justify-content: center; align-items: center;
-          width: 500px; height: 300px;
+          width: ${FLEX_ROW_WIDTH}px; height: ${FLEX_ROW_HEIGHT}px;
         }
       </style>
       <div id="aroll-container">
@@ -164,8 +166,9 @@ describe("video border/border-radius/clip-path on the replacement render frame",
     await injectVideoFramesBatch(page, [{ videoId: VIDEO_ID, dataUri: BLUE_PIXEL_DATA_URI }]);
 
     const { videoBox, imgBox } = await page.evaluate((videoId) => {
-      const video = document.getElementById(videoId) as HTMLVideoElement;
-      const img = video.nextElementSibling as HTMLImageElement;
+      const video = document.getElementById(videoId);
+      const img = video?.nextElementSibling;
+      if (!video || !img) throw new Error(`no replacement frame beside #${videoId}`);
       const roundedRect = (rect: DOMRect) => ({
         left: Math.round(rect.left),
         top: Math.round(rect.top),
@@ -179,13 +182,10 @@ describe("video border/border-radius/clip-path on the replacement render frame",
     }, VIDEO_ID);
 
     expect(imgBox).toEqual(videoBox);
-    // Sanity-check the fixture itself reaches its full authored width: the
-    // video's own box (read after injection, once the sibling <img> is
-    // position:absolute and back out of flow) is unaffected by this bug
-    // either way, so this only confirms the flex row had room to shrink into
-    // in the first place -- the actual regression is caught by the
-    // `imgBox`/`videoBox` comparison above, since the <img>'s width was baked
-    // in earlier, while it was still an in-flow, bordered flex sibling.
-    expect(videoBox.width).toBe(500);
+    // The <img>'s geometry is frozen while it is still an in-flow flex sibling,
+    // whereas the video's box is read afterwards (sibling back out of flow) and
+    // so is unaffected either way — this only confirms the fixture really did
+    // give the flex row room to shrink into.
+    expect(videoBox.width).toBe(FLEX_ROW_WIDTH);
   });
 });

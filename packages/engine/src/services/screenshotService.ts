@@ -744,20 +744,19 @@ export async function injectVideoFramesBatch(
             ? 1
             : opacityParsed;
 
-        // Measure the video's used box BEFORE creating/inserting/styling its
-        // replacement <img> sibling. A freshly-created sibling starts out
-        // in-flow (position:absolute is only applied below, once this
-        // measurement is done) and, now that MEDIA_VISUAL_STYLE_PROPERTIES
-        // includes border-width, carries a border as soon as the copy loop
-        // below runs -- in a flex layout that in-flow bordered sibling
-        // shrinks the video's own flex box, so measuring afterward reads the
-        // video's shrunk-by-its-own-replacement box instead of its authored
-        // one.
+        // Measure the video's used box BEFORE its replacement <img> sibling is
+        // created, inserted and styled. A fresh sibling is briefly in flow (it
+        // only becomes position:absolute below) and the copy loop hands it the
+        // video's border-width — in a flex layout that bordered in-flow sibling
+        // shrinks the video's own flex box, so measuring afterwards reads a box
+        // the replacement itself perturbed instead of the authored one.
         const videoRect = video.getBoundingClientRect();
-        const offsetLeft = Number.isFinite(video.offsetLeft) ? video.offsetLeft : 0;
-        const offsetTop = Number.isFinite(video.offsetTop) ? video.offsetTop : 0;
-        const offsetWidth = video.offsetWidth > 0 ? video.offsetWidth : videoRect.width;
-        const offsetHeight = video.offsetHeight > 0 ? video.offsetHeight : videoRect.height;
+        const videoBox = {
+          left: Number.isFinite(video.offsetLeft) ? video.offsetLeft : 0,
+          top: Number.isFinite(video.offsetTop) ? video.offsetTop : 0,
+          width: video.offsetWidth > 0 ? video.offsetWidth : videoRect.width,
+          height: video.offsetHeight > 0 ? video.offsetHeight : videoRect.height,
+        };
 
         if (isNewImage) {
           img = document.createElement("img");
@@ -795,23 +794,20 @@ export async function injectVideoFramesBatch(
         // stack vertically — the <img> lands below the video and gets clipped
         // by any overflow:hidden ancestor (e.g., border-radius wrappers).
         //
-        // The used box was captured above, before this <img> was
-        // created/inserted/styled, so it reflects the video's own authored
-        // layout rather than a box already perturbed by its replacement.
+        // Geometry comes from `videoBox`, measured above before this <img>
+        // could perturb the video's own layout.
         img.style.position = "absolute";
         img.style.inset = "auto";
-        img.style.left = `${offsetLeft}px`;
-        img.style.top = `${offsetTop}px`;
+        img.style.left = `${videoBox.left}px`;
+        img.style.top = `${videoBox.top}px`;
         img.style.right = "auto";
         img.style.bottom = "auto";
-        img.style.width = `${offsetWidth}px`;
-        img.style.height = `${offsetHeight}px`;
-        // offsetWidth/offsetHeight (and the getBoundingClientRect fallback)
-        // are always the video's border-box, so the <img> must also interpret
-        // its own width/height as border-box -- regardless of what box-sizing
-        // value the copy loop above just copied from the video's own computed
-        // style (which could be content-box), since that would otherwise size
-        // the <img>'s content area past the measured box by its own border.
+        img.style.width = `${videoBox.width}px`;
+        img.style.height = `${videoBox.height}px`;
+        // `videoBox` is always a border-box, so the <img> must read its own
+        // width/height the same way — overriding the box-sizing the copy loop
+        // took from the video (possibly content-box), which would otherwise
+        // push the <img>'s content area past the measured box by its border.
         img.style.boxSizing = "border-box";
         img.style.objectFit = computedStyle.objectFit;
         img.style.objectPosition = computedStyle.objectPosition;
