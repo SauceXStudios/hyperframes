@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { runCommand } from "citty";
 import type { ArgsDef, CommandDef } from "citty";
-import { assertKnownFlags, rejectSwallowedFlagValues } from "./reject-unknown-flags.js";
+import { assertKnownFlags, guardSwallowedFlagValues } from "./reject-unknown-flags.js";
+import { trackCommandFailures } from "./command-failure-tracking.js";
 
 const cmd = {
   args: {
@@ -51,39 +53,100 @@ describe("assertKnownFlags", () => {
   });
 });
 
-describe("rejectSwallowedFlagValues", () => {
-  const checkAgainst = (args: Record<string, unknown>) => () =>
-    rejectSwallowedFlagValues(cmd, args);
+describe("guardSwallowedFlagValues", () => {
+  const guard = (raw: string[]) => () => guardSwallowedFlagValues(cmd, raw);
 
-  it("rejects a string flag's value that is itself a known flag spelling", () => {
-    expect(checkAgainst({ output: "--json" })).toThrow(/Missing value for --output/);
-    expect(checkAgainst({ output: "--help" })).toThrow(/Missing value for --output/);
+  it("rejects a string flag's value that is itself a known flag spelling (default: throw)", () => {
+    expect(guard(["--output", "--json"])).toThrow(/Missing value for --output/);
+    expect(guard(["--output", "--help"])).toThrow(/Missing value for --output/);
+  });
+
+  it("accepts the equals form even when the inline value looks like a flag", () => {
+    expect(guard(["--output=--json"])).not.toThrow();
+    expect(guardSwallowedFlagValues(cmd, ["--output=--json"])).toEqual({
+      rawArgs: ["--output=--json"],
+      rewritten: false,
+    });
   });
 
   it("does not reject an ordinary value, even one that starts with a dash but isn't a known flag", () => {
-    expect(checkAgainst({ output: "-out.mp4" })).not.toThrow();
+    expect(guard(["--output", "-out.mp4"])).not.toThrow();
   });
 
-  it("does not reject undefined, boolean, or bare-dash values", () => {
-    expect(checkAgainst({ output: undefined })).not.toThrow();
-    expect(checkAgainst({ docker: true })).not.toThrow();
-    expect(checkAgainst({ output: "-" })).not.toThrow();
+  it("does not reject a trailing bare string flag with nothing after it", () => {
+    expect(guard(["--output"])).not.toThrow();
   });
 
-  it("ignores boolean-typed args entirely, even if their value happens to look flag-shaped", () => {
-    expect(checkAgainst({ docker: "--json" } as unknown as Record<string, unknown>)).not.toThrow();
+  it("does not reject boolean-typed args, even if the next token looks flag-shaped", () => {
+    expect(guard(["--docker", "--json"])).not.toThrow();
   });
 
-  it("rejects the exact reported repro: `catalog --query --json`", async () => {
-    const catalogCommand = (await import("../commands/catalog.js"))
-      .default as unknown as CommandDef<ArgsDef>;
-    // Simulates what citty's parser actually produces for `catalog --query --json`.
-    expect(() =>
-      rejectSwallowedFlagValues(catalogCommand, { query: "--json", json: false }),
-    ).toThrow(/Missing value for --query/);
-    // The control case from the ticket must keep working.
-    expect(() =>
-      rejectSwallowedFlagValues(catalogCommand, { query: "kinetic type", json: true }),
-    ).not.toThrow();
+  it("rejects with corrected wording when '--' ends option parsing right after the flag", () => {
+    const message = () => {
+      try {
+        guardSwallowedFlagValues(cmd, ["--output", "--", "--json"]);
+        return undefined;
+      } catch (error) {
+        return (error as Error).message;
+      }
+    };
+    expect(message()).toMatch(/Missing value for --output: "--" ends option parsing here/);
+    expect(message()).not.toMatch(/which is itself a flag/);
+  });
+
+  it("rewrites an opted-in command+flag to the equals form instead of throwing", () => {
+    const checkCmd: CommandDef<any> = {
+      meta: { name: "check" },
+      args: { "frame-check": { type: "string" }, json: { type: "boolean" } },
+    };
+    const result = guardSwallowedFlagValues(checkCmd, ["--frame-check", "--json"]);
+    expect(result).toEqual({ rawArgs: ["--frame-check=", "--json"], rewritten: true });
+  });
+
+  it("leaves a non-opted-in command's identically-shaped flag rejected", () => {
+    const otherCmd: CommandDef<any> = {
+      meta: { name: "not-check" },
+      args: { "frame-check": { type: "string" }, json: { type: "boolean" } },
+    };
+    expect(() => guardSwallowedFlagValues(otherCmd, ["--frame-check", "--json"])).toThrow(
+      /Missing value for --frame-check/,
+    );
+  });
+
+  it("ignores an opted-out command+flag entirely, leaving rawArgs untouched for its own recovery logic", async () => {
+    const upgradeCommand = (await import("../commands/upgrade.js")).default as CommandDef<any>;
+    const result = guardSwallowedFlagValues(upgradeCommand, ["--project", "--check"]);
+    expect(result).toEqual({ rawArgs: ["--project", "--check"], rewritten: false });
+  });
+});
+
+describe("guardSwallowedFlagValues end-to-end (via citty's real runCommand + the real wrapCommand gate)", () => {
+  it("rejects the exact reported repro: `catalog --query --json`, before catalog's own run() executes", async () => {
+    const catalogCommand = (await import("../commands/catalog.js")).default as CommandDef<any>;
+    const wrapped = await trackCommandFailures(() => Promise.resolve(catalogCommand))();
+    await expect(runCommand(wrapped, { rawArgs: ["--query", "--json"] })).rejects.toThrow(
+      /Missing value for --query/,
+    );
+  });
+
+  it("accepts the equals form and rejects the space-separated swallow, both through the real pipeline", async () => {
+    let capturedArgs: Record<string, unknown> | undefined;
+    const testCommand: CommandDef<any> = {
+      meta: { name: "test-cmd" },
+      args: { query: { type: "string" }, json: { type: "boolean" } },
+      run: ({ args }) => {
+        capturedArgs = args;
+      },
+    };
+    const wrapped = await trackCommandFailures(() => Promise.resolve(testCommand))();
+
+    await runCommand(wrapped, { rawArgs: ["--query=--json", "--json"] });
+    expect(capturedArgs).toEqual(expect.objectContaining({ query: "--json", json: true }));
+
+    capturedArgs = undefined;
+    await expect(runCommand(wrapped, { rawArgs: ["--query", "--json"] })).rejects.toThrow(
+      /Missing value for --query/,
+    );
+    expect(capturedArgs).toBeUndefined();
   });
 });

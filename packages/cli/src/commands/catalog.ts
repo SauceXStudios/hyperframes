@@ -35,7 +35,6 @@ import {
   localSemanticRanking,
   localVectorNames,
 } from "../registry/localSemantic.js";
-import { rejectSwallowedFlagValues } from "../utils/reject-unknown-flags.js";
 
 /**
  * Get the offline tier ready, and report every reason it could not be.
@@ -175,13 +174,7 @@ export default defineCommand({
   },
   // one flag-parsing entry point feeding three output paths (json, interactive, table); splitting those is its own change
   // fallow-ignore-next-line complexity
-  async run({ args, cmd }) {
-    // A missing --query/--type/--tag value lets citty's parser swallow the
-    // next flag as its literal string value instead of parsing it as its own
-    // flag (e.g. `catalog --query --json` -> args.query === "--json", --json
-    // never set) -- reject rather than silently mis-parsing. See
-    // rejectSwallowedFlagValues's own doc comment for the full mechanism.
-    rejectSwallowedFlagValues(cmd, args);
+  async run({ args }) {
     const json = args.json === true;
     const interactive = args["human-friendly"] === true;
     const dir = resolve(process.cwd());
