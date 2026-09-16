@@ -77,7 +77,10 @@ const DEFAULT_META: VideoMeta = {
   width: 1920,
   height: 1080,
   fps: 30,
-  hasAudio: false,
+  // Assumed, not observed: this meta is the ffprobe-unavailable fallback, and
+  // patchVideoSrc drops the scaffolded <audio> element when hasAudio is false.
+  // Only a probe that positively reports no audio track should do that.
+  hasAudio: true,
   videoCodec: "h264",
 };
 
@@ -343,10 +346,20 @@ function writeTailwindSupport(destDir: string): void {
   }
 }
 
+// Removes a scaffolded placeholder <video>/<audio> element (self-closing or
+// with children) that still points at the unpatched "__VIDEO_SRC__" source.
+function stripPlaceholderMediaElement(content: string, tag: "video" | "audio"): string {
+  const openTag = `<${tag}[^>]*src="__VIDEO_SRC__"[^>]*>`;
+  return content
+    .replace(new RegExp(`${openTag}[\\s\\S]*?</${tag}>`, "g"), "")
+    .replace(new RegExp(openTag, "g"), "");
+}
+
 function patchVideoSrc(
   dir: string,
   videoFilename: string | undefined,
   durationSeconds?: number,
+  hasAudio = true,
 ): void {
   const htmlFiles = readdirSync(dir, { withFileTypes: true, recursive: true })
     .filter((e) => e.isFile() && e.name.endsWith(".html"))
@@ -355,14 +368,15 @@ function patchVideoSrc(
   for (const file of htmlFiles) {
     let content = readFileSync(file, "utf-8");
     if (videoFilename) {
+      // A supplied video with no audio track scaffolds a bogus <audio>
+      // placeholder pointing at the same (silent) source — strip it before
+      // patching __VIDEO_SRC__, or the compiler rejects it as an asset whose
+      // authored media element type doesn't match its actual content.
+      if (!hasAudio) content = stripPlaceholderMediaElement(content, "audio");
       content = content.replaceAll("__VIDEO_SRC__", videoFilename);
     } else {
-      // Remove video elements with placeholder src
-      content = content.replace(/<video[^>]*src="__VIDEO_SRC__"[^>]*>[\s\S]*?<\/video>/g, "");
-      content = content.replace(/<video[^>]*src="__VIDEO_SRC__"[^>]*>/g, "");
-      // Remove audio elements with placeholder src
-      content = content.replace(/<audio[^>]*src="__VIDEO_SRC__"[^>]*>[\s\S]*?<\/audio>/g, "");
-      content = content.replace(/<audio[^>]*src="__VIDEO_SRC__"[^>]*>/g, "");
+      content = stripPlaceholderMediaElement(content, "video");
+      content = stripPlaceholderMediaElement(content, "audio");
     }
     // Patch duration — use probed duration or default
     const dur = durationSeconds ? String(Math.round(durationSeconds * 100) / 100) : "10";
@@ -561,6 +575,7 @@ async function scaffoldProject(
   tailwind = false,
   resolution?: CanvasResolution,
   authoringSkill?: string,
+  hasAudio = true,
 ): Promise<void> {
   mkdirSync(destDir, { recursive: true });
 
@@ -573,7 +588,7 @@ async function scaffoldProject(
   } else {
     await fetchRemoteTemplate(templateId, destDir);
   }
-  patchVideoSrc(destDir, localVideoName, durationSeconds);
+  patchVideoSrc(destDir, localVideoName, durationSeconds, hasAudio);
   if (tailwind) writeTailwindSupport(destDir);
   if (resolution) applyResolutionPreset(destDir, resolution);
 
@@ -861,6 +876,7 @@ export default defineCommand({
 
       let localVideoName: string | undefined;
       let videoDuration: number | undefined;
+      let videoHasAudio = true;
       let sourceFilePath: string | undefined;
 
       // Handle video
@@ -869,6 +885,7 @@ export default defineCommand({
         const result = await handleVideoFile(videoPath, destDir, false);
         localVideoName = result.localVideoName;
         videoDuration = result.meta.durationSeconds;
+        videoHasAudio = result.meta.hasAudio;
         console.log(
           `Video: ${result.meta.width}x${result.meta.height}, ${result.meta.durationSeconds.toFixed(1)}s`,
         );
@@ -913,6 +930,7 @@ export default defineCommand({
           tailwind,
           resolutionPreset,
           args.skill,
+          videoHasAudio,
         );
       } catch (err) {
         console.error(
@@ -1015,6 +1033,7 @@ export default defineCommand({
     let localVideoName: string | undefined;
     let sourceFilePath: string | undefined;
     let videoDuration: number | undefined;
+    let videoHasAudio = true;
 
     if (videoFlag) {
       const videoPath = resolve(videoFlag);
@@ -1028,6 +1047,7 @@ export default defineCommand({
       const result = await handleVideoFile(videoPath, destDir, true);
       localVideoName = result.localVideoName;
       videoDuration = result.meta.durationSeconds;
+      videoHasAudio = result.meta.hasAudio;
     } else if (audioFlag) {
       const audioPath = resolve(audioFlag);
       if (!existsSync(audioPath)) {
@@ -1128,6 +1148,7 @@ export default defineCommand({
         tailwind,
         resolutionPreset,
         args.skill,
+        videoHasAudio,
       );
       if (!isBundled) {
         spin.stop(c.success(`Downloaded ${templateId}`));

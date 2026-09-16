@@ -228,6 +228,65 @@ describe("hyperframes init flag rename", () => {
     }
   });
 
+  it("strips the scaffolded <audio> placeholder for a video with no audio track", () => {
+    const dir = mkdtempSync(join(tmpdir(), "hf-init-test-"));
+    const target = join(dir, "proj");
+    const silentVideo = join(dir, "silent.mp4");
+    try {
+      const gen = spawnSync(
+        "ffmpeg",
+        ["-y", "-f", "lavfi", "-i", "color=c=blue:s=64x64:d=1", "-pix_fmt", "yuv420p", silentVideo],
+        { encoding: "utf-8", timeout: 15_000 },
+      );
+      expect(gen.status, gen.stderr).toBe(0);
+      const res = runInit([
+        target,
+        "--non-interactive",
+        "--skip-transcribe",
+        "--video",
+        silentVideo,
+      ]);
+      expect(res.status).toBe(0);
+      const html = readFileSync(join(target, "index.html"), "utf-8");
+      // The <video> element must still be wired up normally...
+      expect(html).toContain('src="silent.mp4"');
+      // ...but the <audio> placeholder pointing at the same silent source
+      // must be gone — leaving it in place used to break the very next
+      // render (asset-type validator rejects a silent source authored as
+      // an <audio> element).
+      expect(html).not.toContain("a-roll-audio");
+      expect(html).not.toMatch(/<audio[^>]*src="silent\.mp4"/);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("keeps the scaffolded <audio> placeholder for a video that has an audio track", () => {
+    // Positive control for the test above: proves hasAudio actually gates on
+    // the probe result (audio kept when present) rather than the assertion
+    // merely reflecting a hardcoded/inverted default.
+    const dir = mkdtempSync(join(tmpdir(), "hf-init-test-"));
+    const target = join(dir, "proj");
+    const clip = join(dir, "clip.mp4");
+    copyFileSync(
+      resolve(
+        fileURLToPath(import.meta.url),
+        "../../../../studio/tests/e2e/fixtures/design-panel-qa/assets/test.mp4",
+      ),
+      clip,
+    );
+    try {
+      const res = runInit([target, "--non-interactive", "--skip-transcribe", "--video", clip]);
+      expect(res.status).toBe(0);
+      const html = readFileSync(join(target, "index.html"), "utf-8");
+      expect(html).toContain('src="clip.mp4"');
+      expect(html).toContain("a-roll-audio");
+      expect(html).toMatch(/<audio[^>]*src="clip\.mp4"/);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("-v works as the short alias for --video", () => {
     const dir = mkdtempSync(join(tmpdir(), "hf-init-test-"));
     const target = join(dir, "proj");
