@@ -617,6 +617,67 @@ describe("ffprobe missing-binary fallback", () => {
     },
   );
 
+  // PRINFRA-380: the container summary can undercount the real audio length
+  // (the reported case was ~2x, on an HE-AAC/SBR source) while the packet
+  // stream itself is intact, so the last packet's own timestamps are the
+  // trustworthy figure. No `format`/`streams` key here on purpose: this probe
+  // asks only for packets and must not depend on the summary header.
+  it("probeAudioDurationFromPackets derives duration from the last packet's timestamp, not the container header", async () => {
+    const { spawn, calls } = createSpawnSpy([
+      {
+        kind: "exit",
+        code: 0,
+        stdout: JSON.stringify({
+          packets: [
+            { pts_time: "0.000000", duration_time: "0.064000" },
+            { pts_time: "6.720000", duration_time: "0.064000" },
+          ],
+        }),
+      },
+    ]);
+    vi.resetModules();
+    vi.doMock("child_process", () => ({ spawn }));
+
+    const { probeAudioDurationFromPackets } = await import("./ffprobe.js");
+    const duration = await probeAudioDurationFromPackets("/tmp/lying-container.mp4");
+
+    expect(duration).toBeCloseTo(6.784, 6);
+    expect(calls).toHaveLength(1);
+  });
+
+  it("probeAudioDurationFromPackets returns null instead of throwing when there are no packets", async () => {
+    const { spawn } = createSpawnSpy([
+      { kind: "exit", code: 0, stdout: JSON.stringify({ packets: [] }) },
+    ]);
+    vi.resetModules();
+    vi.doMock("child_process", () => ({ spawn }));
+
+    const { probeAudioDurationFromPackets } = await import("./ffprobe.js");
+    await expect(probeAudioDurationFromPackets("/tmp/no-packets.mp4")).resolves.toBeNull();
+  });
+
+  it("probeAudioDurationFromPackets returns null instead of throwing when ffprobe fails", async () => {
+    const { spawn } = createSpawnSpy([{ kind: "exit", code: 1, stderr: "moov atom not found" }]);
+    vi.resetModules();
+    vi.doMock("child_process", () => ({ spawn }));
+
+    const { probeAudioDurationFromPackets } = await import("./ffprobe.js");
+    await expect(probeAudioDurationFromPackets("/tmp/broken.mp4")).resolves.toBeNull();
+  });
+
+  it("probeAudioDurationFromPackets rethrows on the caller's own AbortSignal", async () => {
+    const controller = new AbortController();
+    controller.abort();
+    const { spawn } = createSpawnSpy([{ kind: "exit", code: 1, stderr: "irrelevant" }]);
+    vi.resetModules();
+    vi.doMock("child_process", () => ({ spawn }));
+
+    const { probeAudioDurationFromPackets } = await import("./ffprobe.js");
+    await expect(
+      probeAudioDurationFromPackets("/tmp/aborted.mp4", { signal: controller.signal }),
+    ).rejects.toThrow();
+  });
+
   it("extractMediaMetadata falls back to PNG cICP metadata when ffprobe is missing", async () => {
     const { spawn, calls } = createSpawnSpy([{ kind: "missing" }]);
     hidePathBinaries();

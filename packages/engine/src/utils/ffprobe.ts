@@ -237,9 +237,16 @@ interface FFProbeFormat {
   format_name?: string;
 }
 
+interface FFProbePacket {
+  pts_time?: string;
+  duration_time?: string;
+}
+
 interface FFProbeOutput {
   streams: FFProbeStream[];
   format: FFProbeFormat;
+  /** Only present for `-show_packets`/`-show_entries packet=…` invocations. */
+  packets?: FFProbePacket[];
 }
 
 interface StillImageMetadata {
@@ -1003,6 +1010,51 @@ export async function extractAudioMetadata(
     }
   });
   return probePromise;
+}
+
+/**
+ * Re-derive an audio file's real duration from its packet timestamps,
+ * bypassing the container's own summary duration entirely.
+ *
+ * Some muxers write a `format.duration` that undercounts the real audio
+ * length — a stale pre-flush estimate, or a profile/frame-size mismatch in
+ * whatever produced the file (PRINFRA-380: a container reporting roughly half
+ * the true duration) — even though the packet stream itself is intact. The
+ * last packet's `pts_time` + `duration_time` come from the stream's own
+ * timestamps rather than that summary header, so they recover the true
+ * played-back duration regardless of codec or profile.
+ *
+ * Returns null — never throws, except on the caller's own AbortSignal — when
+ * the file has no readable audio packets. Callers must treat that as "no
+ * correction available", not as evidence the container duration is wrong.
+ */
+export async function probeAudioDurationFromPackets(
+  filePath: string,
+  options?: { signal?: AbortSignal },
+): Promise<number | null> {
+  try {
+    const stdout = await runFfprobe(
+      filePath,
+      [
+        "-select_streams",
+        "a:0",
+        "-show_entries",
+        "packet=pts_time,duration_time",
+        "-print_format",
+        "json",
+      ],
+      options?.signal,
+    );
+    const lastPacket = parseProbeJson(stdout).packets?.at(-1);
+    if (!lastPacket) return null;
+    const ptsTime = Number(lastPacket.pts_time);
+    const durationTime = Number(lastPacket.duration_time);
+    if (!Number.isFinite(ptsTime) || !Number.isFinite(durationTime)) return null;
+    return ptsTime + durationTime;
+  } catch (error) {
+    if (options?.signal?.aborted) throw error;
+    return null;
+  }
 }
 
 export interface KeyframeAnalysis {
