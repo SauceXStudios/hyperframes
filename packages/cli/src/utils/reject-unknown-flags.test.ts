@@ -1,8 +1,21 @@
 import { describe, expect, it, vi } from "vitest";
 import { runCommand } from "citty";
 import type { ArgsDef, CommandDef } from "citty";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 import { assertKnownFlags, guardSwallowedFlagValues } from "./reject-unknown-flags.js";
 import { trackCommandFailures } from "./command-failure-tracking.js";
+
+// Same pattern as init.test.ts's `runInit`: spawn `bun` directly (the CLI
+// entry is a .ts file needing a TypeScript-aware runtime; vitest runs under
+// node) against the real built entry point, so this measures literal stdout
+// bytes rather than an internal mechanism.
+const cliEntry = resolve(fileURLToPath(import.meta.url), "..", "..", "cli.ts");
+function runCli(args: string[]): { status: number; stdout: string; stderr: string } {
+  const res = spawnSync("bun", ["run", cliEntry, ...args], { encoding: "utf-8", timeout: 30_000 });
+  return { status: res.status ?? -1, stdout: res.stdout, stderr: res.stderr };
+}
 
 const cmd = {
   args: {
@@ -194,5 +207,12 @@ describe("guardSwallowedFlagValues end-to-end (via citty's real runCommand + the
     } finally {
       errorLog.mockRestore();
     }
+  });
+
+  it("leaves stdout genuinely empty on the real built CLI, not just presented:true internally", () => {
+    const res = runCli(["catalog", "--query", "--json"]);
+    expect(res.status).toBe(1);
+    expect(res.stderr).toContain("Missing value for --query");
+    expect(res.stdout).toBe("");
   });
 });
