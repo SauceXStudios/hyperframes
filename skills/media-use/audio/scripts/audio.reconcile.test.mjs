@@ -87,24 +87,20 @@ test(
   },
 );
 
-test(
-  "a voice already present in the ledger is not duplicated",
-  { skip: !HAS_FFMPEG },
-  (t) => {
-    const { dir, cleanup } = fixture({
-      lines: [{ id: "01", text: "Hello" }],
-      existingVoices: [{ id: "01", path: "assets/voice/01.wav", duration_s: 2.5, words: [] }],
-      voiceFiles: ["01.wav"],
-    });
-    t.after(cleanup);
+test("a voice already present in the ledger is not duplicated", { skip: !HAS_FFMPEG }, (t) => {
+  const { dir, cleanup } = fixture({
+    lines: [{ id: "01", text: "Hello" }],
+    existingVoices: [{ id: "01", path: "assets/voice/01.wav", duration_s: 2.5, words: [] }],
+    voiceFiles: ["01.wav"],
+  });
+  t.after(cleanup);
 
-    const meta = runEngine(dir);
+  const meta = runEngine(dir);
 
-    assert.equal(meta.voices.length, 1);
-    // The pre-existing ledger entry wins verbatim — reconciliation only fills gaps.
-    assert.equal(meta.voices[0].duration_s, 2.5);
-  },
-);
+  assert.equal(meta.voices.length, 1);
+  // The pre-existing ledger entry wins verbatim — reconciliation only fills gaps.
+  assert.equal(meta.voices[0].duration_s, 2.5);
+});
 
 test(
   "a stale WAV for a line the current script no longer asks for is left alone",
