@@ -123,6 +123,54 @@ function ensureBgmCovers(relPath, hyperframesDir, total) {
   return { looped: true, rel: relOut, from: dur };
 }
 
+// Voice clips are butt-joined back-to-back with zero gap by the cumulative-start
+// layout below (see "cumulative starts" comment) — by construction, with no edge
+// fade at all, so consecutive lines cut/word-jump at the join. Bake a short in/out
+// fade into each voice file itself, the same way ensureBgmCovers() bakes BGM's
+// loop-fade, into a sibling *.faded.wav; mounting still just points
+// data-start/duration at the same slot, only the audio content changes. Needs
+// ffprobe+ffmpeg (present in the render env); degrades to the original file + an
+// anomaly note when they're absent, matching ensureBgmCovers()'s degrade path.
+const VOICE_FADE_SECONDS = 0.011;
+function applyVoiceEdgeFade(relPath, hyperframesDir) {
+  const abs = join(hyperframesDir, relPath);
+  const probe = spawnSync(
+    "ffprobe",
+    ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", "--", abs],
+    { encoding: "utf8" },
+  );
+  if (probe.status !== 0) return { faded: false, reason: "ffprobe unavailable" };
+  const dur = parseFloat(String(probe.stdout || "").trim());
+  if (!Number.isFinite(dur) || dur <= 0) return { faded: false, reason: "unreadable duration" };
+  // Each edge gets at most half the clip (dur is already confirmed > 0 above,
+  // so this is always > 0 too), so a clip shorter than 2 fade windows fades
+  // smoothly in and out instead of being silent for its entire length.
+  const fade = Math.min(VOICE_FADE_SECONDS, dur / 2);
+  // Always emit .wav via an explicit PCM codec, matching ensureBgmCovers()'s own
+  // extension/codec discipline just above — the contract's voice files are
+  // "assets/voice/NN.wav", so the output must actually be WAV, not smuggle a
+  // different container in a .wav-named file.
+  const relOut = relPath.replace(/\.([^./]+)$/, ".faded.wav");
+  const absOut = join(hyperframesDir, relOut);
+  const fadeOutStart = Math.max(0, dur - fade);
+  const ff = spawnSync(
+    "ffmpeg",
+    [
+      "-y",
+      "-i",
+      abs,
+      "-af",
+      `afade=t=in:st=0:d=${fade},afade=t=out:st=${fadeOutStart}:d=${fade}`,
+      "-c:a",
+      "pcm_s16le",
+      absOut,
+    ],
+    { encoding: "utf8" },
+  );
+  if (ff.status !== 0 || !existsSync(absOut)) return { faded: false, reason: "ffmpeg unavailable" };
+  return { faded: true, rel: relOut };
+}
+
 const hyperframesDir = resolve(flag("hyperframes", "."));
 const storyboardPath = resolve(flag("storyboard", join(hyperframesDir, "STORYBOARD.md")));
 const audioMetaPath = resolve(flag("audio-meta", join(hyperframesDir, "audio_meta.json")));
@@ -394,10 +442,17 @@ for (const m of mounted) {
   const v = m.frame.number != null ? voiceByFrame.get(m.frame.number) : undefined;
   if (v?.path) {
     if (existsSync(join(hyperframesDir, v.path))) {
+      let voiceSrc = v.path;
+      const fade = applyVoiceEdgeFade(v.path, hyperframesDir);
+      if (fade.faded) {
+        voiceSrc = fade.rel;
+      } else {
+        anomalies.push(`${m.compId}: voice edge fade skipped (${fade.reason}) — using raw clip`);
+      }
       body.push(
         `      <audio`,
         `        id="el-${m.compId}-voice"`,
-        `        src="${v.path}"`,
+        `        src="${voiceSrc}"`,
         `        data-start="${m.start}"`,
         `        data-duration="${m.durationSeconds}"`,
         `        data-track-index="10"`,
