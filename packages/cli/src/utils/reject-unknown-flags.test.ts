@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { runCommand } from "citty";
 import type { ArgsDef, CommandDef } from "citty";
 import { assertKnownFlags, guardSwallowedFlagValues } from "./reject-unknown-flags.js";
@@ -120,10 +120,16 @@ describe("guardSwallowedFlagValues", () => {
   });
 });
 
+// Real citty dispatch: wraps `cmd` exactly like cli.ts's own command
+// resolution does, so `wrapCommand`'s gate (assertKnownFlags,
+// guardSwallowedFlagValues) actually runs before `runCommand` invokes it.
+const wrapTestCommand = (cmd: CommandDef<any>) =>
+  trackCommandFailures(() => Promise.resolve(cmd))();
+
 describe("guardSwallowedFlagValues end-to-end (via citty's real runCommand + the real wrapCommand gate)", () => {
   it("rejects the exact reported repro: `catalog --query --json`, before catalog's own run() executes", async () => {
     const catalogCommand = (await import("../commands/catalog.js")).default as CommandDef<any>;
-    const wrapped = await trackCommandFailures(() => Promise.resolve(catalogCommand))();
+    const wrapped = await wrapTestCommand(catalogCommand);
     await expect(runCommand(wrapped, { rawArgs: ["--query", "--json"] })).rejects.toThrow(
       /Missing value for --query/,
     );
@@ -138,7 +144,7 @@ describe("guardSwallowedFlagValues end-to-end (via citty's real runCommand + the
         capturedArgs = args;
       },
     };
-    const wrapped = await trackCommandFailures(() => Promise.resolve(testCommand))();
+    const wrapped = await wrapTestCommand(testCommand);
 
     await runCommand(wrapped, { rawArgs: ["--query=--json", "--json"] });
     expect(capturedArgs).toEqual(expect.objectContaining({ query: "--json", json: true }));
@@ -148,5 +154,45 @@ describe("guardSwallowedFlagValues end-to-end (via citty's real runCommand + the
       /Missing value for --query/,
     );
     expect(capturedArgs).toBeUndefined();
+  });
+
+  it("rewrites correctly with a positional argument ahead of the flags (check's own opt-in)", async () => {
+    let capturedArgs: Record<string, unknown> | undefined;
+    const testCommand: CommandDef<any> = {
+      meta: { name: "check" },
+      args: {
+        dir: { type: "positional" },
+        "frame-check": { type: "string" },
+        json: { type: "boolean" },
+      },
+      run: ({ args }) => {
+        capturedArgs = args;
+      },
+    };
+    const wrapped = await wrapTestCommand(testCommand);
+
+    await runCommand(wrapped, { rawArgs: ["some-dir", "--frame-check", "--json"] });
+    expect(capturedArgs).toEqual(
+      expect.objectContaining({ "frame-check": "", json: true, _: ["some-dir"] }),
+    );
+  });
+
+  it("throws with `presented: true` so cli.ts's executeCli does not ALSO dump full command usage to stdout", async () => {
+    // `result.presented` is the actual mechanism keeping stdout clean here, so
+    // that is what this asserts; capturing real stdout bytes would mean driving
+    // cli.ts's own top-level entry. Those bytes were verified by hand against
+    // the built CLI (`catalog --query --json`, `check --layout --json`): 0 on
+    // stdout.
+    const catalogCommand = (await import("../commands/catalog.js")).default as CommandDef<any>;
+    const wrapped = await wrapTestCommand(catalogCommand);
+    const errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      await expect(runCommand(wrapped, { rawArgs: ["--query", "--json"] })).rejects.toMatchObject({
+        result: { presented: true },
+      });
+      expect(errorLog).toHaveBeenCalledWith(expect.stringContaining("Missing value for --query"));
+    } finally {
+      errorLog.mockRestore();
+    }
   });
 });

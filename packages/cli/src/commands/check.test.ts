@@ -440,6 +440,30 @@ it("preserves --json after bare --frame-check", async () => {
   expect(log).toHaveBeenCalledWith(expect.stringContaining('"ok"'));
 });
 
+it("prints a dash-prefixed --frame-check value's parse failure exactly once, not doubled", async () => {
+  // Regression: parseFrameCheck's dash-value error is always caught by this
+  // command's own run() try/catch (never escapes to cli.ts), which already
+  // prints and presents whatever it catches -- so this throw site must NOT
+  // also print (unlike guardSwallowedFlagValues's throw, which genuinely
+  // escapes to cli.ts and needs the printing variant).
+  const { report } = await runScenario(fakeDriver());
+  const runPipeline = vi.fn(async (_project: ProjectDir, _options: CheckOptions) => report);
+  const errorLog = vi.spyOn(console, "error").mockImplementation(() => undefined);
+  const command = createCheckCommand({
+    resolveProject: () => PROJECT,
+    runPipeline,
+    withMeta: (value) => value,
+  });
+
+  await runViaCli(command, { rawArgs: ["--frame-check=--json"] });
+
+  expect(runPipeline).not.toHaveBeenCalled();
+  const matching = errorLog.mock.calls.filter(
+    ([arg]) => typeof arg === "string" && arg.includes("Missing value for --frame-check"),
+  );
+  expect(matching).toHaveLength(1);
+});
+
 it("no longer swallows --json after a --layout value (the wider bug class beyond --frame-check)", async () => {
   const { report } = await runScenario(fakeDriver());
   const runPipeline = vi.fn(async (_project: ProjectDir, _options: CheckOptions) => report);

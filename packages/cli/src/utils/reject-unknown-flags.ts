@@ -1,5 +1,6 @@
 import type { ArgDef, ArgsDef, CommandDef } from "citty";
 import { CliUsageError } from "./commandResult.js";
+import { c } from "../ui/colors.js";
 
 // citty is permissive: an unrecognized flag (e.g. `render --out x` when the flag
 // is `--output`/`-o`) is silently ignored instead of rejected, so the value is
@@ -137,11 +138,34 @@ function commandName(cmd: CommandDef<any> | undefined): string | undefined {
   return typeof meta.name === "string" ? meta.name : undefined;
 }
 
-export function swallowedValueMessage(flagName: string, next: string): string {
+function swallowedValueMessage(flagName: string, next: string): string {
   const hint = `use --${flagName}= or move --${flagName} to the end`;
   if (next === "--")
     return `Missing value for --${flagName}: "--" ends option parsing here; ${hint}`;
   return `Missing value for --${flagName}: value "${next}" appears to have swallowed the next option; ${hint}`;
+}
+
+// A plain `CliUsageError` for a swallowed flag value, with no side effects —
+// for a caller whose OWN try/catch already prints and presents every error it
+// catches uniformly (e.g. check.ts's `run()`), so a second print here would
+// double it up. The caller throws this itself.
+export function swallowedFlagUsageError(flagName: string, next: string): CliUsageError {
+  return new CliUsageError(swallowedValueMessage(flagName, next));
+}
+
+// For a caller with no try/catch of its own between here and `executeCli`
+// (cli.ts) — e.g. `guardSwallowedFlagValues` below, thrown from inside
+// `wrapCommand` before a command's own `run()` (and its try/catch, if any)
+// ever starts. Prints the message here and marks the error `presented`,
+// because `executeCli` dumps full command usage to stdout for any
+// `CliUsageError` that isn't `presented` — noise on top of this already-
+// specific message, and stdout pollution for a `--json` caller. Mirrors the
+// print-then-`failUsage()` pair used elsewhere (e.g. renderArgs.ts), except
+// the specific message stays on the error for failure reporting.
+function throwSwallowedFlagError(flagName: string, next: string): never {
+  const message = swallowedValueMessage(flagName, next);
+  console.error(c.error(message));
+  throw new CliUsageError(message, { presented: true });
 }
 
 export interface SwallowGuardResult {
@@ -224,7 +248,7 @@ export function guardSwallowedFlagValues(
       continue;
     }
     // `looksLikeSwallowedFlag` only returns true when `next` is defined.
-    throw new CliUsageError(swallowedValueMessage(ownerArgName, next as string));
+    throwSwallowedFlagError(ownerArgName, next as string);
   }
   return { rawArgs: out ?? rawArgs, rewritten: out !== undefined };
 }
