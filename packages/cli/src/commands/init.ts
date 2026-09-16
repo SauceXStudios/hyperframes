@@ -349,7 +349,9 @@ function writeTailwindSupport(destDir: string): void {
 // Removes a scaffolded placeholder <video>/<audio> element (self-closing or
 // with children) that still points at the unpatched "__VIDEO_SRC__" source.
 function stripPlaceholderMediaElement(content: string, tag: "video" | "audio"): string {
-  const openTag = `<${tag}[^>]*src="__VIDEO_SRC__"[^>]*>`;
+  // Leading \s before src= excludes data-src="..."; the quote alternation
+  // covers both attribute-quoting styles a template might use.
+  const openTag = `<${tag}[^>]*\\ssrc=["']__VIDEO_SRC__["'][^>]*>`;
   return content
     .replace(new RegExp(`${openTag}[\\s\\S]*?</${tag}>`, "g"), "")
     .replace(new RegExp(openTag, "g"), "");
