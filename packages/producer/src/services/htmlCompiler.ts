@@ -20,7 +20,6 @@ import {
   extractResolvedMedia,
   clampDurations,
   shouldClampResolvedMediaDuration,
-  MEDIA_DURATION_CLAMP_EPSILON_SECONDS,
   CSS_URL_RE,
   isNonRelativeUrl,
   parseStrictFiniteTimingNumber,
@@ -51,11 +50,7 @@ import {
   type ParsableDocumentLike,
 } from "@hyperframes/parsers/sub-composition-validity";
 import { isUnresolvedAssetPlaceholder } from "@hyperframes/parsers/asset-resolution";
-import {
-  extractMediaMetadata,
-  extractAudioMetadata,
-  probeAudioDurationFromPackets,
-} from "../utils/ffprobe.js";
+import { extractMediaMetadata, extractAudioMetadata } from "../utils/ffprobe.js";
 import { isPathInside, toExternalAssetKey } from "../utils/paths.js";
 import { collectRenderMedia } from "./renderMediaCollector.js";
 import {
@@ -607,7 +602,7 @@ async function compileHtmlFile(
     preResolved
       .filter((el) => !!el.src && !el.loop)
       .map(async (el) => {
-        const { duration: maxDuration, resolvedPath } = await resolveMediaDuration(
+        const { duration: maxDuration } = await resolveMediaDuration(
           el.src!,
           el.mediaStart,
           el.playbackRate,
@@ -617,73 +612,28 @@ async function compileHtmlFile(
           el.id,
           log,
         );
-        return {
-          id: el.id,
-          tagName: el.tagName,
-          duration: el.duration,
-          maxDuration,
-          resolvedPath,
-          mediaStart: el.mediaStart,
-          playbackRate: el.playbackRate,
-          src: el.src!,
-        };
+        return { id: el.id, tagName: el.tagName, duration: el.duration, maxDuration, src: el.src! };
       }),
   );
-  const clampCandidates = clampResults.filter(
-    (r): r is typeof r & { maxDuration: number } =>
-      r.maxDuration != null &&
-      shouldClampResolvedMediaDuration(r.tagName, r.duration, r.maxDuration),
-  );
-  // The container's own summary duration would truncate these authored slots.
-  // Some muxers under-report it (PRINFRA-380: a real HE-AAC source came back
-  // at roughly half its true length) while the packet stream itself is
-  // intact, so re-derive the duration from the packet timestamps before
-  // accepting the shorter value. Run every rescue probe in parallel, matching
-  // the Phase 1/2 probes above — a sequential loop here would let N slow or
-  // network-hosted clamp candidates chain their probe deadlines instead of
-  // overlapping them.
-  const packetScanSourceDurations = await Promise.all(
-    clampCandidates.map((r) => probeAudioDurationFromPackets(r.resolvedPath)),
-  );
-
   const clampList: ResolvedDuration[] = [];
-  clampCandidates.forEach((r, index) => {
-    const packetScanSourceDuration = packetScanSourceDurations[index];
-    // The packet scan reads the raw source duration, so it must go through
-    // the same mediaStart/playbackRate projection as `maxDuration` before the
-    // two are comparable. Raw packet timestamps also don't carry a container
-    // edit list's priming-delay trim, so they can overshoot the true duration
-    // by a few milliseconds even on an honest file — the same
-    // MEDIA_DURATION_CLAMP_EPSILON_SECONDS already used to decide whether a
-    // clamp is needed at all absorbs that noise here too, so it only "rescues"
-    // a slot when the packet scan found something the epsilon can't explain.
-    const packetScanDuration =
-      packetScanSourceDuration == null
-        ? null
-        : resolveNaturalMediaTimelineDurationFromValues(
-            packetScanSourceDuration,
-            r.mediaStart,
-            r.playbackRate,
-          );
-    const rescued =
-      packetScanDuration != null &&
-      packetScanDuration > r.maxDuration + MEDIA_DURATION_CLAMP_EPSILON_SECONDS;
-    const maxDuration = rescued ? packetScanDuration : r.maxDuration;
-    if (!shouldClampResolvedMediaDuration(r.tagName, r.duration, maxDuration)) return;
-
-    clampList.push({ id: r.id, duration: maxDuration });
-    // This clip's `data-duration` is being silently shortened to its source.
-    // Surface it so the author can confirm the longer slot wasn't intended.
-    // ponytail: top-level only — sub-composition audio still gets clamped;
-    // thread `log` through parseSubCompositions to warn for it too.
-    const correction = rescued ? " (packet-scan corrected)" : "";
-    log?.warn(
-      `[compile] Audio "${r.id}" (${r.src}) is ${maxDuration.toFixed(2)}s${correction} but its ` +
-        `data-duration is ${r.duration.toFixed(2)}s — the slot is shortened to the media ` +
-        `length. Set data-duration to ~${maxDuration.toFixed(2)}s, trim data-media-start, ` +
-        `or use a longer/looping source if that isn't intended.`,
-    );
-  });
+  for (const r of clampResults) {
+    if (
+      r.maxDuration != null &&
+      shouldClampResolvedMediaDuration(r.tagName, r.duration, r.maxDuration)
+    ) {
+      clampList.push({ id: r.id, duration: r.maxDuration });
+      // This clip's `data-duration` is being silently shortened to its source.
+      // Surface it so the author can confirm the longer slot wasn't intended.
+      // ponytail: top-level only — sub-composition audio still gets clamped;
+      // thread `log` through parseSubCompositions to warn for it too.
+      log?.warn(
+        `[compile] Audio "${r.id}" (${r.src}) is ${r.maxDuration.toFixed(2)}s but its ` +
+          `data-duration is ${r.duration.toFixed(2)}s — the slot is shortened to the media ` +
+          `length. Set data-duration to ~${r.maxDuration.toFixed(2)}s, trim data-media-start, ` +
+          `or use a longer/looping source if that isn't intended.`,
+      );
+    }
+  }
 
   if (clampList.length > 0) {
     compiledHtml = clampDurations(compiledHtml, clampList);

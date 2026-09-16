@@ -23,7 +23,6 @@ const INTEGRATION_TEST_FILES = new Set([
   "src/services/healthWorker.test.ts",
   "src/services/hyperframeLint.file-race.test.ts",
   "src/services/assetMediaType.test.ts",
-  "src/services/htmlCompiler.audioDurationRescue.test.ts",
   "src/services/htmlCompiler.mediaType.test.ts",
   "src/services/htmlCompiler.naturalDuration.test.ts",
   "src/services/render/stages/compileStage.mediaType.test.ts",

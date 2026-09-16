@@ -6,7 +6,6 @@ export {
   extractMediaMetadata,
   extractVideoMetadata,
   extractAudioMetadata,
-  probeAudioDurationFromPackets,
   type VideoMetadata,
   type AudioMetadata,
 } from "@hyperframes/engine";
