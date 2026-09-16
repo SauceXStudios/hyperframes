@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -17,7 +17,7 @@ const HAS_FFMPEG =
   spawnSync("ffmpeg", ["-version"], { stdio: "ignore" }).status === 0 &&
   spawnSync("ffprobe", ["-version"], { stdio: "ignore" }).status === 0;
 
-function setupProject({ lines, existingVoices, voiceFiles }) {
+function fixture({ lines, existingVoices, voiceFiles }) {
   const dir = mkdtempSync(join(tmpdir(), "mu-audio-reconcile-"));
   writeFileSync(join(dir, "audio_request.json"), JSON.stringify({ lines }));
   if (existingVoices) {
@@ -39,11 +39,14 @@ function setupProject({ lines, existingVoices, voiceFiles }) {
       assert.equal(gen.status, 0, gen.stderr);
     }
   }
-  return dir;
+  return { dir, cleanup: () => rmSync(dir, { recursive: true, force: true }) };
 }
 
-function runEngine(dir, extraArgs = []) {
+function runEngine(dir) {
   const outPath = join(dir, "audio_meta.json");
+  // --only "" disables the tts/bgm/sfx stages entirely (none of their names
+  // appear in the empty split), so only the unconditional reconciliation
+  // pass runs — no TTS provider or network access needed for this test.
   const r = spawnSync(
     process.execPath,
     [
@@ -56,7 +59,6 @@ function runEngine(dir, extraArgs = []) {
       outPath,
       "--only",
       "",
-      ...extraArgs,
     ],
     { encoding: "utf8" },
   );
@@ -67,12 +69,13 @@ function runEngine(dir, extraArgs = []) {
 test(
   "a narration WAV present on disk but missing from the ledger is backfilled",
   { skip: !HAS_FFMPEG },
-  () => {
-    const dir = setupProject({
+  (t) => {
+    const { dir, cleanup } = fixture({
       lines: [{ id: "01", text: "Hello" }],
       existingVoices: [],
       voiceFiles: ["01.wav"],
     });
+    t.after(cleanup);
 
     const meta = runEngine(dir);
 
@@ -84,29 +87,35 @@ test(
   },
 );
 
-test("a voice already present in the ledger is not duplicated", { skip: !HAS_FFMPEG }, () => {
-  const dir = setupProject({
-    lines: [{ id: "01", text: "Hello" }],
-    existingVoices: [{ id: "01", path: "assets/voice/01.wav", duration_s: 2.5, words: [] }],
-    voiceFiles: ["01.wav"],
-  });
+test(
+  "a voice already present in the ledger is not duplicated",
+  { skip: !HAS_FFMPEG },
+  (t) => {
+    const { dir, cleanup } = fixture({
+      lines: [{ id: "01", text: "Hello" }],
+      existingVoices: [{ id: "01", path: "assets/voice/01.wav", duration_s: 2.5, words: [] }],
+      voiceFiles: ["01.wav"],
+    });
+    t.after(cleanup);
 
-  const meta = runEngine(dir);
+    const meta = runEngine(dir);
 
-  assert.equal(meta.voices.length, 1);
-  // The pre-existing ledger entry wins verbatim — reconciliation only fills gaps.
-  assert.equal(meta.voices[0].duration_s, 2.5);
-});
+    assert.equal(meta.voices.length, 1);
+    // The pre-existing ledger entry wins verbatim — reconciliation only fills gaps.
+    assert.equal(meta.voices[0].duration_s, 2.5);
+  },
+);
 
 test(
   "a stale WAV for a line the current script no longer asks for is left alone",
   { skip: !HAS_FFMPEG },
-  () => {
-    const dir = setupProject({
+  (t) => {
+    const { dir, cleanup } = fixture({
       lines: [{ id: "01", text: "Hello" }],
       existingVoices: [],
       voiceFiles: ["01.wav", "99.wav"],
     });
+    t.after(cleanup);
 
     const meta = runEngine(dir);
 
@@ -122,12 +131,13 @@ test(
 test(
   "a WAV for a line whose text was since cleared is left alone, not resurrected",
   { skip: !HAS_FFMPEG },
-  () => {
-    const dir = setupProject({
+  (t) => {
+    const { dir, cleanup } = fixture({
       lines: [{ id: "01", text: "   " }],
       existingVoices: [],
       voiceFiles: ["01.wav"],
     });
+    t.after(cleanup);
 
     const meta = runEngine(dir);
 
@@ -135,8 +145,9 @@ test(
   },
 );
 
-test("no assets/voice directory at all is a no-op, not a crash", { skip: !HAS_FFMPEG }, () => {
-  const dir = setupProject({ lines: [{ id: "01", text: "Hello" }], existingVoices: [] });
+test("no assets/voice directory at all is a no-op, not a crash", { skip: !HAS_FFMPEG }, (t) => {
+  const { dir, cleanup } = fixture({ lines: [{ id: "01", text: "Hello" }], existingVoices: [] });
+  t.after(cleanup);
   assert.equal(existsSync(join(dir, "assets", "voice")), false);
 
   const meta = runEngine(dir);

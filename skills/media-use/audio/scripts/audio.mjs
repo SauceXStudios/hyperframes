@@ -191,7 +191,7 @@ if (only.has("tts") && lines.length) {
 // since-edited or since-cleared script line is left alone, not resurrected.
 const voiceDir = join(hyperframesDir, "assets", "voice");
 if (lines.length && existsSync(voiceDir)) {
-  const expectedIds = new Set(lines.filter(lineText).map((l) => String(l.id)));
+  const expectedIds = new Set(lines.filter((l) => lineText(l)).map((l) => String(l.id)));
   const knownIds = new Set(voices.map((v) => String(v.id)));
   for (const file of readdirSync(voiceDir)) {
     if (!file.endsWith(".wav")) continue;
@@ -209,7 +209,6 @@ if (lines.length && existsSync(voiceDir)) {
     // captions.mjs simply has nothing to render for this line, same as any
     // other voice with an empty words[] today.
     voices.push({ id, path: rel, duration_s: r3(dur), words: [] });
-    knownIds.add(id);
     anomalies.push(`voice ${id}: found ${rel} on disk, missing from the ledger — reconciled`);
   }
 }
