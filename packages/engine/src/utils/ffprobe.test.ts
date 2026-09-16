@@ -2,6 +2,7 @@
 import { EventEmitter } from "events";
 import { spawnSync } from "child_process";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "fs";
+import { createRequire } from "module";
 import { tmpdir } from "os";
 import { basename, resolve } from "path";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -528,7 +529,9 @@ describe("ffprobe missing-binary fallback", () => {
   // audio length while the frames underneath it are intact, so the decoded
   // final frame gets the last word. The container always reports 1.25s here;
   // each case varies what the decode probe finds. The decode probe outcome is
-  // always queued, so `spawns` alone says whether it was consulted.
+  // always queued, so `spawns` alone says whether it was consulted — except
+  // the no-frames row, where an empty tail read also triggers the full-scan
+  // fallback (a second decode-probe spawn, reusing the same empty outcome).
   it.each([
     {
       name: "non-AAC codec, decoded duration well beyond the container summary",
@@ -554,7 +557,9 @@ describe("ffprobe missing-binary fallback", () => {
       sampleRate: "48000",
       lastFrame: undefined,
       expected: 1.25,
-      spawns: 2,
+      // An empty tail read falls back to a full scan, which also finds
+      // nothing (the mock's last outcome — the empty stdout — repeats).
+      spawns: 3,
     },
     {
       name: "zero sample rate — skips the decode probe entirely",
@@ -597,6 +602,37 @@ describe("ffprobe missing-binary fallback", () => {
       expect(calls).toHaveLength(spawns);
     },
   );
+
+  // An index-less or non-seekably-sourced file can make the tail-seeked read
+  // land short of the true final frame, finding nothing even though real
+  // frames exist further along — the exact silent under-count this whole
+  // mechanism exists to fix, just via a bad seek instead of a bad container.
+  // A tail read that comes back empty must fall back to a full decode from
+  // the start rather than giving up, mirroring the sibling video-frame probe.
+  it("falls back to a full decode when the tail-seeked read finds no frames", async () => {
+    const { spawn, calls } = createSpawnSpy([
+      {
+        kind: "exit",
+        code: 0,
+        stdout: JSON.stringify({
+          streams: [{ codec_type: "audio", codec_name: "opus", sample_rate: "48000", channels: 2 }],
+          format: { duration: "1.25" },
+        }),
+      },
+      { kind: "exit", code: 0, stdout: "" }, // tail-seeked read: nothing found
+      { kind: "exit", code: 0, stdout: "1.4,4800\n" }, // full-scan fallback: real frame
+    ]);
+    vi.resetModules();
+    vi.doMock("child_process", () => ({ spawn }));
+
+    const { extractAudioMetadata } = await import("./ffprobe.js");
+    const meta = await extractAudioMetadata("/tmp/tail-seek-miss.opus");
+
+    expect(meta.durationSeconds).toBeCloseTo(1.5, 6); // 1.4 + 4800/48000, well past the margin
+    expect(calls).toHaveLength(3);
+    expect(calls[1]?.args).toContain("-read_intervals");
+    expect(calls[2]?.args).not.toContain("-read_intervals");
+  });
 
   // An abort is the caller's own intent, so the decode probe must surface it
   // rather than swallow it the way it swallows a genuine probe failure. The
@@ -922,9 +958,6 @@ describe("ffprobe option separator", () => {
             {
               codec_type: "audio",
               codec_name: "aac",
-              // LC, so the packet-count refinement actually runs and its
-              // argv is covered here too.
-              profile: "LC",
               sample_rate: "48000",
               channels: 2,
             },
@@ -932,14 +965,9 @@ describe("ffprobe option separator", () => {
           format: { duration: "1.25" },
         }),
       },
-      {
-        kind: "exit",
-        code: 0,
-        stdout: JSON.stringify({
-          streams: [{ nb_read_packets: "783" }],
-          format: {},
-        }),
-      },
+      // The decode-based duration probe also runs, so its argv (including its
+      // own `--`) is covered here too.
+      { kind: "exit", code: 0, stdout: "1.2,3840\n" },
       { kind: "exit", code: 0, stdout: "0.000\n1.000\n" },
     ]);
     vi.resetModules();
@@ -1214,7 +1242,9 @@ describe("audio duration decode probe never fails the call and needs no profile 
       "/tmp/decode-probe-fails.m4a",
     );
     expect(meta.durationSeconds).toBe(600);
-    expect(calls).toHaveLength(2);
+    // The tail-seeked attempt fails, so the full-scan fallback also runs (and
+    // also fails, via the mock's repeated last outcome) before giving up.
+    expect(calls).toHaveLength(3);
   });
 
   it("keeps the container duration when the decode probe returns junk", async () => {
@@ -1226,7 +1256,7 @@ describe("audio duration decode probe never fails the call and needs no profile 
       "/tmp/decode-probe-junk.m4a",
     );
     expect(meta.durationSeconds).toBe(600);
-    expect(calls).toHaveLength(2);
+    expect(calls).toHaveLength(3);
   });
 
   // The old refinement needed a profile allowlist because it guessed a fixed
@@ -1249,101 +1279,41 @@ describe("audio duration decode probe never fails the call and needs no profile 
   );
 });
 
-// PRINFRA-380: proves the fix against a real file rather than a mocked probe.
-// Generates a genuine FLAC-in-MP4 — a codec the old AAC-LC-only packet-count
-// refinement never touched — then halves its mvhd/tkhd/mdhd duration atoms
-// while leaving every real frame intact, which is exactly the reported
-// "container says half, the audio says otherwise" symptom.
+// PRINFRA-380: proves the fix against real files rather than a mocked probe.
+// The two fixtures under `__fixtures__/lying-container/` are a genuine
+// FLAC-in-MP4 — a codec the old AAC-LC-only packet-count refinement never
+// touched — and a byte-identical copy whose mvhd/tkhd/mdhd duration atoms were
+// halved while every real frame stayed intact, which is exactly the reported
+// "container says half, the audio says otherwise" symptom. They're committed
+// rather than generated at test time (as an earlier version of this test did,
+// via a local `ffmpeg` spawn) because the CI job running this suite has no real
+// ffmpeg on PATH — only a stub satisfying ffmpeg-static's postinstall check —
+// so that spawn silently skipped and this real-file proof never ran in CI.
+// `ffprobe-static` supplies the real ffprobe binary the test reads them with.
 describe("extractAudioMetadata recovers a real lying container's true duration", () => {
-  const ffmpegPath = process.env.HYPERFRAMES_FFMPEG_PATH || "ffmpeg";
-  const ffmpegAvailable = spawnSync(ffmpegPath, ["-version"]).status === 0;
+  const ffprobeStaticPath: string = createRequire(import.meta.url)("ffprobe-static").path;
+  const honestPath = resolve(__dirname, "__fixtures__/lying-container/honest.mp4");
+  const lyingPath = resolve(__dirname, "__fixtures__/lying-container/lying.mp4");
 
-  /** Byte offset of the 32-bit duration field within each version-0 header box. */
-  const DURATION_FIELD_OFFSETS: Record<string, number> = { mvhd: 16, tkhd: 20, mdhd: 16 };
-  const BOXES_WITH_CHILDREN = new Set(["moov", "trak", "mdia"]);
+  const originalFfprobePath = process.env.HYPERFRAMES_FFPROBE_PATH;
+  afterEach(() => {
+    if (originalFfprobePath === undefined) delete process.env.HYPERFRAMES_FFPROBE_PATH;
+    else process.env.HYPERFRAMES_FFPROBE_PATH = originalFfprobePath;
+  });
 
-  /**
-   * Halve every version-0 movie/track/media header duration in an MP4, in
-   * place. Returns how many it rewrote so the caller can prove the file really
-   * was made to lie — a patch that silently matched nothing (a version-1
-   * header, say, whose duration is 64-bit and elsewhere) would otherwise leave
-   * the test passing against an honest file.
-   */
-  function halveContainerDurations(filePath: string): number {
-    const data = readFileSync(filePath);
-    let patched = 0;
-    function halveIn(start: number, end: number): void {
-      let pos = start;
-      while (pos + 8 <= end) {
-        const size = data.readUInt32BE(pos);
-        if (size < 8) break;
-        const type = data.toString("latin1", pos + 4, pos + 8);
-        const boxStart = pos + 8;
-        const durationOffset = DURATION_FIELD_OFFSETS[type];
-        if (durationOffset !== undefined) {
-          const isVersionZero = data[boxStart] === 0;
-          if (isVersionZero) {
-            const at = boxStart + durationOffset;
-            data.writeUInt32BE(Math.round(data.readUInt32BE(at) / 2), at);
-            patched += 1;
-          }
-        } else if (BOXES_WITH_CHILDREN.has(type)) {
-          halveIn(boxStart, pos + size);
-        }
-        pos += size;
-      }
-    }
-    halveIn(0, data.length);
-    writeFileSync(filePath, data);
-    return patched;
-  }
+  it("recovers the true duration from a FLAC-in-MP4 file whose container atoms were patched to lie", async () => {
+    process.env.HYPERFRAMES_FFPROBE_PATH = ffprobeStaticPath;
 
-  it.skipIf(!ffmpegAvailable)(
-    "recovers the true duration from a FLAC-in-MP4 file whose container atoms were patched to lie",
-    async () => {
-      const fixtureDir = mkdtempSync(resolve(tmpdir(), "hf-lying-flac-"));
-      // Two separate files (not one file probed twice): extractAudioMetadata
-      // caches by file path, so probing the same path before and after
-      // patching would just return the first, cached result.
-      const honestPath = resolve(fixtureDir, "honest.mp4");
-      const lyingPath = resolve(fixtureDir, "lying.mp4");
-      try {
-        const generated = spawnSync(ffmpegPath, [
-          "-hide_banner",
-          "-loglevel",
-          "error",
-          "-f",
-          "lavfi",
-          "-i",
-          "sine=frequency=440:sample_rate=48000:duration=4",
-          "-c:a",
-          "flac",
-          "-f",
-          "mp4",
-          "-y",
-          honestPath,
-        ]);
-        if (generated.status !== 0) {
-          throw new Error(`ffmpeg could not build the fixture: ${generated.stderr}`);
-        }
-        writeFileSync(lyingPath, readFileSync(honestPath));
-        // One mvhd, one tkhd and one mdhd for this single audio track.
-        expect(halveContainerDurations(lyingPath)).toBe(3);
+    const { extractAudioMetadata } = await import("./ffprobe.js");
+    const trueMeta = await extractAudioMetadata(honestPath);
+    expect(trueMeta.audioCodec).toBe("flac");
+    expect(trueMeta.durationSeconds).toBeGreaterThan(3.9);
 
-        const { extractAudioMetadata } = await import("./ffprobe.js");
-        const trueMeta = await extractAudioMetadata(honestPath);
-        expect(trueMeta.audioCodec).toBe("flac");
-        expect(trueMeta.durationSeconds).toBeGreaterThan(3.9);
+    const lyingMeta = await extractAudioMetadata(lyingPath);
 
-        const lyingMeta = await extractAudioMetadata(lyingPath);
-
-        // Recovers the real duration — not the halved container summary.
-        expect(lyingMeta.durationSeconds).toBeCloseTo(trueMeta.durationSeconds, 1);
-      } finally {
-        rmSync(fixtureDir, { recursive: true, force: true });
-      }
-    },
-  );
+    // Recovers the real duration — not the halved container summary.
+    expect(lyingMeta.durationSeconds).toBeCloseTo(trueMeta.durationSeconds, 1);
+  });
 });
 
 describe("final video frame timestamp probes", () => {

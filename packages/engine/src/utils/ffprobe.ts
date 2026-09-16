@@ -162,6 +162,9 @@ const MEDIA_PROBE_OUTPUT_CACHE_MAX_ENTRIES = 128;
 // a decoded final frame's own timestamp + sample count is not, so the two differ
 // by a few milliseconds even on an honest file.
 const AUDIO_DURATION_PROBE_MARGIN_SECONDS = 0.05;
+// How far before the container's claimed end the decode probe starts reading,
+// so it decodes only the tail instead of the whole stream.
+const AUDIO_DURATION_PROBE_TAIL_SECONDS = 1;
 
 export interface VideoColorSpace {
   /** Color transfer characteristics, e.g. "bt709", "smpte2084", "arib-std-b67" */
@@ -945,7 +948,12 @@ export async function extractAudioMetadata(
     // the audio element — shipping a silent render. Hence the probe below
     // reports "no correction available" as null instead of throwing.
     if (sampleRate > 0) {
-      const decoded = await probeDecodedAudioDuration(filePath, sampleRate, options?.signal);
+      const decoded = await probeDecodedAudioDuration(
+        filePath,
+        sampleRate,
+        durationSeconds,
+        options?.signal,
+      );
       if (decoded !== null && decoded > durationSeconds + AUDIO_DURATION_PROBE_MARGIN_SECONDS) {
         durationSeconds = decoded;
       }
@@ -980,6 +988,25 @@ export async function extractAudioMetadata(
  * scan cannot tell a short closing frame from a full one and overshoots
  * whenever a stream does not end on an exact frame boundary.
  *
+ * `-read_intervals` first tries decoding only the tail — from
+ * `AUDIO_DURATION_PROBE_TAIL_SECONDS` before the container's claimed end —
+ * instead of the whole stream, because every `extractAudioMetadata` caller
+ * pays this cost (htmlCompiler alone runs it per audio element) and a full
+ * decode of a multi-hour file can itself approach `runFfprobe`'s 30s deadline
+ * while holding a probe slot throughout. That seek is a time-based estimate,
+ * not a guaranteed-accurate one: an index-less or non-seekably-sourced file
+ * (e.g. the MediaRecorder-produced WebM class handled separately elsewhere in
+ * this file) can seek short of the true final frame, finding nothing in the
+ * tail window even though real frames exist beyond it — exactly the silent
+ * under-count this function exists to fix, just via a different cause. So a
+ * tail read that finds no frames falls back to a full decode from the start,
+ * mirroring `extractFinalVideoFrameTimestamp` above. An honest or
+ * over-claiming container is unaffected either way: its seek lands at or past
+ * the real end, so the tail read decodes nothing extra and the container
+ * value stands without ever reaching the fallback. Verified against a real
+ * lying container: the seeked read and a full decode agree on the same final
+ * frame.
+ *
  * Returns null — never throws, except on the caller's own AbortSignal — when
  * the file has no readable audio frames. Callers must treat that as "no
  * correction available", not as evidence the container duration is wrong.
@@ -987,46 +1014,56 @@ export async function extractAudioMetadata(
 async function probeDecodedAudioDuration(
   filePath: string,
   sampleRate: number,
+  containerDurationSeconds: number,
   signal?: AbortSignal,
 ): Promise<number | null> {
-  try {
-    const stdout = await runFfprobe(
-      filePath,
-      [
-        "-select_streams",
-        "a:0",
-        "-show_entries",
-        "frame=best_effort_timestamp_time,nb_samples",
-        "-of",
-        "csv=p=0",
-      ],
-      signal,
-      // CSV, not JSON: each line stands alone, so retaining just the tail
-      // under the size cap still yields a complete, parseable last line even
-      // for hours of audio — a JSON array truncated from the front isn't
-      // valid JSON, which silently discarded this correction on any file
-      // whose full frame listing exceeded runFfprobe's stdout cap (~30 min
-      // of audio, well within normal podcast/audiobook length).
-      { retainTail: true, maxChars: 64 * 1024 },
-    );
-    const lastFrame = stdout
-      .split("\n")
-      .map((line) => {
-        const [timestampText, samplesText] = line.trim().split(",");
-        const timestamp = Number(timestampText);
-        const nbSamples = Number(samplesText);
-        return Number.isFinite(timestamp) && Number.isFinite(nbSamples)
-          ? { timestamp, nbSamples }
-          : undefined;
-      })
-      .filter((frame) => frame !== undefined)
-      .at(-1);
-    if (!lastFrame) return null;
-    return lastFrame.timestamp + lastFrame.nbSamples / sampleRate;
-  } catch (error) {
-    if (signal?.aborted) throw signal.reason ?? error;
-    return null;
-  }
+  const probe = async (
+    readInterval?: string,
+  ): Promise<{ timestamp: number; nbSamples: number } | undefined> => {
+    const args = [
+      "-select_streams",
+      "a:0",
+      "-show_entries",
+      "frame=best_effort_timestamp_time,nb_samples",
+      "-of",
+      "csv=p=0",
+    ];
+    if (readInterval) args.unshift("-read_intervals", readInterval);
+    try {
+      const stdout = await runFfprobe(
+        filePath,
+        args,
+        signal,
+        // CSV, not JSON: each line stands alone, so retaining just the tail
+        // under the size cap still yields a complete, parseable last line even
+        // for hours of audio — a JSON array truncated from the front isn't
+        // valid JSON, which silently discarded this correction on any file
+        // whose full frame listing exceeded runFfprobe's stdout cap (~30 min
+        // of audio, well within normal podcast/audiobook length).
+        { retainTail: true, maxChars: 64 * 1024 },
+      );
+      return stdout
+        .split("\n")
+        .map((line) => {
+          const [timestampText, samplesText] = line.trim().split(",");
+          const timestamp = Number(timestampText);
+          const nbSamples = Number(samplesText);
+          return Number.isFinite(timestamp) && Number.isFinite(nbSamples)
+            ? { timestamp, nbSamples }
+            : undefined;
+        })
+        .filter((frame) => frame !== undefined)
+        .at(-1);
+    } catch (error) {
+      if (signal?.aborted) throw signal.reason ?? error;
+      return undefined;
+    }
+  };
+
+  const tailStart = Math.max(0, containerDurationSeconds - AUDIO_DURATION_PROBE_TAIL_SECONDS);
+  const lastFrame = (await probe(`${tailStart}%`)) ?? (await probe());
+  if (!lastFrame) return null;
+  return lastFrame.timestamp + lastFrame.nbSamples / sampleRate;
 }
 
 export interface KeyframeAnalysis {
