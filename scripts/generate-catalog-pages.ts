@@ -142,6 +142,10 @@ interface CarriedContent {
   hasCustomUsage: boolean;
 }
 
+function catalogVideoFor(kind: ItemKind, manifest: RegistryItem): string {
+  return manifest.preview?.video ?? `${catalogImageBase}/${typeDir(kind)}/${manifest.name}.mp4`;
+}
+
 interface CatalogEntry {
   name: string;
   type: ItemKind;
@@ -152,6 +156,11 @@ interface CatalogEntry {
   href: string;
   /** Preview poster image path (relative to docs root). */
   preview?: string;
+  /** Hover preview video, the CI-rendered mp4 beside the poster. */
+  video: string;
+  /** Sidebar shelf ("Captions") and the section it folds under ("Text & captions"). */
+  group?: string;
+  section?: string;
 }
 
 // ── Discovery ──────────────────────────────────────────────────────────────
@@ -1170,6 +1179,7 @@ function main(): void {
       tags: manifest.tags ?? [],
       href: `/catalog/${dir}/${manifest.name}`,
       preview: catalogPreviewFor(kind, manifest),
+      video: catalogVideoFor(kind, manifest),
     });
   }
 
@@ -1181,8 +1191,10 @@ function main(): void {
   }
 
   const indexPath = join(publicDir, "catalog-index.json");
-  writeFileSync(indexPath, JSON.stringify(catalogIndex, null, 2) + "\n", "utf-8");
-  console.log(`\n  ✓ public/catalog-index.json (${catalogIndex.length} items)`);
+  const writeIndex = () => {
+    writeFileSync(indexPath, JSON.stringify(catalogIndex, null, 2) + "\n", "utf-8");
+    console.log(`\n  ✓ public/catalog-index.json (${catalogIndex.length} items)`);
+  };
 
   // Update docs.json navigation with generated catalog pages.
   const docsJsonPath = join(docsDir, "docs.json");
@@ -1190,6 +1202,7 @@ function main(): void {
   const tabs = docsJson.navigation?.tabs;
   if (!Array.isArray(tabs)) {
     console.warn("  ⚠ docs.json has no navigation.tabs — skipping nav update");
+    writeIndex();
     console.log("\nDone.");
     return;
   }
@@ -1280,6 +1293,7 @@ function main(): void {
   const groupMap = new Map<string, string[]>();
   for (const entry of catalogIndex) {
     const group = groupForItem(entry);
+    entry.group = group;
     const dir = entry.type === "block" ? "blocks" : "components";
     const page = `catalog/${dir}/${entry.name}`;
     if (!groupMap.has(group)) groupMap.set(group, []);
@@ -1333,6 +1347,14 @@ function main(): void {
   for (const group of flatGroups) {
     if (!placed.has(group.group)) catalogGroups.push(group);
   }
+
+  // The grid page folds shelves the same way the sidebar does; an unplaced
+  // shelf is its own section there too.
+  const sectionOf = new Map(SECTIONS.flatMap((s) => s.groups.map((g) => [g, s.section])));
+  for (const entry of catalogIndex) {
+    entry.section = sectionOf.get(entry.group ?? "") ?? entry.group;
+  }
+  writeIndex();
 
   if (catalogGroups.length > 0) {
     const existingIdx = tabs.findIndex((t) => t.tab === "Catalog");
