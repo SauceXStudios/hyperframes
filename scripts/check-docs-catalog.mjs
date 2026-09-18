@@ -16,6 +16,9 @@ import {
 
 const { root, docs } = resolveDocsRoot(process.argv[2]);
 
+// A style-only helper (a CSS class and a comment) has no scene, so it has nothing to play.
+const NO_SCENE = new Set(["caption-blend-difference"]);
+
 function leafPaths(tab) {
   const paths = [];
   const walk = (pages) => {
@@ -78,9 +81,8 @@ for (const item of data.items) {
     ["still", "video", "player", "unsupported"].includes(item.preview?.mode),
     `Missing gallery preview policy for ${item.id}`,
   );
-  assert.notEqual(
-    item.preview.mode,
-    "still",
+  assert.ok(
+    item.preview.mode !== "still" || NO_SCENE.has(item.id),
     `${item.id} has neither a live payload nor a Chrome-flag reason for its recorded video`,
   );
   if (item.preview.mode === "video") {
