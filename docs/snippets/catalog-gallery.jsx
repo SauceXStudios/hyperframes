@@ -219,13 +219,15 @@ export const CatalogGallery = ({ catalog, initialGroup = "", initialSection = ""
     // blow the page's GPU memory budget.
     const capsRef = useRef({ dom: 0, webgl: 0 });
     const mountsRef = useRef(new Map());
+    const hoveredRef = useRef(null);
+    const promoteRef = useRef(() => { });
     useEffect(() => {
         if (reduced)
             return;
         const tierFor = (item) => item.preview.heavy ? 'webgl' : 'dom';
         const capFor = (tier) => tier === 'webgl' ? MAX_WEBGL_PLAYERS : MAX_DOM_PLAYERS;
         // Hosts in view that were refused for want of a slot; they take the next one freed.
-        const waiting = new Map();
+        let waiting = new Map();
         // The one place a slot is given back. It only acts while the map still holds this exact
         // state, so a late error, a timeout after unmount, or the catch below cannot release twice.
         const release = (item, state) => {
@@ -263,7 +265,7 @@ export const CatalogGallery = ({ catalog, initialGroup = "", initialSection = ""
                     return;
                 }
                 capsRef.current[tier] += 1;
-                state = { player: null, tier, hover: false, readyTimer: 0 };
+                state = { player: null, host, tier, hover: hoveredRef.current === item.href, readyTimer: 0 };
                 mountsRef.current.set(item.href, state);
                 await ensurePlayerDefined();
                 const response = await fetch(item.preview.source);
@@ -315,6 +317,20 @@ export const CatalogGallery = ({ catalog, initialGroup = "", initialSection = ""
                     release(item, state);
             }
         };
+        // A hovered tile that is still waiting takes the slot of a mounted tile the pointer is not on.
+        promoteRef.current = (item) => {
+            const host = waiting.get(item.href);
+            if (!host)
+                return;
+            const tier = tierFor(item);
+            const victim = [...mountsRef.current].find(([, st]) => st.tier === tier && !st.hover);
+            if (!victim)
+                return;
+            waiting = new Map([[item.href, host], ...waiting]);
+            waiting.set(victim[0], victim[1].host);
+            release(catalog.items.find((i) => i.href === victim[0]), victim[1]);
+            delete victim[1].host.dataset.ready;
+        };
         const hosts = resultsRef.current?.querySelectorAll('a[data-preview-mode="player"] [data-preview-host]') ?? [];
         const observer = new IntersectionObserver((entries) => {
             for (const entry of entries) {
@@ -344,9 +360,13 @@ export const CatalogGallery = ({ catalog, initialGroup = "", initialSection = ""
         if (reduced)
             return;
         if (item.preview?.mode === 'player') {
+            hoveredRef.current = hovering ? item.href : null;
             const state = mountsRef.current.get(item.href);
-            if (!state)
+            if (!state) {
+                if (hovering)
+                    promoteRef.current(item);
                 return;
+            }
             state.hover = hovering;
             if (state.player) {
                 if (hovering)
