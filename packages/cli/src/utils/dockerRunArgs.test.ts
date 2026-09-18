@@ -5,6 +5,7 @@ import {
   resolveDockerPlatform,
   type DockerRenderOptions,
 } from "./dockerRunArgs.js";
+import { parseMotionBlurArg, type MotionBlurArgOptions } from "./renderArgs.js";
 
 const BASE: DockerRenderOptions = {
   fps: { num: 30, den: 1 },
@@ -30,9 +31,30 @@ const FIXED_INPUT = {
 };
 
 describe("formatMotionBlurArg", () => {
-  it("omits trailing components so the in-container CLI re-parses the same option", () => {
-    expect(formatMotionBlurArg({ shutterAngle: 180 })).toBe("180");
-    expect(formatMotionBlurArg({ shutterAngle: 180, shutterPhase: -90 })).toBe("180:-90");
+  // The property that matters is the round trip, not the literal string: the
+  // in-container CLI re-parses whatever this writes, so every present field
+  // must come back under its own name. A positional `angle:phase:samples`
+  // spelling cannot satisfy this for a gap (`{samplesPerFrame: 16}` would
+  // re-parse as a 16-degree shutter), which is exactly what the named form
+  // exists to fix.
+  it("round-trips every field through the in-container parser", () => {
+    const cases: MotionBlurArgOptions[] = [
+      {},
+      { shutterAngle: 180 },
+      { shutterPhase: -90 },
+      { samplesPerFrame: 16 },
+      { shutterAngle: 180, samplesPerFrame: 16 },
+      { shutterAngle: 180, shutterPhase: -90, samplesPerFrame: 16 },
+      { blend: "linear" },
+      { samplesPerFrame: 32, blend: "linear" },
+    ];
+    for (const options of cases) {
+      const parsed = parseMotionBlurArg(formatMotionBlurArg(options));
+      expect(parsed).toEqual({ ok: true, value: options });
+    }
+  });
+
+  it("writes the bare form as the empty value the flag needs", () => {
     expect(formatMotionBlurArg({})).toBe("");
   });
 });
@@ -209,7 +231,7 @@ describe("buildDockerRunArgs", () => {
     expect(args).toContain("--composition");
     expect(args).toContain("compositions/intro.html");
     expect(args).toContain("--experimental-fast-capture");
-    expect(args).toContain("--motion-blur=180:-90:16");
+    expect(args).toContain("--motion-blur=angle=180,phase=-90,samples=16");
   });
 
   it("forwards the shutter in the '=' spelling the flag requires", () => {
@@ -224,6 +246,30 @@ describe("buildDockerRunArgs", () => {
     });
     expect(args).toContain("--motion-blur=");
     expect(args.filter((arg) => arg.startsWith("--motion-blur"))).toHaveLength(1);
+  });
+
+  it("carries a gap between shutter fields across the hop", () => {
+    // The bug this pins: `{samplesPerFrame: 16}` in the old positional form
+    // serialized to "16" and re-parsed as shutterAngle 16. Named fields keep
+    // each value in its own slot.
+    const args = buildDockerRunArgs({
+      ...FIXED_INPUT,
+      options: { ...BASE, motionBlur: { samplesPerFrame: 32 } },
+    });
+    const flag = args.find((arg) => arg.startsWith("--motion-blur="));
+    expect(flag).toBe("--motion-blur=samples=32");
+    expect(parseMotionBlurArg(flag?.slice("--motion-blur=".length))).toEqual({
+      ok: true,
+      value: { samplesPerFrame: 32 },
+    });
+  });
+
+  it("forwards the working space so a linear-blend Docker render stays linear", () => {
+    const args = buildDockerRunArgs({
+      ...FIXED_INPUT,
+      options: { ...BASE, motionBlur: { blend: "linear" } },
+    });
+    expect(args).toContain("--motion-blur=blend=linear");
   });
 
   it("omits --motion-blur when the render has no shutter", () => {

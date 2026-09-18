@@ -195,13 +195,14 @@ export default defineCommand({
       type: "string",
       description:
         "Sub-frame multi-sample motion blur, reproducing After Effects' shutter. " +
-        "Bare --motion-blur uses the engine's defaults (180 degrees, phase -90, " +
-        "adaptive samples); --motion-blur=<angle[:phase[:samples]]> sets them " +
-        "(e.g. --motion-blur=180:-90:16). Falls back to the project's " +
+        "--motion-blur= (empty value) uses the engine's defaults (180 degrees, " +
+        "phase -90, adaptive samples); --motion-blur=<angle[:phase[:samples]]> " +
+        "sets them (e.g. --motion-blur=180:-90:16). Falls back to the project's " +
         "hyperframes.json render.motionBlur when omitted. Forces PNG frame " +
         "capture and screenshot capture; unavailable on HDR/shader-transition " +
-        "captures, which the render rejects by name. Pass it with '=' so the " +
-        "value is not read from the next argument.",
+        "captures, which the render rejects by name. Always pass it with '=': " +
+        "the bare form is only safe as the last argument, since the flag takes " +
+        "an optional value and would otherwise read the next argument as its own.",
       // No `default`: an omitted flag must stay `undefined` so the project
       // config can win, matching the --experimental-fast-capture idiom.
     },

@@ -62,10 +62,11 @@ export interface DockerRenderOptions {
   /** EXPERIMENTAL. drawElementImage frame capture; forwarded as `--experimental-fast-capture`. */
   experimentalFastCapture?: boolean;
   /**
-   * Sub-frame motion blur, forwarded as `--motion-blur=<angle[:phase[:samples]]>`.
-   * Always the `=` spelling, and always with the `=`: the flag takes an
-   * optional value, so the space form would swallow the next argument inside
-   * the container (and the bare form needs the empty value spelled out).
+   * Sub-frame motion blur, forwarded as `--motion-blur=<named fields>` (see
+   * `formatMotionBlurArg`). Always the `=` spelling, and always with the `=`:
+   * the flag takes an optional value, so the space form would swallow the next
+   * argument inside the container (and the bare form needs the empty value
+   * spelled out).
    */
   motionBlur?: MotionBlurOptions;
   /**
@@ -82,20 +83,26 @@ export interface DockerRenderOptions {
 }
 
 /**
- * Serialize `MotionBlurOptions` back into the `--motion-blur` micro-syntax.
+ * Serialize `MotionBlurOptions` into the named form `parseMotionBlurArg` reads
+ * back (`angle=180,samples=16`), so the in-container CLI reconstructs the same
+ * object field by field.
  *
- * Omits trailing components so the in-container CLI re-parses the same option
- * object: `{shutterAngle: 180}` round-trips as `180`, `{}` as the empty string
- * (the bare flag). `blend` has no flag spelling, so a render that set it
- * cannot round-trip through Docker — that is a deliberate limit, not a
- * silent one: the in-container CLI's parser accepts the micro-syntax only.
+ * The positional `angle:phase:samples` spelling cannot carry this: its slots
+ * are positional, so `{ samplesPerFrame: 16 }` alone would serialize to `16`
+ * and re-parse as a 16-degree shutter — every later field shifting one slot
+ * left. Naming the present fields is what makes a partially-specified option
+ * (a hand-authored `render.motionBlur` with a gap, or one produced field by
+ * field by the AE exporter) survive the host → container hop unchanged.
+ * `blend` names its own field so a linear-blend render does not silently drop
+ * to sRGB inside the container.
  */
 export function formatMotionBlurArg(options: MotionBlurOptions): string {
   const parts: string[] = [];
-  if (options.shutterAngle !== undefined) parts.push(String(options.shutterAngle));
-  if (options.shutterPhase !== undefined) parts.push(String(options.shutterPhase));
-  if (options.samplesPerFrame !== undefined) parts.push(String(options.samplesPerFrame));
-  return parts.join(":");
+  if (options.shutterAngle !== undefined) parts.push(`angle=${options.shutterAngle}`);
+  if (options.shutterPhase !== undefined) parts.push(`phase=${options.shutterPhase}`);
+  if (options.samplesPerFrame !== undefined) parts.push(`samples=${options.samplesPerFrame}`);
+  if (options.blend !== undefined) parts.push(`blend=${options.blend}`);
+  return parts.join(",");
 }
 
 /**

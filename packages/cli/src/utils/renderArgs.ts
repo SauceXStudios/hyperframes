@@ -344,14 +344,40 @@ export interface MotionBlurArgOptions {
   shutterAngle?: number;
   shutterPhase?: number;
   samplesPerFrame?: number;
+  /** Working space for the average; the engine reads anything but "linear" as sRGB. */
+  blend?: "srgb" | "linear";
 }
 
 export type MotionBlurArgParseResult =
   | { ok: true; value: MotionBlurArgOptions | undefined }
   | { ok: false; message: string };
 
-/** Accepted spellings, in the order the fields are declared in `MotionBlurOptions`. */
+/**
+ * The documented spelling: positional, in the order the fields are declared in
+ * `MotionBlurOptions`. Only the Docker hop uses the named form below.
+ */
 const MOTION_BLUR_USAGE = "angle[:phase[:samples]] (e.g. 180:-90:16, or bare --motion-blur)";
+
+/** Named fields the `key=value` form accepts, mapped to their `MotionBlurOptions` keys. */
+const MOTION_BLUR_NAMED_FIELDS = {
+  angle: "shutterAngle",
+  phase: "shutterPhase",
+  samples: "samplesPerFrame",
+  blend: "blend",
+} as const;
+
+/** The three numeric fields, i.e. every named field except `blend`. */
+type MotionBlurNumberField = Exclude<
+  (typeof MOTION_BLUR_NAMED_FIELDS)[keyof typeof MOTION_BLUR_NAMED_FIELDS],
+  "blend"
+>;
+
+/** Human label per numeric field, for the value's error text. */
+const MOTION_BLUR_FIELD_LABELS: Record<MotionBlurNumberField, string> = {
+  shutterAngle: "angle",
+  shutterPhase: "phase",
+  samplesPerFrame: "samples",
+};
 
 /** `samplesPerFrame` is clamped to 1..64 by the engine; reject earlier so a typo is a usage error. */
 const MIN_MOTION_BLUR_SAMPLES = 1;
@@ -372,6 +398,91 @@ function parseMotionBlurNumber(
   return { ok: true, value: parsed };
 }
 
+/** The samples window, in the engine's own 1..64 clamp. */
+function samplesOutOfRange(value: number): boolean {
+  return (
+    !Number.isInteger(value) || value < MIN_MOTION_BLUR_SAMPLES || value > MAX_MOTION_BLUR_SAMPLES
+  );
+}
+
+/** Assign one numeric field onto `options`, or return the error its value earned. */
+function assignMotionBlurNumber(
+  options: MotionBlurArgOptions,
+  field: MotionBlurNumberField,
+  raw: string,
+  whole: string,
+): MotionBlurArgParseResult | undefined {
+  const parsed = parseMotionBlurNumber(raw, MOTION_BLUR_FIELD_LABELS[field]);
+  if (!parsed.ok) return parsed;
+  if (field === "samplesPerFrame" && samplesOutOfRange(parsed.value)) {
+    return {
+      ok: false,
+      message: `Got "${whole}". Samples per frame must be a whole number between ${MIN_MOTION_BLUR_SAMPLES} and ${MAX_MOTION_BLUR_SAMPLES}.`,
+    };
+  }
+  options[field] = parsed.value;
+  return undefined;
+}
+
+/**
+ * Parse one `angle:phase:samples` positional value. The three slots are
+ * positional, so a gap is not representable; this is the form a user types.
+ */
+function parseMotionBlurPositional(raw: string): MotionBlurArgParseResult {
+  const parts = raw.split(":");
+  if (parts.length > 3) {
+    return { ok: false, message: `Got "${raw}". Expected ${MOTION_BLUR_USAGE}.` };
+  }
+
+  const options: MotionBlurArgOptions = {};
+  const fields: ReadonlyArray<[MotionBlurNumberField, string | undefined]> = [
+    ["shutterAngle", parts[0]],
+    ["shutterPhase", parts[1]],
+    ["samplesPerFrame", parts[2]],
+  ];
+  for (const [field, value] of fields) {
+    if (value === undefined) continue;
+    const error = assignMotionBlurNumber(options, field, value, raw);
+    if (error) return error;
+  }
+  return { ok: true, value: options };
+}
+
+/**
+ * Parse the named form: comma-separated `key=value` pairs (`angle=180,samples=16`).
+ *
+ * This is the transport spelling, not the user spelling. The positional form
+ * cannot carry a gap — `{ samplesPerFrame: 16 }` alone would serialize to `16`
+ * and re-parse as a 16-degree shutter — so the Docker hop (`formatMotionBlurArg`)
+ * writes each present field by name and reads it back here. Keys are the short
+ * names on `MOTION_BLUR_NAMED_FIELDS`, mapped onto the engine's own field names.
+ */
+function parseMotionBlurNamed(raw: string): MotionBlurArgParseResult {
+  const options: MotionBlurArgOptions = {};
+  for (const pair of raw.split(",")) {
+    const eq = pair.indexOf("=");
+    if (eq < 1) {
+      return { ok: false, message: `Got "${raw}". Expected ${MOTION_BLUR_USAGE}.` };
+    }
+    const key = pair.slice(0, eq).trim() as keyof typeof MOTION_BLUR_NAMED_FIELDS;
+    const value = pair.slice(eq + 1).trim();
+    const field = MOTION_BLUR_NAMED_FIELDS[key];
+    if (field === undefined) {
+      return { ok: false, message: `Got "${raw}". Unknown motion-blur field "${key}".` };
+    }
+    if (field === "blend") {
+      if (value !== "srgb" && value !== "linear") {
+        return { ok: false, message: `Got "${raw}". blend must be srgb or linear.` };
+      }
+      options.blend = value;
+      continue;
+    }
+    const error = assignMotionBlurNumber(options, field, value, raw);
+    if (error) return error;
+  }
+  return { ok: true, value: options };
+}
+
 /**
  * Parse `--motion-blur[=angle[:phase[:samples]]]`.
  *
@@ -381,6 +492,13 @@ function parseMotionBlurNumber(
  * spelling and is reported as a present-but-empty value with `off: true` by the
  * caller's `args` shape, not here — this parser only sees the string form citty
  * yields.
+ *
+ * Two spellings are accepted: the positional one a user types
+ * (`180:-90:16`) and the named one `formatMotionBlurArg` writes for the Docker
+ * hop (`angle=180,samples=16`). The named form exists because the positional
+ * form has no way to express a gap between fields — dropping `shutterAngle`
+ * would shift `samples` into the angle slot — so a Docker render carrying only
+ * some fields has to name them.
  *
  * Validation is strict on purpose: citty hands an optional-value string flag the
  * NEXT argv token, so `--motion-blur ./my-video` arrives here as the literal
@@ -394,41 +512,9 @@ export function parseMotionBlurArg(raw: string | undefined): MotionBlurArgParseR
   // Bare `--motion-blur` (and `--motion-blur=`) → engine defaults.
   if (trimmed === "") return { ok: true, value: {} };
 
-  const parts = trimmed.split(":");
-  if (parts.length > 3) {
-    return { ok: false, message: `Got "${raw}". Expected ${MOTION_BLUR_USAGE}.` };
-  }
-
-  const options: MotionBlurArgOptions = {};
-  const angle = parseMotionBlurNumber(parts[0] as string, "angle");
-  if (!angle.ok) return angle;
-  options.shutterAngle = angle.value;
-
-  const phaseRaw = parts[1];
-  if (phaseRaw !== undefined) {
-    const phase = parseMotionBlurNumber(phaseRaw, "phase");
-    if (!phase.ok) return phase;
-    options.shutterPhase = phase.value;
-  }
-
-  const samplesRaw = parts[2];
-  if (samplesRaw !== undefined) {
-    const samples = parseMotionBlurNumber(samplesRaw, "samples");
-    if (!samples.ok) return samples;
-    if (
-      !Number.isInteger(samples.value) ||
-      samples.value < MIN_MOTION_BLUR_SAMPLES ||
-      samples.value > MAX_MOTION_BLUR_SAMPLES
-    ) {
-      return {
-        ok: false,
-        message: `Got "${raw}". Samples per frame must be a whole number between ${MIN_MOTION_BLUR_SAMPLES} and ${MAX_MOTION_BLUR_SAMPLES}.`,
-      };
-    }
-    options.samplesPerFrame = samples.value;
-  }
-
-  return { ok: true, value: options };
+  // `key=value` is the named transport form; the positional form never holds "=".
+  if (trimmed.includes("=")) return parseMotionBlurNamed(trimmed);
+  return parseMotionBlurPositional(trimmed);
 }
 
 /**

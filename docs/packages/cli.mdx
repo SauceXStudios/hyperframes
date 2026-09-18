@@ -872,12 +872,19 @@ The flags that come up most:
 integrating the frame across a sub-frame window instead of sampling one instant:
 
 ```bash
-# The engine's defaults: 180-degree shutter, phase -90, adaptive sample count
-npx hyperframes render --motion-blur --output output.mp4
+# The engine's defaults: 180-degree shutter, phase -90, adaptive sample count.
+# The empty value is deliberate — see the flag notes below.
+npx hyperframes render --motion-blur= --output output.mp4
 
 # Explicit: 720-degree shutter, phase -360, 16 samples per frame
 npx hyperframes render --motion-blur=720:-360:16 --output output.mp4
 ```
+
+`--motion-blur` is an optional-value flag, so its space form is fragile: the bare
+`--motion-blur` only works as the **last** argument, and anywhere else it reads
+the next token as its value (`--motion-blur --output out.mp4` fails, because the
+flag receives the literal `--output`). Always pass it with `=`: `--motion-blur=`
+for the defaults, `--motion-blur=<value>` for an explicit shutter.
 
 A project exported from After Effects with motion blur on carries the comp's own
 shutter in `hyperframes.json`, so a flag-less render of it blurs the same way:

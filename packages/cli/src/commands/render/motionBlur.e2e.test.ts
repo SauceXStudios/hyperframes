@@ -29,7 +29,6 @@ import { afterAll, describe, expect, it } from "vitest";
 import {
   decodePng,
   getFfmpegBinary,
-  psnrDb,
   resolveConfig,
   resolveHeadlessShellPath,
 } from "@hyperframes/engine";
@@ -339,12 +338,25 @@ describe.skipIf(!ENABLED)("render --motion-blur — real render", () => {
     expect(trailing.length + leading.length).toBe(reference.subIntervalsPerWindow / 2);
   });
 
-  it("matches the AE shutter model on real frames, with a floor and a non-constant guard", async () => {
+  // PSNR of a measured column-coverage curve against the model's, in dB.
+  // Both sides are the same 8-bit coverage quantity, so the score is
+  // comparable between the blurred and unblurred renders.
+  function modelPsnrDb(measured: Float64Array, expected: Float64Array): number {
+    let mse = 0;
+    for (let x = 0; x < WIDTH; x++) {
+      const diff = ((measured[x] as number) - (expected[x] as number)) * 255;
+      mse += diff * diff;
+    }
+    mse /= WIDTH;
+    return mse === 0 ? Infinity : 10 * Math.log10((255 * 255) / mse);
+  }
+
+  it("matches the AE shutter model on real frames, with a floor and a non-constant guard", () => {
     for (const frameIndex of [FRAME_UNDER_TEST, FRAME_UNDER_TEST + 3]) {
       const file = blurredFrames[frameIndex] as string;
-      const png = readFileSync(join(blurredDir, file));
-      const measured = columnCoverage(png);
-      const { height } = decodePng(png);
+      const blurredPng = readFileSync(join(blurredDir, file));
+      const measured = columnCoverage(blurredPng);
+      const { height } = decodePng(blurredPng);
 
       // Guard the guard: a black frame scores against a dark reference, and a
       // constant frame scores against a constant one. Neither may pass.
@@ -357,23 +369,18 @@ describe.skipIf(!ENABLED)("render --motion-blur — real render", () => {
         reference.subIntervalsPerWindow,
         height,
       );
-      let mse = 0;
-      for (let x = 0; x < WIDTH; x++) {
-        const diff = ((measured[x] as number) - (expected[x] as number)) * 255;
-        mse += diff * diff;
-      }
-      mse /= WIDTH;
-      const db = mse === 0 ? Infinity : 10 * Math.log10((255 * 255) / mse);
+      const db = modelPsnrDb(measured, expected);
       // The spec's pixel-gate floor. Measured: ~53 dB at this geometry.
       expect(db).toBeGreaterThanOrEqual(30);
 
-      // And it must beat the unblurred frame on the same model, or the shutter
-      // is not what produced the match.
-      const sharpDb = await psnrDb(
-        readFileSync(join(sharpDir, file)),
-        readFileSync(join(blurredDir, file)),
-      );
-      expect(Number.isFinite(sharpDb)).toBe(true);
+      // And the shutter must be what produced the match: score the UNBLURRED
+      // frame of the same index against the same model. It lacks the smear, so
+      // its score has to be strictly worse, or the composition — not the blur —
+      // is what the model is fitting. Measured: ~55.5 dB blurred vs ~36.6 dB
+      // sharp, an 18.9 dB gap, so the 1 dB margin is not near the edge.
+      const sharpMeasured = columnCoverage(readFileSync(join(sharpDir, file)));
+      const sharpDb = modelPsnrDb(sharpMeasured, expected);
+      expect(sharpDb).toBeLessThan(db - 1);
     }
   }, 120_000);
 

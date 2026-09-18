@@ -394,4 +394,46 @@ describe("parseMotionBlurArg", () => {
     expect(parseMotionBlurArg("180:-90:1").ok).toBe(true);
     expect(parseMotionBlurArg("180:-90:64").ok).toBe(true);
   });
+
+  // The named form is the transport spelling the Docker hop writes; it exists
+  // because the positional form cannot express a gap between fields.
+  describe("named transport form", () => {
+    it("reads each field back under its own name", () => {
+      expect(parseMotionBlurArg("angle=180")).toEqual({
+        ok: true,
+        value: { shutterAngle: 180 },
+      });
+      expect(parseMotionBlurArg("samples=32")).toEqual({
+        ok: true,
+        value: { samplesPerFrame: 32 },
+      });
+      expect(parseMotionBlurArg("angle=180,phase=-90,samples=16")).toEqual({
+        ok: true,
+        value: { shutterAngle: 180, shutterPhase: -90, samplesPerFrame: 16 },
+      });
+    });
+
+    it("accepts the blend field", () => {
+      expect(parseMotionBlurArg("blend=linear")).toEqual({
+        ok: true,
+        value: { blend: "linear" },
+      });
+      expect(parseMotionBlurArg("samples=16,blend=srgb")).toEqual({
+        ok: true,
+        value: { samplesPerFrame: 16, blend: "srgb" },
+      });
+    });
+
+    it("rejects an unknown field name and a malformed pair", () => {
+      expect(parseMotionBlurArg("angle=180,shutter=90").ok).toBe(false);
+      expect(parseMotionBlurArg("angle=180,oops").ok).toBe(false);
+      expect(parseMotionBlurArg("=180").ok).toBe(false);
+    });
+
+    it("rejects a bad value in the named form", () => {
+      expect(parseMotionBlurArg("angle=abc").ok).toBe(false);
+      expect(parseMotionBlurArg("samples=0").ok).toBe(false);
+      expect(parseMotionBlurArg("blend=xyz").ok).toBe(false);
+    });
+  });
 });
