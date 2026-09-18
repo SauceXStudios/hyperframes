@@ -237,7 +237,8 @@ export const CatalogGallery = ({ catalog, initialGroup = "", initialSection = ""
             state.player?.remove();
             capsRef.current[state.tier] -= 1;
             mountsRef.current.delete(item.href);
-            const queued = [...waiting].sort(([href]) => (href === hoveredRef.current ? -1 : 1));
+            const entries = [...waiting];
+            const queued = [...entries.filter(([h]) => h === hoveredRef.current), ...entries.filter(([h]) => h !== hoveredRef.current)];
             waiting.clear();
             queued.forEach(([href, host]) => mount(host, catalog.items.find((i) => i.href === href)));
         };
