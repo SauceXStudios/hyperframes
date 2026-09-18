@@ -8,6 +8,7 @@
  * silent-drop regressions like the one that lost `--hdr` historically.
  */
 import { fpsToFfmpegArg, type Fps } from "@hyperframes/core";
+import type { MotionBlurOptions } from "@hyperframes/engine";
 
 export interface DockerRunArgsInput {
   imageTag: string;
@@ -61,6 +62,13 @@ export interface DockerRenderOptions {
   /** EXPERIMENTAL. drawElementImage frame capture; forwarded as `--experimental-fast-capture`. */
   experimentalFastCapture?: boolean;
   /**
+   * Sub-frame motion blur, forwarded as `--motion-blur=<angle[:phase[:samples]]>`.
+   * Always the `=` spelling, and always with the `=`: the flag takes an
+   * optional value, so the space form would swallow the next argument inside
+   * the container (and the bare form needs the empty value spelled out).
+   */
+  motionBlur?: MotionBlurOptions;
+  /**
    * Puppeteer page-navigation timeout, in milliseconds. Forwarded to the
    * in-container CLI as `--browser-timeout <seconds>` (the CLI takes
    * seconds; the engine takes ms — kept consistent with the host-side
@@ -71,6 +79,23 @@ export interface DockerRenderOptions {
   protocolTimeoutMs?: number;
   /** Player readiness timeout in milliseconds. */
   playerReadyTimeoutMs?: number;
+}
+
+/**
+ * Serialize `MotionBlurOptions` back into the `--motion-blur` micro-syntax.
+ *
+ * Omits trailing components so the in-container CLI re-parses the same option
+ * object: `{shutterAngle: 180}` round-trips as `180`, `{}` as the empty string
+ * (the bare flag). `blend` has no flag spelling, so a render that set it
+ * cannot round-trip through Docker — that is a deliberate limit, not a
+ * silent one: the in-container CLI's parser accepts the micro-syntax only.
+ */
+export function formatMotionBlurArg(options: MotionBlurOptions): string {
+  const parts: string[] = [];
+  if (options.shutterAngle !== undefined) parts.push(String(options.shutterAngle));
+  if (options.shutterPhase !== undefined) parts.push(String(options.shutterPhase));
+  if (options.samplesPerFrame !== undefined) parts.push(String(options.samplesPerFrame));
+  return parts.join(":");
 }
 
 /**
@@ -159,6 +184,7 @@ export function buildDockerRunArgs(input: DockerRunArgsInput): string[] {
     ...(options.outputResolution ? ["--resolution", options.outputResolution] : []),
     ...(options.pageSideCompositing === false ? ["--no-page-side-compositing"] : []),
     ...(options.experimentalFastCapture ? ["--experimental-fast-capture"] : []),
+    ...(options.motionBlur ? [`--motion-blur=${formatMotionBlurArg(options.motionBlur)}`] : []),
     ...(options.pageNavigationTimeoutMs != null
       ? ["--browser-timeout", String(options.pageNavigationTimeoutMs / 1000)]
       : []),

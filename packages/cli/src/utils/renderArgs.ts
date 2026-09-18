@@ -326,3 +326,124 @@ export function parseHlsSegmentSecondsArg(raw: string | undefined): HlsSegmentSe
   }
   return { ok: true, value: parsed };
 }
+
+// ── --motion-blur ──────────────────────────────────────────────────────
+
+/**
+ * Value accepted by `--motion-blur`: `angle`, `angle:phase`, or
+ * `angle:phase:samples`. The flag may also be given bare (or as `=`), which
+ * asks for the engine's own defaults.
+ *
+ * The micro-syntax mirrors the engine's own `MotionBlurOptions` field names in
+ * the order it declares them, so `180:-90:16` reads as shutter angle, shutter
+ * phase, samples per frame with nothing to look up. A bare value is the whole
+ * point of the flag: `--motion-blur` on a comp whose export already carries AE's
+ * shutter must not require the caller to restate 180:-90.
+ */
+export interface MotionBlurArgOptions {
+  shutterAngle?: number;
+  shutterPhase?: number;
+  samplesPerFrame?: number;
+}
+
+export type MotionBlurArgParseResult =
+  | { ok: true; value: MotionBlurArgOptions | undefined }
+  | { ok: false; message: string };
+
+/** Accepted spellings, in the order the fields are declared in `MotionBlurOptions`. */
+const MOTION_BLUR_USAGE = "angle[:phase[:samples]] (e.g. 180:-90:16, or bare --motion-blur)";
+
+/** `samplesPerFrame` is clamped to 1..64 by the engine; reject earlier so a typo is a usage error. */
+const MIN_MOTION_BLUR_SAMPLES = 1;
+const MAX_MOTION_BLUR_SAMPLES = 64;
+
+function parseMotionBlurNumber(
+  raw: string,
+  field: string,
+): { ok: true; value: number } | { ok: false; message: string } {
+  const trimmed = raw.trim();
+  if (trimmed === "") {
+    return { ok: false, message: `shutter ${field} is empty.` };
+  }
+  const parsed = Number(trimmed);
+  if (!Number.isFinite(parsed)) {
+    return { ok: false, message: `shutter ${field} must be a number, got "${raw}".` };
+  }
+  return { ok: true, value: parsed };
+}
+
+/**
+ * Parse `--motion-blur[=angle[:phase[:samples]]]`.
+ *
+ * Returns `{ ok: true, value: undefined }` when the flag is absent, so the
+ * caller can fall through to `hyperframes.json` without the absent case looking
+ * like an explicit engine-default request. `false` is the `--no-motion-blur`
+ * spelling and is reported as a present-but-empty value with `off: true` by the
+ * caller's `args` shape, not here — this parser only sees the string form citty
+ * yields.
+ *
+ * Validation is strict on purpose: citty hands an optional-value string flag the
+ * NEXT argv token, so `--motion-blur ./my-video` arrives here as the literal
+ * "./my-video". Accepting anything parseable-as-numbers would leave that case to
+ * fail somewhere downstream (or worse, not fail), so an unrecognized value is
+ * rejected with the accepted spelling instead.
+ */
+export function parseMotionBlurArg(raw: string | undefined): MotionBlurArgParseResult {
+  if (raw === undefined) return { ok: true, value: undefined };
+  const trimmed = raw.trim();
+  // Bare `--motion-blur` (and `--motion-blur=`) → engine defaults.
+  if (trimmed === "") return { ok: true, value: {} };
+
+  const parts = trimmed.split(":");
+  if (parts.length > 3) {
+    return { ok: false, message: `Got "${raw}". Expected ${MOTION_BLUR_USAGE}.` };
+  }
+
+  const options: MotionBlurArgOptions = {};
+  const angle = parseMotionBlurNumber(parts[0] as string, "angle");
+  if (!angle.ok) return angle;
+  options.shutterAngle = angle.value;
+
+  const phaseRaw = parts[1];
+  if (phaseRaw !== undefined) {
+    const phase = parseMotionBlurNumber(phaseRaw, "phase");
+    if (!phase.ok) return phase;
+    options.shutterPhase = phase.value;
+  }
+
+  const samplesRaw = parts[2];
+  if (samplesRaw !== undefined) {
+    const samples = parseMotionBlurNumber(samplesRaw, "samples");
+    if (!samples.ok) return samples;
+    if (
+      !Number.isInteger(samples.value) ||
+      samples.value < MIN_MOTION_BLUR_SAMPLES ||
+      samples.value > MAX_MOTION_BLUR_SAMPLES
+    ) {
+      return {
+        ok: false,
+        message: `Got "${raw}". Samples per frame must be a whole number between ${MIN_MOTION_BLUR_SAMPLES} and ${MAX_MOTION_BLUR_SAMPLES}.`,
+      };
+    }
+    options.samplesPerFrame = samples.value;
+  }
+
+  return { ok: true, value: options };
+}
+
+/**
+ * Side-effecting wrapper around {@link parseMotionBlurArg}. Exits with a
+ * friendly error box on a malformed value.
+ */
+export function resolveMotionBlurArg(raw: string | undefined): MotionBlurArgOptions | undefined {
+  const result = parseMotionBlurArg(raw);
+  if (!result.ok) {
+    errorBox(
+      "Invalid motion-blur",
+      result.message,
+      `Use --motion-blur=<${MOTION_BLUR_USAGE}> (with '=') so the value is not read from the next argument.`,
+    );
+    failUsage();
+  }
+  return result.value;
+}

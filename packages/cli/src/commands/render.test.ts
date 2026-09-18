@@ -598,6 +598,54 @@ describe("renderLocal browser GPU config", () => {
     });
   });
 
+  // Motion blur's accumulation pass seeks the live timeline at sub-frame times,
+  // which only the screenshot path can do. The engine's own guards reject the
+  // other two capture modes by name, so a render that reaches them fails
+  // loudly; forcing screenshot here is what keeps the option usable at all on
+  // a default (auto-GPU, drawElement-eligible) host.
+  it("forces screenshot capture and forwards the shutter when motion blur is on", async () => {
+    await renderLocal("/tmp/project", "/tmp/out.mp4", {
+      fps: { num: 30, den: 1 },
+      quality: "standard",
+      format: "mp4",
+      gpu: false,
+      browserGpuMode: "auto",
+      hdrMode: "auto",
+      quiet: true,
+      motionBlur: { shutterAngle: 180, shutterPhase: -90, samplesPerFrame: 16 },
+    });
+
+    expect(producerState.resolveConfigCalls).toContainEqual({
+      browserGpuMode: "auto",
+      forceScreenshot: true,
+    });
+    // `createRenderJob`'s mock records the config it was handed, and
+    // `renderConfigFromRequest` spreads the request options into it — so this
+    // is the same object the orchestrator's `job.config.motionBlur` reads.
+    expect(producerState.createdJobs[0]).toMatchObject({
+      motionBlur: { shutterAngle: 180, shutterPhase: -90, samplesPerFrame: 16 },
+    });
+  });
+
+  it("leaves the capture route untouched when motion blur is off", async () => {
+    await renderLocal("/tmp/project", "/tmp/out.mp4", {
+      fps: { num: 30, den: 1 },
+      quality: "standard",
+      format: "mp4",
+      gpu: false,
+      browserGpuMode: "hardware",
+      hdrMode: "auto",
+      quiet: true,
+    });
+
+    expect(producerState.resolveConfigCalls).toContainEqual({ browserGpuMode: "hardware" });
+    // `toBeUndefined` rather than `not.toHaveProperty`: the real
+    // `createRenderRequest` strips undefined options
+    // (`omitUndefinedProperties`) so the key is absent, but this file's mock
+    // spreads the options verbatim and keeps it. The value is what both agree on.
+    expect(producerState.createdJobs[0]?.motionBlur).toBeUndefined();
+  });
+
   it("honors PRODUCER_FORCE_SCREENSHOT=true even on local auto GPU", async () => {
     const prev = process.env.PRODUCER_FORCE_SCREENSHOT;
     process.env.PRODUCER_FORCE_SCREENSHOT = "true";

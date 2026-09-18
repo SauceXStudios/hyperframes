@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildDockerRunArgs,
+  formatMotionBlurArg,
   resolveDockerPlatform,
   type DockerRenderOptions,
 } from "./dockerRunArgs.js";
@@ -27,6 +28,14 @@ const FIXED_INPUT = {
   // the test).
   platform: "linux/amd64",
 };
+
+describe("formatMotionBlurArg", () => {
+  it("omits trailing components so the in-container CLI re-parses the same option", () => {
+    expect(formatMotionBlurArg({ shutterAngle: 180 })).toBe("180");
+    expect(formatMotionBlurArg({ shutterAngle: 180, shutterPhase: -90 })).toBe("180:-90");
+    expect(formatMotionBlurArg({})).toBe("");
+  });
+});
 
 describe("buildDockerRunArgs", () => {
   it("matches snapshot for the default render", () => {
@@ -175,6 +184,7 @@ describe("buildDockerRunArgs", () => {
         bestEffort: false,
         entryFile: "compositions/intro.html",
         experimentalFastCapture: true,
+        motionBlur: { shutterAngle: 180, shutterPhase: -90, samplesPerFrame: 16 },
       },
     });
     // Each value must reach the container exactly once. If a future option
@@ -199,6 +209,30 @@ describe("buildDockerRunArgs", () => {
     expect(args).toContain("--composition");
     expect(args).toContain("compositions/intro.html");
     expect(args).toContain("--experimental-fast-capture");
+    expect(args).toContain("--motion-blur=180:-90:16");
+  });
+
+  it("forwards the shutter in the '=' spelling the flag requires", () => {
+    // The flag takes an optional value, so the space form would eat the next
+    // argument inside the container; the '=' form is what keeps the value and
+    // the argument list aligned. The bare form has to spell the empty value
+    // out, because a bare `--motion-blur` followed by `--fps` would take
+    // "--fps" as its value.
+    const args = buildDockerRunArgs({
+      ...FIXED_INPUT,
+      options: { ...BASE, motionBlur: {} },
+    });
+    expect(args).toContain("--motion-blur=");
+    expect(args.filter((arg) => arg.startsWith("--motion-blur"))).toHaveLength(1);
+  });
+
+  it("omits --motion-blur when the render has no shutter", () => {
+    expect(buildDockerRunArgs({ ...FIXED_INPUT, options: BASE })).not.toContain("--motion-blur=");
+    expect(
+      buildDockerRunArgs({ ...FIXED_INPUT, options: { ...BASE, motionBlur: undefined } }).some(
+        (arg) => arg.startsWith("--motion-blur"),
+      ),
+    ).toBe(false);
   });
 
   it("forwards only an explicit strict-readiness opt-in", () => {
