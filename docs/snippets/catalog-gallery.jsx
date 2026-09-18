@@ -237,7 +237,7 @@ export const CatalogGallery = ({ catalog, initialGroup = "", initialSection = ""
             state.player?.remove();
             capsRef.current[state.tier] -= 1;
             mountsRef.current.delete(item.href);
-            const queued = [...waiting];
+            const queued = [...waiting].sort(([href]) => (href === hoveredRef.current ? -1 : 1));
             waiting.clear();
             queued.forEach(([href, host]) => mount(host, catalog.items.find((i) => i.href === href)));
         };
@@ -354,6 +354,7 @@ export const CatalogGallery = ({ catalog, initialGroup = "", initialSection = ""
             });
             mounts.clear();
             capsRef.current = { dom: 0, webgl: 0 };
+            hoveredRef.current = null;
         };
     }, [filters, limit, expandedGroups, reduced, catalog]);
     const setHover = (item, hovering) => {
