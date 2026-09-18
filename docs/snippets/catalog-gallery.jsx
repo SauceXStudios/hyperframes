@@ -224,6 +224,8 @@ export const CatalogGallery = ({ catalog, initialGroup = "", initialSection = ""
             return;
         const tierFor = (item) => item.preview.heavy ? 'webgl' : 'dom';
         const capFor = (tier) => tier === 'webgl' ? MAX_WEBGL_PLAYERS : MAX_DOM_PLAYERS;
+        // Hosts in view that were refused for want of a slot; they take the next one freed.
+        const waiting = new Map();
         // The one place a slot is given back. It only acts while the map still holds this exact
         // state, so a late error, a timeout after unmount, or the catch below cannot release twice.
         const release = (item, state) => {
@@ -233,10 +235,14 @@ export const CatalogGallery = ({ catalog, initialGroup = "", initialSection = ""
             state.player?.remove();
             capsRef.current[state.tier] -= 1;
             mountsRef.current.delete(item.href);
+            const queued = [...waiting];
+            waiting.clear();
+            queued.forEach(([href, host]) => mount(host, catalog.items.find((i) => i.href === href)));
         };
         const unmount = (host, item) => {
             // Keyed by item.href, same as mount() below -- setHover() only ever has the
             // item, never the host node, so the map has to be addressable by href.
+            waiting.delete(item.href);
             const state = mountsRef.current.get(item.href);
             if (!state)
                 return;
@@ -252,8 +258,10 @@ export const CatalogGallery = ({ catalog, initialGroup = "", initialSection = ""
             let state;
             try {
                 const tier = tierFor(item);
-                if (capsRef.current[tier] >= capFor(tier))
-                    return; // over budget for this tier; stays on the neutral tile until a slot frees
+                if (capsRef.current[tier] >= capFor(tier)) {
+                    waiting.set(item.href, host); // over budget for this tier; mounts when a slot frees
+                    return;
+                }
                 capsRef.current[tier] += 1;
                 state = { player: null, tier, hover: false, readyTimer: 0 };
                 mountsRef.current.set(item.href, state);
