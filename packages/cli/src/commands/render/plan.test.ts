@@ -324,6 +324,24 @@ describe("createRenderPlan", () => {
       ).toBeUndefined();
     });
 
+    // The opt-out travels separately from `motionBlur === undefined`, because a
+    // Docker render forwards the option set it was given and the in-container
+    // CLI re-reads the same hyperframes.json. Without a durable flag the
+    // container's fallback would silently re-enable the blur.
+    it("records --no-motion-blur as a durable opt-out alongside the absent option", () => {
+      writeFileSync(
+        join(projectDir, "hyperframes.json"),
+        JSON.stringify({ render: { motionBlur: { shutterAngle: 720 } } }),
+      );
+      const plan = createRenderPlan({ dir: projectDir, "motion-blur": false });
+      expect(plan.motionBlur).toBeUndefined();
+      expect(plan.motionBlurOff).toBe(true);
+      // A normal render (flag absent) leaves the opt-out off, so the project
+      // config still applies.
+      expect(createRenderPlan({ dir: projectDir }).motionBlurOff).toBe(false);
+      expect(createRenderPlan({ dir: projectDir }).motionBlur).toEqual({ shutterAngle: 720 });
+    });
+
     it("classifies a malformed flag value as a usage error", () => {
       expect(() => createRenderPlan({ dir: projectDir, "motion-blur": "./my-video" })).toThrow(
         CliUsageError,

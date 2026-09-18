@@ -4,6 +4,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawn } from "node:child_process";
+import { runCommand } from "citty";
 
 const producerState = vi.hoisted(() => ({
   createdJobs: [] as Array<Record<string, unknown>>,
@@ -1799,6 +1800,30 @@ describe("render fps arg definition", () => {
     const fpsArg = args.fps;
     expect(fpsArg).toBeDefined();
     expect(fpsArg?.default).toBeUndefined();
+  });
+});
+
+describe("render command motion-blur flags", () => {
+  it("parses --no-motion-blur to the boolean false through the real arg definition", async () => {
+    // `--no-motion-blur` only reaches createRenderPlan's opt-out branch if
+    // citty's negated-flag pass resolves it against THIS arg, and only the
+    // `false` value (not undefined, not "") distinguishes the opt-out from an
+    // omitted flag. Run the real definition through citty rather than reading
+    // the arg table, so a rename or a dropped `negativeDescription` fails here.
+    const cmd = (await import("./render.js")).default;
+    let captured: Record<string, unknown> = {};
+    await runCommand(
+      {
+        ...cmd,
+        meta: { ...(cmd.meta as object), name: "render" },
+        run: ({ args }) => {
+          captured = { ...args };
+        },
+      },
+      { rawArgs: ["--no-motion-blur", "--fps", "30"] },
+    );
+    expect(captured["motion-blur"]).toBe(false);
+    expect(captured.fps).toBe("30");
   });
 });
 

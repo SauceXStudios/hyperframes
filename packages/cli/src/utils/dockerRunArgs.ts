@@ -70,6 +70,17 @@ export interface DockerRenderOptions {
    */
   motionBlur?: MotionBlurOptions;
   /**
+   * The caller passed `--no-motion-blur`, so the container must not blur. This
+   * cannot be expressed by leaving `motionBlur` undefined: the in-container CLI
+   * re-reads the project's own `hyperframes.json`, whose `render.motionBlur`
+   * (written by the AE exporter for every comp with MB on) would turn the blur
+   * straight back on. Forwarded as `--no-motion-blur`, which the in-container
+   * citty parser reports as the boolean `false` — the same opt-out the host
+   * resolved. When both are set the opt-out wins, matching the host's own
+   * precedence.
+   */
+  motionBlurOff?: boolean;
+  /**
    * Puppeteer page-navigation timeout, in milliseconds. Forwarded to the
    * in-container CLI as `--browser-timeout <seconds>` (the CLI takes
    * seconds; the engine takes ms — kept consistent with the host-side
@@ -191,7 +202,14 @@ export function buildDockerRunArgs(input: DockerRunArgsInput): string[] {
     ...(options.outputResolution ? ["--resolution", options.outputResolution] : []),
     ...(options.pageSideCompositing === false ? ["--no-page-side-compositing"] : []),
     ...(options.experimentalFastCapture ? ["--experimental-fast-capture"] : []),
-    ...(options.motionBlur ? [`--motion-blur=${formatMotionBlurArg(options.motionBlur)}`] : []),
+    ...(options.motionBlur && !options.motionBlurOff
+      ? [`--motion-blur=${formatMotionBlurArg(options.motionBlur)}`]
+      : []),
+    // The opt-out travels as the negated flag the in-container citty parser
+    // reports as `false`. Without it an absent `--motion-blur` would let the
+    // container re-read the project's own `render.motionBlur` and blur a render
+    // the caller explicitly asked to leave sharp.
+    ...(options.motionBlurOff ? ["--no-motion-blur"] : []),
     ...(options.pageNavigationTimeoutMs != null
       ? ["--browser-timeout", String(options.pageNavigationTimeoutMs / 1000)]
       : []),

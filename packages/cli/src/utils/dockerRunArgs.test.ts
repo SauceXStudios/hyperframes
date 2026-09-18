@@ -281,6 +281,29 @@ describe("buildDockerRunArgs", () => {
     ).toBe(false);
   });
 
+  it("forwards --no-motion-blur so the container's project config cannot re-enable it", () => {
+    // The opt-out has to reach the container explicitly. The in-container CLI
+    // re-reads the project's `hyperframes.json`, and the AE exporter writes
+    // `render.motionBlur` there for every comp with motion blur on — so a
+    // Docker render with only an absent `--motion-blur` would blur exactly the
+    // render the caller asked to leave sharp.
+    const args = buildDockerRunArgs({
+      ...FIXED_INPUT,
+      options: { ...BASE, motionBlur: undefined, motionBlurOff: true },
+    });
+    expect(args).toContain("--no-motion-blur");
+    expect(args.filter((arg) => arg.startsWith("--motion-blur"))).toEqual([]);
+  });
+
+  it("lets the opt-out win when both are set, matching the host's own precedence", () => {
+    const args = buildDockerRunArgs({
+      ...FIXED_INPUT,
+      options: { ...BASE, motionBlur: { shutterAngle: 180 }, motionBlurOff: true },
+    });
+    expect(args).toContain("--no-motion-blur");
+    expect(args.some((arg) => arg.startsWith("--motion-blur="))).toBe(false);
+  });
+
   it("forwards only an explicit strict-readiness opt-in", () => {
     const compatible = buildDockerRunArgs({
       ...FIXED_INPUT,

@@ -136,6 +136,15 @@ export interface RenderPlan {
    * live timeline rather than reading paint records.
    */
   motionBlur?: MotionBlurOptions;
+  /**
+   * `--no-motion-blur` was passed, so this render must not blur — project config
+   * included. `motionBlur === undefined` alone cannot carry this: a Docker render
+   * forwards the option set it is given, and the in-container CLI re-reads the
+   * same `hyperframes.json`, so an absent value lets the project's config turn
+   * motion blur back on inside the container. This flag is forwarded explicitly
+   * as `--no-motion-blur` so the opt-out survives the hop.
+   */
+  motionBlurOff: boolean;
   videoFrameFormat: VideoFrameFormat;
   outputResolution?: CanvasResolution;
   outputResolutionAspectAgnostic: boolean;
@@ -308,12 +317,12 @@ export function createRenderPlan(args: RenderCommandArgs, now = new Date()): Ren
   // `--no-motion-blur` arrives from citty as the boolean `false`, which is a
   // deliberate opt-out and must beat a config that turns it on.
   const projectRenderConfig = loadProjectConfig(project.dir).render;
-  const motionBlur =
-    args["motion-blur"] === false
-      ? undefined
-      : (resolveMotionBlurArg(
-          typeof args["motion-blur"] === "string" ? args["motion-blur"] : undefined,
-        ) ?? projectRenderConfig?.motionBlur);
+  const motionBlurOff = args["motion-blur"] === false;
+  const motionBlur = motionBlurOff
+    ? undefined
+    : (resolveMotionBlurArg(
+        typeof args["motion-blur"] === "string" ? args["motion-blur"] : undefined,
+      ) ?? projectRenderConfig?.motionBlur);
 
   const videoFrameFormatRaw = args["video-frame-format"] ?? "auto";
   if (!isVideoFrameFormat(videoFrameFormatRaw)) {
@@ -542,6 +551,7 @@ export function createRenderPlan(args: RenderCommandArgs, now = new Date()): Ren
     gifFpsCapped,
     hlsSegmentSeconds,
     motionBlur,
+    motionBlurOff,
     videoFrameFormat: videoFrameFormatRaw,
     outputResolution,
     outputResolutionAspectAgnostic,

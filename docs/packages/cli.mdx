@@ -897,7 +897,9 @@ shutter in `hyperframes.json`, so a flag-less render of it blurs the same way:
 }
 ```
 
-An explicit flag always wins, and `--no-motion-blur` switches it off for one run.
+An explicit flag always wins, and `--no-motion-blur` switches it off for one run,
+including under `--docker` — the opt-out is forwarded to the container, so a
+project's `render.motionBlur` cannot turn it back on inside the render.
 The capture is forced to PNG and screenshot mode, so a render with the option on
 is slower than the same render without it. Two routes cannot carry it and reject
 it by name rather than rendering sharp: HDR and shader-transition captures (the
