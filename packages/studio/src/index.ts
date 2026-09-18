@@ -5,6 +5,51 @@ export { NLEPreview } from "./components/nle/NLEPreview";
 export { CompositionBreadcrumb } from "./components/nle/CompositionBreadcrumb";
 export type { CompositionLevel } from "./components/nle/CompositionBreadcrumb";
 
+// UI primitives
+export {
+  cn,
+  Button,
+  buttonBase,
+  buttonSizes,
+  buttonVariants,
+  IconButton,
+  Tab,
+  TabPanel,
+  Tabs,
+  TabsList,
+  Tooltip,
+  ContextMenu,
+  Menu,
+  MenuItem,
+  MenuRadioGroup,
+  MenuRadioItem,
+  MenuSeparator,
+  MenuShortcut,
+  popupSurface,
+  Popover,
+  Input,
+  fieldBase,
+  fieldText,
+  NumberField,
+  Select,
+  Slider,
+  Toggle,
+} from "./components/ui";
+export type {
+  ButtonSize,
+  ButtonVariant,
+  PreviewState,
+  MenuItemTone,
+  PopupPreviewState,
+  InputProps,
+  NumberFieldProps,
+  SelectOption,
+  SelectProps,
+  SliderProps,
+  ToggleProps,
+} from "./components/ui";
+export { HyperframesLogo } from "./components/StudioHeader";
+
 // Shell pieces (D-776 am.5: mounted in-tree by a host, no iframe)
 export { StudioLeftSidebar } from "./components/StudioLeftSidebar";
 export type { StudioLeftSidebarProps } from "./components/StudioLeftSidebar";

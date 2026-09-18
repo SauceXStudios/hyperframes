@@ -249,6 +249,15 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        // The compiled stylesheet needs a stable path: it's a package export
+        // (`@hyperframes/studio/styles.css`), and a hashed name would break
+        // every consumer's import on each rebuild.
+        assetFileNames: (assetInfo) =>
+          assetInfo.name?.endsWith(".css") ? "assets/styles.css" : "assets/[name]-[hash][extname]",
+      },
+    },
   },
   optimizeDeps: {
     include: ["bpm-detective"],
