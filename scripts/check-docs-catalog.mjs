@@ -16,8 +16,14 @@ import {
 
 const { root, docs } = resolveDocsRoot(process.argv[2]);
 
-// A style-only helper (a CSS class and a comment) has no scene, so it has nothing to play.
-const NO_SCENE = new Set(["caption-blend-difference"]);
+// Items allowed without a live preview, each with the reason it has none.
+const NO_LIVE = new Map([
+  ["caption-blend-difference", "a style-only helper (a CSS class), so there is no scene to play"],
+  [
+    "heygen-avatar-promo-card",
+    "its source videos are not on the CDN yet; a maintainer runs host-registry-assets",
+  ],
+]);
 
 function leafPaths(tab) {
   const paths = [];
@@ -82,10 +88,10 @@ for (const item of data.items) {
     `Missing gallery preview policy for ${item.id}`,
   );
   assert.ok(
-    item.preview.mode !== "still" || NO_SCENE.has(item.id),
+    item.preview.mode !== "still" || NO_LIVE.has(item.id),
     `${item.id} has neither a live payload nor a Chrome-flag reason for its recorded video`,
   );
-  if (item.preview.mode === "video") {
+  if (item.preview.mode === "video" && !NO_LIVE.has(item.id)) {
     assert.ok(item.video, `Missing hover video for ${item.id}`);
     const file = path.join(docs, "public/catalog", `${item.kind}s`, `${item.id}.json`);
     const payload = fs.existsSync(file) ? readJson(file) : {};

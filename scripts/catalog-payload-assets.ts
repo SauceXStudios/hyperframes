@@ -385,7 +385,7 @@ function downloadMirrorPrefix(projectDir: string): string | null {
  * when the tile plays, so the cost is repository size, not page weight. An item
  * over budget has no live preview at all, which the docs catalog check rejects.
  */
-export const MAX_HOSTED_DIRECTORY_BYTES = 6_000_000;
+export const MAX_HOSTED_DIRECTORY_BYTES = 12_000_000;
 
 // "not-needed" and "over-budget" both leave nothing published, but the caller
 // must not treat them alike: an over-budget item still needs the directory,
