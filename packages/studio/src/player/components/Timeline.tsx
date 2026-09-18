@@ -4,6 +4,7 @@ import { usePlayerStore, type TimelineElement } from "../store/playerStore";
 import { useExpandedTimelineElements } from "../hooks/useExpandedTimelineElements";
 import { defaultTimelineTheme } from "./timelineTheme";
 import { useTimelineRangeSelection } from "./useTimelineRangeSelection";
+import { usePublishRangeSelection } from "./usePublishRangeSelection";
 import { useTimelinePlayhead } from "./useTimelinePlayhead";
 import { useTimelineZoom } from "./useTimelineZoom";
 import { useTimelineAssetDrop } from "./timelineDragDrop";
@@ -79,6 +80,7 @@ export const Timeline = memo(function Timeline({
   onBlockedEditAttempt: onBlockedEditAttemptOverride,
   onSplitElement: onSplitElementOverride,
   onSelectElement,
+  onRangeSelect,
   theme: themeOverrides,
   sessionEpoch = 0,
 }: TimelineProps = {}) {
@@ -234,7 +236,6 @@ export const Timeline = memo(function Timeline({
     refreshAfterLaneMove,
     sessionEpoch,
   });
-
   const assetDrop = useTimelineAssetDrop({
     scrollRef,
     ppsRef,
@@ -314,7 +315,6 @@ export const Timeline = memo(function Timeline({
       setKfContextMenu,
       toggleSelectedKeyframe,
     });
-
   const { clipIndex, renderTimeRange, visibleTimeRange, pinnedClipIdentities } =
     useTimelineClipRenderWindow({
       tracks,
@@ -349,7 +349,6 @@ export const Timeline = memo(function Timeline({
     dragActive: draggedClip?.started === true || resizingClip != null,
     displayDuration,
   });
-
   const { seekFromX, autoScrollDuringDrag, dragScrollRaf } = useTimelinePlayhead({
     playheadRef,
     scrollRef,
@@ -409,6 +408,7 @@ export const Timeline = memo(function Timeline({
     contentOrigin,
     sessionEpoch,
   });
+  usePublishRangeSelection(rangeSelection, onRangeSelect);
   setRangeSelectionRef.current = setRangeSelection; // stable ref consumed by useTimelineClipDrag
 
   useTimelineSelectionLifecycle(expandedElements, selectedElementId, setShowPopover, () =>

@@ -1,6 +1,6 @@
 import { useCallback, type ReactNode } from "react";
 import { Timeline } from "../../player";
-import type { TimelineElement } from "../../player";
+import type { TimelineElement, TimelineTimeRange } from "../../player";
 import type { BlockedTimelineEditIntent } from "../../player/components/timelineEditing";
 import { TimelineResizeDivider } from "./TimelineResizeDivider";
 import { useTimelineEditContext } from "../../contexts/TimelineEditContext";
@@ -105,6 +105,7 @@ export interface TimelinePaneProps {
   ) => Promise<void> | void;
   onBlockedEditAttempt?: (element: TimelineElement, intent: BlockedTimelineEditIntent) => void;
   onSelectTimelineElement?: (element: TimelineElement | null) => void;
+  onRangeSelect?: (range: TimelineTimeRange | null) => void;
 }
 
 // fallow-ignore-next-line complexity
@@ -120,6 +121,7 @@ export function TimelinePane({
   onCompositionDrop,
   onBlockedEditAttempt,
   onSelectTimelineElement,
+  onRangeSelect,
 }: TimelinePaneProps) {
   const {
     seek,
@@ -292,6 +294,7 @@ export function TimelinePane({
             onBlockedEditAttempt={onBlockedEditAttempt}
             onSplitElement={handleSplitElement}
             onSelectElement={onSelectTimelineElement}
+            onRangeSelect={onRangeSelect}
           />
         </div>
         {timelineFooter && <div className="shrink-0">{timelineFooter}</div>}

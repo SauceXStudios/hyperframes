@@ -81,7 +81,7 @@ export {
   liveTime,
   formatTime,
 } from "./player";
-export type { TimelineElement } from "./player";
+export type { TimelineElement, TimelineTimeRange } from "./player";
 
 // Editor
 export { SourceEditor } from "./components/editor/SourceEditor";
