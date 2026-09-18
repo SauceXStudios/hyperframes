@@ -35,6 +35,22 @@ export interface DomEditActionsValue extends Pick<
   | "getGsapAnimationsForSelection"
   | "handleAskAgent"
   | "handleAgentModalSubmit"
+  | "handleAgentModalRun"
+  | "clearFinishedAgentJobs"
+  | "moveAgentJob"
+  | "answerAgentJob"
+  | "steerAgentJob"
+  | "promoteAgentJob"
+  | "handleTimelineRangeRun"
+  | "beginSteerJob"
+  | "cancelSteerJob"
+  | "cancelAgentJob"
+  | "revealAgentJobTarget"
+  | "setSelectedAgentId"
+  | "addCustomAgent"
+  | "setSelectedModel"
+  | "setSelectedEffort"
+  | "refreshAgentModels"
   | "handleBlockedDomMove"
   | "handleDomManualDragStart"
   | "handleDomEditElementDelete"
@@ -47,7 +63,6 @@ export interface DomEditActionsValue extends Pick<
   | "resolveImportedFontAsset"
   | "setAgentModalOpen"
   | "setAgentPromptSelectionContext"
-  | "setAgentModalAnchorPoint"
   | "handleGsapUpdateProperty"
   | "handleGsapUpdateMeta"
   | "handleGsapDeleteAnimation"
@@ -83,6 +98,7 @@ export interface DomEditActionsValue extends Pick<
 
 export interface DomEditSelectionValue extends Pick<
   DomEditValue,
+  | "projectId"
   | "domEditSelection"
   | "domEditGroupSelections"
   | "domEditHoverSelection"
@@ -92,9 +108,19 @@ export interface DomEditSelectionValue extends Pick<
   | "gsapMultipleTimelines"
   | "gsapUnsupportedTimelinePattern"
   | "agentModalOpen"
-  | "agentModalAnchorPoint"
+  | "steeringJob"
   | "copiedAgentPrompt"
   | "agentPromptSelectionContext"
+  | "agentRunLabel"
+  | "agentRunKind"
+  | "agentIconUrl"
+  | "agentIconUrlById"
+  | "agentOptions"
+  | "agentModels"
+  | "selectedModel"
+  | "selectedEffort"
+  | "selectedAgentId"
+  | "agentJobs"
 > {}
 
 const DomEditActionsContext = createStableContext<DomEditActionsValue | null>(
@@ -121,6 +147,11 @@ export function useDomEditActionsContextOptional(): DomEditActionsValue | null {
   return useContext(DomEditActionsContext);
 }
 
+/** Optional access — mirrors useDomEditActionsContextOptional for player-package mounts. */
+export function useDomEditSelectionContextOptional(): DomEditSelectionValue | null {
+  return useContext(DomEditSelectionContext);
+}
+
 export function useDomEditSelectionContext(): DomEditSelectionValue {
   const ctx = useContext(DomEditSelectionContext);
   if (!ctx) throw new Error("useDomEditSelectionContext must be used within DomEditProvider");
@@ -141,13 +172,24 @@ export function useDomEditContext(): DomEditValue {
 
 export function DomEditProvider({
   value: {
+    projectId,
     domEditSelection,
     domEditGroupSelections,
     domEditHoverSelection,
     agentModalOpen,
-    agentModalAnchorPoint,
+    steeringJob,
     copiedAgentPrompt,
     agentPromptSelectionContext,
+    agentRunLabel,
+    agentRunKind,
+    agentIconUrl,
+    agentIconUrlById,
+    agentOptions,
+    agentModels,
+    selectedModel,
+    selectedEffort,
+    selectedAgentId,
+    agentJobs,
     domEditSelectionRef,
     handleTimelineElementSelect,
     handlePreviewCanvasMouseDown,
@@ -178,6 +220,22 @@ export function DomEditProvider({
     getGsapAnimationsForSelection,
     handleAskAgent,
     handleAgentModalSubmit,
+    handleAgentModalRun,
+    clearFinishedAgentJobs,
+    moveAgentJob,
+    answerAgentJob,
+    steerAgentJob,
+    promoteAgentJob,
+    handleTimelineRangeRun,
+    beginSteerJob,
+    cancelSteerJob,
+    cancelAgentJob,
+    revealAgentJobTarget,
+    setSelectedAgentId,
+    addCustomAgent,
+    setSelectedModel,
+    setSelectedEffort,
+    refreshAgentModels,
     handleBlockedDomMove,
     handleDomManualDragStart,
     handleDomEditElementDelete,
@@ -191,7 +249,6 @@ export function DomEditProvider({
     resolveImportedFontAsset,
     setAgentModalOpen,
     setAgentPromptSelectionContext,
-    setAgentModalAnchorPoint,
     selectedGsapAnimations,
     gsapMultipleTimelines,
     gsapUnsupportedTimelinePattern,
@@ -270,6 +327,22 @@ export function DomEditProvider({
       getGsapAnimationsForSelection,
       handleAskAgent,
       handleAgentModalSubmit,
+      handleAgentModalRun,
+      clearFinishedAgentJobs,
+      moveAgentJob,
+      answerAgentJob,
+      steerAgentJob,
+      promoteAgentJob,
+      handleTimelineRangeRun,
+      beginSteerJob,
+      cancelSteerJob,
+      cancelAgentJob,
+      revealAgentJobTarget,
+      setSelectedAgentId,
+      addCustomAgent,
+      setSelectedModel,
+      setSelectedEffort,
+      refreshAgentModels,
       handleBlockedDomMove,
       handleDomManualDragStart,
       handleDomEditElementDelete,
@@ -282,7 +355,6 @@ export function DomEditProvider({
       resolveImportedFontAsset,
       setAgentModalOpen,
       setAgentPromptSelectionContext,
-      setAgentModalAnchorPoint,
       handleGsapUpdateProperty,
       handleGsapUpdateMeta,
       handleGsapDeleteAnimation,
@@ -344,6 +416,22 @@ export function DomEditProvider({
       getGsapAnimationsForSelection,
       handleAskAgent,
       handleAgentModalSubmit,
+      handleAgentModalRun,
+      clearFinishedAgentJobs,
+      moveAgentJob,
+      answerAgentJob,
+      steerAgentJob,
+      promoteAgentJob,
+      handleTimelineRangeRun,
+      beginSteerJob,
+      cancelSteerJob,
+      cancelAgentJob,
+      revealAgentJobTarget,
+      setSelectedAgentId,
+      addCustomAgent,
+      setSelectedModel,
+      setSelectedEffort,
+      refreshAgentModels,
       handleBlockedDomMove,
       handleDomManualDragStart,
       handleDomEditElementDelete,
@@ -356,7 +444,6 @@ export function DomEditProvider({
       resolveImportedFontAsset,
       setAgentModalOpen,
       setAgentPromptSelectionContext,
-      setAgentModalAnchorPoint,
       handleGsapUpdateProperty,
       handleGsapUpdateMeta,
       handleGsapDeleteAnimation,
@@ -393,6 +480,7 @@ export function DomEditProvider({
 
   const selection = useMemo<DomEditSelectionValue>(
     () => ({
+      projectId,
       domEditSelection,
       domEditGroupSelections,
       domEditHoverSelection,
@@ -402,11 +490,22 @@ export function DomEditProvider({
       gsapMultipleTimelines,
       gsapUnsupportedTimelinePattern,
       agentModalOpen,
-      agentModalAnchorPoint,
+      steeringJob,
       copiedAgentPrompt,
       agentPromptSelectionContext,
+      agentRunLabel,
+      agentRunKind,
+      agentIconUrl,
+      agentIconUrlById,
+      agentOptions,
+      agentModels,
+      selectedModel,
+      selectedEffort,
+      selectedAgentId,
+      agentJobs,
     }),
     [
+      projectId,
       domEditSelection,
       domEditGroupSelections,
       domEditHoverSelection,
@@ -416,9 +515,19 @@ export function DomEditProvider({
       gsapMultipleTimelines,
       gsapUnsupportedTimelinePattern,
       agentModalOpen,
-      agentModalAnchorPoint,
+      steeringJob,
       copiedAgentPrompt,
       agentPromptSelectionContext,
+      agentRunLabel,
+      agentRunKind,
+      agentIconUrl,
+      agentIconUrlById,
+      agentOptions,
+      agentModels,
+      selectedModel,
+      selectedEffort,
+      selectedAgentId,
+      agentJobs,
     ],
   );
   return (

@@ -248,6 +248,7 @@ export function StudioApp() {
     activeCompPath,
     forceReloadSdkSession: sdkHandle.forceReload,
     onToggleRecording: () => handleToggleRecordingRef.current(),
+    onAskAgent: () => domEditSessionRef.current.handleAskAgent(),
   });
   const sidebarTabRef = useRef({
     select: (t: SidebarTab) => leftSidebarRef.current?.selectTab(t),
@@ -401,6 +402,8 @@ export function StudioApp() {
     buildDomSelectionFromTarget: domEditSession.buildDomSelectionFromTarget,
     applyDomSelection: domEditSession.applyDomSelection,
     setRightPanelTab: panelLayout.setRightPanelTab,
+    askAgentOpen: domEditSession.agentModalOpen,
+    openAskAgent: domEditSession.handleAskAgent,
     initialState: initialUrlStateRef.current,
   });
   const studioCtxValue = buildStudioContextValue({
@@ -566,8 +569,6 @@ export function StudioApp() {
                     closeLintModal={closeLintModal}
                     consoleErrors={consoleErrors}
                     clearConsoleErrors={() => setConsoleErrors(null)}
-                    domEditSession={domEditSession}
-                    activeCompPath={activeCompPath}
                     dragOverlayActive={dragOverlay.active}
                     toasts={toasts}
                     dismissToast={dismissToast}

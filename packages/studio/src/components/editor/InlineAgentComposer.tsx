@@ -1,0 +1,559 @@
+import { useRef, useState, type CSSProperties } from "react";
+import { useMountEffect } from "../../hooks/useMountEffect";
+import { clampNumber } from "../../utils/studioHelpers";
+import {
+  AgentGlyph,
+  type AgentJob,
+  type AgentKind,
+  type AgentModel,
+  type AgentOption,
+  type CustomAgentDraft,
+} from "./agentGlyphs";
+import { CustomAgentForm } from "./CustomAgentForm";
+import { AGENT_SURFACE_GAP, HANDLE_WIDTH, resolveComposerPosition } from "./agentSurfaceLayout";
+import {
+  CANVAS_OVERLAY_CONTROL_Z,
+  FLOATING_CHIP,
+  FLOATING_SURFACE,
+  GHOST_ICON_BUTTON,
+} from "../ui/floatingSurface";
+import { clearAgentDraft, readAgentDraft, writeAgentDraft } from "../../utils/agentDrafts";
+import type { OverlayRect } from "./domEditOverlayGeometry";
+
+function Chevron() {
+  return (
+    <svg
+      width="9"
+      height="9"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="shrink-0 opacity-70"
+      aria-hidden="true"
+    >
+      <path d="M4 6.5 L8 10.5 L12 6.5" />
+    </svg>
+  );
+}
+
+// Radii are concentric: 16px outer, 6px padding, 10px field.
+const SURFACE_CLASS = `rounded-2xl p-1.5 ${FLOATING_SURFACE}`;
+
+/**
+ * The agent prompt box, drawn on the canvas beside the element it edits — no
+ * modal, no backdrop, so the composition stays visible while the agent works.
+ * Submitting queues a run and clears the field immediately: the next element is
+ * one click away, and the run tray tracks everything in flight.
+ */
+export function InlineAgentComposer({
+  selectionLabel,
+  draftKey,
+  rect,
+  canvas,
+  placement,
+  runLabel,
+  agentKind,
+  agentIconUrl,
+  agentOptions = [],
+  agentModels = [],
+  selectedModel = null,
+  selectedEffort = null,
+  onSelectAgent,
+  onAddCustomAgent,
+  onSelectModel,
+  onSelectEffort,
+  onRun,
+  onCopy,
+  onClose,
+  steeringJob = null,
+  onSteer,
+  onCancelSteer,
+  toContainerStyle = (style) => style,
+}: {
+  selectionLabel: string;
+  /** Identifies the element this draft belongs to; see utils/agentDrafts. */
+  draftKey: string;
+  rect: OverlayRect | null;
+  canvas: { width: number; height: number };
+  /** Where the shared layout put this panel, so it never lands on the bubble. */
+  placement?: { left: number; top: number };
+  /** Name of the installed agent CLI, or null when none is available to run. */
+  runLabel: string | null;
+  agentKind: AgentKind | null;
+  /** A real logo for this harness, supplied via HYPERFRAMES_AGENT_ICON. */
+  agentIconUrl: string | null;
+  /** Every harness Studio knows about, installed or not. */
+  agentOptions?: AgentOption[];
+  /** Tool-capable models for the active harness, cheapest first. */
+  agentModels?: AgentModel[];
+  selectedModel?: string | null;
+  selectedEffort?: string | null;
+  onSelectAgent?: (id: string) => void;
+  onSelectEffort?: (effort: string | null) => void;
+  onAddCustomAgent?: (draft: CustomAgentDraft) => Promise<boolean>;
+  onSelectModel?: (model: string | null) => void;
+  onRun: (instruction: string) => void;
+  onCopy: (instruction: string) => void;
+  onClose: () => void;
+  /** The run being corrected, when the composer was opened from the tray. */
+  steeringJob?: AgentJob | null;
+  onSteer?: (jobId: string, text: string) => void;
+  onCancelSteer?: () => void;
+  /** Lifts overlay-local coordinates into whatever space this is drawn in. */
+  toContainerStyle?: (style: CSSProperties) => CSSProperties;
+}) {
+  // Seeded from the stored draft: a reload lands mid-sentence otherwise, and
+  // the agent's own edits are what trigger those reloads.
+  const [value, setValue] = useState(() => readAgentDraft(draftKey));
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [modelPickerOpen, setModelPickerOpen] = useState(false);
+  const [effortPickerOpen, setEffortPickerOpen] = useState(false);
+  const [addingAgent, setAddingAgent] = useState(false);
+  // Drag offset from the anchored position — the composer can cover the very
+  // element being edited, so the header doubles as a drag handle.
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const dragRef = useRef<{ pointerId: number; startX: number; startY: number } | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Focus twice on purpose: the click that opens the composer can hand focus
+  // back to its trigger button, and a keystroke that misses the field lands on
+  // the canvas hotkeys instead (typing "r" would start a gesture recording).
+  useMountEffect(() => {
+    inputRef.current?.focus();
+    requestAnimationFrame(() => inputRef.current?.focus());
+  });
+
+  const updateValue = (next: string) => {
+    setValue(next);
+    writeAgentDraft(draftKey, next);
+  };
+
+  const submit = () => {
+    const instruction = value.trim();
+    if (!instruction) return;
+    // Steering reuses this box on purpose: one place to type in the whole
+    // product, whether the run exists yet or is already going.
+    if (steeringJob && onSteer) onSteer(steeringJob.id, instruction);
+    else if (runLabel) onRun(instruction);
+    else onCopy(instruction);
+    setValue("");
+    clearAgentDraft(draftKey);
+    if (inputRef.current) inputRef.current.style.height = "auto";
+    inputRef.current?.focus();
+  };
+
+  const activeModel = agentModels.find((model) => model.id === selectedModel) ?? agentModels[0];
+  const effortOptions = activeModel?.effortOptions ?? [];
+
+  const dragHandlers = {
+    onPointerDown: (e: React.PointerEvent) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      e.stopPropagation();
+      dragRef.current = {
+        pointerId: e.pointerId,
+        startX: e.clientX - offset.x,
+        startY: e.clientY - offset.y,
+      };
+      e.currentTarget.setPointerCapture(e.pointerId);
+    },
+    onPointerMove: (e: React.PointerEvent) => {
+      const drag = dragRef.current;
+      if (!drag || drag.pointerId !== e.pointerId) return;
+      setOffset({ x: e.clientX - drag.startX, y: e.clientY - drag.startY });
+    },
+    onPointerUp: (e: React.PointerEvent) => {
+      if (dragRef.current?.pointerId !== e.pointerId) return;
+      dragRef.current = null;
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    },
+  };
+
+  return (
+    <div
+      data-inline-agent-composer="true"
+      className={`hf-composer-enter absolute ${CANVAS_OVERLAY_CONTROL_Z} w-[320px] ${SURFACE_CLASS}`}
+      style={{
+        ...toContainerStyle(placement ?? resolveComposerPosition(rect, canvas)),
+        translate: offset.x || offset.y ? `${offset.x}px ${offset.y}px` : undefined,
+      }}
+      // The canvas overlay owns pointer gestures — keep clicks and keystrokes
+      // inside the composer from reselecting or nudging the element being edited.
+      onPointerDown={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
+      onContextMenu={(e) => e.stopPropagation()}
+    >
+      {steeringJob && (
+        <div className="flex items-center gap-1.5 px-1.5 pb-1.5 pt-0.5">
+          <AgentGlyph kind={steeringJob.kind} size={11} iconUrl={agentIconUrl} />
+          <span className="shrink-0 text-[11px] leading-none text-studio-accent">
+            {steeringJob.status === "running" ? "Steering" : "Changing"}
+          </span>
+          <span className="min-w-0 flex-1 truncate text-[11px] leading-none text-neutral-500">
+            {steeringJob.instruction}
+          </span>
+          {onCancelSteer && (
+            <button
+              className={GHOST_ICON_BUTTON}
+              onClick={onCancelSteer}
+              aria-label="Stop steering this run"
+            >
+              <svg
+                width="11"
+                height="11"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                aria-hidden="true"
+              >
+                <path d="M4 4 L12 12 M12 4 L4 12" />
+              </svg>
+            </button>
+          )}
+        </div>
+      )}
+      <div
+        className={`flex cursor-grab items-center gap-1.5 px-1.5 pb-1.5 pt-0.5 active:cursor-grabbing${
+          steeringJob ? " hidden" : ""
+        }`}
+        {...dragHandlers}
+      >
+        {/* The harness owns the header (the element it edits reads from the
+            field's placeholder) and doubles as the picker: a queue can mix
+            harnesses, so the choice belongs next to the instruction. */}
+        <button
+          className="-mx-1 flex min-w-0 shrink items-center gap-1.5 rounded-md px-1 py-0.5 text-[11px] leading-none text-neutral-500 transition-colors duration-150 ease-out hover:bg-neutral-800/60 hover:text-neutral-300 disabled:hover:bg-transparent"
+          disabled={!onSelectAgent}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => {
+            setModelPickerOpen(false);
+            setPickerOpen((open) => !open);
+          }}
+          aria-haspopup="menu"
+          aria-expanded={pickerOpen}
+          aria-label={`Harness: ${runLabel ?? selectionLabel}`}
+        >
+          {agentKind && <AgentGlyph kind={agentKind} size={11} iconUrl={agentIconUrl} />}
+          <span className="truncate">{runLabel ?? selectionLabel}</span>
+          {onSelectAgent && <Chevron />}
+        </button>
+        {/* The model sits beside the harness, not inside its menu: which model
+            ran is the other half of "who will do this", and it changes often. */}
+        {onSelectModel && agentModels.length > 0 && (
+          <button
+            className="flex min-w-0 flex-1 items-center gap-1 rounded-md px-1 py-0.5 text-[10px] leading-none text-neutral-600 transition-colors duration-150 ease-out hover:bg-neutral-800/60 hover:text-neutral-300"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={() => {
+              setPickerOpen(false);
+              setModelPickerOpen((open) => !open);
+            }}
+            aria-haspopup="menu"
+            aria-expanded={modelPickerOpen}
+            aria-label={selectedModel ? `Model: ${selectedModel}` : "Model: the default"}
+          >
+            <span className="truncate">
+              {/* Unset means Studio picks; name the model it picked, not the
+                  rule it picked it by — the reason belongs in the menu. */}
+              {selectedModel ?? (agentModels[0]?.id ? `${agentModels[0].id} · default` : "default")}
+            </span>
+            <Chevron />
+          </button>
+        )}
+        {/* Effort rides beside the model because it is the same decision: how
+            much thinking to buy. The lowest the model offers is the default. */}
+        {onSelectEffort && effortOptions.length > 0 && (
+          <button
+            className="flex shrink-0 items-center gap-1 rounded-md px-1 py-0.5 text-[10px] leading-none text-neutral-600 transition-colors duration-150 ease-out hover:bg-neutral-800/60 hover:text-neutral-300"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={() => {
+              setPickerOpen(false);
+              setModelPickerOpen(false);
+              setEffortPickerOpen((open) => !open);
+            }}
+            aria-haspopup="menu"
+            aria-expanded={effortPickerOpen}
+            aria-label={`Effort: ${selectedEffort ?? effortOptions[0] ?? "lowest"}`}
+          >
+            <span className="truncate">{selectedEffort ?? effortOptions[0]}</span>
+            <Chevron />
+          </button>
+        )}
+        {runLabel && (
+          <button
+            className="rounded-md px-1.5 py-0.5 text-[10px] leading-none text-neutral-600 transition-colors duration-150 ease-out hover:bg-neutral-800/60 hover:text-neutral-300 active:scale-[0.96] disabled:opacity-40"
+            disabled={!value.trim()}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={() => onCopy(value.trim())}
+            title="Copy the prompt instead of running it"
+          >
+            Copy
+          </button>
+        )}
+        <button
+          className="rounded-md p-0.5 text-neutral-600 transition-colors duration-150 ease-out hover:text-neutral-300 active:scale-[0.96]"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={onClose}
+          aria-label="Close"
+        >
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            aria-hidden="true"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+
+      {pickerOpen && onSelectAgent && (
+        <div
+          data-preview-overlay-scroll="true"
+          className="mb-1.5 max-h-44 scroll-py-1 overflow-y-auto overscroll-contain scroll-smooth rounded-[10px] bg-neutral-900/70 p-1 ring-1 ring-white/10"
+        >
+          {addingAgent && onAddCustomAgent ? (
+            <CustomAgentForm
+              onSubmit={onAddCustomAgent}
+              onCancel={() => {
+                setAddingAgent(false);
+                setPickerOpen(false);
+              }}
+            />
+          ) : (
+            <ul className="space-y-0.5">
+              {agentOptions.map((option) => (
+                <li key={option.id}>
+                  <button
+                    className="flex w-full items-center gap-1.5 rounded-md px-1.5 py-1 text-left text-[11px] leading-none text-neutral-300 transition-colors duration-150 ease-out hover:bg-neutral-800/70 disabled:opacity-35 disabled:hover:bg-transparent"
+                    disabled={!option.available}
+                    onClick={() => {
+                      onSelectAgent(option.kind);
+                      setPickerOpen(false);
+                      inputRef.current?.focus();
+                    }}
+                    title={option.available ? undefined : `${option.label} is not installed`}
+                  >
+                    <AgentGlyph kind={option.kind} size={11} iconUrl={option.iconUrl} />
+                    <span className="truncate">{option.label}</span>
+                    {option.label === runLabel && (
+                      <span className="ml-auto text-[10px] text-studio-accent">in use</span>
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {onAddCustomAgent && !addingAgent && (
+            <button
+              className="mt-0.5 flex w-full items-center gap-1.5 rounded-md px-1.5 py-1 text-left text-[11px] leading-none text-neutral-500 transition-colors duration-150 ease-out hover:bg-neutral-800/70 hover:text-neutral-300"
+              onClick={() => setAddingAgent(true)}
+            >
+              <span className="text-[13px] leading-none">+</span>
+              <span>Add a harness…</span>
+            </button>
+          )}
+        </div>
+      )}
+
+      {modelPickerOpen && onSelectModel && agentModels.length > 0 && (
+        <ul
+          data-preview-overlay-scroll="true"
+          className="mb-1.5 max-h-44 space-y-0.5 scroll-py-1 overflow-y-auto overscroll-contain scroll-smooth rounded-[10px] bg-neutral-900/70 p-1 ring-1 ring-white/10"
+        >
+          <li>
+            <button
+              className="flex w-full items-center gap-1.5 rounded-md px-1.5 py-1 text-left text-[11px] leading-none text-neutral-300 transition-colors duration-150 ease-out hover:bg-neutral-800/70"
+              onClick={() => {
+                onSelectModel(null);
+                setModelPickerOpen(false);
+              }}
+            >
+              <span className="truncate">Default</span>
+              {!selectedModel && (
+                <span className="ml-auto text-[10px] text-studio-accent">in use</span>
+              )}
+            </button>
+          </li>
+          {agentModels.map((model) => (
+            <li key={model.id}>
+              <button
+                className="flex w-full items-center gap-1.5 rounded-md px-1.5 py-1 text-left text-[11px] leading-none text-neutral-300 transition-colors duration-150 ease-out hover:bg-neutral-800/70"
+                onClick={() => {
+                  onSelectModel(model.id);
+                  setModelPickerOpen(false);
+                }}
+                title={model.id}
+              >
+                <span className="truncate">{model.name}</span>
+                {model.inputCost !== undefined && (
+                  <span className="ml-auto shrink-0 text-[10px] text-neutral-600 tabular-nums">
+                    ${model.inputCost}/M
+                  </span>
+                )}
+                {selectedModel === model.id && (
+                  <span className="ml-1 shrink-0 text-[10px] text-studio-accent">in use</span>
+                )}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {effortPickerOpen && onSelectEffort && effortOptions.length > 0 && (
+        <ul
+          data-preview-overlay-scroll="true"
+          className="mb-1.5 max-h-44 space-y-0.5 overflow-y-auto overscroll-contain scroll-smooth rounded-[10px] bg-neutral-900/70 p-1 ring-1 ring-white/10"
+        >
+          {effortOptions.map((effort, index) => (
+            <li key={effort}>
+              <button
+                className="flex w-full items-center gap-1.5 rounded-md px-1.5 py-1 text-left text-[11px] leading-none text-neutral-300 transition-colors duration-150 ease-out hover:bg-neutral-800/70"
+                onClick={() => {
+                  onSelectEffort(index === 0 ? null : effort);
+                  setEffortPickerOpen(false);
+                }}
+              >
+                <span className="truncate">{effort}</span>
+                {index === 0 && (
+                  <span className="ml-auto text-[10px] text-neutral-600">lowest</span>
+                )}
+                {(selectedEffort ?? effortOptions[0]) === effort && (
+                  <span className="ml-1 shrink-0 text-[10px] text-studio-accent">in use</span>
+                )}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="flex items-end gap-1.5 rounded-[10px] bg-neutral-900/70 px-2 py-1.5 ring-1 ring-white/10 transition-[box-shadow] duration-150 ease-out focus-within:ring-studio-accent/40">
+        <textarea
+          ref={inputRef}
+          rows={1}
+          className="max-h-24 min-h-[20px] flex-1 resize-none bg-transparent text-[13px] leading-snug text-neutral-200 outline-none placeholder:text-neutral-600"
+          placeholder={
+            steeringJob
+              ? steeringJob.status === "running"
+                ? "Correct it — it picks up where it is"
+                : "Change what it will be asked"
+              : `Describe a change to ${selectionLabel}…`
+          }
+          value={value}
+          onChange={(e) => {
+            updateValue(e.target.value);
+            e.target.style.height = "auto";
+            e.target.style.height = `${Math.min(96, e.target.scrollHeight)}px`;
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              e.stopPropagation();
+              onClose();
+              return;
+            }
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              submit();
+            }
+          }}
+        />
+        <button
+          className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-studio-accent text-neutral-950 transition-[opacity,scale] duration-150 ease-out hover:opacity-90 active:scale-[0.96] disabled:cursor-not-allowed disabled:opacity-30"
+          disabled={!value.trim()}
+          onClick={submit}
+          aria-label={runLabel ? `Run ${runLabel}` : "Copy prompt"}
+        >
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M8 13 V3" />
+            <path d="M4 6.5 L8 2.5 L12 6.5" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The affordance that opens the composer: a small harness mark pinned to the
+ * selection. It replaces auto-opening on every click — the panel used to land
+ * on the canvas whether or not the user wanted to ask for anything — while
+ * keeping the entry point where the eye already is, next to what is selected.
+ */
+export function AskAgentHandle({
+  rect,
+  canvas,
+  agentKind,
+  agentIconUrl,
+  label,
+  onOpen,
+  toContainerStyle = (style) => style,
+}: {
+  rect: OverlayRect | null;
+  canvas: { width: number; height: number };
+  agentKind: AgentKind | null;
+  agentIconUrl: string | null;
+  label: string;
+  onOpen: () => void;
+  toContainerStyle?: (style: CSSProperties) => CSSProperties;
+}) {
+  if (!rect || canvas.width === 0) return null;
+
+  // Sits above the selection's top edge, clear of the corner resize handles,
+  // and clamped so it never leaves the canvas on an element near an edge. It
+  // grows rightward on hover, so the anchor is the right edge either way.
+  const right = clampNumber(
+    rect.left + rect.width,
+    HANDLE_WIDTH + AGENT_SURFACE_GAP,
+    canvas.width - AGENT_SURFACE_GAP,
+  );
+  const top = clampNumber(
+    rect.top - 32,
+    AGENT_SURFACE_GAP,
+    Math.max(AGENT_SURFACE_GAP, canvas.height - 26 - AGENT_SURFACE_GAP),
+  );
+
+  return (
+    <button
+      data-ask-agent-handle="true"
+      className={`hf-composer-enter group absolute ${CANVAS_OVERLAY_CONTROL_Z} flex h-[26px] w-[26px] items-center gap-1.5 overflow-hidden rounded-full px-[6px] text-[11px] leading-none text-neutral-300 transition-[width,color,box-shadow] duration-150 ease-out hover:w-[104px] hover:text-neutral-100 hover:ring-white/25 focus-visible:w-[104px] active:scale-[0.96] ${FLOATING_CHIP}`}
+      style={toContainerStyle({ left: right - HANDLE_WIDTH, top })}
+      onPointerDown={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
+      onClick={(e) => {
+        e.stopPropagation();
+        onOpen();
+      }}
+      aria-label={`Ask ${label} about this element`}
+    >
+      <AgentGlyph kind={agentKind ?? "custom"} size={14} iconUrl={agentIconUrl} />
+      {/* The label rides in on hover — at rest this is a mark, not a banner over
+          the composition, and no OS tooltip covers the element it points at. */}
+      <span className="flex flex-1 items-center gap-1.5 whitespace-nowrap opacity-0 transition-opacity duration-150 ease-out group-hover:opacity-100 group-focus-visible:opacity-100">
+        <span>Ask</span>
+        <span className="ml-auto rounded bg-white/10 px-1 py-0.5 text-[9px] leading-none text-neutral-400">
+          ⌘K
+        </span>
+      </span>
+    </button>
+  );
+}
