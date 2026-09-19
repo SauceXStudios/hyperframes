@@ -117,6 +117,8 @@ export function persistMoveEdits(
   coalesceKey?: string,
   operation: TimelineMoveOperation = "timing",
   coalesceMs?: number,
+  /** False when the caller already wrote the end state to the store (a placement drop does). */
+  updateStore = true,
 ): Promise<boolean> {
   if (edits.length === 0) return Promise.resolve(true);
   const { updateElement, onMoveElement, onMoveElements } = deps;
@@ -150,7 +152,7 @@ export function persistMoveEdits(
       writtenTrack == null ? e.updates : { ...e.updates, authoredTrack: writtenTrack },
     );
   };
-  for (const e of edits) applyEdit(e);
+  if (updateStore) for (const e of edits) applyEdit(e);
   // The store above gets DISPLAY lanes; the file below gets the authored-space
   // track when one was resolved (see TimelineMoveEdit.persistTrack).
   const persistEdits = edits.map((e) =>
@@ -167,6 +169,7 @@ export function persistMoveEdits(
       // restore the preview manifest's pre-gesture lane. Reassert the durable
       // result after persistence, but only while this remains the latest
       // optimistic gesture so an older save can never clobber a newer drag.
+      if (!updateStore) return true;
       for (const e of edits) {
         const key = keyOf(e.element);
         if (isLatestTimelineOptimisticGesture(updateElement, revision, key)) applyEdit(e);
@@ -174,9 +177,15 @@ export function persistMoveEdits(
       return true;
     },
     (error) => {
-      for (const p of prev) {
-        if (isLatestTimelineOptimisticGesture(updateElement, revision, p.key)) {
-          updateElement(p.key, { start: p.start, track: p.track, authoredTrack: p.authoredTrack });
+      if (updateStore) {
+        for (const p of prev) {
+          if (isLatestTimelineOptimisticGesture(updateElement, revision, p.key)) {
+            updateElement(p.key, {
+              start: p.start,
+              track: p.track,
+              authoredTrack: p.authoredTrack,
+            });
+          }
         }
       }
       console.error("[Timeline] Failed to persist clip edits", error);
@@ -262,6 +271,7 @@ export function commitDraggedClipMove(rawDrag: DraggedClipState, deps: DragCommi
           fold.coalesceKey,
           edits.some((e) => e.updates.track !== e.element.track) ? "lane-reorder" : "timing",
           fold.coalesceMs,
+          false,
         ),
         deps,
       );

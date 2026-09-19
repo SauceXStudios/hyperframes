@@ -59,6 +59,8 @@ describe("useTimelineDeleteOps: ripple undo label", () => {
     handleTimelineGroupMove: DeleteOpsOptions["handleTimelineGroupMove"];
     showToast?: DeleteOpsOptions["showToast"];
     recordEdit?: DeleteOpsOptions["recordEdit"];
+    reloadPreview?: DeleteOpsOptions["reloadPreview"];
+    forceReloadSdkSession?: DeleteOpsOptions["forceReloadSdkSession"];
   }) {
     const elements = [el("hf-a", 0, 2), el("hf-b", 2, 2), el("hf-c", 4, 2)];
     let hook: ReturnType<typeof useTimelineDeleteOps> | null = null;
@@ -70,7 +72,8 @@ describe("useTimelineDeleteOps: ripple undo label", () => {
         showToast: overrides.showToast ?? vi.fn(),
         writeProjectFile: vi.fn().mockResolvedValue(undefined),
         recordEdit: overrides.recordEdit ?? vi.fn().mockResolvedValue(undefined),
-        reloadPreview: vi.fn(),
+        reloadPreview: overrides.reloadPreview ?? vi.fn(),
+        forceReloadSdkSession: overrides.forceReloadSdkSession,
         previewIframeRef: { current: null },
         handleTimelineGroupMove: overrides.handleTimelineGroupMove,
       });
@@ -144,5 +147,39 @@ describe("useTimelineDeleteOps: ripple undo label", () => {
     expect(recordEdit).toHaveBeenCalledWith(
       expect.objectContaining({ coalesceKey: "clip-overwrite:3", coalesceMs: Infinity }),
     );
+  });
+
+  // A drop reloads the preview once, at its end; an interior remove must not reload on its own.
+  it("skips reloading the preview for an overwrite delete, but still refreshes the sdk session", async () => {
+    const handleTimelineGroupMove = vi.fn().mockResolvedValue(undefined);
+    const reloadPreview = vi.fn();
+    const forceReloadSdkSession = vi.fn();
+    const { b, getHook } = mountDeleteHarness({
+      handleTimelineGroupMove,
+      reloadPreview,
+      forceReloadSdkSession,
+    });
+
+    await act(async () => {
+      await getHook().deleteTimelineElements([b], {
+        coalesceKey: "clip-overwrite:4",
+        coalesceMs: Number.POSITIVE_INFINITY,
+      });
+    });
+
+    expect(reloadPreview).not.toHaveBeenCalled();
+    expect(forceReloadSdkSession).toHaveBeenCalledTimes(1);
+  });
+
+  it("still reloads the preview for a plain (non-drop) delete", async () => {
+    const handleTimelineGroupMove = vi.fn().mockResolvedValue(undefined);
+    const reloadPreview = vi.fn();
+    const { b, getHook } = mountDeleteHarness({ handleTimelineGroupMove, reloadPreview });
+
+    await act(async () => {
+      await getHook().handleTimelineElementDelete(b);
+    });
+
+    expect(reloadPreview).toHaveBeenCalledTimes(1);
   });
 });

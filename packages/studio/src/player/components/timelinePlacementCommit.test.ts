@@ -1,29 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
-import type { TimelineGroupResizeChange } from "../../hooks/useTimelineGroupEditing";
-import type { TimelineElement } from "../store/playerStore";
-import type { DragCommitDeps, TimelineMoveEdit } from "./timelineClipDragCommit";
-import type { DraggedClipState } from "./timelineClipDragTypes";
+import type { TimelineMoveEdit } from "./timelineClipDragCommit";
 import type { PlaceClipResult } from "./timelinePlacement";
 import {
   buildPlacementSteps,
   commitPlacementDrop,
   placementRefusal,
   runPlacementSteps,
-  type PlacementFold,
-  type PlacementOps,
 } from "./timelinePlacementCommit";
-import {
-  buildEditHistoryEntry,
-  createEmptyEditHistory,
-  hashEditHistoryContent,
-  pushEditHistoryEntry,
-  undoEditHistory,
-  type EditHistoryState,
-} from "../../utils/editHistory";
-
-function clip(id: string, start: number, duration: number, extra: Partial<TimelineElement> = {}) {
-  return { id, domId: id, tag: "video", start, duration, track: 1, ...extra } as TimelineElement;
-}
+import { clip, createFakeProject, depsOf, dragOf, type Doc } from "./timelinePlacementTestHarness";
 
 const dragged = clip("d", 20, 2);
 const draggedEdit = (start: number): TimelineMoveEdit => ({
@@ -223,144 +207,6 @@ describe("placementRefusal", () => {
   });
 });
 
-interface Doc {
-  [id: string]: { start: number; duration: number; playbackStart?: number };
-}
-
-/** A tiny stand-in for the project file plus the history recorder, driven by the real reducer. */
-function createFakeProject(initial: Doc) {
-  let doc: Doc = structuredClone(initial);
-  let history: EditHistoryState = createEmptyEditHistory();
-  let clock = 0;
-  const serialize = (d: Doc) =>
-    JSON.stringify(Object.entries(d).sort(([x], [y]) => (x < y ? -1 : 1)));
-  const record = (mutate: () => void, label: string, fold: PlacementFold) => {
-    const before = serialize(doc);
-    mutate();
-    history = pushEditHistoryEntry(
-      history,
-      buildEditHistoryEntry({
-        id: `e${clock}`,
-        projectId: "p",
-        label,
-        kind: "timeline",
-        coalesceKey: fold.coalesceKey,
-        coalesceMs: fold.coalesceMs,
-        now: (clock += 1000),
-        files: { "index.html": { before, after: serialize(doc) } },
-      }),
-    );
-  };
-  const current = (element: TimelineElement) => {
-    const found = doc[element.id];
-    if (!found) throw new Error(`${element.id} is not in the document`);
-    // The element a step hands over must describe what the document holds right now.
-    expect({ start: element.start, duration: element.duration }).toEqual({
-      start: found.start,
-      duration: found.duration,
-    });
-    return found;
-  };
-  const ops: PlacementOps = {
-    split: async (element, at, fold) => {
-      record(
-        () => {
-          const target = current(element);
-          const end = target.start + target.duration;
-          doc[`${element.id}-split`] = {
-            start: at,
-            duration: end - at,
-            playbackStart: (target.playbackStart ?? 0) + (at - target.start),
-          };
-          target.duration = at - target.start;
-        },
-        "split",
-        fold,
-      );
-      return true;
-    },
-    remove: async (elements, fold) => {
-      record(
-        () => {
-          for (const element of elements) {
-            current(element);
-            delete doc[element.id];
-          }
-        },
-        "delete",
-        fold,
-      );
-      return true;
-    },
-    toast: vi.fn(),
-  };
-  const resize = async (changes: TimelineGroupResizeChange[], fold: PlacementFold) => {
-    record(
-      () => {
-        for (const change of changes) {
-          const target = current(change.element);
-          target.start = change.start;
-          target.duration = change.duration;
-          if (change.playbackStart != null) target.playbackStart = change.playbackStart;
-        }
-      },
-      "resize",
-      fold,
-    );
-  };
-  const move = async (edits: TimelineMoveEdit[], fold: PlacementFold) => {
-    record(
-      () => {
-        for (const edit of edits) {
-          const found = doc[edit.element.id];
-          if (found) found.start = edit.updates.start;
-          else
-            doc[edit.element.id] = { start: edit.updates.start, duration: edit.element.duration };
-        }
-      },
-      "move",
-      fold,
-    );
-    return true;
-  };
-  return {
-    ops,
-    resize,
-    move,
-    doc: () => doc,
-    history: () => history,
-    undo: () => {
-      const undone = undoEditHistory(
-        history,
-        { "index.html": hashEditHistoryContent(serialize(doc)) },
-        0,
-      );
-      if (!undone.ok) throw new Error(`undo refused: ${undone.reason}`);
-      return undone.filesToWrite["index.html"];
-    },
-    serializeInitial: () => serialize(initial),
-  };
-}
-
-function dragOf(element: TimelineElement, previewStart: number, previewTrack = 1) {
-  return {
-    element,
-    previewStart,
-    previewTrack,
-    insertRow: null,
-  } as unknown as DraggedClipState;
-}
-
-function depsOf(elements: TimelineElement[], project: ReturnType<typeof createFakeProject>) {
-  return {
-    elements,
-    trackOrder: [1],
-    updateElement: vi.fn(),
-    placementOps: project.ops,
-    onResizeElements: project.resize,
-  } as unknown as DragCommitDeps;
-}
-
 describe("commitPlacementDrop: one undo step for the move and every cut", () => {
   // Lane 1: a [0,4) and b [4,8) video (b reads its source from 1s at rate 1), dragged d [20,22).
   const a = clip("a", 0, 4);
@@ -487,9 +333,10 @@ describe("runPlacementSteps failures", () => {
   it("names a partial apply and stops when a later step fails", async () => {
     const toast = vi.fn();
     await runPlacementSteps(steps, {
-      ops: { split: async () => true, remove: async () => true, toast },
+      ops: { split: async () => true, remove: async () => true, toast, reloadPreview: vi.fn() },
       resize: vi.fn(),
       move: async () => false,
+      applyToStore: vi.fn(),
     });
     expect(toast).toHaveBeenCalledWith("Overwrite partly applied, Undo restores it");
   });
@@ -498,9 +345,10 @@ describe("runPlacementSteps failures", () => {
     const toast = vi.fn();
     const move = vi.fn(async () => true);
     await runPlacementSteps(steps, {
-      ops: { split: async () => false, remove: async () => true, toast },
+      ops: { split: async () => false, remove: async () => true, toast, reloadPreview: vi.fn() },
       resize: vi.fn(),
       move,
+      applyToStore: vi.fn(),
     });
     expect(toast).toHaveBeenCalledWith("Overwrite failed, nothing changed");
     expect(move).not.toHaveBeenCalled();
@@ -510,12 +358,95 @@ describe("runPlacementSteps failures", () => {
     const toast = vi.fn();
     vi.spyOn(console, "error").mockImplementation(() => undefined);
     await runPlacementSteps(steps, {
-      ops: { split: async () => true, remove: async () => true, toast },
+      ops: { split: async () => true, remove: async () => true, toast, reloadPreview: vi.fn() },
       resize: vi.fn(),
       move: async () => {
         throw new Error("write failed");
       },
+      applyToStore: vi.fn(),
     });
     expect(toast).toHaveBeenCalledWith("Overwrite partly applied, Undo restores it");
+  });
+});
+
+// A drop reloads the preview exactly once, after every step lands, never once per step.
+describe("runPlacementSteps: one reload per drop, after every step lands", () => {
+  it("reloads exactly once, after the move step, when the drop contains a remove", async () => {
+    const calls: string[] = [];
+    const reloadPreview = vi.fn(() => calls.push("reload"));
+    const remove = vi.fn(async () => {
+      calls.push("remove");
+      return true;
+    });
+    const move = vi.fn(async () => {
+      calls.push("move");
+      return true;
+    });
+    await runPlacementSteps(
+      [
+        { kind: "remove", elements: [clip("a", 0, 4)] },
+        { kind: "move", edits: [] },
+      ],
+      {
+        ops: { split: async () => true, remove, toast: vi.fn(), reloadPreview },
+        resize: vi.fn(),
+        move,
+        applyToStore: vi.fn(),
+      },
+    );
+    expect(calls).toEqual(["remove", "move", "reload"]);
+    expect(reloadPreview).toHaveBeenCalledTimes(1);
+  });
+
+  it("reloads exactly once when the drop contains a split", async () => {
+    const reloadPreview = vi.fn();
+    const split = vi.fn(async () => true);
+    await runPlacementSteps(
+      [
+        { kind: "split", element: clip("a", 0, 4), at: 2 },
+        { kind: "move", edits: [] },
+      ],
+      {
+        ops: { split, remove: async () => true, toast: vi.fn(), reloadPreview },
+        resize: vi.fn(),
+        move: async () => true,
+        applyToStore: vi.fn(),
+      },
+    );
+    expect(reloadPreview).toHaveBeenCalledTimes(1);
+  });
+
+  it("never reloads a move/resize-only drop (a plain trim stays flash-free)", async () => {
+    const reloadPreview = vi.fn();
+    await runPlacementSteps(
+      [
+        { kind: "resize", changes: [] },
+        { kind: "move", edits: [] },
+      ],
+      {
+        ops: { split: async () => true, remove: async () => true, toast: vi.fn(), reloadPreview },
+        resize: vi.fn(async () => undefined),
+        move: async () => true,
+        applyToStore: vi.fn(),
+      },
+    );
+    expect(reloadPreview).not.toHaveBeenCalled();
+  });
+
+  it("reloads once when a step failed, because the store was already told the end state", async () => {
+    const reloadPreview = vi.fn();
+    await runPlacementSteps(
+      [
+        { kind: "remove", elements: [clip("a", 0, 4)] },
+        { kind: "move", edits: [] },
+      ],
+      {
+        ops: { split: async () => true, remove: async () => false, toast: vi.fn(), reloadPreview },
+        resize: vi.fn(),
+        move: async () => true,
+        applyToStore: vi.fn(),
+      },
+    );
+    expect(reloadPreview).toHaveBeenCalledTimes(1);
   });
 });

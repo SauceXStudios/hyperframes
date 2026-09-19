@@ -1,4 +1,5 @@
-import type { TimelineElement } from "../store/playerStore";
+import { usePlayerStore, type TimelineElement } from "../store/playerStore";
+import { holdTimelineManifests } from "../lib/timelineManifestHold";
 import type { DraggedClipState } from "./timelineClipDragTypes";
 import type { DragCommitDeps, TimelineMoveEdit } from "./timelineClipDragCommit";
 import { canMoveTimelineElement } from "./timelineAuthoredMoveTarget";
@@ -21,6 +22,8 @@ export interface PlacementOps {
   split: (element: TimelineElement, at: number, fold: PlacementFold) => Promise<boolean>;
   remove: (elements: TimelineElement[], fold: PlacementFold) => Promise<boolean>;
   toast: (message: string) => void;
+  /** The one full-reload point for a drop; split/remove skip their own while folded. */
+  reloadPreview: () => void;
 }
 
 export type PlacementStep =
@@ -148,6 +151,8 @@ interface PlacementRunner {
   ops: PlacementOps;
   resize: (changes: TimelineGroupResizeChange[], fold: PlacementFold) => Promise<void> | void;
   move: (edits: TimelineMoveEdit[], fold: PlacementFold) => Promise<boolean>;
+  /** Puts the drop's end state in the store before any write starts. */
+  applyToStore: (steps: readonly PlacementStep[]) => void;
 }
 
 function runStep(step: PlacementStep, fold: PlacementFold, run: PlacementRunner) {
@@ -163,7 +168,87 @@ function runStep(step: PlacementStep, fold: PlacementFold, run: PlacementRunner)
   }
 }
 
-/** Each step awaits the previous: the history fold needs every write to start from the last one's output. */
+/** The clip a split will add, under a stand-in id until the reload reports the real one. */
+function pendingSplitTail(el: TimelineElement, at: number): TimelineElement {
+  const playbackStart = hasSourcePlaybackOffset(el)
+    ? round3((el.playbackStart ?? 0) + (at - el.start) * (el.playbackRate ?? 1))
+    : el.playbackStart;
+  return {
+    ...el,
+    id: `${el.id}~tail`,
+    key: `${keyOf(el)}~tail`,
+    domId: undefined,
+    start: at,
+    duration: round3(el.start + el.duration - at),
+    playbackStart,
+  };
+}
+
+function moveUpdate(edit: TimelineMoveEdit): Partial<TimelineElement> {
+  const written =
+    edit.persistTrack ??
+    (edit.updates.track !== edit.element.track ? edit.updates.track : undefined);
+  return written == null ? edit.updates : { ...edit.updates, authoredTrack: written };
+}
+
+function resizeUpdate(change: TimelineGroupResizeChange): Partial<TimelineElement> {
+  return {
+    start: change.start,
+    duration: change.duration,
+    ...(change.playbackStart != null ? { playbackStart: change.playbackStart } : {}),
+  };
+}
+
+/** What one step changes in the store: keyed updates, removed keys, and clips it adds. */
+function stepEffects(step: PlacementStep): {
+  updates: Array<[string, Partial<TimelineElement>]>;
+  removed: string[];
+  added: TimelineElement[];
+} {
+  switch (step.kind) {
+    case "remove":
+      return { updates: [], removed: step.elements.map(keyOf), added: [] };
+    case "move":
+      return {
+        updates: step.edits.map((edit) => [keyOf(edit.element), moveUpdate(edit)]),
+        removed: [],
+        added: [],
+      };
+    case "resize":
+      return {
+        updates: step.changes.map((change) => [keyOf(change.element), resizeUpdate(change)]),
+        removed: [],
+        added: [],
+      };
+    case "split":
+      return {
+        updates: [[keyOf(step.element), { duration: round3(step.at - step.element.start) }]],
+        removed: [],
+        added: [pendingSplitTail(step.element, step.at)],
+      };
+  }
+}
+
+/** The drop's end state, written to the store in one go so no in-between state is ever shown. */
+function applyPlacementToStore(steps: readonly PlacementStep[]): void {
+  const removed = new Set<string>();
+  const updates = new Map<string, Partial<TimelineElement>>();
+  const tails: TimelineElement[] = [];
+  for (const effects of steps.map(stepEffects)) {
+    for (const key of effects.removed) removed.add(key);
+    for (const [key, next] of effects.updates) updates.set(key, { ...updates.get(key), ...next });
+    tails.push(...effects.added);
+  }
+  const { elements, setElements } = usePlayerStore.getState();
+  setElements([
+    ...elements
+      .filter((el) => !removed.has(keyOf(el)))
+      .map((el) => ({ ...el, ...updates.get(keyOf(el)) })),
+    ...tails,
+  ]);
+}
+
+/** Steps run in order, each from the last write; preview manifests stay held until the final reload. */
 export async function runPlacementSteps(
   steps: readonly PlacementStep[],
   run: PlacementRunner,
@@ -172,20 +257,32 @@ export async function runPlacementSteps(
     coalesceKey: `clip-overwrite:${placementGestureSeq++}`,
     coalesceMs: Number.POSITIVE_INFINITY,
   };
-  for (const [index, step] of steps.entries()) {
-    let applied = false;
-    try {
-      applied = (await runStep(step, fold, run)) !== false;
-    } catch (error) {
-      console.error("[Timeline] Overwrite step failed", error);
+  const release = holdTimelineManifests();
+  try {
+    run.applyToStore(steps);
+    for (const [index, step] of steps.entries()) {
+      let applied = false;
+      try {
+        applied = (await runStep(step, fold, run)) !== false;
+      } catch (error) {
+        console.error("[Timeline] Overwrite step failed", error);
+      }
+      if (applied) continue;
+      run.ops.toast(
+        index > 0
+          ? "Overwrite partly applied, Undo restores it"
+          : "Overwrite failed, nothing changed",
+      );
+      // The store was told the drop's end state; only a reload puts back what disk holds.
+      run.ops.reloadPreview();
+      return;
     }
-    if (applied) continue;
-    run.ops.toast(
-      index > 0
-        ? "Overwrite partly applied, Undo restores it"
-        : "Overwrite failed, nothing changed",
-    );
-    return;
+    // remove/split write to disk directly and skip their own reload while folded here.
+    if (steps.some((step) => step.kind === "remove" || step.kind === "split")) {
+      run.ops.reloadPreview();
+    }
+  } finally {
+    release();
   }
 }
 
@@ -228,5 +325,6 @@ export function commitPlacementDrop(
     ops: placementOps,
     resize: (changes, fold) => onResizeElements(changes, fold),
     move,
+    applyToStore: applyPlacementToStore,
   });
 }

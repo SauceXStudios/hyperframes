@@ -189,6 +189,7 @@ describe("timeline clip drag gesture lifecycle", () => {
           split: vi.fn(async () => true),
           remove: vi.fn(async () => true),
           toast: vi.fn(),
+          reloadPreview: vi.fn(),
         },
       },
     });

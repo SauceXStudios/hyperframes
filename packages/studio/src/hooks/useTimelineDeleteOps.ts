@@ -223,7 +223,10 @@ export function useTimelineDeleteOps({
           usePlayerStore.getState().setSelectedElementIds(new Set());
         }
         forceReloadSdkSession?.();
-        reloadPreview();
+        // Folded into a drop: the drop's own single reload (after every step
+        // lands) replaces this one, so an interior remove never shows the
+        // preview a state the next step is about to make stale.
+        if (!overwrite) reloadPreview();
         // A failed ripple already showed its own toast above; the user did one
         // thing (delete), so they get one message, not this generic follow-up too.
         if (!rippleFailed && !overwrite) {

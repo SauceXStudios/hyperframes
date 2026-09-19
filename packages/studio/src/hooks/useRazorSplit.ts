@@ -36,20 +36,28 @@ export function useRazorSplit({
   const projectIdRef = useRef(projectId);
   projectIdRef.current = projectId;
 
-  const synchronize = useCallback(() => {
-    let failure: unknown;
-    try {
-      forceReloadSdkSession?.();
-    } catch (error) {
-      failure = error;
-    }
-    try {
-      reloadPreview();
-    } catch (error) {
-      failure ??= error;
-    }
-    if (failure) throw failure;
-  }, [forceReloadSdkSession, reloadPreview]);
+  // skipPreviewReload: true when this cut is one step folded into a drop, whose
+  // own single reload (after every step lands) replaces this one — otherwise the
+  // preview would show this step's DOM before the next step makes it stale.
+  const synchronize = useCallback(
+    (skipPreviewReload: boolean) => {
+      let failure: unknown;
+      try {
+        forceReloadSdkSession?.();
+      } catch (error) {
+        failure = error;
+      }
+      if (!skipPreviewReload) {
+        try {
+          reloadPreview();
+        } catch (error) {
+          failure ??= error;
+        }
+      }
+      if (failure) throw failure;
+    },
+    [forceReloadSdkSession, reloadPreview],
+  );
 
   const runCut = useCallback(
     async (
@@ -75,7 +83,7 @@ export function useRazorSplit({
         writeProjectFile,
         recordEdit,
         observeProjectFileVersion,
-        synchronize,
+        synchronize: () => synchronize(Boolean(fold)),
       });
       trackStudioRazorSplit({ mode, count: result.splitCount });
       if (result.syncFailed) {

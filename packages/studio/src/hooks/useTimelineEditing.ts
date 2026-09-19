@@ -452,8 +452,9 @@ export function useTimelineEditing({
       split: handlePlacementSplit,
       remove: deleteTimelineElements,
       toast: (message) => showToast(message, "error"),
+      reloadPreview,
     }),
-    [handlePlacementSplit, deleteTimelineElements, showToast],
+    [handlePlacementSplit, deleteTimelineElements, showToast, reloadPreview],
   );
 
   return {
