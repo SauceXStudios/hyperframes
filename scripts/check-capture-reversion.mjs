@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 
 const WIDTH = 96;
 const DEFAULT_TIMEOUT_S = 120;
+const MAX_TIMEOUT_S = 86400;
 const USAGE =
   "usage: node scripts/check-capture-reversion.mjs [--crop=W:H:X:Y] [--window=N] [--change=D] [--same=D] [--timeout=S] <video> ...";
 
@@ -17,52 +18,50 @@ export function frameHeight(cw, ch) {
   return Math.max(2, 2 * Math.round((WIDTH * (ch / cw)) / 2));
 }
 
-function readFrames(path, crop, height, timeoutMs) {
+/** Runs a tool to completion, killing its whole process group if it outlives timeoutMs. */
+function runTool(cmd, args, timeoutMs, label) {
   return new Promise((resolve, reject) => {
-    const scale = `scale=${WIDTH}:${height}:flags=area,format=gray`;
-    const vf = crop ? `crop=${crop},${scale}` : scale;
-    const child = spawn("ffmpeg", ["-v", "error", "-i", path, "-vf", vf, "-f", "rawvideo", "-"]);
+    const child = spawn(cmd, args, { detached: process.platform !== "win32" });
     const chunks = [];
     let stderr = "";
     const timer = setTimeout(() => {
-      child.kill();
-      reject(new Error(`ffmpeg did not finish within ${timeoutMs / 1000}s for ${path}`));
+      try {
+        process.kill(process.platform === "win32" ? child.pid : -child.pid);
+      } catch {}
+      reject(new Error(`${cmd} did not finish within ${timeoutMs / 1000}s for ${label}`));
     }, timeoutMs);
     child.stdout.on("data", (c) => chunks.push(c));
     child.stderr.on("data", (c) => (stderr += c));
-    child.on("error", reject);
+    child.on("error", (error) => {
+      clearTimeout(timer);
+      reject(error);
+    });
     child.on("close", (code) => {
       clearTimeout(timer);
-      if (code !== 0) return reject(new Error(`ffmpeg exited ${code} for ${path}: ${stderr}`));
-      resolve(Buffer.concat(chunks));
+      if (code === 0) resolve(Buffer.concat(chunks));
+      else reject(new Error(`${cmd} exited ${code} for ${label}: ${stderr}`));
     });
   });
 }
 
-// Source video size, used to derive the output frame height when no crop is given.
-function probeSize(path) {
-  return new Promise((resolve, reject) => {
-    const child = spawn("ffprobe", [
-      "-v",
-      "error",
-      "-select_streams",
-      "v:0",
-      "-show_entries",
-      "stream=width,height",
-      "-of",
-      "csv=p=0",
-      path,
-    ]);
-    let out = "";
-    child.stdout.on("data", (c) => (out += c));
-    child.on("error", reject);
-    child.on("close", (code) => {
-      const [w, h] = out.trim().split(",").map(Number);
-      if (code !== 0 || !(w > 0) || !(h > 0))
-        return reject(new Error(`ffprobe found no video size in ${path}`));
-      resolve([w, h]);
-    });
-  });
+function readFrames(path, crop, height, timeoutMs) {
+  const scale = `scale=${WIDTH}:${height}:flags=area,format=gray`;
+  const vf = crop ? `crop=${crop},${scale}` : scale;
+  return runTool(
+    "ffmpeg",
+    ["-v", "error", "-i", path, "-vf", vf, "-f", "rawvideo", "-"],
+    timeoutMs,
+    path,
+  );
+}
+
+/** Source video size, used to derive the output frame height when no crop is given. */
+async function probeSize(path, timeoutMs) {
+  const args = ["-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height"];
+  const out = await runTool("ffprobe", [...args, "-of", "csv=p=0", path], timeoutMs, path);
+  const [w, h] = out.toString().trim().split(",").map(Number);
+  if (!(w > 0) || !(h > 0)) throw new Error(`ffprobe found no video size in ${path}`);
+  return [w, h];
 }
 
 function dist(buf, frameSize, a, b) {
@@ -94,8 +93,8 @@ export function findReversions(buf, frameSize, { window, change, same }, deadlin
   const count = Math.floor(buf.length / frameSize);
   const byPeak = new Map();
   for (let i = 0; i < count; i++) {
-    if (Date.now() > deadline) throw new Error("comparison did not finish within the time limit");
     for (let k = i + 2; k <= Math.min(count - 1, i + window); k++) {
+      if (Date.now() > deadline) throw new Error("comparison did not finish within the time limit");
       if (dist(buf, frameSize, i, k) > same) continue;
       const { peak, delta } = peakBetween(buf, frameSize, i, k, change);
       const known = byPeak.get(peak);
@@ -126,9 +125,9 @@ export function parseArgs(argv) {
       if (!/^[1-9]\d*:[1-9]\d*:\d+:\d+$/.test(m[2]))
         throw new Error(`--crop needs W:H:X:Y, got ${m[2]}`);
       options.crop = m[2];
-    } else if (m[1] in options) {
+    } else if (Object.hasOwn(options, m[1])) {
       const n = Number(m[2]);
-      if (m[2] === "" || !Number.isFinite(n) || n < 0)
+      if (m[2] === "" || !Number.isFinite(n) || n < 0 || (m[1] === "timeout" && n > MAX_TIMEOUT_S))
         throw new Error(`--${m[1]} needs a number, got ${m[2]}`);
       options[m[1]] = n;
     } else {
@@ -140,11 +139,14 @@ export function parseArgs(argv) {
 
 // fallow-ignore-next-line complexity
 async function checkVideo(path, options) {
-  const [cw, ch] = options.crop ? options.crop.split(":").map(Number) : await probeSize(path);
+  const deadline = Date.now() + options.timeout * 1000;
+  const left = () => Math.max(1, deadline - Date.now());
+  const [cw, ch] = options.crop
+    ? options.crop.split(":").map(Number)
+    : await probeSize(path, left());
   const height = frameHeight(cw, ch);
   const frameSize = WIDTH * height;
-  const deadline = Date.now() + options.timeout * 1000;
-  const buf = await readFrames(path, options.crop, height, options.timeout * 1000);
+  const buf = await readFrames(path, options.crop, height, left());
   const frames = Math.floor(buf.length / frameSize);
   if (frames === 0) throw new Error(`no frames decoded from ${path}`);
   const hits = findReversions(buf, frameSize, options, deadline);
@@ -182,4 +184,5 @@ async function main(argv) {
   process.exit(code);
 }
 
-if (realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) main(process.argv.slice(2));
+const entry = process.argv[1] && realpathSync(process.argv[1]);
+if (entry === fileURLToPath(import.meta.url)) main(process.argv.slice(2));

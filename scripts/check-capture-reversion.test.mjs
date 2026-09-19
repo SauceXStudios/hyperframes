@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, symlinkSync } from "node:fs";
+import { chmodSync, mkdtempSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -158,3 +158,51 @@ test("a comparison past its deadline throws", () => {
 test("--timeout is parsed as seconds", () => {
   assert.equal(parseArgs(["--timeout=30", "v.webm"]).options.timeout, 30);
 });
+
+test("a comparison that outlives --timeout stops at the deadline, not after the frame", () => {
+  const big = Buffer.alloc(SIZE * 400, 7);
+  const opts = { window: 400, change: 0, same: 255 };
+  const started = Date.now();
+  assert.throws(() => findReversions(big, SIZE, opts, started + 20), /time limit/);
+  assert.ok(Date.now() - started < 2000);
+});
+
+test("--timeout stops a hung ffmpeg or ffprobe wrapper, children included, with exit 2", () => {
+  const dir = mkdtempSync(join(tmpdir(), "reversion-"));
+  for (const tool of ["ffmpeg", "ffprobe"]) {
+    writeFileSync(join(dir, tool), "#!/bin/sh\nsleep 37.31\n");
+    chmodSync(join(dir, tool), 0o755);
+  }
+  const env = { ...process.env, PATH: `${dir}:${process.env.PATH}` };
+  for (const extra of [["--crop=32:32:0:0"], []]) {
+    const started = Date.now();
+    const r = spawnSync(process.execPath, [SCRIPT, "--timeout=1", ...extra, "any.mp4"], {
+      encoding: "utf8",
+      env,
+    });
+    assert.equal(r.status, 2);
+    assert.match(r.stderr, /did not finish within 1s/);
+    assert.ok(Date.now() - started < 10000);
+  }
+  const orphans = spawnSync("pgrep", ["-f", "sleep 37.31"], { encoding: "utf8" });
+  assert.notEqual(orphans.status, 0, `orphaned children: ${orphans.stdout}`);
+});
+
+test("--timeout above the timer limit and inherited option names are rejected", () => {
+  assert.throws(() => parseArgs(["--timeout=1e10", "v.mp4"]));
+  assert.throws(() => parseArgs(["--constructor=5", "v.mp4"]));
+});
+
+test(
+  "a flagged video is not hidden when a later one is missing or an earlier one is",
+  { skip: !hasFfmpeg },
+  () => {
+    const dir = mkdtempSync(join(tmpdir(), "reversion-"));
+    const blink = makeClip(
+      dir,
+      "blink.mp4",
+      "color=c=black:s=64x64:r=10,drawbox=x=0:y=0:w=64:h=64:c=white:t=fill:enable='between(n,2,2)'",
+    );
+    assert.equal(run(SCRIPT, join(dir, "missing.mp4"), blink).status, 2);
+  },
+);
