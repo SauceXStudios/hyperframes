@@ -124,4 +124,16 @@ describe("usePanelLayout over the dock", () => {
     expect(later.setGroupVisible).not.toHaveBeenCalled();
     view.unmount();
   });
+
+  it("keeps a URL's slideshow tab until the panel opens, then activates it once", () => {
+    const opened = new Set<PanelId>(PANEL_IDS.filter((id) => id !== "slideshow"));
+    useDockLayoutStore.setState({ controller: null, openPanels: opened });
+    const view = renderLayout({ rightPanelTab: "slideshow" });
+    const controller = fakeController();
+    act(() => useDockLayoutStore.getState().attach(controller));
+    expect(controller.activate).not.toHaveBeenCalled();
+    act(() => useDockLayoutStore.setState({ openPanels: new Set(PANEL_IDS) }));
+    expect(controller.activate).toHaveBeenCalledWith("slideshow");
+    view.unmount();
+  });
 });

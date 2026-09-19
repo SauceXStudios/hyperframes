@@ -22,6 +22,8 @@ export interface StudioRightPanelsProps extends StudioEditPersistenceProps {
     compositionPath: string;
   } | null;
   onCloseBlockParams?: () => void;
+  /** Drops the block-params view without touching the dock (selection or leaving Design). */
+  onDismissBlockParams?: () => void;
   recordingState?: "idle" | "recording" | "preview";
   recordingDuration?: number;
   onToggleRecording?: () => void;

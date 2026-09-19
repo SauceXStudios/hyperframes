@@ -288,9 +288,9 @@ export function StudioHeader({
               // the panel shouldn't deselect the element.
               setRightCollapsed(true);
             }}
-            aria-pressed={inspectorPanelActive}
+            aria-pressed={!rightCollapsed && inspectorPanelActive}
             className={`h-7 flex items-center gap-1.5 px-2.5 rounded-md text-[11px] font-medium border transition-colors active:scale-[0.98] ${
-              inspectorPanelActive
+              !rightCollapsed && inspectorPanelActive
                 ? "text-studio-accent bg-studio-accent/10 border-studio-accent/30"
                 : "text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800 border-transparent"
             }`}

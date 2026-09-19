@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import type { StudioRightPanelsProps } from "./StudioRightPanels.types";
 
 import { PropertyPanel } from "./editor/PropertyPanel";
@@ -13,6 +13,11 @@ import { useDockLayoutStore } from "./dock/dockLayoutStore";
 import type { RenderJob } from "./renders/useRenderQueue";
 import { useSlideshowPersist } from "../hooks/useSlideshowPersist";
 import { useSlideshowTabState } from "../hooks/useSlideshowTabState";
+import {
+  useBlockParamsDismissal,
+  useCaptionDesignFocus,
+  useSlideshowDockPanel,
+} from "../hooks/useRightPanelIntents";
 import { DesignPanelPromoteProvider } from "./DesignPanelPromoteProvider";
 import { useStudioPlaybackContext, useStudioShellContext } from "../contexts/StudioContext";
 import { useFileManagerContext } from "../contexts/FileManagerContext";
@@ -31,6 +36,7 @@ import { useRemoveBackground } from "../hooks/useRemoveBackground";
 export function StudioRightPanels({
   activeBlockParams,
   onCloseBlockParams,
+  onDismissBlockParams,
   recordingState,
   recordingDuration,
   onToggleRecording,
@@ -145,12 +151,13 @@ export function StudioRightPanels({
     refreshKey,
     slideshowVisible,
   });
-  const slideshowInDock = useDockLayoutStore((state) => state.openPanels.has("slideshow"));
-  useEffect(() => {
-    const { controller } = useDockLayoutStore.getState();
-    if (isSlideshowComposition && !slideshowInDock) controller?.open("slideshow");
-    if (!isSlideshowComposition && slideshowInDock) controller?.close("slideshow");
-  }, [isSlideshowComposition, slideshowInDock]);
+  useSlideshowDockPanel(isSlideshowComposition);
+  useBlockParamsDismissal({
+    hasBlockParams: activeBlockParams != null,
+    hasSelection: domEditSelection != null,
+    onDismiss: onDismissBlockParams,
+  });
+  useCaptionDesignFocus(captionEditMode);
 
   const handleApplyColorGradingScope = useCallback(
     async (scope: ColorGradingScope, value: string | null) =>
