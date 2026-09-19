@@ -18,7 +18,11 @@ import {
 import { runLaneZGesture } from "../../components/nle/zLaneGesture";
 import { refreshAfterDurableLaneMove } from "./timelineLaneMoveRefresh";
 import { authoredTrackForLane } from "./timelineAuthoredTrack";
-import { commitPlacementDrop, type PlacementOps } from "./timelinePlacementCommit";
+import {
+  commitPlacementDrop,
+  type PlacementFold,
+  type PlacementOps,
+} from "./timelinePlacementCommit";
 import type { TimelineEditCallbacks } from "./timelineCallbacks";
 
 type StartTrack = Pick<TimelineElement, "start" | "track">;
@@ -250,7 +254,7 @@ export function commitDraggedClipMove(rawDrag: DraggedClipState, deps: DragCommi
 
   if (!isInsert && !multi) {
     const mode = deps.insertMode ? "insert" : "overwrite";
-    const move = (edits: TimelineMoveEdit[], fold: { coalesceKey: string; coalesceMs: number }) =>
+    const move = (edits: TimelineMoveEdit[], fold: PlacementFold) =>
       refreshAfterDurableLaneMove(
         persistMoveEdits(
           edits,

@@ -10,7 +10,7 @@ const place = (
   duration: number,
   mode: PlacementMode = "overwrite",
   on: PlacementClip[] = clips,
-) => placeClip({ clips: on, track: 1, start, duration, mode });
+) => placeClip({ clips: on, start, duration, mode });
 
 describe("placeClip overwrite", () => {
   it("leaves an abutting neighbour alone", () => {
@@ -41,9 +41,8 @@ describe("placeClip overwrite", () => {
     ]);
   });
 
-  it("never changes the track and shifts nothing", () => {
+  it("shifts nothing", () => {
     const r = place(2, 3);
-    expect(r.track).toBe(1);
     expect(r.shifts).toEqual([]);
   });
 

@@ -1,8 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
+import type { TimelineGroupResizeChange } from "../../hooks/useTimelineGroupEditing";
 import type { TimelineElement } from "../store/playerStore";
 import type { DragCommitDeps, TimelineMoveEdit } from "./timelineClipDragCommit";
 import type { DraggedClipState } from "./timelineClipDragTypes";
-import type { PlacementResult } from "./timelinePlacement";
+import type { PlaceClipResult } from "./timelinePlacement";
 import {
   buildPlacementSteps,
   commitPlacementDrop,
@@ -10,7 +11,6 @@ import {
   runPlacementSteps,
   type PlacementFold,
   type PlacementOps,
-  type PlacementResizeChange,
 } from "./timelinePlacementCommit";
 import {
   buildEditHistoryEntry,
@@ -30,8 +30,7 @@ const draggedEdit = (start: number): TimelineMoveEdit => ({
   element: dragged,
   updates: { start, track: 1 },
 });
-const result = (r: Partial<PlacementResult>): PlacementResult => ({
-  track: 1,
+const result = (r: Partial<PlaceClipResult>): PlaceClipResult => ({
   start: 0,
   cuts: [],
   shifts: [],
@@ -285,7 +284,7 @@ function createFakeProject(initial: Doc) {
     },
     toast: vi.fn(),
   };
-  const resize = async (changes: PlacementResizeChange[], fold: PlacementFold) => {
+  const resize = async (changes: TimelineGroupResizeChange[], fold: PlacementFold) => {
     record(
       () => {
         for (const change of changes) {

@@ -100,7 +100,7 @@ export function resolveZoneDropPlacement(input: {
   relocateOnOverlap?: boolean;
 }): { track: number; insertRow: number | null } {
   const { order, audioTracks, elements, desiredTrack, deliberateInsertRow } = input;
-  const { start, duration, dragKey, isAudio, preferInsertAbove } = input;
+  const { start, duration, dragKey, isAudio, preferInsertAbove, relocateOnOverlap } = input;
   const audioRow = order.findIndex((t) => audioTracks.has(t));
 
   if (
@@ -112,7 +112,7 @@ export function resolveZoneDropPlacement(input: {
 
   const desired = clampTrackToZone(desiredTrack, order, audioRow, isAudio);
   const zoneTracks = order.filter((t) => audioTracks.has(t) === isAudio);
-  if (!input.relocateOnOverlap && zoneTracks.includes(desired)) {
+  if (!relocateOnOverlap && zoneTracks.includes(desired)) {
     return { track: desired, insertRow: null };
   }
   const placement = resolvePlacement({

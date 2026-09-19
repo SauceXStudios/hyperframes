@@ -5,20 +5,15 @@ import { canMoveTimelineElement } from "./timelineAuthoredMoveTarget";
 import { authoredTrackForLane } from "./timelineAuthoredTrack";
 import { round3 } from "./timelineGaps";
 import { hasSourcePlaybackOffset } from "./timelineGroupEditing";
-import { placeClip, type PlacementMode, type PlacementResult } from "./timelinePlacement";
+import { placeClip, type PlacementMode, type PlaceClipResult } from "./timelinePlacement";
+import { getTimelineElementIdentity as keyOf } from "../lib/timelineElementHelpers";
+import type { TimelineGroupResizeChange } from "../../hooks/useTimelineGroupEditing";
 import { canSplitElementAt } from "../../utils/timelineElementSplit";
 
 /** One shared history key and an unbounded window: every write of a drop is one undo step. */
 export interface PlacementFold {
   coalesceKey: string;
   coalesceMs: number;
-}
-
-export interface PlacementResizeChange {
-  element: TimelineElement;
-  start: number;
-  duration: number;
-  playbackStart?: number;
 }
 
 /** The two writes a drop needs beyond move and resize; both must record with the fold key. */
@@ -31,10 +26,8 @@ export interface PlacementOps {
 export type PlacementStep =
   | { kind: "split"; element: TimelineElement; at: number }
   | { kind: "remove"; elements: TimelineElement[] }
-  | { kind: "resize"; changes: PlacementResizeChange[] }
+  | { kind: "resize"; changes: TimelineGroupResizeChange[] }
   | { kind: "move"; edits: TimelineMoveEdit[] };
-
-const keyOf = (e: TimelineElement) => e.key ?? e.id;
 
 const moveEdit = (element: TimelineElement, start: number): TimelineMoveEdit => ({
   element,
@@ -48,7 +41,7 @@ function trimmedPlaybackStart(el: TimelineElement, sourceShift: number): number 
 }
 
 interface PlacementPlanInput {
-  result: PlacementResult;
+  result: PlaceClipResult;
   mode: PlacementMode;
   laneClips: readonly TimelineElement[];
   draggedEdit: TimelineMoveEdit;
@@ -73,7 +66,7 @@ export function buildPlacementSteps({
   const shiftEdits = result.shifts.map((s) => moveEdit(clip(s.key), round3(s.start)));
   const splits: PlacementStep[] = [];
   const removes: TimelineElement[] = [];
-  const resizes: PlacementResizeChange[] = [];
+  const resizes: TimelineGroupResizeChange[] = [];
   const settle: TimelineMoveEdit[] = [];
 
   for (const cut of result.cuts) {
@@ -124,7 +117,7 @@ export function buildPlacementSteps({
 
 /** Reason the whole drop must be refused, or null. Nothing is written when this is set. */
 export function placementRefusal(
-  result: PlacementResult,
+  result: PlaceClipResult,
   mode: PlacementMode,
   laneClips: readonly TimelineElement[],
 ): string | null {
@@ -146,7 +139,7 @@ let placementGestureSeq = 0;
 
 interface PlacementRunner {
   ops: PlacementOps;
-  resize: (changes: PlacementResizeChange[], fold: PlacementFold) => Promise<void> | void;
+  resize: (changes: TimelineGroupResizeChange[], fold: PlacementFold) => Promise<void> | void;
   move: (edits: TimelineMoveEdit[], fold: PlacementFold) => Promise<boolean>;
 }
 
@@ -201,7 +194,6 @@ export function commitPlacementDrop(
   const laneClips = elements.filter((e) => e.track === drag.previewTrack && keyOf(e) !== dragKey);
   const result = placeClip({
     clips: laneClips.map((e) => ({ key: keyOf(e), start: e.start, duration: e.duration })),
-    track: drag.previewTrack,
     start: drag.previewStart,
     duration: drag.element.duration,
     mode,
