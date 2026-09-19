@@ -668,6 +668,7 @@ export const CatalogDetail = ({
   font-weight: 600;
 }
 .hf-ve-tune-head small { font-weight: 400; font-size: 13px; color: var(--ve-muted); }
+.hf-ve-tune-list-wrap { position: relative; flex: 1; min-height: 0; display: flex; }
 .hf-ve-tune-list {
   flex: 1;
   min-height: 0;
@@ -678,6 +679,29 @@ export const CatalogDetail = ({
   padding: 16px;
   align-content: start;
   mask-image: linear-gradient(to bottom, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%);
+}
+.hf-ve-tune-more {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  background: var(--ve-hover);
+  color: var(--ve-muted);
+  pointer-events: none;
+  animation: hf-ve-tune-more-pulse 1.6s ease-in-out infinite;
+}
+@keyframes hf-ve-tune-more-pulse {
+  0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
+  50% { opacity: 0.55; transform: translateX(-50%) scale(1.15); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hf-ve-tune-more { animation: none; }
 }
 .hf-ve-tune-foot {
   display: grid;
@@ -2054,6 +2078,21 @@ export const CatalogDetail = ({
   const adapterMissing = webgpu && hasAdapter === false;
   // Edits reach a mounted player only, so the panel waits for the probe and goes when the clip stands in.
   const tunePanel = hasTune && !(webgpu && hasAdapter !== true);
+  const tuneListRef = useRef(null);
+  const [tuneMoreBelow, setTuneMoreBelow] = useState(false);
+  // BEGIN hasMoreBelow: true once unseen content sits past the scrolled viewport, an epsilon short of exact to absorb subpixel rounding.
+  const hasMoreBelow = (scrollHeight, scrollTop, clientHeight) => scrollHeight - scrollTop - clientHeight > 4;
+  // END hasMoreBelow
+  const checkTuneMoreBelow = () => {
+    const el = tuneListRef.current;
+    if (el) setTuneMoreBelow(hasMoreBelow(el.scrollHeight, el.scrollTop, el.clientHeight));
+  };
+  useEffect(() => {
+    if (!tunePanel) return;
+    checkTuneMoreBelow();
+    window.addEventListener("resize", checkTuneMoreBelow);
+    return () => window.removeEventListener("resize", checkTuneMoreBelow);
+  }, [tunePanel, variables, values, notes]);
   let webgpuStage = player;
   if (webgpu && hasAdapter === null) webgpuStage = <div className="aspect-video w-full" />;
   if (adapterMissing) webgpuStage = recorded;
@@ -2141,24 +2180,39 @@ export const CatalogDetail = ({
                 <div className="hf-ve-tune-head">
                   Tune <small>{variables.length} {variables.length === 1 ? "variable" : "variables"}</small>
                 </div>
-                <div className="hf-ve-tune-list">
-                  {variables.map((v) => (
-                    <div key={v.id}>
-                      <div className="hf-ve-row">
-                        <label className="hf-ve-label">{v.label ?? v.id}</label>
-                        <span className="hf-ve-value">{readout(v, values[v.id])}</span>
+                <div className="hf-ve-tune-list-wrap">
+                  <div className="hf-ve-tune-list" ref={tuneListRef} onScroll={checkTuneMoreBelow}>
+                    {variables.map((v) => (
+                      <div key={v.id}>
+                        <div className="hf-ve-row">
+                          <label className="hf-ve-label">{v.label ?? v.id}</label>
+                          <span className="hf-ve-value">{readout(v, values[v.id])}</span>
+                        </div>
+                        {control(
+                          v,
+                          values[v.id],
+                          (next) => setValues((prev) => ({ ...prev, [v.id]: next })),
+                          notes[v.id],
+                          (note) => setNotes((prev) => ({ ...prev, [v.id]: note })),
+                          setTyping,
+                        )}
+                        {v.description && <p className="hf-ve-desc">{v.description}</p>}
                       </div>
-                      {control(
-                        v,
-                        values[v.id],
-                        (next) => setValues((prev) => ({ ...prev, [v.id]: next })),
-                        notes[v.id],
-                        (note) => setNotes((prev) => ({ ...prev, [v.id]: note })),
-                        setTyping,
-                      )}
-                      {v.description && <p className="hf-ve-desc">{v.description}</p>}
+                    ))}
+                  </div>
+                  {tuneMoreBelow && (
+                    <div className="hf-ve-tune-more" aria-hidden="true">
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                        <path
+                          d="M2.5 4.5L6 8L9.5 4.5"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
                     </div>
-                  ))}
+                  )}
                 </div>
                 <div className="hf-ve-tune-foot">
                   <button
