@@ -1,5 +1,5 @@
 import { strict as assert } from "node:assert";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { chmodSync, mkdtempSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -206,3 +206,16 @@ test(
     assert.equal(run(SCRIPT, join(dir, "missing.mp4"), blink).status, 2);
   },
 );
+
+test("SIGTERM to the checker also stops its ffmpeg child", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "reversion-"));
+  writeFileSync(join(dir, "ffmpeg"), "#!/bin/sh\nsleep 41.73\n");
+  chmodSync(join(dir, "ffmpeg"), 0o755);
+  const env = { ...process.env, PATH: `${dir}:${process.env.PATH}` };
+  const child = spawn(process.execPath, [SCRIPT, "--crop=32:32:0:0", "any.mp4"], { env });
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  child.kill("SIGTERM");
+  await new Promise((resolve) => child.on("close", resolve));
+  const orphans = spawnSync("pgrep", ["-f", "sleep 41.73"], { encoding: "utf8" });
+  assert.notEqual(orphans.status, 0, `orphaned children: ${orphans.stdout}`);
+});

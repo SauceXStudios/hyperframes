@@ -18,25 +18,39 @@ export function frameHeight(cw, ch) {
   return Math.max(2, 2 * Math.round((WIDTH * (ch / cw)) / 2));
 }
 
+const live = new Set();
+const killGroup = (child) => {
+  try {
+    process.kill(process.platform === "win32" ? child.pid : -child.pid);
+  } catch {}
+};
+for (const signal of ["SIGINT", "SIGTERM"]) {
+  process.on(signal, () => {
+    live.forEach(killGroup);
+    process.exit(2);
+  });
+}
+
 /** Runs a tool to completion, killing its whole process group if it outlives timeoutMs. */
 function runTool(cmd, args, timeoutMs, label) {
   return new Promise((resolve, reject) => {
     const child = spawn(cmd, args, { detached: process.platform !== "win32" });
     const chunks = [];
     let stderr = "";
+    live.add(child);
     const timer = setTimeout(() => {
-      try {
-        process.kill(process.platform === "win32" ? child.pid : -child.pid);
-      } catch {}
+      killGroup(child);
       reject(new Error(`${cmd} did not finish within ${timeoutMs / 1000}s for ${label}`));
     }, timeoutMs);
     child.stdout.on("data", (c) => chunks.push(c));
     child.stderr.on("data", (c) => (stderr += c));
     child.on("error", (error) => {
+      live.delete(child);
       clearTimeout(timer);
       reject(error);
     });
     child.on("close", (code) => {
+      live.delete(child);
       clearTimeout(timer);
       if (code === 0) resolve(Buffer.concat(chunks));
       else reject(new Error(`${cmd} exited ${code} for ${label}: ${stderr}`));
