@@ -75,29 +75,40 @@ test("record writes an allowed, small response to disk and indexes it", async ()
   });
 });
 
+/** A refused fetch reports as a miss and writes nothing, whatever the reason. */
+async function assertRefused(
+  url: string,
+  dir: string,
+  mirror: ReturnType<typeof installFetchMirror>,
+  message: RegExp,
+): Promise<void> {
+  await fetch(url);
+  assert.throws(() => mirror.assertNoMisses(), message);
+  mirror.finish();
+  assert.deepEqual(
+    readdirSync(dir).filter((f) => f.endsWith(".bin")),
+    [],
+  );
+}
+
 test("record refuses a content-type the generator does not expect", async () => {
-  await withRecordMirror("application/octet-stream", 12, async (dir, mirror) => {
-    await fetch("https://cdn.example/a.bin");
-    assert.throws(
-      () => mirror.assertNoMisses(),
+  await withRecordMirror("application/octet-stream", 12, (dir, mirror) =>
+    assertRefused(
+      "https://cdn.example/a.bin",
+      dir,
+      mirror,
       /content-type application\/octet-stream is not mirrored/,
-    );
-    mirror.finish();
-    assert.deepEqual(
-      readdirSync(dir).filter((f) => f.endsWith(".bin")),
-      [],
-    );
-  });
+    ),
+  );
 });
 
 test("record refuses a body over the mirror's size cap", async () => {
-  await withRecordMirror("text/css", 8 * 1024 * 1024 + 1, async (dir, mirror) => {
-    await fetch("https://cdn.example/huge.css");
-    assert.throws(() => mirror.assertNoMisses(), /exceeds the 8388608-byte mirror cap/);
-    mirror.finish();
-    assert.deepEqual(
-      readdirSync(dir).filter((f) => f.endsWith(".bin")),
-      [],
-    );
-  });
+  await withRecordMirror("text/css", 8 * 1024 * 1024 + 1, (dir, mirror) =>
+    assertRefused(
+      "https://cdn.example/huge.css",
+      dir,
+      mirror,
+      /exceeds the 8388608-byte mirror cap/,
+    ),
+  );
 });

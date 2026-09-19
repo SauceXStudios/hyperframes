@@ -38,25 +38,29 @@ export function treeDifferences(generatedRoot: string, committedRoot: string): s
 /** A committed page's `meta.codeLines` is copied from the source at generation time, so an edit
  * to the source after the last regen leaves it silently wrong (motion-blur shipped 406 against
  * a 722-line source). Checked against the source directly, not through the page generator. */
+/** One item's stale-codeLines message, or null when there's nothing to compare (no source file,
+ * no committed page yet, or a page with no code fence). */
+function codeLinesMismatch(
+  item: ReturnType<typeof discoverItems>[number],
+  committedCatalogDir: string,
+): string | null {
+  const file = primarySource(item.kind, item.manifest);
+  if (!file) return null;
+  const dir = item.kind === "block" ? "blocks" : "components";
+  const pagePath = join(committedCatalogDir, dir, `${item.manifest.name}.mdx`);
+  if (!existsSync(pagePath)) return null; // an absent page is treeDifferences' job, not this one's
+  const match = readFileSync(pagePath, "utf-8").match(/"codeLines":(\d+)/);
+  if (!match || !match[1]) return null; // page has no code fence, nothing to compare
+  const committed = Number(match[1]);
+  const real = file.source.split("\n").length;
+  if (committed === real) return null;
+  return `stale codeLines: catalog/${dir}/${item.manifest.name}.mdx says ${committed}, source is ${real} lines`;
+}
+
 export function codeLinesDrift(committedCatalogDir: string): string[] {
-  const mismatches: string[] = [];
-  for (const { kind, manifest } of discoverItems()) {
-    const file = primarySource(kind, manifest);
-    if (!file) continue;
-    const dir = kind === "block" ? "blocks" : "components";
-    const pagePath = join(committedCatalogDir, dir, `${manifest.name}.mdx`);
-    if (!existsSync(pagePath)) continue; // an absent page is treeDifferences' job, not this one's
-    const match = readFileSync(pagePath, "utf-8").match(/"codeLines":(\d+)/);
-    if (!match || !match[1]) continue; // page has no code fence, nothing to compare
-    const committed = Number(match[1]);
-    const real = file.source.split("\n").length;
-    if (committed !== real) {
-      mismatches.push(
-        `stale codeLines: catalog/${dir}/${manifest.name}.mdx says ${committed}, source is ${real} lines`,
-      );
-    }
-  }
-  return mismatches;
+  return discoverItems()
+    .map((item) => codeLinesMismatch(item, committedCatalogDir))
+    .filter((line) => line !== null);
 }
 
 function generateInto(outRoot: string): number {
