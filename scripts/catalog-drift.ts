@@ -35,12 +35,9 @@ export function treeDifferences(generatedRoot: string, committedRoot: string): s
   ];
 }
 
-/**
- * `meta.codeLines` on a committed catalog page is copied from the registry source at generation
- * time, not read live, so an edit to the source after the last regen leaves it silently wrong
- * (motion-blur shipped 406 against a 722-line source). Checked against the source directly,
- * skipping generate-catalog-pages.ts entirely, so this stays cheap enough to run every time.
- */
+/** A committed page's `meta.codeLines` is copied from the source at generation time, so an edit
+ * to the source after the last regen leaves it silently wrong (motion-blur shipped 406 against
+ * a 722-line source). Checked against the source directly, not through the page generator. */
 export function codeLinesDrift(committedCatalogDir: string): string[] {
   const mismatches: string[] = [];
   for (const { kind, manifest } of discoverItems()) {

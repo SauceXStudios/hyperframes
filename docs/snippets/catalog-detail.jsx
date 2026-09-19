@@ -2080,23 +2080,24 @@ export const CatalogDetail = ({
   const tunePanel = hasTune && !(webgpu && hasAdapter !== true);
   const tuneListRef = useRef(null);
   const [tuneMoreBelow, setTuneMoreBelow] = useState(false);
-  // BEGIN hasMoreBelow: true once unseen content sits past the scrolled viewport, an epsilon short of exact to absorb subpixel rounding.
+  // BEGIN hasMoreBelow: true once unseen content sits past the scrolled viewport (4px epsilon).
   const hasMoreBelow = (scrollHeight, scrollTop, clientHeight) => scrollHeight - scrollTop - clientHeight > 4;
   // END hasMoreBelow
   const checkTuneMoreBelow = () => {
     const el = tuneListRef.current;
     if (el) setTuneMoreBelow(hasMoreBelow(el.scrollHeight, el.scrollTop, el.clientHeight));
   };
-  // The resize listener only needs to exist while the panel is mounted; content-driven
-  // rechecks (below) would otherwise tear it down and re-add it on every keystroke.
+  // One observer, tied only to mount: watching the list's own box catches a viewport
+  // resize, watching its first child catches content growing (a new field, a note).
   useEffect(() => {
-    if (!tunePanel) return;
-    window.addEventListener("resize", checkTuneMoreBelow);
-    return () => window.removeEventListener("resize", checkTuneMoreBelow);
+    const el = tuneListRef.current;
+    if (!el) return;
+    checkTuneMoreBelow();
+    const observer = new ResizeObserver(checkTuneMoreBelow);
+    observer.observe(el);
+    if (el.firstElementChild) observer.observe(el.firstElementChild);
+    return () => observer.disconnect();
   }, [tunePanel]);
-  useEffect(() => {
-    if (tunePanel) checkTuneMoreBelow();
-  }, [tunePanel, variables, values, notes]);
   let webgpuStage = player;
   if (webgpu && hasAdapter === null) webgpuStage = <div className="aspect-video w-full" />;
   if (adapterMissing) webgpuStage = recorded;

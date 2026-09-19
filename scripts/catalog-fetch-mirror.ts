@@ -12,9 +12,8 @@ type MirrorIndex = Record<string, MirrorEntry>;
 
 export type MirrorMode = "replay" | "record";
 
-// The generator only ever fetches CSS, fonts, HTML and a stray JS response (recorded mirror
-// today has all four); json/image/video are allowed too since a future source could be any of
-// them. Anything else -- and any response over this size -- is refused, not silently recorded,
+// Text/font/js cover what's recorded today; json/image/video are allowed for a future source.
+// Anything else, or any response over the size cap below, is refused, not silently recorded,
 // so an unexpected fetch fails the run instead of writing an unbounded, unvetted body to disk.
 const MIRROR_CONTENT_TYPES = [
   /^text\//,

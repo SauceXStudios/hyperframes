@@ -5,12 +5,9 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { installFetchMirror } from "./catalog-fetch-mirror.ts";
 
-/**
- * Runs `run` against a fresh record-mode mirror stubbed to answer every fetch with
- * `bodyBytes` bytes of `contentType`; `run` is responsible for calling `mirror.finish()`
- * itself if its assertions depend on the written index. Always restores `fetch` and
- * cleans up the temp dir after, even if `mirror.finish()` already restored `fetch`.
- */
+/** Runs `run` against a fresh record-mode mirror stubbed to answer every fetch with
+ * `bodyBytes` bytes of `contentType`. `run` calls `mirror.finish()` itself if it needs
+ * the written index; `fetch` and the temp dir are always restored/cleaned up after. */
 async function withRecordMirror(
   contentType: string,
   bodyBytes: number,
