@@ -211,6 +211,16 @@ describe("placementRefusal", () => {
     });
     expect(placementRefusal(split, "overwrite", [clip("a", 0, 4)])).toMatch(/split/);
   });
+
+  it("refuses a trim that would leave a sliver thinner than the split epsilon", () => {
+    const trim = result({ start: 0, cuts: [{ kind: "trim-tail", key: "a", duration: 0.01 }] });
+    expect(placementRefusal(trim, "overwrite", [clip("a", 0, 4)])).toMatch(/thin/);
+  });
+
+  it("allows a trim that leaves at least the split epsilon", () => {
+    const trim = result({ start: 0, cuts: [{ kind: "trim-tail", key: "a", duration: 0.03 }] });
+    expect(placementRefusal(trim, "overwrite", [clip("a", 0, 4)])).toBeNull();
+  });
 });
 
 interface Doc {
@@ -484,7 +494,7 @@ describe("runPlacementSteps failures", () => {
     expect(toast).toHaveBeenCalledWith("Overwrite partly applied, Undo restores it");
   });
 
-  it("says nothing extra when the first step fails, since nothing was applied", async () => {
+  it("toasts a plain failure, not a partial-apply message, when the first step fails", async () => {
     const toast = vi.fn();
     const move = vi.fn(async () => true);
     await runPlacementSteps(steps, {
@@ -492,7 +502,7 @@ describe("runPlacementSteps failures", () => {
       resize: vi.fn(),
       move,
     });
-    expect(toast).not.toHaveBeenCalled();
+    expect(toast).toHaveBeenCalledWith("Overwrite failed, nothing changed");
     expect(move).not.toHaveBeenCalled();
   });
 

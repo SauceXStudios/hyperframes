@@ -8,7 +8,7 @@ import { hasSourcePlaybackOffset } from "./timelineGroupEditing";
 import { placeClip, type PlacementMode, type PlaceClipResult } from "./timelinePlacement";
 import { getTimelineElementIdentity as keyOf } from "../lib/timelineElementHelpers";
 import type { TimelineGroupResizeChange } from "../../hooks/useTimelineGroupEditing";
-import { canSplitElementAt } from "../../utils/timelineElementSplit";
+import { canSplitElementAt, SPLIT_BOUNDARY_EPSILON_S } from "../../utils/timelineElementSplit";
 
 /** One shared history key and an unbounded window: every write of a drop is one undo step. */
 export interface PlacementFold {
@@ -132,7 +132,14 @@ export function placementRefusal(
     const el = byKey.get(cut.key);
     return !el || !canSplitElementAt(el, at);
   });
-  return unsplittable ? "Cannot split a clip at the drop point" : null;
+  if (unsplittable) return "Cannot split a clip at the drop point";
+  // A trim below the split epsilon would leave a sliver too thin to select or re-split.
+  const tooThin = result.cuts.some(
+    (cut) =>
+      (cut.kind === "trim-head" || cut.kind === "trim-tail") &&
+      cut.duration < SPLIT_BOUNDARY_EPSILON_S,
+  );
+  return tooThin ? "Cannot trim a clip that thin" : null;
 }
 
 let placementGestureSeq = 0;
@@ -173,7 +180,11 @@ export async function runPlacementSteps(
       console.error("[Timeline] Overwrite step failed", error);
     }
     if (applied) continue;
-    if (index > 0) run.ops.toast("Overwrite partly applied, Undo restores it");
+    run.ops.toast(
+      index > 0
+        ? "Overwrite partly applied, Undo restores it"
+        : "Overwrite failed, nothing changed",
+    );
     return;
   }
 }
