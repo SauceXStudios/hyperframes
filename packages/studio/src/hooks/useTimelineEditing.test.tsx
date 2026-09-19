@@ -1493,12 +1493,9 @@ describe("useTimelineEditing: canEdit gate", () => {
   });
 
   it("resolves toggle-track-hidden against the expanded rows, not the raw timelineElements prop", async () => {
-    // A regression: an earlier version resolved canEdit's target from the
-    // `timelineElements` prop, the same raw list the real handler's own
-    // comment (timelineTrackVisibility.ts) warns against using for track
-    // lookups — a virtual sub-comp child only exists in the expanded rows.
-    // Proven here by making them disagree: the store has the element,
-    // the prop passed to the hook does not.
+    // Regression: canEdit must resolve against the expanded rows
+    // (timelineTrackVisibility.ts's own invariant), not the raw
+    // timelineElements prop — proven by making the two disagree below.
     const iframe = createPreviewIframe([{ id: "clip", track: 0 }]);
     const clip = timelineElement({ id: "clip", track: 0, zIndex: 0 });
     usePlayerStore.getState().setElements([clip]);
