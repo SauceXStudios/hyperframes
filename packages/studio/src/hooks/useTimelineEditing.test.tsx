@@ -1530,3 +1530,54 @@ describe("useTimelineEditing: canEdit gate", () => {
     hook.unmount();
   });
 });
+
+/**
+ * Regression: track()/guard() must return the SAME wrapped handler across
+ * renders for the same underlying fn, or every consumer using a handler as
+ * a memo/effect dependency (App.tsx) re-runs on every render for nothing.
+ */
+describe("useTimelineEditing: handler identity is stable across renders", () => {
+  it("returns the same handleTimelineElementMove reference on a re-render", () => {
+    const iframe = createPreviewIframe([{ id: "clip", track: 0 }]);
+    const clip = timelineElement({ id: "clip", track: 0, zIndex: 0 });
+    stubProjectFetch('<div id="clip" data-start="0" data-track-index="0"></div>');
+    // Every option below is hoisted (created once), matching a real caller's
+    // stable useCallback/selector inputs — a fresh vi.fn() per render would
+    // change handleTimelineElementMove's own identity regardless of the fix.
+    const timelineElements = [clip];
+    const showToast = vi.fn();
+    const writeProjectFile = vi.fn();
+    const recordEdit = vi.fn();
+    const reloadPreview = vi.fn();
+    const uploadProjectFiles = vi.fn();
+    const previewIframeRef = { current: iframe };
+    const pendingTimelineEditPathRef = { current: new Set<string>() };
+    const seen: unknown[] = [];
+    let bumpTick = 0;
+    let bump = () => {};
+    function Harness() {
+      const [, setTick] = React.useState(0);
+      bump = () => setTick((t) => t + 1);
+      bumpTick += 1;
+      const hook = useTimelineEditing({
+        projectId: "p1",
+        activeCompPath: "index.html",
+        timelineElements,
+        showToast,
+        writeProjectFile,
+        recordEdit,
+        reloadPreview,
+        previewIframeRef,
+        pendingTimelineEditPathRef,
+        uploadProjectFiles,
+      });
+      seen.push(hook.handleTimelineElementMove);
+      return null;
+    }
+    const { unmount } = mountHarness(<Harness />);
+    act(() => bump());
+    expect(bumpTick).toBeGreaterThan(1);
+    expect(seen[0]).toBe(seen[1]);
+    unmount();
+  });
+});
