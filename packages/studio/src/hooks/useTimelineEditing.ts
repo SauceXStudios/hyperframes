@@ -1,7 +1,9 @@
 // fallow-ignore-file complexity
 import { useCallback, useRef } from "react";
 import type { TimelineElement } from "../player";
+import { usePlayerStore } from "../player";
 import { useRazorSplit } from "./useRazorSplit";
+import { selectSplittableElements } from "../utils/timelineElementSplit";
 import { useTimelineAssetDropOps } from "./useTimelineAssetDropOps";
 import {
   applyTimelineStackingReorder,
@@ -498,7 +500,13 @@ export function useTimelineEditing({
     handleAutoGroupCarveSources: track(handleAutoGroupCarveSources),
     setAudioGroupAttribute: {
       ...setAudioGroupAttribute,
-      setQuiet: track(setAudioGroupAttribute.setQuiet),
+      // Same member-resolution syncStoredGroupAttribute uses (timelineAudioGroupVolume.ts).
+      setQuiet: track(
+        guard(
+          (groupId) => usePlayerStore.getState().elements.filter((el) => el.audioGroup === groupId),
+          setAudioGroupAttribute.setQuiet,
+        ),
+      ),
     },
     setElementFxAttribute: {
       ...setElementFxAttribute,
@@ -510,7 +518,13 @@ export function useTimelineEditing({
     ),
     handleTimelineElementSplit: trackedRazorSplit,
     handleRazorSplit: trackedRazorSplit,
-    handleRazorSplitAll: track(handleRazorSplitAll),
+    // Same selection the handler itself splits (useRazorSplit.ts).
+    handleRazorSplitAll: track(
+      guard(
+        (splitTime) => selectSplittableElements(usePlayerStore.getState().elements, splitTime),
+        handleRazorSplitAll,
+      ),
+    ),
     handleTimelineAssetDrop: track(handleTimelineAssetDrop),
     handleTimelineFileDrop: track(handleTimelineFileDrop),
     handleTimelineCompositionDrop: track(handleTimelineCompositionDrop),
