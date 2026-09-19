@@ -313,9 +313,9 @@ describe("Tune scroll cue", () => {
   });
 
   it("keeps TuneList's identity fixed so typing doesn't remount it", () => {
-    // Without useMemo a nested `const TuneList = (...) => {...}` is a new function every
-    // CatalogDetail render, so React remounts the list (losing focus/scroll) on every keystroke.
-    assert.match(source, /const TuneList = useMemo\(/);
+    // Nested inside CatalogDetail, TuneList would be a new function every render (every
+    // value/note edit), so React would remount it, losing focus/scroll each keystroke.
+    assert.match(source, /^export const TuneList = /m);
   });
 });
 

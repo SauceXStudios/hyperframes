@@ -62,6 +62,64 @@ export const CatalogSlot = ({ slot, children }) => (
   </div>
 );
 
+/** The Tune panel's variable list, with a pulsing cue while more rows sit below the fold. */
+export const TuneList = ({ variables, values, notes, onValues, onNotes, onTyping, control, readout }) => {
+  // BEGIN hasMoreBelow: true once unseen content sits past the scrolled viewport (4px epsilon).
+  const hasMoreBelow = (scrollHeight, scrollTop, clientHeight) => scrollHeight - scrollTop - clientHeight > 4;
+  // END hasMoreBelow
+  const listRef = useRef(null);
+  const [moreBelow, setMoreBelow] = useState(false);
+  const check = () => {
+    const el = listRef.current;
+    if (el) setMoreBelow(hasMoreBelow(el.scrollHeight, el.scrollTop, el.clientHeight));
+  };
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el) return;
+    check();
+    const observer = new ResizeObserver(check);
+    observer.observe(el);
+    for (const child of el.children) observer.observe(child);
+    return () => observer.disconnect();
+  }, []);
+  return (
+    <div className="hf-ve-tune-list-wrap">
+      <div className="hf-ve-tune-list" ref={listRef} onScroll={check}>
+        {variables.map((v) => (
+          <div key={v.id}>
+            <div className="hf-ve-row">
+              <label className="hf-ve-label">{v.label ?? v.id}</label>
+              <span className="hf-ve-value">{readout(v, values[v.id])}</span>
+            </div>
+            {control(
+              v,
+              values[v.id],
+              (next) => onValues((prev) => ({ ...prev, [v.id]: next })),
+              notes[v.id],
+              (note) => onNotes((prev) => ({ ...prev, [v.id]: note })),
+              onTyping,
+            )}
+            {v.description && <p className="hf-ve-desc">{v.description}</p>}
+          </div>
+        ))}
+      </div>
+      {moreBelow && (
+        <div className="hf-ve-tune-more" aria-hidden="true">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path
+              d="M2.5 4.5L6 8L9.5 4.5"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const CatalogDetail = ({
   previewSrc,
   compositionId,
@@ -2078,69 +2136,6 @@ export const CatalogDetail = ({
   const adapterMissing = webgpu && hasAdapter === false;
   // Edits reach a mounted player only, so the panel waits for the probe and goes when the clip stands in.
   const tunePanel = hasTune && !(webgpu && hasAdapter !== true);
-  // BEGIN hasMoreBelow: true once unseen content sits past the scrolled viewport (4px epsilon).
-  const hasMoreBelow = (scrollHeight, scrollTop, clientHeight) => scrollHeight - scrollTop - clientHeight > 4;
-  // END hasMoreBelow
-  // Frozen with useMemo(..., []): a plain nested const would get a new identity every
-  // CatalogDetail render (every value/note edit), remounting TuneList and losing focus,
-  // scroll position and the ResizeObserver. control/readout are pure, so freezing is safe.
-  const TuneList = useMemo(
-    () =>
-      ({ variables, values, notes, onValues, onNotes, onTyping }) => {
-        const listRef = useRef(null);
-        const [moreBelow, setMoreBelow] = useState(false);
-        const check = () => {
-          const el = listRef.current;
-          if (el) setMoreBelow(hasMoreBelow(el.scrollHeight, el.scrollTop, el.clientHeight));
-        };
-        useEffect(() => {
-          const el = listRef.current;
-          if (!el) return;
-          check();
-          const observer = new ResizeObserver(check);
-          observer.observe(el);
-          for (const child of el.children) observer.observe(child);
-          return () => observer.disconnect();
-        }, []);
-        return (
-          <div className="hf-ve-tune-list-wrap">
-            <div className="hf-ve-tune-list" ref={listRef} onScroll={check}>
-              {variables.map((v) => (
-                <div key={v.id}>
-                  <div className="hf-ve-row">
-                    <label className="hf-ve-label">{v.label ?? v.id}</label>
-                    <span className="hf-ve-value">{readout(v, values[v.id])}</span>
-                  </div>
-                  {control(
-                    v,
-                    values[v.id],
-                    (next) => onValues((prev) => ({ ...prev, [v.id]: next })),
-                    notes[v.id],
-                    (note) => onNotes((prev) => ({ ...prev, [v.id]: note })),
-                    onTyping,
-                  )}
-                  {v.description && <p className="hf-ve-desc">{v.description}</p>}
-                </div>
-              ))}
-            </div>
-            {moreBelow && (
-              <div className="hf-ve-tune-more" aria-hidden="true">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                  <path
-                    d="M2.5 4.5L6 8L9.5 4.5"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-            )}
-          </div>
-        );
-      },
-    [],
-  );
   let webgpuStage = player;
   if (webgpu && hasAdapter === null) webgpuStage = <div className="aspect-video w-full" />;
   if (adapterMissing) webgpuStage = recorded;
@@ -2235,6 +2230,8 @@ export const CatalogDetail = ({
                   onValues={setValues}
                   onNotes={setNotes}
                   onTyping={setTyping}
+                  control={control}
+                  readout={readout}
                 />
                 <div className="hf-ve-tune-foot">
                   <button
