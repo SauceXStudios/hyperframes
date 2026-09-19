@@ -23,6 +23,7 @@ import type { PersistTimelineEditInput } from "./timelineEditingHelpers";
 import { useSetAudioGroupAttribute } from "./timelineAudioGroupVolume";
 import { useSetElementAttribute } from "./timelineElementFxAttribute";
 import { useTimelineDeleteOps } from "./useTimelineDeleteOps";
+import { useTrackPendingTimelineEdit } from "./useTrackPendingTimelineEdit";
 import { useAudioGroupCarveAssignment } from "./timelineAudioGroupCreate";
 import {
   useTimelineElementVisibilityEditing,
@@ -57,6 +58,7 @@ export function useTimelineEditing({
   const projectIdRef = useRef(projectId);
   projectIdRef.current = projectId;
   const editQueueRef = useRef(Promise.resolve());
+  const track = useTrackPendingTimelineEdit();
 
   const enqueueEdit = useCallback(
     (
@@ -445,23 +447,36 @@ export function useTimelineEditing({
     forceReloadSdkSession,
   });
 
+  // Every handler that writes a project file is tracked here, the one place
+  // all hand edits (split, move, resize, razor, group move, hide, audio
+  // attrs, delete, drop) converge — so undo/redo (which already awaits the
+  // same shared registry via waitForPendingDomEditSaves) never races a still
+  // in-flight write.
+  const trackedRazorSplit = track(handleRazorSplit);
   return {
-    handleTimelineElementMove,
-    handleTimelineElementResize,
-    handleToggleTrackHidden,
-    handleToggleElementHidden,
-    handleAutoGroupCarveSources,
-    setAudioGroupAttribute,
-    setElementFxAttribute,
-    handleTimelineElementDelete,
-    handleTimelineElementsDelete,
-    handleTimelineElementSplit: handleRazorSplit,
-    handleRazorSplit,
-    handleRazorSplitAll,
-    handleTimelineAssetDrop,
-    handleTimelineFileDrop,
-    handleTimelineCompositionDrop,
+    handleTimelineElementMove: track(handleTimelineElementMove),
+    handleTimelineElementResize: track(handleTimelineElementResize),
+    handleToggleTrackHidden: track(handleToggleTrackHidden),
+    handleToggleElementHidden: track(handleToggleElementHidden),
+    handleAutoGroupCarveSources: track(handleAutoGroupCarveSources),
+    setAudioGroupAttribute: {
+      ...setAudioGroupAttribute,
+      setQuiet: track(setAudioGroupAttribute.setQuiet),
+    },
+    setElementFxAttribute: {
+      ...setElementFxAttribute,
+      setQuiet: track(setElementFxAttribute.setQuiet),
+    },
+    handleTimelineElementDelete: track(handleTimelineElementDelete),
+    handleTimelineElementsDelete: track(handleTimelineElementsDelete),
+    handleTimelineElementSplit: trackedRazorSplit,
+    handleRazorSplit: trackedRazorSplit,
+    handleRazorSplitAll: track(handleRazorSplitAll),
+    handleTimelineAssetDrop: track(handleTimelineAssetDrop),
+    handleTimelineFileDrop: track(handleTimelineFileDrop),
+    handleTimelineCompositionDrop: track(handleTimelineCompositionDrop),
     handleBlockedTimelineEdit,
-    ...groupEditing,
+    handleTimelineGroupMove: track(groupEditing.handleTimelineGroupMove),
+    handleTimelineGroupResize: track(groupEditing.handleTimelineGroupResize),
   };
 }
