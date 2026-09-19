@@ -154,7 +154,6 @@ export function StudioRightPanels({
   useSlideshowDockPanel(isSlideshowComposition);
   useBlockParamsDismissal({
     hasBlockParams: activeBlockParams != null,
-    selection: domEditSelection,
     onDismiss: onDismissBlockParams,
   });
   useCaptionDesignFocus(captionEditMode);
