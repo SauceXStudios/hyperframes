@@ -51,8 +51,10 @@ export function usePanelLayout(initialState?: InitialPanelLayoutState) {
   const rightCollapsed = visibleRight === null;
 
   const setRightPanelTab = useCallback((tab: RightPanelTab) => {
-    useDockLayoutStore.getState().activatePanel(panelForTab(tab));
-    trackStudioEvent("tab_switch", { panel: "right_panel", tab });
+    const store = useDockLayoutStore.getState();
+    const shown = visiblePanelInZone("right", store.lastActive, store.visiblePanels);
+    store.activatePanel(panelForTab(tab));
+    if (tabForPanel(shown) !== tab) trackStudioEvent("tab_switch", { panel: "right_panel", tab });
   }, []);
 
   const setRightCollapsed = useCallback((collapsed: boolean) => {

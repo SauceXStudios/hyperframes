@@ -86,6 +86,19 @@ describe("usePanelLayout over the dock", () => {
     });
   });
 
+  it("reports a tab switch only when the tab actually changes", () => {
+    showDock(["preview", "design"]);
+    const view = renderLayout();
+    vi.mocked(trackStudioEvent).mockClear();
+    act(() => view.layout.setRightPanelTab("design"));
+    expect(trackStudioEvent).not.toHaveBeenCalled();
+    act(() => view.layout.setRightPanelTab("layers"));
+    expect(trackStudioEvent).toHaveBeenCalledWith("tab_switch", {
+      panel: "right_panel",
+      tab: "layers",
+    });
+  });
+
   it("collapses every open right-zone panel group and leaves the other zones alone", () => {
     const controller = showDock(["preview", "design"]);
     const view = renderLayout();

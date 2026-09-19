@@ -154,7 +154,7 @@ export function StudioRightPanels({
   useSlideshowDockPanel(isSlideshowComposition);
   useBlockParamsDismissal({
     hasBlockParams: activeBlockParams != null,
-    hasSelection: domEditSelection != null,
+    selection: domEditSelection,
     onDismiss: onDismissBlockParams,
   });
   useCaptionDesignFocus(captionEditMode);
@@ -307,7 +307,9 @@ export function StudioRightPanels({
   );
 
   let designBody = propertyPanel;
-  if (activeBlockParams) {
+  if (captionEditMode) {
+    designBody = <CaptionPropertyPanel iframeRef={previewIframeRef} />;
+  } else if (activeBlockParams) {
     designBody = (
       <BlockParamsPanel
         blockName={activeBlockParams.blockName}
@@ -317,8 +319,6 @@ export function StudioRightPanels({
         onClose={onCloseBlockParams ?? (() => {})}
       />
     );
-  } else if (captionEditMode) {
-    designBody = <CaptionPropertyPanel iframeRef={previewIframeRef} />;
   }
 
   return (
