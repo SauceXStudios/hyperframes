@@ -41,8 +41,13 @@ function isScanned(relative: string): boolean {
   return /\.(tsx?|css)$/.test(relative);
 }
 
+/** Comments hold issue numbers like `#2291` that read as hex; count code only. */
+function stripComments(text: string): string {
+  return text.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:"'`])\/\/.*$/gm, "$1");
+}
+
 function countColorLiterals(text: string): number {
-  return [...text.matchAll(COLOR_LITERAL)].length;
+  return [...stripComments(text).matchAll(COLOR_LITERAL)].length;
 }
 
 /** Repository-relative path to colour-literal count, for every scanned file. */
@@ -125,9 +130,16 @@ describe("colour literal counter", () => {
 
   it("does not mistake a fragment or an issue number for a colour", () => {
     // Known limit: an identifier that is exactly 3, 4, 6 or 8 hex characters
-    // reads as a colour. The baseline absorbs it; the count only has to be
-    // stable and monotone, not semantically perfect.
+    // in code reads as a colour; the baseline absorbs it.
     expect(countColorLiterals(`href="#section-two" // see #12345`)).toBe(0);
+  });
+
+  it("ignores a colour-shaped issue number in a line or block comment", () => {
+    expect(countColorLiterals(`const a = 1; // decision (#2291)`)).toBe(0);
+    expect(countColorLiterals(`/** see #2291 and rgba(0,0,0,1) */\nconst a = 1;`)).toBe(0);
+    expect(countColorLiterals(`fetch("https://x.test/#abc"); const c = "#161618"; // #2291`)).toBe(
+      2,
+    );
   });
 
   it("leaves the token sources and the tests out of the scan", () => {
