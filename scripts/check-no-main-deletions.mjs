@@ -312,10 +312,7 @@ export const ALLOWED_DELETIONS = new Map([
     "packages/studio/src/utils/fitPanels.ts",
     "computed fixed left/right panel widths for the old EditorShell layout; the dock sizes its own panels",
   ],
-  [
-    "packages/studio/src/utils/fitPanels.test.ts",
-    "tests for fitPanels.ts, removed with it",
-  ],
+  ["packages/studio/src/utils/fitPanels.test.ts", "tests for fitPanels.ts, removed with it"],
   ...[
     "docs/studio/storyboard.mdx",
     "packages/studio-server/src/routes/storyboard.test.ts",
