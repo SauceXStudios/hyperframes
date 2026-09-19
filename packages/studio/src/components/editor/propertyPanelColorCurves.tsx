@@ -1,6 +1,5 @@
 import { useState } from "react";
 import type { HfColorCurvePoint, HfHueCurvePoint } from "@hyperframes/core/color-grading";
-import { RotateCcw } from "../../icons/SystemIcons";
 import {
   CurveGraph,
   formatPointValue,
@@ -14,6 +13,7 @@ import {
 } from "./propertyPanelColorCurveGraph";
 import { GradingNumberField } from "./propertyPanelGradingNumberField";
 import { useInspectorGestureDraft } from "./useInspectorGestureTransaction";
+import { Icon } from "../../icons/Icon";
 
 export type { ColorCurveValues } from "./propertyPanelColorCurveGraph";
 
@@ -177,7 +177,7 @@ export function ColorCurves({
           onClick={resetActive}
           className="pb-0.5 text-panel-text-4 hover:text-panel-text-1 disabled:opacity-40"
         >
-          <RotateCcw size={11} />
+          <Icon name="arrowCounterClockwise" size={12} />
         </button>
       </div>
     </div>

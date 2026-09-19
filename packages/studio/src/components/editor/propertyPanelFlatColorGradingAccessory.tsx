@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
 import { isHfColorGradingActive } from "@hyperframes/core/color-grading";
 import { useTrackDesignInput } from "../../contexts/DesignPanelInputContext";
-import { Compare, RotateCcw } from "../../icons/SystemIcons";
 import type { ColorGradingControllerState } from "./useColorGradingController";
+import { Icon } from "../../icons/Icon";
 
 const STATUS_DOT_CLASS: Record<ColorGradingControllerState["runtimeStatus"]["state"], string> = {
   active: "bg-emerald-400",
@@ -76,7 +76,7 @@ export function FlatColorGradingAccessory({
         title="Hold to show original"
         className="flex-shrink-0 text-panel-text-3 hover:text-panel-text-1 disabled:cursor-not-allowed disabled:opacity-40"
       >
-        <Compare size={12} />
+        <Icon name="squareSplitVertical" size={12} />
       </button>
       <span className="flex min-w-0 items-center gap-1" title={runtimeStatus.message}>
         <span
@@ -102,7 +102,7 @@ export function FlatColorGradingAccessory({
         }}
         className="flex-shrink-0 text-panel-text-3 hover:text-panel-text-1"
       >
-        <RotateCcw size={12} />
+        <Icon name="arrowCounterClockwise" size={12} />
       </button>
     </span>
   );

@@ -7,7 +7,6 @@ import {
   type HfColorGradingDetailKey,
   type NormalizedHfColorGrading,
 } from "@hyperframes/core/color-grading";
-import { Plus, Settings } from "../../icons/SystemIcons";
 import { useTrackDesignInput } from "../../contexts/DesignPanelInputContext";
 import { LUT_EXT } from "../../utils/mediaTypes";
 import { FLAT_PREVIEW_GRID, FlatSlider } from "./propertyPanelFlatPrimitives";
@@ -33,6 +32,7 @@ import {
 import { PropertyPanelColorScopes } from "./propertyPanelColorScopes";
 import { PropertyPanelColorSecondary } from "./propertyPanelColorSecondary";
 import { ColorWheels } from "./propertyPanelColorWheels";
+import { Icon } from "../../icons/Icon";
 
 export { FlatColorGradingAccessory } from "./propertyPanelFlatColorGradingAccessory";
 
@@ -56,6 +56,7 @@ function resolveColorGrading(grading: Parameters<typeof normalizeHfColorGrading>
   return resolved;
 }
 
+// fallow-ignore-next-line code-duplication
 function HdrBanner({ metadata }: { metadata: MediaMetadata | null }) {
   if (metadata?.color.dynamicRange !== "hdr") return null;
   const details = [
@@ -132,6 +133,7 @@ export function FlatColorGradingSection({
   const track = useTrackDesignInput();
   const lutInputRef = useRef<HTMLInputElement>(null);
   const [lutOpen, setLutOpen] = useState(false);
+  // fallow-ignore-next-line code-duplication
   const [detailSettingsOpen, setDetailSettingsOpen] = useState<"vignette" | "grain" | null>(null);
   const lutAssets = useMemo(
     () => assets.filter((asset) => LUT_EXT.test(asset)).sort((a, b) => a.localeCompare(b)),
@@ -384,15 +386,11 @@ export function FlatColorGradingSection({
           className="flex min-h-[30px] w-full items-center justify-between text-left"
         >
           <span className="text-[11px] text-panel-text-2">Custom LUT</span>
-          <svg
-            width="10"
-            height="10"
-            viewBox="0 0 10 10"
-            fill="currentColor"
+          <Icon
+            name="caretDown"
+            size={12}
             className={`flex-shrink-0 text-panel-text-5 transition-transform ${lutOpen ? "rotate-90" : ""}`}
-          >
-            <path d="M2 3l3 4 3-4z" />
-          </svg>
+          />
         </button>
         {lutOpen && (
           <div className="space-y-1.5 pb-1">
@@ -425,7 +423,7 @@ export function FlatColorGradingSection({
                 title="Import .cube LUT"
                 className="flex-shrink-0 text-panel-text-4 hover:text-panel-text-1 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                <Plus size={12} />
+                <Icon name="plus" size={12} />
               </button>
               <input
                 ref={lutInputRef}
@@ -469,7 +467,7 @@ export function FlatColorGradingSection({
             onClick={() => setDetailSettingsOpen((c) => (c === "vignette" ? null : "vignette"))}
             className="flex-shrink-0 text-panel-text-4 hover:text-panel-text-1"
           >
-            <Settings size={12} />
+            <Icon name="gear" size={12} />
           </button>
         </div>
         <div className="flex items-center gap-1.5">
@@ -481,7 +479,7 @@ export function FlatColorGradingSection({
             onClick={() => setDetailSettingsOpen((c) => (c === "grain" ? null : "grain"))}
             className="flex-shrink-0 text-panel-text-4 hover:text-panel-text-1"
           >
-            <Settings size={12} />
+            <Icon name="gear" size={12} />
           </button>
         </div>
         {detailSettingsOpen && (

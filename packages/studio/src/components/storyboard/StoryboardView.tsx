@@ -1,10 +1,10 @@
 import { useState, type ReactNode } from "react";
-import { Copy, Check } from "@phosphor-icons/react";
 import { useStoryboard } from "../../hooks/useStoryboard";
 import { useProjectSignaturePoll } from "../../hooks/useProjectSignaturePoll";
 import { copyTextToClipboard } from "../../utils/clipboard";
 import { Button } from "../ui/Button";
 import { StoryboardLoaded } from "./StoryboardLoaded";
+import { Icon } from "../../icons/Icon";
 
 export interface StoryboardViewProps {
   projectId: string;
@@ -130,7 +130,7 @@ function EmptyState({ path }: { path: string }) {
               size="sm"
               variant="secondary"
               onClick={onCopy}
-              icon={copied ? <Check size={14} /> : <Copy size={14} />}
+              icon={copied ? <Icon name="check" size={14} /> : <Icon name="copy" size={14} />}
             >
               {copied ? "Copied" : "Copy prompt"}
             </Button>

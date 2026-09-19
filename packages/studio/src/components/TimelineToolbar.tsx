@@ -1,12 +1,5 @@
 import { useEffect, useRef } from "react";
 import {
-  Image,
-  Magnet,
-  MagnifyingGlassMinus,
-  MagnifyingGlassPlus,
-  Waves,
-} from "@phosphor-icons/react";
-import {
   useEnableKeyframes,
   isPlayheadWithinTween,
   type EnableKeyframesSession,
@@ -22,11 +15,11 @@ import {
 import { useTimelineZoom } from "../player/components/useTimelineZoom";
 import { usePlayerStore, type TimelineElement } from "../player";
 import { Tooltip } from "./ui";
-import { Scissors } from "../icons/SystemIcons";
 import type { GsapAnimation } from "@hyperframes/core/gsap-parser";
 import type { DomEditSelection } from "./editor/domEditingTypes";
 import { canSplitElement } from "../utils/timelineElementSplit";
 import { canAddBeatAt, addBeatAtCompositionTime } from "../utils/beatEditActions";
+import { Icon } from "../icons/Icon";
 
 interface DomEditSessionSlice extends EnableKeyframesSession {
   domEditSelection: DomEditSelection | null;
@@ -220,7 +213,7 @@ export function TimelineToolbar({ domEditSession, onSplitElement }: TimelineTool
               aria-pressed={activeTool === "razor"}
               className={activeTool === "razor" ? flatActive : flatIdle}
             >
-              <Scissors size={16} />
+              <Icon name="scissors" size={16} />
             </button>
           </Tooltip>
           {/* Divider: tool-mode | editing-actions */}
@@ -233,7 +226,7 @@ export function TimelineToolbar({ domEditSession, onSplitElement }: TimelineTool
               aria-pressed={timelineSnapEnabled}
               className={timelineSnapEnabled ? flatActive : flatIdle}
             >
-              <Magnet size={16} weight="bold" aria-hidden="true" />
+              <Icon name="magnet" size={16} />
             </button>
           </Tooltip>
           <Tooltip
@@ -250,7 +243,7 @@ export function TimelineToolbar({ domEditSession, onSplitElement }: TimelineTool
               aria-pressed={rippleEditEnabled}
               className={rippleEditEnabled ? flatActive : flatIdle}
             >
-              <Waves size={16} weight="bold" aria-hidden="true" />
+              <Icon name="waves" size={16} />
             </button>
           </Tooltip>
           {/* Always rendered (CapCut-style): with no keyframeable selection the
@@ -433,15 +426,7 @@ export function TimelineToolbar({ domEditSession, onSplitElement }: TimelineTool
                       : flatDisabled
                   }
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path
-                      d="M21 10C21 12.2091 16.9706 14 12 14M21 10C21 7.79086 16.9706 6 12 6C7.02944 6 3 7.79086 3 10M21 10V16C21 18.2091 16.9706 20 12 20M12 14C7.02944 14 3 12.2091 3 10M12 14V20M3 10V16C3 18.2091 7.02944 20 12 20M7 19.3264V13.3264M17 19.3264V13.3264M12 10L20 4"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                  <Icon name="database" size={16} />
                 </button>
               </Tooltip>
             );
@@ -470,7 +455,7 @@ export function TimelineToolbar({ domEditSession, onSplitElement }: TimelineTool
                   : "text-neutral-400 hover:bg-white/[0.06] hover:text-neutral-200"
               }`}
             >
-              <Image size={16} aria-hidden="true" />
+              <Icon name="image" size={16} />
             </button>
           </Tooltip>
           <Tooltip label="Fit timeline to width">
@@ -498,7 +483,7 @@ export function TimelineToolbar({ domEditSession, onSplitElement }: TimelineTool
               }}
               className={flatIdle}
             >
-              <MagnifyingGlassMinus size={16} aria-hidden="true" />
+              <Icon name="magnifyingGlassMinus" size={16} />
             </button>
           </Tooltip>
           <input
@@ -530,7 +515,7 @@ export function TimelineToolbar({ domEditSession, onSplitElement }: TimelineTool
               }}
               className={flatIdle}
             >
-              <MagnifyingGlassPlus size={16} aria-hidden="true" />
+              <Icon name="magnifyingGlassPlus" size={16} />
             </button>
           </Tooltip>
           {/* Numeric zoom readout (main-parity): "Fit" in fit mode, N% in manual. */}

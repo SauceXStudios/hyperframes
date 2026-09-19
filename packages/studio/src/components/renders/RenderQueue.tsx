@@ -9,6 +9,7 @@ import { resolveFloatingPanelPosition, type FloatingPosition } from "../editor/f
 import type { RenderJob, ResolutionPreset } from "./useRenderQueue";
 import { getPersistedRenderSettings, persistRenderSettings } from "./renderSettings";
 import { trackStudioEvent } from "../../utils/studioTelemetry";
+import { Icon } from "../../icons/Icon";
 
 export interface CompositionDimensions {
   width: number;
@@ -209,21 +210,7 @@ function FormatInfoTooltip({ format }: { format: "mp4" | "webm" | "mov" }) {
         onClick={() => setOpen((prev) => !prev)}
         className="flex items-center justify-center p-0.5 -m-0.5 rounded text-panel-text-5 hover:text-panel-text-3 transition-colors cursor-help outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-studio-accent"
       >
-        <svg
-          width="12"
-          height="12"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <circle cx="12" cy="12" r="10" />
-          <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
-          <line x1="12" y1="17" x2="12.01" y2="17" />
-        </svg>
+        <Icon name="question" size={12} />
       </button>
       {open &&
         createPortal(
@@ -497,31 +484,7 @@ export const RenderQueue = memo(function RenderQueue({
           </div>
         ) : jobs.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full px-4 gap-2">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              className="text-panel-text-5"
-            >
-              <rect
-                x="2"
-                y="2"
-                width="20"
-                height="20"
-                rx="2.18"
-                ry="2.18"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <Icon name="filmStrip" size={20} className="text-panel-text-5" />
             <p className="text-[10px] text-panel-text-5 text-center">No renders yet</p>
           </div>
         ) : (

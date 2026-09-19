@@ -1,6 +1,5 @@
 import { scopedElementKey } from "../../hooks/gsapKeyframeCacheHelpers";
 import { memo, useMemo, useRef, useState } from "react";
-import { Move } from "../../icons/SystemIcons";
 import { InspectorHeaderActions } from "./InspectorHeaderActions";
 import { useStudioShellContext } from "../../contexts/StudioContext";
 import { readStudioBoxSize, readStudioPathOffset, readStudioRotation } from "./manualEdits";
@@ -37,6 +36,7 @@ import { GestureRecordPanelButton } from "./GestureRecordControl";
 import { PropertyPanelEmptyState } from "./PropertyPanelEmptyState";
 import { DesignPanelInputProvider } from "../../contexts/DesignPanelInputContext";
 import { isAudioDomElement } from "../../utils/timelineInspector";
+import { Icon } from "../../icons/Icon";
 
 // Re-export helpers that external consumers import from this module
 export {
@@ -386,7 +386,7 @@ export const PropertyPanel = memo(function PropertyPanel(props: PropertyPanelPro
         )}
 
         {sections.layout && (
-          <Section title="Layout" icon={<Move size={15} />}>
+          <Section title="Layout" icon={<Icon name="arrowsOutCardinal" size={16} />}>
             <div className={RESPONSIVE_GRID}>
               <div className="flex items-center gap-1">
                 <div className="flex-1">

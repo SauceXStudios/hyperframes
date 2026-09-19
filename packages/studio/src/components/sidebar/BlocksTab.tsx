@@ -13,6 +13,7 @@ import { usePlayerStore } from "../../player";
 import { formatTime } from "../../player/lib/time";
 import { useStudioShellContext } from "../../contexts/StudioContext";
 import { TIMELINE_BLOCK_MIME } from "../../utils/timelineAssetDrop";
+import { Icon } from "../../icons/Icon";
 export interface BlockPreviewInfo {
   videoUrl?: string;
   posterUrl?: string;
@@ -427,16 +428,7 @@ function BlockCard({
                   : "bg-white text-black hover:bg-neutral-200"
               }`}
             >
-              <svg
-                width="10"
-                height="10"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              >
-                <path d="M12 5v14M5 12h14" />
-              </svg>
+              <Icon name="plus" size={12} />
               {addState === "adding"
                 ? "Adding…"
                 : addState === "added"
@@ -456,17 +448,7 @@ function BlockCard({
                 : "bg-white text-black hover:bg-neutral-200 text-[10px] font-semibold"
             }`}
           >
-            <svg
-              width={onAdd ? 9 : 11}
-              height={onAdd ? 9 : 11}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <rect x="9" y="9" width="13" height="13" rx="2" />
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-            </svg>
+            <Icon name="copy" size={12} />
             Ask agent
           </button>
         </div>

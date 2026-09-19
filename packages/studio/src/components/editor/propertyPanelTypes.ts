@@ -84,6 +84,7 @@ export interface PropertyPanelProps {
     element: DomEditSelection,
     next: { width: number; height: number },
   ) => void | Promise<void>;
+  // fallow-ignore-next-line code-duplication
   onSetManualRotation: (element: DomEditSelection, next: { angle: number }) => void | Promise<void>;
   onSetText: (value: string, fieldKey?: string) => void;
   onSetTextFieldStyle: (fieldKey: string, property: string, value: string) => void;

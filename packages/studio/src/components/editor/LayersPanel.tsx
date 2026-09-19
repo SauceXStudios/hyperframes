@@ -12,7 +12,6 @@ import {
   findMatchingTimelineElementId,
   resolveTimelineSelectionSeekTime,
 } from "../../utils/studioHelpers";
-import { Layers } from "../../icons/SystemIcons";
 import { useLayerDrag, isLayerDraggable, type LayerReorderEvent } from "./useLayerDrag";
 import { getVisibleLayers, sortLayersByZIndex } from "./layersPanelSort";
 import { deriveTimelineStoreKey } from "../../player/lib/timelineElementHelpers";
@@ -22,6 +21,7 @@ import { zReorderCoalesceKey } from "../../hooks/useElementLifecycleOps";
 import { useLayerReorderTimelineMirror } from "../nle/useCanvasZOrderTimelineMirror";
 import { runZLaneGesture } from "../nle/zLaneGesture";
 import { useLayerRevealOverride } from "./useLayerRevealOverride";
+import { Icon } from "../../icons/Icon";
 
 // Rows this panel renders before it stops. A display budget, not a document limit.
 const LAYERS_PANEL_MAX_ROWS = 80;
@@ -405,7 +405,7 @@ export const LayersPanel = memo(function LayersPanel() {
   if (layers.length === 0) {
     return (
       <div className="flex h-full flex-col items-center justify-center bg-panel-bg px-6 text-center">
-        <Layers size={18} className="mb-3 text-panel-text-5" />
+        <Icon name="stack" size={20} className="mb-3 text-panel-text-5" />
         <p className="text-sm font-medium text-panel-text-1">No layers</p>
         <p className="mt-1 text-xs text-neutral-500">Load a composition to see its element tree</p>
       </div>
@@ -487,15 +487,11 @@ export const LayersPanel = memo(function LayersPanel() {
                   aria-label={isCollapsed ? "Expand children" : "Collapse children"}
                   className="relative flex h-4 w-4 flex-shrink-0 items-center justify-center rounded text-neutral-500 hover:text-neutral-300 before:absolute before:-inset-1.5 before:content-['']"
                 >
-                  <svg
-                    width="8"
-                    height="8"
-                    viewBox="0 0 8 8"
-                    fill="currentColor"
+                  <Icon
+                    name="caretRight"
+                    size={12}
                     className={`transition-transform ${isCollapsed ? "" : "rotate-90"}`}
-                  >
-                    <path d="M2 1l4 3-4 3z" />
-                  </svg>
+                  />
                 </button>
               ) : (
                 <span className="w-4 flex-shrink-0" />

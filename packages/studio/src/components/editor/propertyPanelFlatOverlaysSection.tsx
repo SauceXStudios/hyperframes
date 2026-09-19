@@ -1,11 +1,11 @@
 import { useState } from "react";
 import type { RegistryItem } from "@hyperframes/core/registry";
 import { useBlockCatalog } from "../../hooks/useBlockCatalog";
-import { Film, Plus } from "../../icons/SystemIcons";
 import { useTrackDesignInput } from "../../contexts/DesignPanelInputContext";
 import type { DomEditSelection } from "./domEditing";
 import { FLAT_PREVIEW_GRID } from "./propertyPanelFlatPrimitives";
 import type { ElementTiming } from "./propertyPanelFlatTimingDerivation";
+import { Icon } from "../../icons/Icon";
 
 export const MEDIA_TREATMENT_OVERLAY_TAG = "media-treatment-overlay";
 
@@ -91,9 +91,10 @@ export function FlatOverlaysSection({
                 className="block h-full w-full object-cover"
               />
             ) : (
-              <Film size={15} className="text-panel-text-4" />
+              <Icon name="filmStrip" size={16} className="text-panel-text-4" />
             )}
-            <Plus
+            <Icon
+              name="plus"
               size={12}
               className="absolute right-1.5 top-1.5 text-white opacity-70 drop-shadow group-hover:text-panel-accent group-hover:opacity-100"
             />

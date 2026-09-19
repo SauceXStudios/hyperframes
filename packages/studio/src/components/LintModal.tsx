@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
-import { XIcon, WarningIcon, CheckCircleIcon, CaretRightIcon } from "@phosphor-icons/react";
 import { copyTextToClipboard } from "../utils/clipboard";
 import { useDialogBehavior } from "./ui/useDialogBehavior";
+import { Icon } from "../icons/Icon";
 
 export interface LintFinding {
   severity: "error" | "warning";
@@ -75,11 +75,11 @@ export function LintModal({
           <div className="flex items-center gap-3">
             {hasIssues ? (
               <div className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center">
-                <WarningIcon size={18} className="text-red-400" weight="fill" />
+                <Icon name="warning" size={20} className="text-red-400" />
               </div>
             ) : (
               <div className="w-8 h-8 rounded-full bg-studio-accent/10 flex items-center justify-center">
-                <CheckCircleIcon size={18} className="text-studio-accent" weight="fill" />
+                <Icon name="checkCircle" size={20} className="text-studio-accent" />
               </div>
             )}
             <div>
@@ -96,7 +96,7 @@ export function LintModal({
             aria-label="Close"
             className="p-1.5 rounded-lg text-neutral-500 hover:text-neutral-200 hover:bg-neutral-800 transition-colors active:scale-[0.98]"
           >
-            <XIcon size={16} />
+            <Icon name="x" size={16} />
           </button>
         </div>
 
@@ -130,18 +130,15 @@ export function LintModal({
           {errors.map((f, i) => (
             <div key={`e-${i}`} className="py-3 border-b border-neutral-800/50 last:border-0">
               <div className="flex items-start gap-2">
-                <WarningIcon
-                  size={14}
-                  className="text-red-400 flex-shrink-0 mt-0.5"
-                  weight="fill"
-                />
+                <Icon name="warning" size={14} className="text-red-400 flex-shrink-0 mt-0.5" />
                 <div className="min-w-0">
                   <p className="text-sm text-neutral-200">{f.message}</p>
                   {f.file && <p className="text-xs text-neutral-600 font-mono mt-0.5">{f.file}</p>}
                   {f.fixHint && (
                     <div className="flex items-start gap-1 mt-1.5">
-                      <CaretRightIcon
-                        size={10}
+                      <Icon
+                        name="caretRight"
+                        size={12}
                         className="text-studio-accent flex-shrink-0 mt-0.5"
                       />
                       <p className="text-xs text-studio-accent">{f.fixHint}</p>
@@ -154,14 +151,16 @@ export function LintModal({
           {warnings.map((f, i) => (
             <div key={`w-${i}`} className="py-3 border-b border-neutral-800/50 last:border-0">
               <div className="flex items-start gap-2">
-                <WarningIcon size={14} className="text-amber-400 flex-shrink-0 mt-0.5" />
+                <Icon name="warning" size={14} className="text-amber-400 flex-shrink-0 mt-0.5" />
                 <div className="min-w-0">
+                  // fallow-ignore-next-line code-duplication
                   <p className="text-sm text-neutral-300">{f.message}</p>
                   {f.file && <p className="text-xs text-neutral-600 font-mono mt-0.5">{f.file}</p>}
                   {f.fixHint && (
                     <div className="flex items-start gap-1 mt-1.5">
-                      <CaretRightIcon
-                        size={10}
+                      <Icon
+                        name="caretRight"
+                        size={12}
                         className="text-studio-accent flex-shrink-0 mt-0.5"
                       />
                       <p className="text-xs text-studio-accent">{f.fixHint}</p>

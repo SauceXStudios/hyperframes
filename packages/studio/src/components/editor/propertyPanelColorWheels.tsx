@@ -4,10 +4,10 @@ import {
   type HfColorGradingWheelKey,
   type NormalizedHfColorGradingWheels,
 } from "@hyperframes/core/color-grading";
-import { RotateCcw } from "../../icons/SystemIcons";
 import { clampNumber } from "../../utils/studioHelpers";
 import { GradingNumberField } from "./propertyPanelGradingNumberField";
 import { useInspectorGestureDraft } from "./useInspectorGestureTransaction";
+import { Icon } from "../../icons/Icon";
 
 const WHEELS: ReadonlyArray<{ key: HfColorGradingWheelKey; label: string }> = [
   { key: "shadows", label: "Shadows" },
@@ -153,7 +153,7 @@ function TonalWheel({
           onClick={onReset}
           className="text-panel-text-4 hover:text-panel-text-1 disabled:opacity-40"
         >
-          <RotateCcw size={10} />
+          <Icon name="arrowCounterClockwise" size={12} />
         </button>
       </div>
       <div

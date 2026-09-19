@@ -1,7 +1,6 @@
-import { Eye, EyeSlash } from "@phosphor-icons/react";
-import { X } from "../../icons/SystemIcons";
 import { useTrackDesignInput } from "../../contexts/DesignPanelInputContext";
 import type { DomEditSelection } from "./domEditingTypes";
+import { Icon } from "../../icons/Icon";
 
 /** The action buttons in the inspector header: visibility, Ungroup (groups only), copy, clear. */
 export function InspectorHeaderActions({
@@ -40,9 +39,9 @@ export function InspectorHeaderActions({
           className="flex h-6 w-6 items-center justify-center rounded text-neutral-500 transition-colors hover:bg-neutral-800 hover:text-neutral-300"
         >
           {selectedElementHidden ? (
-            <EyeSlash size={13} weight="bold" aria-hidden="true" />
+            <Icon name="eyeSlash" size={14} />
           ) : (
-            <Eye size={13} weight="bold" aria-hidden="true" />
+            <Icon name="eye" size={14} />
           )}
         </button>
       )}
@@ -72,17 +71,7 @@ export function InspectorHeaderActions({
         }`}
         title={copied ? "Copied!" : "Copy element info to clipboard"}
       >
-        <svg
-          width="13"
-          height="13"
-          viewBox="0 0 16 16"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-        >
-          <rect x="5" y="5" width="9" height="9" rx="1.5" />
-          <path d="M11 5V3.5A1.5 1.5 0 009.5 2h-6A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5" />
-        </svg>
+        <Icon name="copy" size={14} />
       </button>
       <button
         type="button"
@@ -93,7 +82,7 @@ export function InspectorHeaderActions({
         }}
         className="flex h-6 w-6 items-center justify-center rounded text-neutral-500 transition-colors hover:bg-neutral-800 hover:text-neutral-300"
       >
-        <X size={13} />
+        <Icon name="x" size={14} />
       </button>
     </div>
   );

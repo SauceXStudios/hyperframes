@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useTrackDesignInput } from "../../contexts/DesignPanelInputContext";
-import { RotateCcw } from "../../icons/SystemIcons";
 import { CommitField } from "./propertyPanelPrimitives";
 import {
   VALUE_TIER_LABEL_CLASS,
   VALUE_TIER_VALUE_CLASS,
   type PropertyValueTier,
 } from "./propertyPanelValueTier";
+import { Icon } from "../../icons/Icon";
 
 export const FLAT_PREVIEW_GRID = "grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-1";
 
@@ -75,19 +75,11 @@ export function FlatRow({
             }}
             className="flex-shrink-0 text-panel-text-3 opacity-0 transition-opacity hover:text-panel-text-1 group-hover:opacity-100"
           >
-            <RotateCcw size={11} />
+            <Icon name="arrowCounterClockwise" size={12} />
           </button>
         )}
         {dropdown && (
-          <svg
-            width="10"
-            height="10"
-            viewBox="0 0 10 10"
-            fill="currentColor"
-            className="flex-shrink-0 text-panel-text-5"
-          >
-            <path d="M2 3l3 4 3-4z" />
-          </svg>
+          <Icon name="caretDown" size={12} className="flex-shrink-0 text-panel-text-5" />
         )}
       </span>
     </div>
@@ -206,15 +198,7 @@ export function FlatGroupHeader({
             </span>
           )}
         </span>
-        <svg
-          width="12"
-          height="12"
-          viewBox="0 0 12 12"
-          fill="currentColor"
-          className="flex-shrink-0 text-panel-text-5"
-        >
-          <path d="M4 2l4 4-4 4z" />
-        </svg>
+        <Icon name="caretRight" size={12} className="flex-shrink-0 text-panel-text-5" />
       </button>
     );
   }
@@ -227,9 +211,7 @@ export function FlatGroupHeader({
       <span className="flex items-center gap-2.5 text-panel-text-5">
         {accessory}
         <button type="button" onClick={onToggleOpen} title="Collapse" className="text-panel-text-3">
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
-            <path d="M2 4l4 4 4-4z" />
-          </svg>
+          <Icon name="caretDown" size={12} />
         </button>
       </span>
     </div>
@@ -557,7 +539,7 @@ export function FlatSlider({
               }}
               className="text-panel-text-3 hover:text-panel-text-1 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              <RotateCcw size={11} />
+              <Icon name="arrowCounterClockwise" size={12} />
             </button>
           )}
         </span>

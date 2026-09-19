@@ -3,6 +3,7 @@ import type { BlockParam } from "@hyperframes/core/registry";
 import { useFileManagerContextOptional } from "../../contexts/FileManagerContext";
 import { useStudioPlaybackContext } from "../../contexts/StudioContext";
 import { trackBlockParamCommit } from "../../telemetry/events";
+import { Icon } from "../../icons/Icon";
 
 interface BlockParamsPanelProps {
   blockName: string;
@@ -142,19 +143,7 @@ export const BlockParamsPanel = memo(function BlockParamsPanel({
           aria-label="Close block parameters"
           className="p-1.5 -m-1 text-neutral-500 hover:text-neutral-300 active:scale-[0.97] transition-colors"
         >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M18 6 6 18" />
-            <path d="m6 6 12 12" />
-          </svg>
+          <Icon name="x" size={14} />
         </button>
       </div>
 

@@ -16,6 +16,7 @@ import { resolveMasterCompositionPath } from "../../utils/studioUrlState";
 import { BlocksTab, type BlockPreviewInfo } from "./BlocksTab";
 import { FileTree } from "../editor/FileTree";
 import { Tooltip } from "../ui";
+import { Icon } from "../../icons/Icon";
 
 export type SidebarTab = "compositions" | "assets" | "code" | "blocks";
 
@@ -204,20 +205,7 @@ export const LeftSidebar = memo(
                     title="Hide sidebar"
                     aria-label="Hide sidebar"
                   >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="m14 7-5 5 5 5" />
-                      <path d="M19 4v16" />
-                    </svg>
+                    <Icon name="sidebarSimple" size={14} />
                   </button>
                 )}
               </div>
@@ -306,17 +294,7 @@ export const LeftSidebar = memo(
                   disabled={linting}
                   className="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md text-[11px] font-medium text-neutral-500 enabled:hover:text-amber-300 enabled:hover:bg-neutral-800 enabled:active:scale-[0.98] transition-colors disabled:opacity-40"
                 >
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M9 11l3 3L22 4" />
-                    <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
-                  </svg>
+                  <Icon name="checkSquareOffset" size={12} />
                   {linting ? "Linting…" : "Lint"}
                   {!linting && lintFindingCount != null && lintFindingCount > 0 && (
                     <span className="ml-1 min-w-[16px] rounded-full bg-amber-500/20 px-1 text-[9px] font-bold text-amber-400">

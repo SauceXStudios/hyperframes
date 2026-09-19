@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { X } from "../../icons/SystemIcons";
 import {
   formatCssColor,
   hsvToRgb,
@@ -13,6 +12,7 @@ import { resolveFloatingPanelPosition, type FloatingPosition } from "./floatingP
 import { colorFromCss, FIELD, LABEL } from "./propertyPanelHelpers";
 import { useTrackDesignInput } from "../../contexts/DesignPanelInputContext";
 import { useInspectorGestureTransaction } from "./useInspectorGestureTransaction";
+import { Icon } from "../../icons/Icon";
 
 const COLOR_PICKER_SIZE = { width: 292, height: 386 };
 
@@ -348,7 +348,7 @@ export function ColorField({
               className="flex h-7 w-7 items-center justify-center rounded-lg text-neutral-500 transition-colors hover:bg-neutral-900 hover:text-neutral-200"
               aria-label="Close color picker"
             >
-              <X size={13} />
+              <Icon name="x" size={14} />
             </button>
           </div>
           <div className="space-y-3 p-3">

@@ -1,4 +1,5 @@
 import { useTrackDesignInput } from "../../contexts/DesignPanelInputContext";
+import { Icon } from "../../icons/Icon";
 
 export function PropertyPanelFlatFooter({
   onAskAgent,
@@ -35,15 +36,7 @@ export function PropertyPanelFlatFooter({
         disabled={!onAskAgent}
         className="flex items-center gap-[7px] text-[11px] font-medium text-panel-text-2 disabled:cursor-not-allowed"
       >
-        <svg
-          width="13"
-          height="13"
-          viewBox="0 0 16 16"
-          fill="currentColor"
-          className="text-panel-accent"
-        >
-          <path d="M8 1l1.4 4.6L14 7l-4.6 1.4L8 13l-1.4-4.6L2 7l4.6-1.4z" />
-        </svg>
+        <Icon name="sparkle" size={14} className="text-panel-accent" />
         Ask agent about this element
       </button>
       {onToggleRecording && (

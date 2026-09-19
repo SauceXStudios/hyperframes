@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Minus, Plus, RotateCcw, Settings } from "../../icons/SystemIcons";
 import { LABEL } from "./propertyPanelHelpers";
 import { useTrackDesignInput } from "../../contexts/DesignPanelInputContext";
+import { Icon } from "../../icons/Icon";
 
 const SLIDER_THUMB_SIZE = 10;
 const SLIDER_THUMB_RADIUS = SLIDER_THUMB_SIZE / 2;
@@ -162,7 +162,7 @@ export function ColorGradingSliderControl({
             }`}
             title={settings.label}
           >
-            <Settings size={11} />
+            <Icon name="gear" size={12} />
             {settings.active && (
               <span className="absolute right-0.5 top-0.5 h-1 w-1 rounded-full bg-studio-accent" />
             )}
@@ -181,7 +181,7 @@ export function ColorGradingSliderControl({
             className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-panel-text-5 transition-colors hover:bg-panel-hover hover:text-panel-text-1 disabled:cursor-not-allowed disabled:opacity-40"
             title={`Reset ${label}`}
           >
-            <RotateCcw size={11} />
+            <Icon name="arrowCounterClockwise" size={12} />
           </button>
         )}
       </div>
@@ -270,7 +270,7 @@ export function ColorGradingSliderControl({
             className="flex h-5 w-5 items-center justify-center text-panel-text-4 transition-colors hover:bg-panel-hover hover:text-panel-text-1 disabled:cursor-not-allowed disabled:opacity-40"
             title={`Decrease ${label}`}
           >
-            <Minus size={11} />
+            <Icon name="minus" size={12} />
           </button>
           <button
             type="button"
@@ -280,7 +280,7 @@ export function ColorGradingSliderControl({
             className="flex h-5 w-5 items-center justify-center border-l border-panel-border text-panel-text-4 transition-colors hover:bg-panel-hover hover:text-panel-text-1 disabled:cursor-not-allowed disabled:opacity-40"
             title={`Increase ${label}`}
           >
-            <Plus size={11} />
+            <Icon name="plus" size={12} />
           </button>
         </div>
       </div>

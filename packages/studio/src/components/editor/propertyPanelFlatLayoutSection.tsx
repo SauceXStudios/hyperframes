@@ -273,6 +273,7 @@ export function LayoutTransform3DBlock({
   gsapRuntimeValues: Record<string, number>;
   gsapAnimId: string | null;
   resolveAnimIdForProp?: (prop: string) => string | null;
+  // fallow-ignore-next-line code-duplication
   gsapKeyframes: Array<{
     percentage: number;
     properties: Record<string, number | string>;

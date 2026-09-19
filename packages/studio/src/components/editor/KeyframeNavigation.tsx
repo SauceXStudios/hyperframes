@@ -1,5 +1,6 @@
 import { memo } from "react";
 import { KeyframeDiamond, type DiamondState } from "./KeyframeDiamond";
+import { Icon } from "../../icons/Icon";
 
 interface KeyframeNavigationProps {
   property: string;
@@ -76,43 +77,11 @@ export function clipToTweenPercentage(
 }
 
 function ArrowLeft({ disabled }: { disabled: boolean }) {
-  return (
-    <svg
-      width="6"
-      height="10"
-      viewBox="0 0 6 10"
-      fill="none"
-      style={{ opacity: disabled ? 0.25 : 1 }}
-    >
-      <path
-        d="M5 1L1 5L5 9"
-        stroke="#a3a3a3"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
+  return <Icon name="caretLeft" size={12} style={{ opacity: disabled ? 0.25 : 1 }} />;
 }
 
 function ArrowRight({ disabled }: { disabled: boolean }) {
-  return (
-    <svg
-      width="6"
-      height="10"
-      viewBox="0 0 6 10"
-      fill="none"
-      style={{ opacity: disabled ? 0.25 : 1 }}
-    >
-      <path
-        d="M1 1L5 5L1 9"
-        stroke="#a3a3a3"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
+  return <Icon name="caretRight" size={12} style={{ opacity: disabled ? 0.25 : 1 }} />;
 }
 
 // fallow-ignore-next-line complexity

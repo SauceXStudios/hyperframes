@@ -16,6 +16,7 @@ import {
 import { AudioRow } from "./AudioRow";
 import { GlobalAssetsView } from "./GlobalAssetsView";
 import { AssetCard, FontRow } from "./AssetCard";
+import { Icon } from "../../icons/Icon";
 
 interface AssetsTabProps {
   projectId: string;
@@ -110,33 +111,9 @@ function ImportButton({ importing, onClick }: { importing: boolean; onClick: () 
       className="w-full flex items-center justify-center gap-1.5 rounded-md bg-panel-input px-3 py-[7px] text-[11px] font-medium text-panel-text-3 enabled:hover:text-panel-text-1 enabled:active:scale-[0.98] disabled:opacity-60 transition-colors mb-2.5"
     >
       {importing ? (
-        <svg className="animate-spin" width="11" height="11" viewBox="0 0 24 24" fill="none">
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          />
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-          />
-        </svg>
+        <Icon name="circleNotch" size={12} className="animate-spin" />
       ) : (
-        <svg
-          width="11"
-          height="11"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-        >
-          <path d="M12 5v14M5 12h14" />
-        </svg>
+        <Icon name="plus" size={12} />
       )}
       {importing ? "Importing…" : "Import media"}
     </button>
@@ -170,23 +147,7 @@ function EmptyState({
   }
   return (
     <div className="flex flex-col items-center justify-center h-full px-4 gap-2">
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        className="text-neutral-700"
-      >
-        <path
-          d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <polyline points="17 8 12 3 7 8" strokeLinecap="round" strokeLinejoin="round" />
-        <line x1="12" y1="3" x2="12" y2="15" strokeLinecap="round" />
-      </svg>
+      <Icon name="uploadSimple" size={20} className="text-neutral-700" />
       <p className="text-[10px] text-neutral-600 text-center">Drop media files here</p>
     </div>
   );

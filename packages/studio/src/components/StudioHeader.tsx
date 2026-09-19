@@ -1,11 +1,11 @@
 import { useRef, type MouseEvent } from "react";
-import { RotateCcw, RotateCw, Camera } from "../icons/SystemIcons";
 import { getHistoryShortcutLabel } from "../utils/studioHelpers";
 import { useStudioShellContext } from "../contexts/StudioContext";
 import { usePanelLayoutContext } from "../contexts/PanelLayoutContext";
 import { useViewMode, type StudioViewMode } from "../contexts/ViewModeContext";
 import { trackStudioEvent } from "../utils/studioTelemetry";
 import { Tooltip } from "./ui";
+import { Icon } from "../icons/Icon";
 
 export interface StudioHeaderProps {
   captureFrameHref: string;
@@ -267,7 +267,7 @@ export function StudioHeader({
             }`}
             aria-label="Undo"
           >
-            <RotateCcw size={14} />
+            <Icon name="arrowCounterClockwise" size={14} />
           </button>
         </Tooltip>
         <Tooltip
@@ -292,7 +292,7 @@ export function StudioHeader({
             }`}
             aria-label="Redo"
           >
-            <RotateCw size={14} />
+            <Icon name="arrowClockwise" size={14} />
           </button>
         </Tooltip>
         <Tooltip label={capturing ? "Capturing frame…" : "Capture current frame"} side="bottom">
@@ -318,28 +318,13 @@ export function StudioHeader({
             aria-label={capturing ? "Capturing frame" : "Capture current frame"}
           >
             {capturing ? (
-              <svg
-                className="animate-spin motion-reduce:animate-none h-3.5 w-3.5"
-                viewBox="0 0 24 24"
-                fill="none"
-                aria-hidden="true"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                />
-              </svg>
+              <Icon
+                name="circleNotch"
+                size={14}
+                className="animate-spin motion-reduce:animate-none"
+              />
             ) : (
-              <Camera size={14} />
+              <Icon name="camera" size={14} />
             )}
             <span>{capturing ? "Capturing…" : "Capture"}</span>
           </a>
@@ -367,17 +352,7 @@ export function StudioHeader({
             }`}
             aria-label="Inspector"
           >
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <polygon points="10 8 16 12 10 16" fill="currentColor" stroke="none" />
-            </svg>
+            <Icon name="playCircle" size={12} />
             Inspector
           </button>
         </Tooltip>

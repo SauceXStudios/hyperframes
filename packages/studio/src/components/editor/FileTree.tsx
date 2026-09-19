@@ -1,5 +1,4 @@
 import { memo, useState, useCallback, useMemo, useRef } from "react";
-import { Plus, FolderSimplePlus } from "@phosphor-icons/react";
 import {
   buildTree,
   sortChildren,
@@ -12,6 +11,7 @@ import {
   type ContextMenuState,
   type InlineInputState,
 } from "./FileTreeNodes";
+import { Icon } from "../../icons/Icon";
 
 // ── Types ──
 
@@ -246,7 +246,7 @@ export const FileTree = memo(function FileTree({
               title="New File"
               aria-label="New File"
             >
-              <Plus size={12} weight="bold" />
+              <Icon name="plus" size={12} />
             </button>
             <button
               onClick={() => handleNewFolder("")}
@@ -254,7 +254,7 @@ export const FileTree = memo(function FileTree({
               title="New Folder"
               aria-label="New Folder"
             >
-              <FolderSimplePlus size={12} weight="duotone" />
+              <Icon name="folderSimplePlus" size={12} />
             </button>
           </div>
         </div>

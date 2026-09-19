@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useDialogBehavior } from "../ui/useDialogBehavior";
+import { Icon } from "../../icons/Icon";
 
 export function PromptPreviewModal({
   title,
@@ -70,19 +71,7 @@ export function PromptPreviewModal({
             className="p-1 rounded-md text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800/50 active:scale-[0.95]"
             onClick={onClose}
           >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              aria-hidden="true"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
+            <Icon name="x" size={14} />
           </button>
         </div>
         <div className="flex-1 overflow-y-auto px-5 py-4">

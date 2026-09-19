@@ -4,7 +4,6 @@ import {
   normalizeHfColorGrading,
   type NormalizedHfColorGradingSecondary,
 } from "@hyperframes/core/color-grading";
-import { Eyedropper, Plus, Trash } from "../../icons/SystemIcons";
 import { FlatSlider } from "./propertyPanelFlatPrimitives";
 import { FlatToggle } from "./propertyPanelFlatToggle";
 import type { ColorGradingCapturedFrame } from "./useColorGradingPreviews";
@@ -13,6 +12,7 @@ import {
   readColorGradingFramePixels,
   sampleColorGradingSecondary,
 } from "./colorGradingFrameAnalysis";
+import { Icon } from "../../icons/Icon";
 
 type Secondaries = readonly NormalizedHfColorGradingSecondary[];
 
@@ -151,7 +151,7 @@ export function PropertyPanelColorSecondary({
             onClick={addSecondary}
             className="text-panel-text-3 hover:text-panel-text-1 disabled:opacity-35"
           >
-            <Plus size={12} />
+            <Icon name="plus" size={12} />
           </button>
           <button
             type="button"
@@ -161,7 +161,7 @@ export function PropertyPanelColorSecondary({
             onClick={removeSelected}
             className="text-panel-text-3 hover:text-panel-text-1 disabled:opacity-35"
           >
-            <Trash size={12} />
+            <Icon name="trash" size={12} />
           </button>
         </span>
       </div>
@@ -206,7 +206,7 @@ export function PropertyPanelColorSecondary({
             }}
             className="flex min-h-7 items-center gap-1.5 text-[10px] font-medium text-panel-accent hover:text-panel-accent/80 disabled:opacity-50"
           >
-            <Eyedropper size={12} />
+            <Icon name="eyedropper" size={12} />
             {sampling ? "Capturing frame" : "Sample color from frame"}
           </button>
           {captureError && (

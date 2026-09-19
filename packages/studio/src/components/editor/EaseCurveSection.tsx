@@ -19,6 +19,7 @@ import { EaseBezierField, SpringBounceField, WiggleField } from "./EaseParamFiel
 import { EASE_CURVES, EASE_LABELS, resolveEaseCurveTuple } from "./gsapAnimationConstants";
 import { roundToCenti } from "../../utils/rounding";
 import type { AnimationKeyframeTarget } from "../../hooks/gsapTweenSynth";
+import { Icon } from "../../icons/Icon";
 
 export { MiniCurveSvg } from "./easeCurveSvg";
 
@@ -134,15 +135,11 @@ function EaseTypeDropdown({
       >
         <MiniCurveSvg ease={ease} active size={16} />
         <span className="text-[11px] text-neutral-200">{label}</span>
-        <svg
-          width="8"
-          height="8"
-          viewBox="0 0 10 10"
-          fill="currentColor"
+        <Icon
+          name="caretDown"
+          size={12}
           className={`ml-auto text-neutral-500 transition-transform ${open ? "rotate-180" : ""}`}
-        >
-          <path d="M2 3l3 4 3-4z" />
-        </svg>
+        />
       </button>
       {open && (
         <div

@@ -1,10 +1,10 @@
-import { RotateCcw } from "../../icons/SystemIcons";
 import { useTrackDesignInput } from "../../contexts/DesignPanelInputContext";
 import {
   VALUE_TIER_LABEL_CLASS,
   VALUE_TIER_VALUE_CLASS,
   type PropertyValueTier,
 } from "./propertyPanelValueTier";
+import { Icon } from "../../icons/Icon";
 
 /* ------------------------------------------------------------------ */
 /*  FlatSelectRow — label/value row backed by a native <select>        */
@@ -76,15 +76,7 @@ export function FlatSelectRow({
               </option>
             ))}
           </select>
-          <svg
-            width="10"
-            height="10"
-            viewBox="0 0 10 10"
-            fill="currentColor"
-            className="flex-shrink-0 text-panel-text-5"
-          >
-            <path d="M2 3l3 4 3-4z" />
-          </svg>
+          <Icon name="caretDown" size={12} className="flex-shrink-0 text-panel-text-5" />
         </label>
         {tier === "explicitCustom" && onReset && (
           <button
@@ -98,7 +90,7 @@ export function FlatSelectRow({
             }}
             className="flex-shrink-0 text-panel-text-3 opacity-0 transition-opacity hover:text-panel-text-1 group-hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            <RotateCcw size={11} />
+            <Icon name="arrowCounterClockwise" size={12} />
           </button>
         )}
       </span>

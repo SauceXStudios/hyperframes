@@ -19,6 +19,7 @@ import {
   BOOLEAN_PROPS,
 } from "./AnimationCardParts";
 import type { AnimationKeyframeTarget } from "../../hooks/gsapTweenSynth";
+import { Icon } from "../../icons/Icon";
 
 interface AnimationCardProps extends GsapAnimationEditCallbacks {
   animation: GsapAnimation;
@@ -221,15 +222,11 @@ export const AnimationCard = memo(function AnimationCard({
         >
           {easeLabel}
         </span>
-        <svg
-          width="10"
-          height="10"
-          viewBox="0 0 10 10"
-          fill="currentColor"
+        <Icon
+          name="caretDown"
+          size={12}
           className={`flex-shrink-0 transition-transform ${flat ? "text-panel-text-5" : "text-neutral-500"} ${expanded ? "" : "-rotate-90"}`}
-        >
-          <path d="M2 3l3 4 3-4z" />
-        </svg>
+        />
       </button>
 
       {expanded && (

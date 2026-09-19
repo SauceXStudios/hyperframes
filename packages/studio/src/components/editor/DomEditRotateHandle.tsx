@@ -1,5 +1,6 @@
 import type { PointerEvent as ReactPointerEvent } from "react";
 import type { OverlayRect } from "./domEditOverlayGeometry";
+import { Icon } from "../../icons/Icon";
 
 /** Rotate handle below the selection: an attached circular-arrows icon chip
  *  (no connecting stem). Anchors to the crop outline when the element is
@@ -39,22 +40,7 @@ export function DomEditRotateHandle({
       onPointerDown={onStartRotate}
     >
       <span className="pointer-events-none flex h-[18px] w-[18px] items-center justify-center rounded-full border border-studio-accent/70 bg-studio-surface text-studio-accent shadow-[0_0_3px_rgba(0,0,0,0.45)]">
-        <svg
-          width="11"
-          height="11"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-          <path d="M21 3v5h-5" />
-          <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-          <path d="M8 16H3v5" />
-        </svg>
+        <Icon name="arrowsClockwise" size={12} />
       </span>
     </button>
   );

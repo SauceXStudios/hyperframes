@@ -17,6 +17,7 @@ import { useAssetPreviewStore } from "../../utils/assetPreviewStore";
 import { usePlayerStore } from "../../player/store/playerStore";
 import { shouldDismissAssetPreview } from "../../utils/assetPreviewDismiss";
 import { resolveMediaPreviewUrl } from "../../player/components/thumbnailUtils";
+import { Icon } from "../../icons/Icon";
 
 function basename(path: string): string {
   return path.split("/").pop() ?? path;
@@ -59,19 +60,7 @@ function AssetPreviewMedia({
   }
   return (
     <div className="flex flex-col items-center gap-3 px-6 py-4">
-      <svg
-        width="40"
-        height="40"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        className="text-neutral-500"
-      >
-        <path d="M9 18V5l12-2v13" strokeLinecap="round" strokeLinejoin="round" />
-        <circle cx="6" cy="18" r="3" />
-        <circle cx="18" cy="16" r="3" />
-      </svg>
+      <Icon name="musicNotes" size={20} className="text-neutral-500" />
       <audio src={serveUrl} controls className="w-64" />
     </div>
   );
@@ -145,18 +134,7 @@ export function AssetPreviewOverlay() {
           }}
           aria-label="Close preview"
         >
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            fill="none"
-            strokeLinecap="round"
-          >
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
+          <Icon name="x" size={12} />
         </button>
 
         <AssetPreviewMedia kind={resolveAssetKind(previewAsset)} serveUrl={serveUrl} name={name} />

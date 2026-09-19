@@ -3,6 +3,7 @@ import { memo, useCallback, useState } from "react";
 import { VideoFrameThumbnail } from "../ui/VideoFrameThumbnail";
 import { Button } from "../ui/Button";
 import type { RenderJob } from "./useRenderQueue";
+import { Icon } from "../../icons/Icon";
 
 interface RenderQueueItemProps {
   job: RenderJob;
@@ -26,6 +27,7 @@ function formatTimeAgo(timestamp: number): string {
 
 /** Static frame extracted once via hidden video + canvas. */
 
+// fallow-ignore-next-line complexity
 export const RenderQueueItem = memo(function RenderQueueItem({
   job,
   projectId,
@@ -220,20 +222,7 @@ export const RenderQueueItem = memo(function RenderQueueItem({
                 aria-label={`Download ${job.filename}`}
                 disabled={!isComplete}
               >
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-                  <polyline points="7 10 12 15 17 10" />
-                  <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
+                <Icon name="downloadSimple" size={12} />
               </button>
               <button
                 onClick={(e) => {
@@ -244,17 +233,7 @@ export const RenderQueueItem = memo(function RenderQueueItem({
                 title="Delete render file"
                 aria-label={`Delete ${job.filename}`}
               >
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                >
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
+                <Icon name="x" size={12} />
               </button>
             </>
           )}

@@ -5,6 +5,7 @@ import {
 } from "../../contexts/DesignPanelInputContext";
 import { FIELD, LABEL } from "./propertyPanelHelpers";
 import { CommitField } from "./propertyPanelCommitField";
+import { Icon } from "../../icons/Icon";
 
 export { CommitField } from "./propertyPanelCommitField";
 
@@ -297,17 +298,13 @@ export function Section({
 }) {
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
   const collapseIcon = (
-    <svg
-      width="10"
-      height="10"
-      viewBox="0 0 10 10"
-      fill="currentColor"
+    <Icon
+      name="caretDown"
+      size={12}
       className={`flex-shrink-0 text-panel-text-5 transition-transform duration-150 ${
         collapsed ? "-rotate-90" : ""
       }`}
-    >
-      <path d="M2 3l3 4 3-4z" />
-    </svg>
+    />
   );
 
   const section = slugifyPanelSectionTitle(title);

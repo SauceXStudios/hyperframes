@@ -1,6 +1,5 @@
 import { buildProjectApiPath } from "../../utils/projectRouting";
 import { useMemo, useRef, useState } from "react";
-import { Plus, RotateCcw, X } from "../../icons/SystemIcons";
 import {
   buildDefaultGradientModel,
   insertGradientStop,
@@ -18,6 +17,7 @@ import {
 } from "./propertyPanelPrimitives";
 import { ColorField } from "./propertyPanelColor";
 import { useTrackDesignInput } from "../../contexts/DesignPanelInputContext";
+import { Icon } from "../../icons/Icon";
 
 /* ------------------------------------------------------------------ */
 /*  Asset path helpers                                                 */
@@ -133,7 +133,7 @@ export function ImageFillField({
                 : "cursor-pointer hover:border-neutral-600 hover:text-white"
             }`}
           >
-            <Plus size={12} className="flex-shrink-0" />
+            <Icon name="plus" size={12} className="flex-shrink-0" />
             <span className="truncate">{uploading ? "Uploading…" : "Upload image"}</span>
           </button>
           <input
@@ -358,7 +358,7 @@ export function GradientField({
             }}
             className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-neutral-700 bg-neutral-950 px-2.5 text-[11px] font-medium text-neutral-300 transition-colors hover:border-neutral-600 hover:text-white disabled:cursor-not-allowed disabled:text-neutral-600"
           >
-            <RotateCcw size={12} />
+            <Icon name="arrowCounterClockwise" size={12} />
             Reverse
           </button>
         </div>
@@ -443,7 +443,7 @@ export function GradientField({
             title={parsed.stops.length >= 6 ? "Maximum 6 stops" : "Add a gradient stop"}
             className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-neutral-700 bg-neutral-950 px-2.5 text-[11px] font-medium text-neutral-300 transition-colors hover:border-neutral-600 hover:text-white active:scale-[0.98] disabled:cursor-not-allowed disabled:text-neutral-600"
           >
-            <Plus size={12} />
+            <Icon name="plus" size={12} />
             Add stop
           </button>
         </div>
@@ -476,7 +476,7 @@ export function GradientField({
                 className="mt-[22px] flex h-10 items-center justify-center rounded-lg border border-neutral-700 bg-neutral-950 text-neutral-400 transition-colors hover:border-neutral-600 hover:text-white disabled:cursor-not-allowed disabled:text-neutral-700"
                 aria-label={`Remove stop ${index + 1}`}
               >
-                <X size={12} />
+                <Icon name="x" size={12} />
               </button>
             </div>
           ))}

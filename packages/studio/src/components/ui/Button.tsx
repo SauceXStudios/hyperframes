@@ -13,6 +13,7 @@
  */
 
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { Icon } from "../../icons/Icon";
 
 // -- Button --
 
@@ -57,8 +58,6 @@ const sizeStyles: Record<ButtonSize, string> = {
   lg: "h-9 px-4 text-base gap-2 rounded-button",
 };
 
-// Imported by the shell/renders PRs later in this stack.
-// fallow-ignore-next-line unused-export
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
@@ -92,21 +91,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {loading ? (
-          <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none">
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-            />
-          </svg>
+          <Icon name="circleNotch" size={14} className="animate-spin" />
         ) : icon ? (
           <span className="flex-shrink-0">{icon}</span>
         ) : null}

@@ -7,11 +7,11 @@ import {
   type HfColorGradingEffectKey,
   type NormalizedHfColorGrading,
 } from "@hyperframes/core/color-grading";
-import { ChevronDown, ChevronRight, Plus, X } from "../../icons/SystemIcons";
 import { LUT_EXT } from "../../utils/mediaTypes";
 import { LABEL } from "./propertyPanelHelpers";
 import { ColorGradingSliderControl } from "./propertyPanelColorGradingSlider";
 import { useTrackDesignInput } from "../../contexts/DesignPanelInputContext";
+import { Icon } from "../../icons/Icon";
 
 const LUT_UPLOAD_DIR = "assets/luts";
 
@@ -358,9 +358,9 @@ export function ColorGradingControls({
           aria-expanded={lutOpen}
         >
           {lutOpen ? (
-            <ChevronDown size={11} className="flex-shrink-0 text-panel-text-5" />
+            <Icon name="caretDown" size={12} className="flex-shrink-0 text-panel-text-5" />
           ) : (
-            <ChevronRight size={11} className="flex-shrink-0 text-panel-text-5" />
+            <Icon name="caretRight" size={12} className="flex-shrink-0 text-panel-text-5" />
           )}
           <span className="min-w-0 flex-1 truncate">Custom LUT</span>
           {grading.lut && (
@@ -409,7 +409,7 @@ export function ColorGradingControls({
                 {lutImporting ? (
                   <span className="h-3 w-3 animate-spin rounded-full border border-panel-text-4 border-t-transparent motion-reduce:animate-none" />
                 ) : (
-                  <Plus size={13} />
+                  <Icon name="plus" size={14} />
                 )}
               </button>
               <input
@@ -529,7 +529,7 @@ export function ColorGradingControls({
                 onClick={() => setDetailSettings(null)}
                 className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-panel-text-5 transition-colors hover:bg-panel-hover hover:text-panel-text-1"
               >
-                <X size={11} />
+                <Icon name="x" size={12} />
               </button>
             </div>
             <div className="grid min-w-0 grid-cols-2 gap-1.5">

@@ -8,6 +8,7 @@ import {
   clampPropertyValue,
 } from "./gsapAnimationConstants";
 import { P } from "./panelTokens";
+import { Icon } from "../../icons/Icon";
 
 export const BOOLEAN_PROPS = new Set(["visibility"]);
 const STRING_PROPS = new Set(["filter", "clipPath"]);
@@ -50,16 +51,7 @@ function RemoveButton({ onClick, title }: { onClick: () => void; title: string }
       title={title}
       aria-label={title}
     >
-      <svg
-        width="12"
-        height="12"
-        viewBox="0 0 12 12"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-      >
-        <path d="M3 3l6 6M9 3l-6 6" />
-      </svg>
+      <Icon name="x" size={12} />
     </button>
   );
 }

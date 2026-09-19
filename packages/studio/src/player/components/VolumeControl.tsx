@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { Tooltip } from "../../components/ui";
 import { trackStudioEvent } from "../../utils/studioTelemetry";
+import { Icon } from "../../icons/Icon";
 
 interface VolumeControlProps {
   audioMuted: boolean;
@@ -11,33 +12,8 @@ interface VolumeControlProps {
 }
 
 function VolumeIcon({ muted, volume }: { muted: boolean; volume: number }) {
-  const silent = muted || volume === 0;
-  return (
-    <svg
-      width="13"
-      height="13"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M11 5 6 9H3v6h3l5 4V5Z" />
-      {silent ? (
-        <>
-          <path d="m19 9-6 6" />
-          <path d="m13 9 6 6" />
-        </>
-      ) : (
-        <>
-          <path d="M15.5 8.5a5 5 0 0 1 0 7" />
-          {volume >= 0.5 ? <path d="M18.5 5.5a9 9 0 0 1 0 13" /> : null}
-        </>
-      )}
-    </svg>
-  );
+  if (muted || volume === 0) return <Icon name="speakerX" size={14} />;
+  return <Icon name={volume >= 0.5 ? "speakerHigh" : "speakerLow"} size={14} />;
 }
 
 export const VolumeControl = memo(function VolumeControl({

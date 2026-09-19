@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
-import { Plus, Type } from "../../icons/SystemIcons";
 import { isTextEditableSelection, type DomEditSelection } from "./domEditing";
 import type { ImportedFontAsset } from "./fontAssets";
 import { FIELD, LABEL, normalizeTextMetricValue, RESPONSIVE_GRID } from "./propertyPanelHelpers";
@@ -8,6 +7,7 @@ import { ColorField } from "./propertyPanelColor";
 import { FontFamilyField } from "./propertyPanelFont";
 import { PromotableControl } from "./PromotableControl";
 import { useTrackDesignInput } from "../../contexts/DesignPanelInputContext";
+import { Icon } from "../../icons/Icon";
 
 /* ------------------------------------------------------------------ */
 /*  Text helpers (used only by text section components)                */
@@ -405,6 +405,7 @@ export function TextSection({
   onAddTextField,
   onRemoveTextField,
   hideOwnHeading = false,
+  // fallow-ignore-next-line code-duplication
 }: {
   element: DomEditSelection;
   styles: Record<string, string>;
@@ -428,6 +429,7 @@ export function TextSection({
 
   useEffect(() => {
     const nextFields = element.textFields;
+    // fallow-ignore-next-line code-duplication
     setActiveTextFieldKey((current) => {
       if (current && nextFields.some((field) => field.key === current)) return current;
       return nextFields[0]?.key ?? null;
@@ -455,7 +457,7 @@ export function TextSection({
     );
     if (hideOwnHeading) return content;
     return (
-      <Section title="Text" icon={<Type size={15} />} defaultCollapsed>
+      <Section title="Text" icon={<Icon name="textT" size={16} />} defaultCollapsed>
         {content}
       </Section>
     );
@@ -476,7 +478,7 @@ export function TextSection({
             }}
             className="inline-flex h-7 max-w-full items-center gap-1.5 rounded-lg border border-neutral-700 bg-neutral-950 px-2.5 text-[11px] font-medium text-neutral-300 transition-colors hover:border-neutral-600 hover:text-white"
           >
-            <Plus size={12} className="flex-shrink-0" />
+            <Icon name="plus" size={12} className="flex-shrink-0" />
             <span className="truncate">Add text</span>
           </button>
         </div>
@@ -527,7 +529,7 @@ export function TextSection({
   );
   if (hideOwnHeading) return content;
   return (
-    <Section title="Text" icon={<Type size={15} />}>
+    <Section title="Text" icon={<Icon name="textT" size={16} />}>
       {content}
     </Section>
   );

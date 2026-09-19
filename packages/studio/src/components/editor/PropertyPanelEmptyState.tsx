@@ -1,21 +1,12 @@
-import { Eye, Layers } from "../../icons/SystemIcons";
 import type { DomEditSelection } from "./domEditingTypes";
 import { canHideSelections } from "../../utils/timelineInspector";
+import { Icon } from "../../icons/Icon";
 
 function FlatEmptyState() {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-2.5 px-8 py-10 text-center">
       <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-panel-border-input bg-panel-input text-panel-text-3">
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.4"
-        >
-          <path d="M4 3l6 14 2-6 6-2z" strokeLinejoin="round" />
-        </svg>
+        <Icon name="cursor" size={20} />
       </span>
       <div className="text-[13px] font-semibold text-panel-text-0">Nothing selected</div>
       <div className="max-w-[250px] text-[11px] leading-[1.5] text-panel-text-3">
@@ -75,7 +66,7 @@ function FlatMultiSelectState({
     <div className="flex flex-col gap-3 px-4 py-3">
       <div className="flex items-center gap-3 rounded-xl border border-panel-border bg-panel-surface p-3">
         <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-panel-accent/10 text-panel-accent">
-          <Layers size={16} />
+          <Icon name="stack" size={16} />
         </span>
         <div className="min-w-0 flex-1">
           <div className="text-[13px] font-semibold text-panel-text-0">
@@ -92,16 +83,7 @@ function FlatMultiSelectState({
           onClick={onClearSelection}
           className="flex h-[26px] w-[26px] flex-shrink-0 items-center justify-center text-panel-text-3"
         >
-          <svg
-            width="13"
-            height="13"
-            viewBox="0 0 16 16"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-          >
-            <path d="M3 3l10 10M13 3L3 13" />
-          </svg>
+          <Icon name="x" size={14} />
         </button>
       </div>
       <div className="flex flex-col gap-1">
@@ -144,7 +126,7 @@ function FlatMultiSelectState({
             onClick={onGroupSelection}
             className="flex h-[34px] flex-1 items-center justify-center gap-2 rounded-lg bg-panel-hover text-[11px] font-semibold text-panel-text-0"
           >
-            <Layers size={13} />
+            <Icon name="stack" size={14} />
             Group selection
           </button>
           <button
@@ -153,7 +135,7 @@ function FlatMultiSelectState({
             onClick={onHideAllSelected}
             className="flex h-[34px] items-center gap-1.5 rounded-lg border border-panel-border-input bg-panel-input px-3 text-[11px] font-medium text-panel-text-2"
           >
-            <Eye size={13} />
+            <Icon name="eye" size={14} />
             Hide all
           </button>
         </div>
@@ -199,7 +181,7 @@ export function PropertyPanelEmptyState({
       <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
         {multiSelectCount > 1 ? (
           <>
-            <Layers size={18} className="mb-3 text-neutral-600" />
+            <Icon name="stack" size={20} className="mb-3 text-neutral-600" />
             <p className="text-sm font-medium text-neutral-200">
               {multiSelectCount} elements selected
             </p>
@@ -210,7 +192,7 @@ export function PropertyPanelEmptyState({
           </>
         ) : (
           <>
-            <Eye size={18} className="mb-3 text-neutral-600" />
+            <Icon name="eye" size={20} className="mb-3 text-neutral-600" />
             <p className="text-sm font-medium text-neutral-200">
               Select an element in the preview.
             </p>

@@ -5,6 +5,7 @@ import { KeyframeNavigation } from "./KeyframeNavigation";
 import { formatPxMetricValue, parsePxMetricValue, RESPONSIVE_GRID } from "./propertyPanelHelpers";
 import { Transform3DCube, type CubePose } from "./Transform3DCube";
 import { useTrackDesignInput } from "../../contexts/DesignPanelInputContext";
+import { Icon } from "../../icons/Icon";
 
 // translateZ only foreshortens under a perspective lens. Rather than hardcode one
 // (an arbitrary px value reads wrong at different canvas sizes), derive it from the
@@ -326,16 +327,11 @@ export function PropertyPanel3dTransform({
         className="mb-2 flex w-full items-center justify-between text-[10px] font-medium uppercase tracking-wider text-neutral-600 hover:text-neutral-400 active:scale-[0.99]"
       >
         <span>3D Transform</span>
-        <svg
-          width="9"
-          height="9"
-          viewBox="0 0 10 10"
-          fill="currentColor"
-          aria-hidden
+        <Icon
+          name="caretDown"
+          size={12}
           className={`transition-transform duration-150 ${collapsed ? "-rotate-90" : ""}`}
-        >
-          <path d="M2 3l3 4 3-4z" />
-        </svg>
+        />
       </button>
       {collapsed ? null : (
         <>

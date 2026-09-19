@@ -2,6 +2,7 @@ import type { GsapPercentageKeyframe } from "@hyperframes/core/gsap-parser";
 import { EASE_LABELS } from "./gsapAnimationConstants";
 import { EaseCurveSection } from "./EaseCurveSection";
 import type { AnimationKeyframeTarget } from "../../hooks/gsapTweenSynth";
+import { Icon } from "../../icons/Icon";
 
 // The full GSAP easing vocabulary offered by the "Set all…" bulk control —
 // every standard family in in/out/inOut, so authors aren't limited to a curated
@@ -109,15 +110,11 @@ export function KeyframeEaseList({
             >
               <span className="text-[10px] font-medium text-neutral-400">{label}</span>
               <span className="ml-auto text-[9px] text-neutral-500">{easeLabel}</span>
-              <svg
-                width="8"
-                height="8"
-                viewBox="0 0 10 10"
-                fill="currentColor"
+              <Icon
+                name="caretDown"
+                size={12}
                 className={`text-neutral-500 transition-transform duration-150 ${isExpanded ? "" : "-rotate-90"}`}
-              >
-                <path d="M2 3l3 4 3-4z" />
-              </svg>
+              />
             </button>
             {isExpanded && (
               <div className="px-2 pb-2">

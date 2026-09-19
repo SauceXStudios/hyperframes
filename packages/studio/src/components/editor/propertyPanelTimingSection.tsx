@@ -1,8 +1,8 @@
 import type { GsapAnimation } from "@hyperframes/core/gsap-parser";
-import { Clock } from "../../icons/SystemIcons";
 import type { DomEditSelection } from "./domEditing";
 import { formatTimingValue, RESPONSIVE_GRID } from "./propertyPanelHelpers";
 import { MetricField, Section } from "./propertyPanelPrimitives";
+import { Icon } from "../../icons/Icon";
 
 export function parseTimingValue(input: string): number | null {
   const cleaned = input.replace(/s$/i, "").trim();
@@ -15,6 +15,7 @@ export function parseTimingValue(input: string): number | null {
  * end) so an element animated purely by GSAP — with no `data-start` /
  * `data-duration` — still shows a meaningful Timing range instead of 0s.
  */
+// fallow-ignore-next-line code-duplication
 function deriveTimingFromAnimations(
   animations: GsapAnimation[],
 ): { start: number; duration: number } | null {
@@ -70,7 +71,7 @@ export function TimingSection({
   };
 
   return (
-    <Section title="Timing" icon={<Clock size={15} />}>
+    <Section title="Timing" icon={<Icon name="clock" size={16} />}>
       <div className={RESPONSIVE_GRID}>
         <MetricField label="Start" value={formatTimingValue(start)} onCommit={commitStart} />
         <MetricField label="End" value={formatTimingValue(end)} onCommit={commitEnd} />

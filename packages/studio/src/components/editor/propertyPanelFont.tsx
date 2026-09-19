@@ -19,6 +19,7 @@ import {
   type LocalFontData,
 } from "./propertyPanelHelpers";
 import { useTrackDesignInput } from "../../contexts/DesignPanelInputContext";
+import { Icon } from "../../icons/Icon";
 
 /* ------------------------------------------------------------------ */
 /*  Font helper functions                                              */
@@ -519,15 +520,7 @@ export function FontFamilyField({
           >
             {currentFamily}
           </span>
-          <svg
-            width="10"
-            height="10"
-            viewBox="0 0 10 10"
-            fill="currentColor"
-            className="flex-shrink-0 text-panel-text-5"
-          >
-            <path d="M2 3l3 4 3-4z" />
-          </svg>
+          <Icon name="caretDown" size={12} className="flex-shrink-0 text-panel-text-5" />
         </button>
         {dropdown}
       </div>

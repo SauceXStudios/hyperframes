@@ -2,6 +2,7 @@ import { useState, useRef, type CSSProperties } from "react";
 import { useMountEffect } from "../hooks/useMountEffect";
 import { type AgentModalAnchorPoint, clampNumber } from "../utils/studioHelpers";
 import { useDialogBehavior } from "./ui/useDialogBehavior";
+import { Icon } from "../icons/Icon";
 
 function getAgentModalPositionStyle(
   anchorPoint: AgentModalAnchorPoint | null,
@@ -95,18 +96,7 @@ export function AskAgentModal({
             onClick={onClose}
             aria-label="Close"
           >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
+            <Icon name="x" size={14} />
           </button>
         </div>
         <div className="px-5 py-4 space-y-3">

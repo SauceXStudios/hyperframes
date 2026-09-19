@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useId, useRef, memo } from "react";
 import { formatTime, frameToSeconds } from "../lib/time";
 import { Tooltip } from "../../components/ui";
 import { useContextMenuDismiss } from "../../hooks/useContextMenuDismiss";
+import { Icon } from "../../icons/Icon";
 
 const SHORTCUT_SECTIONS = [
   {
@@ -166,20 +167,7 @@ export const ShortcutsPanel = memo(function ShortcutsPanel({
           aria-expanded={showShortcuts}
           aria-controls={shortcutsPanelId}
         >
-          <svg
-            width="11"
-            height="11"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <rect x="2" y="4" width="20" height="16" rx="2" />
-            <path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M8 16h8" />
-          </svg>
+          <Icon name="keyboard" size={12} />
         </button>
       </Tooltip>
       {showShortcuts && (
@@ -256,16 +244,7 @@ export const ShortcutsPanel = memo(function ShortcutsPanel({
                           className="w-4 h-4 flex items-center justify-center rounded text-neutral-500 hover:text-neutral-200 transition-colors"
                           aria-label="Clear in-point"
                         >
-                          <svg
-                            width="8"
-                            height="8"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                          >
-                            <path d="M18 6L6 18M6 6l12 12" />
-                          </svg>
+                          <Icon name="x" size={12} />
                         </button>
                       </Tooltip>
                     </>
@@ -297,16 +276,7 @@ export const ShortcutsPanel = memo(function ShortcutsPanel({
                           className="w-4 h-4 flex items-center justify-center rounded text-neutral-500 hover:text-neutral-200 transition-colors"
                           aria-label="Clear out-point"
                         >
-                          <svg
-                            width="8"
-                            height="8"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                          >
-                            <path d="M18 6L6 18M6 6l12 12" />
-                          </svg>
+                          <Icon name="x" size={12} />
                         </button>
                       </Tooltip>
                     </>

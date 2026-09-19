@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useTrackDesignInput } from "../../contexts/DesignPanelInputContext";
-import { Plus, X } from "../../icons/SystemIcons";
 import { isTextEditableSelection, type DomEditSelection } from "./domEditing";
 import type { ImportedFontAsset } from "./fontAssets";
 import { normalizeTextMetricValue } from "./propertyPanelHelpers";
@@ -21,6 +20,7 @@ import {
   TextAreaField,
   WEIGHT_LABELS,
 } from "./propertyPanelSections";
+import { Icon } from "../../icons/Icon";
 
 /* ------------------------------------------------------------------ */
 /*  Flat text section (design_handoff_studio_inspector, #10a)          */
@@ -133,15 +133,7 @@ function FlatTextFieldEditor({
               ),
             )}
           </select>
-          <svg
-            width="10"
-            height="10"
-            viewBox="0 0 10 10"
-            fill="currentColor"
-            className="flex-shrink-0 text-panel-text-5"
-          >
-            <path d="M2 3l3 4 3-4z" />
-          </svg>
+          <Icon name="caretDown" size={12} className="flex-shrink-0 text-panel-text-5" />
         </label>
       </div>
       <FlatRow
@@ -243,6 +235,7 @@ export function FlatTextSection({
   onAddTextField,
   onRemoveTextField,
 }: {
+  // fallow-ignore-next-line code-duplication
   element: DomEditSelection;
   styles: Record<string, string>;
   fontAssets: ImportedFontAsset[];
@@ -337,7 +330,7 @@ export function FlatTextSection({
         }}
         className="mt-0.5 flex items-center gap-[5px] text-[10px] text-panel-text-4 hover:text-panel-text-2"
       >
-        <Plus size={10} />
+        <Icon name="plus" size={12} />
         Add text field
       </button>
     </div>
@@ -408,7 +401,7 @@ export function FlatTextLayerList({
                   }}
                   className="flex-shrink-0 text-panel-text-4 hover:text-panel-text-1"
                 >
-                  <X size={10} />
+                  <Icon name="x" size={12} />
                 </button>
               )}
             </div>
@@ -424,7 +417,7 @@ export function FlatTextLayerList({
         }}
         className="mt-1 flex items-center gap-[5px] text-[10px] text-panel-text-4 hover:text-panel-text-2"
       >
-        <Plus size={10} />
+        <Icon name="plus" size={12} />
         Add text field
       </button>
     </div>

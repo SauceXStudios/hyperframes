@@ -8,6 +8,7 @@ import { useStudioShellContext } from "../contexts/StudioContext";
 import { useFileManagerContext } from "../contexts/FileManagerContext";
 import { getPersistedRenderSettings } from "./renders/renderSettings";
 import type { BlockPreviewInfo } from "./sidebar/BlocksTab";
+import { Icon } from "../icons/Icon";
 
 export interface StudioLeftSidebarProps {
   leftSidebarRef: RefObject<LeftSidebarHandle | null>;
@@ -94,20 +95,7 @@ export function StudioLeftSidebar({
           title="Show sidebar"
           aria-label="Show sidebar"
         >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M5 4v16" />
-            <path d="m10 7 5 5-5 5" />
-          </svg>
+          <Icon name="sidebarSimple" size={14} />
         </button>
       </div>
     );

@@ -1,14 +1,5 @@
 import { memo, useState, useCallback, useMemo, useRef, useEffect } from "react";
 import {
-  PencilSimple,
-  Copy,
-  Trash,
-  FilePlus,
-  FolderSimplePlus,
-  FolderSimple,
-} from "@phosphor-icons/react";
-import { ChevronDown, ChevronRight } from "../../icons/SystemIcons";
-import {
   FileIcon,
   buildTree as _buildTree,
   sortChildren,
@@ -17,6 +8,7 @@ import {
   type ContextMenuState,
   type InlineInputState,
 } from "./FileTreeIcons";
+import { Icon } from "../../icons/Icon";
 
 export type { ContextMenuState, InlineInputState };
 export { buildTree, sortChildren, isActiveInSubtree } from "./FileTreeIcons";
@@ -113,7 +105,7 @@ export function ContextMenu({
               onClose();
             }}
           >
-            <FilePlus size={12} weight="duotone" className="text-neutral-500" />
+            <Icon name="filePlus" size={12} className="text-neutral-500" />
             New File
           </button>
           <button
@@ -124,7 +116,7 @@ export function ContextMenu({
               onClose();
             }}
           >
-            <FolderSimplePlus size={12} weight="duotone" className="text-neutral-500" />
+            <Icon name="folderSimplePlus" size={12} className="text-neutral-500" />
             New Folder
           </button>
           <div className="border-t border-neutral-700 my-1" />
@@ -140,7 +132,7 @@ export function ContextMenu({
               onClose();
             }}
           >
-            <FilePlus size={12} weight="duotone" className="text-neutral-500" />
+            <Icon name="filePlus" size={12} className="text-neutral-500" />
             New File
           </button>
           <div className="border-t border-neutral-700 my-1" />
@@ -154,7 +146,7 @@ export function ContextMenu({
           onClose();
         }}
       >
-        <PencilSimple size={12} weight="duotone" className="text-neutral-500" />
+        <Icon name="pencilSimple" size={12} className="text-neutral-500" />
         Rename
       </button>
       {!state.targetIsFolder && (
@@ -166,7 +158,7 @@ export function ContextMenu({
             onClose();
           }}
         >
-          <Copy size={12} weight="duotone" className="text-neutral-500" />
+          <Icon name="copy" size={12} className="text-neutral-500" />
           Duplicate
         </button>
       )}
@@ -179,7 +171,7 @@ export function ContextMenu({
           onClose();
         }}
       >
-        <Trash size={12} weight="duotone" />
+        <Icon name="trash" size={12} />
         Delete
       </button>
     </div>
@@ -263,7 +255,7 @@ export function InlineInput({
       style={{ paddingLeft: `${8 + depth * 12 + (isFolder ? 0 : 14)}px` }}
     >
       {isFolder ? (
-        <FolderSimple size={SZ_ICON} weight="duotone" color="#6B7280" className="flex-shrink-0" />
+        <Icon name="folderSimple" size={SZ_ICON} className="flex-shrink-0 text-[#6B7280]" />
       ) : (
         <FileIcon path={value} />
       )}
@@ -463,7 +455,6 @@ export const TreeFolder = memo(function TreeFolder({
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const toggle = useCallback(() => setIsOpen((v) => !v), []);
   const children = useMemo(() => sortChildren(node.children), [node.children]);
-  const Chevron = isOpen ? ChevronDown : ChevronRight;
   const isDragOver = dragOverFolder === node.fullPath;
   const isRenaming = inlineInput?.mode === "rename" && inlineInput.originalPath === node.fullPath;
 
@@ -509,7 +500,11 @@ export const TreeFolder = memo(function TreeFolder({
         }`}
         style={{ paddingLeft: `${8 + depth * 12}px` }}
       >
-        <Chevron size={10} className="flex-shrink-0 text-neutral-600" />
+        <Icon
+          name={isOpen ? "caretDown" : "caretRight"}
+          size={12}
+          className="flex-shrink-0 text-neutral-600"
+        />
         <span className="truncate font-medium">{node.name}</span>
       </button>
       {isOpen && (

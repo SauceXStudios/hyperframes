@@ -8,7 +8,6 @@ import {
   type HfColorGradingEffectKey,
   type NormalizedHfColorGrading,
 } from "@hyperframes/core/color-grading";
-import { Plus, RotateCcw, X } from "../../icons/SystemIcons";
 import { useTrackDesignInput } from "../../contexts/DesignPanelInputContext";
 import { FLAT_PREVIEW_GRID, FlatSlider } from "./propertyPanelFlatPrimitives";
 import type {
@@ -24,6 +23,7 @@ import {
 } from "./propertyPanelFlatEffectSpecs";
 import { FlatEffectControl } from "./propertyPanelFlatEffectControl";
 import { presetPreviewHandlers } from "./propertyPanelPresetPreview";
+import { Icon } from "../../icons/Icon";
 
 export function activeColorGradingEffectCount(grading: NormalizedHfColorGrading): number {
   return EFFECT_SPECS.filter((effect) => grading.effects[effect.key] > 0.0001).length;
@@ -50,7 +50,7 @@ export function FlatEffectsAccessory({
       }}
       className="flex-shrink-0 text-panel-text-3 hover:text-panel-text-1"
     >
-      <RotateCcw size={12} />
+      <Icon name="arrowCounterClockwise" size={12} />
     </button>
   );
 }
@@ -188,7 +188,7 @@ export function FlatEffectsSection({
             }}
             className="flex min-h-[28px] items-center gap-1 text-[10px] font-medium text-panel-accent hover:text-panel-accent/80"
           >
-            <Plus size={11} /> Custom palette
+            <Icon name="plus" size={12} /> Custom palette
           </button>
         ) : (
           <>
@@ -200,7 +200,7 @@ export function FlatEffectsSection({
                 onClick={() => onCommitColorGrading({ ...grading, palette: null })}
                 className="text-panel-text-4 hover:text-panel-text-1"
               >
-                <RotateCcw size={11} />
+                <Icon name="arrowCounterClockwise" size={12} />
               </button>
             </div>
             <div className="flex flex-wrap items-center gap-1.5">
@@ -229,7 +229,7 @@ export function FlatEffectsSection({
                       }
                       className="absolute -right-1 -top-1 hidden h-3.5 w-3.5 items-center justify-center rounded-full bg-panel-bg text-panel-text-2 shadow group-hover/swatch:flex"
                     >
-                      <X size={8} />
+                      <Icon name="x" size={12} />
                     </button>
                   )}
                 </span>
@@ -246,7 +246,7 @@ export function FlatEffectsSection({
                   }
                   className="flex h-6 w-6 items-center justify-center rounded-sm border border-panel-border-input text-panel-text-4 hover:text-panel-text-1"
                 >
-                  <Plus size={11} />
+                  <Icon name="plus" size={12} />
                 </button>
               )}
             </div>
@@ -301,7 +301,7 @@ export function FlatEffectsSection({
                 onClick={() => applyEffect(selectedEffect)}
                 className="text-panel-text-4 hover:text-panel-text-1"
               >
-                <RotateCcw size={11} />
+                <Icon name="arrowCounterClockwise" size={12} />
               </button>
               <button
                 type="button"
@@ -309,7 +309,7 @@ export function FlatEffectsSection({
                 onClick={() => removeEffect(selectedEffect)}
                 className="text-panel-text-4 hover:text-red-300"
               >
-                <X size={11} />
+                <Icon name="x" size={12} />
               </button>
             </span>
           </div>
@@ -354,7 +354,7 @@ export function FlatEffectsSection({
         onClick={() => setCatalogOpen((open) => !open)}
         className="flex min-h-[30px] items-center gap-1 text-[10px] font-medium text-panel-accent hover:text-panel-accent/80"
       >
-        <Plus size={11} /> Add effect
+        <Icon name="plus" size={12} /> Add effect
       </button>
 
       {catalogOpen && (

@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { Eye, Layers, Palette, Settings, Square, Zap } from "../../icons/SystemIcons";
 import { buildDefaultGradientModel, serializeGradient } from "./gradientValue";
 import { isTextEditableSelection, type DomEditSelection } from "./domEditing";
 import {
@@ -37,6 +36,7 @@ import {
 import { ColorField } from "./propertyPanelColor";
 import { GradientField, ImageFillField } from "./propertyPanelFill";
 import { BorderRadiusEditor } from "./BorderRadiusEditor";
+import { Icon } from "../../icons/Icon";
 
 // fallow-ignore-next-line complexity
 export function StyleSections({
@@ -93,6 +93,7 @@ export function StyleSections({
   const boxShadowPreset = inferBoxShadowPreset(styles["box-shadow"]);
   const filterBlurValue = getCssFilterFunctionPx(styles.filter, "blur");
   const backdropBlurValue = getCssFilterFunctionPx(styles["backdrop-filter"], "blur");
+  // fallow-ignore-next-line code-duplication
   const clipPathValue = styles["clip-path"] || "none";
   const clipPathPreset = inferClipPathPreset(clipPathValue);
   const parsedClipInsets = parseInsetClipPathSides(clipPathValue);
@@ -136,6 +137,7 @@ export function StyleSections({
     }
   }, [fillMode, element.id, element.selector, backgroundImage]);
 
+  // fallow-ignore-next-line code-duplication
   const handleFillModeChange = (nextMode: string) => {
     setPreferredFillMode(nextMode);
     if (nextMode === "Solid") {
@@ -170,7 +172,7 @@ export function StyleSections({
   return (
     <>
       {isFlex && !hideFlex && (
-        <Section title="Flex" icon={<Layers size={15} />} defaultCollapsed>
+        <Section title="Flex" icon={<Icon name="stack" size={16} />} defaultCollapsed>
           <div className="space-y-4">
             <SegmentedControl
               trackName="Flex direction"
@@ -216,7 +218,7 @@ export function StyleSections({
       )}
 
       {hasVisualBackground && (
-        <Section title="Radius" icon={<Settings size={15} />} defaultCollapsed>
+        <Section title="Radius" icon={<Icon name="gear" size={16} />} defaultCollapsed>
           <BorderRadiusEditor
             tl={radiusTL}
             tr={radiusTR}
@@ -241,7 +243,7 @@ export function StyleSections({
         </Section>
       )}
 
-      <Section title="Stroke" icon={<Square size={15} />} defaultCollapsed>
+      <Section title="Stroke" icon={<Icon name="square" size={16} />} defaultCollapsed>
         <div className="space-y-4">
           <div className={RESPONSIVE_GRID}>
             <MetricField
@@ -299,7 +301,7 @@ export function StyleSections({
         </div>
       </Section>
 
-      <Section title="Effects" icon={<Zap size={15} />} defaultCollapsed>
+      <Section title="Effects" icon={<Icon name="lightning" size={16} />} defaultCollapsed>
         <div className="space-y-4">
           <SelectField
             label="Shadow"
@@ -354,7 +356,7 @@ export function StyleSections({
         </div>
       </Section>
 
-      <Section title="Clip" icon={<Layers size={15} />} defaultCollapsed>
+      <Section title="Clip" icon={<Icon name="stack" size={16} />} defaultCollapsed>
         <div className="space-y-4">
           <div className={RESPONSIVE_GRID}>
             <SelectField
@@ -431,7 +433,7 @@ export function StyleSections({
         </div>
       </Section>
 
-      <Section title="Transparency" icon={<Eye size={15} />} defaultCollapsed>
+      <Section title="Transparency" icon={<Icon name="eye" size={16} />} defaultCollapsed>
         <div className="space-y-4">
           <SliderControl
             trackName="Opacity"
@@ -454,7 +456,7 @@ export function StyleSections({
         </div>
       </Section>
 
-      <Section title="Fill" icon={<Palette size={15} />}>
+      <Section title="Fill" icon={<Icon name="palette" size={16} />}>
         <div className="space-y-4">
           <SegmentedControl
             trackName="Fill type"

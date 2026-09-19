@@ -1,6 +1,5 @@
 import { type PointerEvent as ReactPointerEvent, type RefObject } from "react";
 import { isHfColorGradingActive } from "@hyperframes/core/color-grading";
-import { Compare, Palette, RotateCcw } from "../../icons/SystemIcons";
 import type { DomEditSelection } from "./domEditing";
 import { ColorGradingControls } from "./propertyPanelColorGradingControls";
 import { Section } from "./propertyPanelPrimitives";
@@ -10,6 +9,7 @@ import {
   type RuntimeColorGradingStatus,
 } from "./useColorGradingController";
 import { useTrackDesignInput } from "../../contexts/DesignPanelInputContext";
+import { Icon } from "../../icons/Icon";
 
 function StatusPill({ status }: { status: RuntimeColorGradingStatus }) {
   const dotClass =
@@ -125,7 +125,7 @@ function HoldBeforeButton({
       } disabled:cursor-not-allowed disabled:opacity-40`}
       title="Hold to show original"
     >
-      <Compare size={13} />
+      <Icon name="squareSplitVertical" size={14} />
     </button>
   );
 }
@@ -178,7 +178,7 @@ export function ColorGradingSection({
   return (
     <Section
       title="Color grading"
-      icon={<Palette size={15} />}
+      icon={<Icon name="palette" size={16} />}
       accessory={
         <div className="flex min-w-0 items-center gap-1.5">
           <HoldBeforeButton
@@ -197,7 +197,7 @@ export function ColorGradingSection({
             className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded text-panel-text-4 transition-colors hover:bg-panel-hover hover:text-panel-text-1"
             title="Reset color grading"
           >
-            <RotateCcw size={12} />
+            <Icon name="arrowCounterClockwise" size={12} />
           </button>
         </div>
       }

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { projectAxes, projectCubeFaces, wrapDeg } from "./transform3dProjection";
+import { Icon } from "../../icons/Icon";
 
 export interface CubePose {
   rotationX: number;
@@ -296,10 +297,7 @@ export function Transform3DCube({
           aria-label="Reset 3D orientation"
           className="absolute right-1.5 top-1.5 rounded p-0.5 text-neutral-500 hover:bg-neutral-800 hover:text-neutral-200"
         >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <circle cx="12" cy="12" r="9" strokeWidth="2" />
-            <path d="M12 3v18M3 12h18" strokeWidth="1.5" />
-          </svg>
+          <Icon name="crosshair" size={14} />
         </button>
       )}
       {onKeyframe && (

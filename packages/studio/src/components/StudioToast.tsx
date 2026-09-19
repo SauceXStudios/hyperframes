@@ -1,3 +1,4 @@
+import { Icon } from "../icons/Icon";
 interface StudioToastProps {
   message: string;
   tone?: "error" | "info";
@@ -41,16 +42,7 @@ export function StudioToast({ message, tone, leaving, onDismiss }: StudioToastPr
             className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md text-neutral-500 transition-colors hover:bg-white/10 hover:text-neutral-300"
             aria-label="Dismiss"
           >
-            <svg
-              width="10"
-              height="10"
-              viewBox="0 0 10 10"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            >
-              <path d="M2 2l6 6M8 2l-6 6" />
-            </svg>
+            <Icon name="x" size={12} />
           </button>
         )}
       </div>

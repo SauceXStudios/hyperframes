@@ -5,7 +5,7 @@ import {
   type ColorGradingScopeMode,
 } from "./colorGradingFrameAnalysis";
 import { useColorGradingScopes } from "./useColorGradingScopes";
-import { RotateCw } from "../../icons/SystemIcons";
+import { Icon } from "../../icons/Icon";
 
 const MODES: Array<{ id: ColorGradingScopeMode; label: string }> = [
   { id: "histogram", label: "Histogram" },
@@ -219,7 +219,7 @@ export function PropertyPanelColorScopes({
               onClick={refresh}
               className="p-1 text-panel-text-4 hover:text-panel-text-1"
             >
-              <RotateCw size={10} />
+              <Icon name="arrowClockwise" size={12} />
             </button>
           )}
         </span>

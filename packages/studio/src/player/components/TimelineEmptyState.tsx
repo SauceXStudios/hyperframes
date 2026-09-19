@@ -1,5 +1,6 @@
 import type { DragEventHandler } from "react";
 import { GUTTER, RULER_H } from "./timelineLayout";
+import { Icon } from "../../icons/Icon";
 
 interface TimelineEmptyStateProps {
   isDragOver: boolean;
@@ -54,42 +55,12 @@ export function TimelineEmptyState({
         >
           {isDragOver ? (
             <>
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-studio-accent flex-shrink-0"
-              >
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
+              <Icon name="downloadSimple" size={20} className="text-studio-accent flex-shrink-0" />
               <span className="text-[13px] text-studio-accent">Drop media files to import</span>
             </>
           ) : (
             <>
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-neutral-600 flex-shrink-0"
-              >
-                <rect x="2" y="2" width="20" height="20" rx="2" />
-                <path d="M7 2v20" />
-                <path d="M17 2v20" />
-                <path d="M2 7h20" />
-                <path d="M2 17h20" />
-              </svg>
+              <Icon name="filmStrip" size={20} className="text-neutral-600 flex-shrink-0" />
               <span className="text-[13px] text-neutral-500">
                 {onFileDrop
                   ? "Drop media here or describe your video to start"

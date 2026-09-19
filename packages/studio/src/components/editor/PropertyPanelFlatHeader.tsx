@@ -1,8 +1,7 @@
-import { Eye, EyeSlash } from "@phosphor-icons/react";
 import { useTrackDesignInput } from "../../contexts/DesignPanelInputContext";
-import { ClipboardList, Film, Square, Type, X } from "../../icons/SystemIcons";
+import { Icon } from "../../icons/Icon";
 
-const ICON_BY_KIND = { text: Type, media: Film, other: Square } as const;
+const ICON_BY_KIND = { text: "textT", media: "filmStrip", other: "square" } as const;
 const ICON_COLOR_BY_KIND = {
   text: "text-panel-accent",
   media: "text-panel-media",
@@ -33,13 +32,13 @@ export function PropertyPanelFlatHeader({
   showUngroup: boolean;
 }) {
   const track = useTrackDesignInput();
-  const Icon = ICON_BY_KIND[elementKind];
   const visibilityLabel = hidden ? "Show element" : "Hide element";
 
   return (
     <div className="flex items-center gap-2.5 border-b border-panel-hairline px-4 py-3">
       <Icon
-        size={15}
+        name={ICON_BY_KIND[elementKind]}
+        size={16}
         data-flat-header-icon="true"
         className={`flex-shrink-0 ${ICON_COLOR_BY_KIND[elementKind]}`}
       />
@@ -58,17 +57,7 @@ export function PropertyPanelFlatHeader({
               onUngroup?.();
             }}
           >
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 16 16"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            >
-              <rect x="1.5" y="1.5" width="7" height="7" rx="1" />
-              <rect x="7.5" y="7.5" width="7" height="7" rx="1" />
-            </svg>
+            <Icon name="intersect" size={14} />
           </button>
         )}
         {onToggleHidden && (
@@ -81,7 +70,7 @@ export function PropertyPanelFlatHeader({
               onToggleHidden();
             }}
           >
-            {hidden ? <EyeSlash size={13} weight="bold" /> : <Eye size={13} weight="bold" />}
+            <Icon name={hidden ? "eyeSlash" : "eye"} size={14} />
           </button>
         )}
         <button
@@ -94,7 +83,7 @@ export function PropertyPanelFlatHeader({
           }}
           className={copied ? "text-panel-accent" : undefined}
         >
-          <ClipboardList size={13} />
+          <Icon name="clipboardText" size={14} />
         </button>
         <button
           type="button"
@@ -104,7 +93,7 @@ export function PropertyPanelFlatHeader({
             onClear();
           }}
         >
-          <X size={13} />
+          <Icon name="x" size={14} />
         </button>
       </div>
     </div>

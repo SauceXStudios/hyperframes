@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Check, ClipboardList, Film, Music, Scissors } from "../../icons/SystemIcons";
 import type { DomEditSelection } from "./domEditing";
 import {
   type BackgroundRemovalProgress,
@@ -21,6 +20,7 @@ import {
   audioGainToFaderPosition,
   audioGainToText,
 } from "@hyperframes/core/audio-gain";
+import { Icon } from "../../icons/Icon";
 
 // fallow-ignore-next-line complexity
 export function MediaSection({
@@ -137,7 +137,10 @@ export function MediaSection({
   };
 
   return (
-    <Section title={panelTitle} icon={isAudio ? <Music size={15} /> : <Film size={15} />}>
+    <Section
+      title={panelTitle}
+      icon={isAudio ? <Icon name="musicNote" size={16} /> : <Icon name="filmStrip" size={16} />}
+    >
       <div className="space-y-4">
         {srcAttr && (
           <div className="min-w-0">
@@ -153,7 +156,7 @@ export function MediaSection({
                 }}
                 className="flex h-6 items-center gap-1 rounded-lg border border-neutral-700 bg-neutral-950 px-2 text-[10px] font-medium text-neutral-400 transition-colors hover:border-neutral-600 hover:text-neutral-200"
               >
-                {copied ? <Check size={11} /> : <ClipboardList size={11} />}
+                {copied ? <Icon name="check" size={12} /> : <Icon name="clipboardText" size={12} />}
                 <span>{copied ? "Copied" : "Copy"}</span>
               </button>
             </div>
@@ -189,7 +192,7 @@ export function MediaSection({
                     : "Select a project-local image or video asset"
                 }
               >
-                <Scissors size={13} />
+                <Icon name="scissors" size={14} />
                 <span>{removeBusy ? "Working" : "Remove BG"}</span>
               </button>
             </div>

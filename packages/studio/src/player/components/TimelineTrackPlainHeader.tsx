@@ -1,9 +1,8 @@
 import type React from "react";
-import { Eye, EyeSlash } from "@phosphor-icons/react";
-import { Music } from "../../icons/SystemIcons";
 import type { TimelineEditCallbacks } from "./timelineCallbacks";
 import { TrackClipCount } from "./TrackClipCount";
 import { trackDisplaySuffix } from "./timelineTrackDisplay";
+import { Icon } from "../../icons/Icon";
 
 // Hide, plainly. The speaker variant was the mute presentation; with mute gone
 // this is the visibility eye it always was, and audio rows do not render it.
@@ -12,8 +11,7 @@ function visibilityButtonLabel(hidden: boolean, suffix: string): string {
 }
 
 function visibilityButtonIcon(hidden: boolean) {
-  const Icon = hidden ? EyeSlash : Eye;
-  return <Icon size={14} weight="bold" aria-hidden="true" />;
+  return <Icon name={hidden ? "eyeSlash" : "eye"} size={14} />;
 }
 
 export function VisibilityButton({
@@ -88,9 +86,7 @@ export function PlainTrackHeader({
           `truncate`), and the controls are `shrink-0`, so they hold the edge
           and the name gives way instead. */}
       <div className="flex min-w-0 items-center gap-1">
-        {isAudioTrack && (
-          <Music size={12} weight="fill" aria-hidden="true" className="text-white/35" />
-        )}
+        {isAudioTrack && <Icon name="musicNote" size={12} className="text-white/35" />}
         {/* No `flex-1`: the name takes only the width it needs, so the clip
             count sits against it rather than being pushed out to meet the
             controls. The slack goes to the `ml-auto` group below instead.

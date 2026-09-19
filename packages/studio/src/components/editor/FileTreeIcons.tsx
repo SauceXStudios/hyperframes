@@ -1,54 +1,45 @@
-import {
-  FileHtml,
-  FileCss,
-  FileJs,
-  FileJsx,
-  FileTs,
-  FileTsx,
-  FileTxt,
-  FileMd,
-  FileSvg,
-  FilePng,
-  FileJpg,
-  FileVideo,
-  FileCode,
-  File,
-  Waveform,
-  TextAa,
-  Image as PhImage,
-} from "@phosphor-icons/react";
+import { Icon, type IconName } from "../../icons/Icon";
 
-const SZ = 14;
-const W = "duotone" as const;
+const FILE_ICON_BY_EXT: Record<string, readonly [IconName, string]> = {
+  html: ["fileHtml", "#E44D26"],
+  css: ["fileCss", "#264DE4"],
+  js: ["fileJs", "#F0DB4F"],
+  mjs: ["fileJs", "#F0DB4F"],
+  cjs: ["fileJs", "#F0DB4F"],
+  jsx: ["fileJsx", "#61DAFB"],
+  ts: ["fileTs", "#3178C6"],
+  mts: ["fileTs", "#3178C6"],
+  tsx: ["fileTsx", "#3178C6"],
+  json: ["fileCode", "#4ADE80"],
+  svg: ["fileSvg", "#F97316"],
+  md: ["fileMd", "#9CA3AF"],
+  mdx: ["fileMd", "#9CA3AF"],
+  txt: ["fileTxt", "#9CA3AF"],
+  png: ["filePng", "#22C55E"],
+  jpg: ["fileJpg", "#22C55E"],
+  jpeg: ["fileJpg", "#22C55E"],
+  webp: ["image", "#22C55E"],
+  gif: ["image", "#22C55E"],
+  ico: ["image", "#22C55E"],
+  mp4: ["fileVideo", "#A855F7"],
+  webm: ["fileVideo", "#A855F7"],
+  mov: ["fileVideo", "#A855F7"],
+  mp3: ["waveform", "#3CE6AC"],
+  wav: ["waveform", "#3CE6AC"],
+  ogg: ["waveform", "#3CE6AC"],
+  m4a: ["waveform", "#3CE6AC"],
+  woff: ["textAa", "#6B7280"],
+  woff2: ["textAa", "#6B7280"],
+  ttf: ["textAa", "#6B7280"],
+  otf: ["textAa", "#6B7280"],
+};
 
 export function FileIcon({ path }: { path: string }) {
   const ext = path.split(".").pop()?.toLowerCase() ?? "";
-  const c = "flex-shrink-0";
-  if (ext === "html") return <FileHtml size={SZ} weight={W} color="#E44D26" className={c} />;
-  if (ext === "css") return <FileCss size={SZ} weight={W} color="#264DE4" className={c} />;
-  if (ext === "js" || ext === "mjs" || ext === "cjs")
-    return <FileJs size={SZ} weight={W} color="#F0DB4F" className={c} />;
-  if (ext === "jsx") return <FileJsx size={SZ} weight={W} color="#61DAFB" className={c} />;
-  if (ext === "ts" || ext === "mts")
-    return <FileTs size={SZ} weight={W} color="#3178C6" className={c} />;
-  if (ext === "tsx") return <FileTsx size={SZ} weight={W} color="#3178C6" className={c} />;
-  if (ext === "json") return <FileCode size={SZ} weight={W} color="#4ADE80" className={c} />;
-  if (ext === "svg") return <FileSvg size={SZ} weight={W} color="#F97316" className={c} />;
-  if (ext === "md" || ext === "mdx")
-    return <FileMd size={SZ} weight={W} color="#9CA3AF" className={c} />;
-  if (ext === "txt") return <FileTxt size={SZ} weight={W} color="#9CA3AF" className={c} />;
-  if (ext === "png") return <FilePng size={SZ} weight={W} color="#22C55E" className={c} />;
-  if (ext === "jpg" || ext === "jpeg")
-    return <FileJpg size={SZ} weight={W} color="#22C55E" className={c} />;
-  if (ext === "webp" || ext === "gif" || ext === "ico")
-    return <PhImage size={SZ} weight={W} color="#22C55E" className={c} />;
-  if (ext === "mp4" || ext === "webm" || ext === "mov")
-    return <FileVideo size={SZ} weight={W} color="#A855F7" className={c} />;
-  if (ext === "mp3" || ext === "wav" || ext === "ogg" || ext === "m4a")
-    return <Waveform size={SZ} weight={W} color="#3CE6AC" className={c} />;
-  if (ext === "woff" || ext === "woff2" || ext === "ttf" || ext === "otf")
-    return <TextAa size={SZ} weight={W} color="#6B7280" className={c} />;
-  return <File size={SZ} weight={W} color="#6B7280" className={c} />;
+  const [name, color] = Object.hasOwn(FILE_ICON_BY_EXT, ext)
+    ? FILE_ICON_BY_EXT[ext]
+    : (["file", "#6B7280"] as const);
+  return <Icon name={name} size={14} className="flex-shrink-0" style={{ color }} />;
 }
 
 // ── Tree Types ──

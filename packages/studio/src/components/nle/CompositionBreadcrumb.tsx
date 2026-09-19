@@ -1,5 +1,5 @@
-import { ArrowLeft, CaretRight } from "@phosphor-icons/react";
 import { trackStudioEvent } from "../../utils/studioTelemetry";
+import { Icon } from "../../icons/Icon";
 
 export interface CompositionLevel {
   /** Unique id — "master" or composition file path */
@@ -37,7 +37,7 @@ export function CompositionBreadcrumb({ stack, onNavigate }: CompositionBreadcru
         title="Back (Esc, or double-click empty timeline)"
         aria-label="Back to parent composition"
       >
-        <ArrowLeft size={12} weight="bold" />
+        <Icon name="arrowLeft" size={12} />
       </button>
 
       {/* Breadcrumb path */}
@@ -45,7 +45,9 @@ export function CompositionBreadcrumb({ stack, onNavigate }: CompositionBreadcru
         const isLast = i === stack.length - 1;
         return (
           <span key={level.id} className="flex items-center gap-1">
-            {i > 0 && <CaretRight size={10} className="text-neutral-600 flex-shrink-0" />}
+            {i > 0 && (
+              <Icon name="caretRight" size={12} className="text-neutral-600 flex-shrink-0" />
+            )}
             {isLast ? (
               <span className="text-xs text-neutral-200 font-medium">{level.label}</span>
             ) : (

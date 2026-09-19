@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useTrackDesignInput } from "../../contexts/DesignPanelInputContext";
-import { Check, ClipboardList } from "../../icons/SystemIcons";
 import type { DomEditSelection } from "./domEditing";
 import {
   type BackgroundRemovalProgress,
@@ -21,6 +20,7 @@ import {
   audioGainToFaderPosition,
   audioGainToText,
 } from "@hyperframes/core/audio-gain";
+import { Icon } from "../../icons/Icon";
 
 // fallow-ignore-next-line complexity
 export function FlatMediaSection({
@@ -163,7 +163,7 @@ export function FlatMediaSection({
           }}
           className="flex flex-shrink-0 items-center gap-1 text-[10px] text-panel-text-3 hover:text-panel-text-1"
         >
-          {copied ? <Check size={11} /> : <ClipboardList size={11} />}
+          {copied ? <Icon name="check" size={12} /> : <Icon name="clipboardText" size={12} />}
           {copied ? "Copied" : "Copy"}
         </button>
       </div>
