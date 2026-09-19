@@ -163,6 +163,7 @@ export function StudioHeader({
 }: StudioHeaderProps) {
   const { projectId, renderQueue } = useStudioShellContext();
   const { rightCollapsed, setRightCollapsed, setRightPanelTab } = usePanelLayoutContext();
+  const inspectorOpen = !rightCollapsed && inspectorPanelActive;
   const isRendering = renderQueue.isRendering;
   const ffmpegMissing = renderQueue.ffmpegMissing;
   // The dock has no separate "railed by window width" state (it shrinks
