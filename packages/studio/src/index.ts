@@ -97,3 +97,38 @@ export type { PickedElement } from "./hooks/useElementPicker";
 export { resolveSourceFile, applyPatch } from "./utils/sourcePatcher";
 export type { PatchOperation } from "./utils/sourcePatcher";
 export { parseStyleString, mergeStyleIntoTag, findElementBlock } from "./utils/htmlEditor";
+
+// Timeline editing: Studio's own hand-edit path (split, move, resize, razor,
+// group move, toggle hidden, audio attrs, delete, drop), its undo/redo, the
+// etag-guarded writer, and the conflict banner — for a host mounting the
+// timeline outside EditorShell with the same save path Studio uses.
+// Every hand edit is tracked into this same registry; a host's own
+// waitForPendingDomEditSaves must drain it too, the same way Studio's does,
+// or undo/redo can race a write still in flight (see useTrackPendingTimelineEdit).
+export { flushStudioPendingEdits } from "./utils/studioPendingEdits";
+export type { StudioPendingEditsDrainResult } from "./utils/studioPendingEdits";
+export { usePersistentEditHistory } from "./hooks/usePersistentEditHistory";
+export type { UsePersistentEditHistoryOptions } from "./hooks/usePersistentEditHistory";
+export { useTimelineEditing } from "./hooks/useTimelineEditing";
+export type { UseTimelineEditingOptions } from "./hooks/useTimelineEditingTypes";
+export type {
+  CanEditTimelineElement,
+  TimelineEditPermission,
+} from "./hooks/timelineEditPermission";
+export { useEditHistoryActions } from "./hooks/useEditHistoryActions";
+export type {
+  EditHistoryHandle,
+  UseEditHistoryActionsOptions,
+} from "./hooks/useEditHistoryActions";
+export { useProjectFileWriter } from "./hooks/useProjectFileWriter";
+export type { UseProjectFileWriterOptions } from "./hooks/useProjectFileWriter";
+export { ExternalFileConflictBanner } from "./components/ExternalFileConflictBanner";
+export type {
+  ExternalFileChangeCoordinatorHandle,
+  ExternalFileChangeBlockedState,
+} from "./hooks/useExternalFileChangeCoordinator";
+export { TimelinePane } from "./components/nle/TimelinePane";
+export type { TimelinePaneProps } from "./components/nle/TimelinePane";
+export { TimelineEditProvider } from "./contexts/TimelineEditContext";
+export type { TimelineEditCallbacks } from "./player/components/timelineCallbacks";
+export type { BlockedTimelineEditIntent } from "./player/components/timelineEditing";

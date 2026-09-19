@@ -77,6 +77,9 @@ export interface TimelinePaneProps {
   timelineToolbar?: ReactNode;
   /** Slot rendered below the timeline tracks */
   timelineFooter?: ReactNode;
+  /** Slot for a host's own overlay spanning the whole timeline area (e.g. a draft/ghost
+   *  clip), positioned absolutely the same way PreviewPane's previewOverlay is. */
+  timelineOverlay?: ReactNode;
   /** Custom clip content renderer for timeline (thumbnails, waveforms, etc.) */
   renderClipContent?: (
     element: TimelineElement,
@@ -113,6 +116,7 @@ export interface TimelinePaneProps {
 export function TimelinePane({
   timelineToolbar,
   timelineFooter,
+  timelineOverlay,
   renderClipContent,
   onFileDrop,
   onDeleteElement,
@@ -285,6 +289,9 @@ export function TimelinePane({
         />
       </div>
       {timelineFooter && <div className="shrink-0">{timelineFooter}</div>}
+      {timelineOverlay && (
+        <div className="pointer-events-none absolute inset-0 z-20">{timelineOverlay}</div>
+      )}
       {timelineDisabled && (
         <div
           className="absolute inset-0 z-30 cursor-not-allowed bg-black/18 flex items-center justify-center"

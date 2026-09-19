@@ -29,8 +29,14 @@ import {
   useTimelineElementVisibilityEditing,
   useTimelineTrackVisibilityEditing,
 } from "./timelineTrackVisibility";
-import { useTimelineGroupEditing } from "./useTimelineGroupEditing";
+import {
+  useTimelineGroupEditing,
+  type TimelineGroupCommitOptions,
+  type TimelineGroupMoveChange,
+  type TimelineGroupResizeChange,
+} from "./useTimelineGroupEditing";
 import { useBlockedTimelineEditToast } from "./useBlockedTimelineEditToast";
+import { useTimelineEditGate } from "./timelineEditPermission";
 import { serializeZLaneGesture } from "../components/nle/zLaneGesture";
 import { cutoverCommittedOrThrow, sdkTimingPersist } from "../utils/sdkCutover";
 import type { TimelineMoveUpdates, UseTimelineEditingOptions } from "./useTimelineEditingTypes";
@@ -54,11 +60,25 @@ export function useTimelineEditing({
   forceReloadSdkSession,
   invalidateGsapCache,
   handleDomZIndexReorderCommitRef,
+  canEdit,
 }: UseTimelineEditingOptions) {
   const projectIdRef = useRef(projectId);
   projectIdRef.current = projectId;
   const editQueueRef = useRef(Promise.resolve());
   const track = useTrackPendingTimelineEdit();
+  const checkEditable = useTimelineEditGate(canEdit, showToast);
+  // Refuses (no call, no write, no history entry) when any target is
+  // blocked; otherwise runs fn as before. The one gate every covered
+  // handler below goes through, ahead of tracking its write.
+  const guard = useCallback(
+    <Args extends unknown[]>(
+      resolveTargets: (...args: Args) => readonly TimelineElement[],
+      fn: (...args: Args) => Promise<void>,
+    ) =>
+      (...args: Args): Promise<void> =>
+        checkEditable(resolveTargets(...args)) ? fn(...args) : Promise.resolve(),
+    [checkEditable],
+  );
 
   const enqueueEdit = useCallback(
     (
@@ -449,12 +469,44 @@ export function useTimelineEditing({
 
   // Every write-handler is tracked here, the one place all hand edits
   // converge, so undo (already awaiting this registry) never races a write.
-  const trackedRazorSplit = track(handleRazorSplit);
+  // canEdit is checked at the same point, ahead of tracking: split, move,
+  // resize, group move/resize, delete and the fx-attribute persist are
+  // covered by resolving their element(s); toggle-hidden resolves by key or
+  // track. Not covered here: the audio-group attribute (keyed by a group id
+  // with no element to resolve), razor-split-all, and the three drop
+  // handlers (they add content, not edit an existing element).
+  const trackedRazorSplit = track(
+    guard((element: TimelineElement, _splitTime: number) => [element], handleRazorSplit),
+  );
   return {
-    handleTimelineElementMove: track(handleTimelineElementMove),
-    handleTimelineElementResize: track(handleTimelineElementResize),
-    handleToggleTrackHidden: track(handleToggleTrackHidden),
-    handleToggleElementHidden: track(handleToggleElementHidden),
+    handleTimelineElementMove: track(
+      guard(
+        (element: TimelineElement, _updates: TimelineMoveUpdates) => [element],
+        handleTimelineElementMove,
+      ),
+    ),
+    handleTimelineElementResize: track(
+      guard(
+        (
+          element: TimelineElement,
+          _updates: Pick<TimelineElement, "start" | "duration" | "playbackStart">,
+        ) => [element],
+        handleTimelineElementResize,
+      ),
+    ),
+    handleToggleTrackHidden: track(
+      guard(
+        (trackIndex: number, _hidden: boolean, _displayNumber?: number | null) =>
+          timelineElements.filter((el) => el.track === trackIndex),
+        handleToggleTrackHidden,
+      ),
+    ),
+    handleToggleElementHidden: track(
+      guard((elementKey: string | readonly string[], _hidden: boolean) => {
+        const keys = new Set(Array.isArray(elementKey) ? elementKey : [elementKey]);
+        return timelineElements.filter((el) => keys.has(el.key ?? el.id));
+      }, handleToggleElementHidden),
+    ),
     handleAutoGroupCarveSources: track(handleAutoGroupCarveSources),
     setAudioGroupAttribute: {
       ...setAudioGroupAttribute,
@@ -462,10 +514,21 @@ export function useTimelineEditing({
     },
     setElementFxAttribute: {
       ...setElementFxAttribute,
-      setQuiet: track(setElementFxAttribute.setQuiet),
+      setQuiet: track(
+        guard(
+          (element: TimelineElement, _attr: string, _value: string | null, _label: string) => [
+            element,
+          ],
+          setElementFxAttribute.setQuiet,
+        ),
+      ),
     },
-    handleTimelineElementDelete: track(handleTimelineElementDelete),
-    handleTimelineElementsDelete: track(handleTimelineElementsDelete),
+    handleTimelineElementDelete: track(
+      guard((element: TimelineElement) => [element], handleTimelineElementDelete),
+    ),
+    handleTimelineElementsDelete: track(
+      guard((elements: TimelineElement[]) => elements, handleTimelineElementsDelete),
+    ),
     handleTimelineElementSplit: trackedRazorSplit,
     handleRazorSplit: trackedRazorSplit,
     handleRazorSplitAll: track(handleRazorSplitAll),
@@ -473,7 +536,19 @@ export function useTimelineEditing({
     handleTimelineFileDrop: track(handleTimelineFileDrop),
     handleTimelineCompositionDrop: track(handleTimelineCompositionDrop),
     handleBlockedTimelineEdit,
-    handleTimelineGroupMove: track(groupEditing.handleTimelineGroupMove),
-    handleTimelineGroupResize: track(groupEditing.handleTimelineGroupResize),
+    handleTimelineGroupMove: track(
+      guard(
+        (changes: TimelineGroupMoveChange[], _options?: TimelineGroupCommitOptions) =>
+          changes.map((c) => c.element),
+        groupEditing.handleTimelineGroupMove,
+      ),
+    ),
+    handleTimelineGroupResize: track(
+      guard(
+        (changes: TimelineGroupResizeChange[], _options?: TimelineGroupCommitOptions) =>
+          changes.map((c) => c.element),
+        groupEditing.handleTimelineGroupResize,
+      ),
+    ),
   };
 }
