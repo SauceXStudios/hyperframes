@@ -57,7 +57,6 @@ export function useProjectFileWriter({ projectId }: UseProjectFileWriterOptions)
     [fileVersions, projectId],
   );
 
-  // fallow-ignore-next-line complexity
   const writeProjectFile = useCallback(
     async (path: string, content: string, expectedContent?: string): Promise<void> => {
       if (!projectId) throw new Error("No active project");

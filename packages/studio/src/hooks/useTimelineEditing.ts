@@ -29,12 +29,7 @@ import {
   useTimelineElementVisibilityEditing,
   useTimelineTrackVisibilityEditing,
 } from "./timelineTrackVisibility";
-import {
-  useTimelineGroupEditing,
-  type TimelineGroupCommitOptions,
-  type TimelineGroupMoveChange,
-  type TimelineGroupResizeChange,
-} from "./useTimelineGroupEditing";
+import { useTimelineGroupEditing } from "./useTimelineGroupEditing";
 import { useBlockedTimelineEditToast } from "./useBlockedTimelineEditToast";
 import { useTimelineEditGate } from "./timelineEditPermission";
 import { serializeZLaneGesture } from "../components/nle/zLaneGesture";
@@ -67,16 +62,25 @@ export function useTimelineEditing({
   const editQueueRef = useRef(Promise.resolve());
   const track = useTrackPendingTimelineEdit();
   const checkEditable = useTimelineEditGate(canEdit, showToast);
+  const guardedRef = useRef(
+    new WeakMap<(...args: never[]) => Promise<void>, (...args: never[]) => Promise<void>>(),
+  );
   // Refuses (no call, no write, no history entry) when any target is
-  // blocked; otherwise runs fn as before. The one gate every covered
-  // handler below goes through, ahead of tracking its write.
+  // blocked; otherwise runs fn as before. Cached by fn identity — like
+  // track() — so a fresh closure here doesn't defeat track's own cache.
   const guard = useCallback(
-    <Args extends unknown[]>(
-      resolveTargets: (...args: Args) => readonly TimelineElement[],
-      fn: (...args: Args) => Promise<void>,
-    ) =>
-      (...args: Args): Promise<void> =>
-        checkEditable(resolveTargets(...args)) ? fn(...args) : Promise.resolve(),
+    <H extends (...args: never[]) => Promise<void>>(
+      resolveTargets: (...args: Parameters<H>) => readonly TimelineElement[],
+      fn: H,
+    ): H => {
+      const key = fn as unknown as (...args: never[]) => Promise<void>;
+      const cached = guardedRef.current.get(key);
+      if (cached) return cached as H;
+      const wrapped = ((...args: Parameters<H>) =>
+        checkEditable(resolveTargets(...args)) ? fn(...args) : Promise.resolve()) as H;
+      guardedRef.current.set(key, wrapped as unknown as (...args: never[]) => Promise<void>);
+      return wrapped;
+    },
     [checkEditable],
   );
 
@@ -470,34 +474,18 @@ export function useTimelineEditing({
   // Every write-handler is tracked here, the one place all hand edits
   // converge, so undo never races a write; canEdit gates the same point.
   // Coverage boundary: see the PR body, not every kind resolves an element.
-  const trackedRazorSplit = track(
-    guard((element: TimelineElement, _splitTime: number) => [element], handleRazorSplit),
-  );
+  const trackedRazorSplit = track(guard((element) => [element], handleRazorSplit));
   return {
-    handleTimelineElementMove: track(
-      guard(
-        (element: TimelineElement, _updates: TimelineMoveUpdates) => [element],
-        handleTimelineElementMove,
-      ),
-    ),
-    handleTimelineElementResize: track(
-      guard(
-        (
-          element: TimelineElement,
-          _updates: Pick<TimelineElement, "start" | "duration" | "playbackStart">,
-        ) => [element],
-        handleTimelineElementResize,
-      ),
-    ),
+    handleTimelineElementMove: track(guard((element) => [element], handleTimelineElementMove)),
+    handleTimelineElementResize: track(guard((element) => [element], handleTimelineElementResize)),
     handleToggleTrackHidden: track(
       guard(
-        (trackIndex: number, _hidden: boolean, _displayNumber?: number | null) =>
-          timelineElements.filter((el) => el.track === trackIndex),
+        (trackIndex) => timelineElements.filter((el) => el.track === trackIndex),
         handleToggleTrackHidden,
       ),
     ),
     handleToggleElementHidden: track(
-      guard((elementKey: string | readonly string[], _hidden: boolean) => {
+      guard((elementKey) => {
         const keys = new Set(Array.isArray(elementKey) ? elementKey : [elementKey]);
         return timelineElements.filter((el) => keys.has(el.key ?? el.id));
       }, handleToggleElementHidden),
@@ -509,20 +497,11 @@ export function useTimelineEditing({
     },
     setElementFxAttribute: {
       ...setElementFxAttribute,
-      setQuiet: track(
-        guard(
-          (element: TimelineElement, _attr: string, _value: string | null, _label: string) => [
-            element,
-          ],
-          setElementFxAttribute.setQuiet,
-        ),
-      ),
+      setQuiet: track(guard((element) => [element], setElementFxAttribute.setQuiet)),
     },
-    handleTimelineElementDelete: track(
-      guard((element: TimelineElement) => [element], handleTimelineElementDelete),
-    ),
+    handleTimelineElementDelete: track(guard((element) => [element], handleTimelineElementDelete)),
     handleTimelineElementsDelete: track(
-      guard((elements: TimelineElement[]) => elements, handleTimelineElementsDelete),
+      guard((elements) => elements, handleTimelineElementsDelete),
     ),
     handleTimelineElementSplit: trackedRazorSplit,
     handleRazorSplit: trackedRazorSplit,
@@ -532,18 +511,10 @@ export function useTimelineEditing({
     handleTimelineCompositionDrop: track(handleTimelineCompositionDrop),
     handleBlockedTimelineEdit,
     handleTimelineGroupMove: track(
-      guard(
-        (changes: TimelineGroupMoveChange[], _options?: TimelineGroupCommitOptions) =>
-          changes.map((c) => c.element),
-        groupEditing.handleTimelineGroupMove,
-      ),
+      guard((changes) => changes.map((c) => c.element), groupEditing.handleTimelineGroupMove),
     ),
     handleTimelineGroupResize: track(
-      guard(
-        (changes: TimelineGroupResizeChange[], _options?: TimelineGroupCommitOptions) =>
-          changes.map((c) => c.element),
-        groupEditing.handleTimelineGroupResize,
-      ),
+      guard((changes) => changes.map((c) => c.element), groupEditing.handleTimelineGroupResize),
     ),
   };
 }
