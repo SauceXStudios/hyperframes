@@ -311,6 +311,12 @@ describe("Tune scroll cue", () => {
     assert.match(source, /for \(const child of el\.children\) observer\.observe\(child\);/);
     assert.doesNotMatch(source, /el\.firstElementChild/);
   });
+
+  it("keeps TuneList's identity fixed so typing doesn't remount it", () => {
+    // Without useMemo a nested `const TuneList = (...) => {...}` is a new function every
+    // CatalogDetail render, so React remounts the list (losing focus/scroll) on every keystroke.
+    assert.match(source, /const TuneList = useMemo\(/);
+  });
 });
 
 describe("snippet scope", () => {
