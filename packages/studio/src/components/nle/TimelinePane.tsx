@@ -287,11 +287,11 @@ export function TimelinePane({
           onDuplicateClip={onDuplicateClip}
           canPasteClip={canPasteClip}
         />
-        {timelineOverlay && (
-          <div className="pointer-events-none absolute inset-0 z-20">{timelineOverlay}</div>
-        )}
       </div>
       {timelineFooter && <div className="shrink-0">{timelineFooter}</div>}
+      {timelineOverlay && (
+        <div className="pointer-events-none absolute inset-0 z-20">{timelineOverlay}</div>
+      )}
       {timelineDisabled && (
         <div
           className="absolute inset-0 z-30 cursor-not-allowed bg-black/18 flex items-center justify-center"
