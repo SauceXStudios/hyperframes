@@ -49,9 +49,7 @@ const DISTINCT: IconName[][] = [
   ["eye", "eye-off"],
   ["link", "unlink"],
   ["undo", "redo", "rotate-cw", "rotate-ccw", "loop"],
-  ["sidebar-show", "sidebar-hide", "inspector", "window"],
   ["copy", "clipboard"],
-  ["layers", "bring-forward", "send-backward", "bring-to-front", "send-to-back"],
   ["download", "upload"],
   ["group", "ungroup"],
   ["file", "file-code", "file-image", "file-video", "file-audio", "file-text", "file-font"],
@@ -79,7 +77,7 @@ const chrome = `
 <section class="chrome">
   <div class="header">
     <span class="logo">HyperFrames Studio</span>
-    <div class="seg">${btn("camera", false, "Capture")}${btn("window", false, "Window")}${btn("inspector", true, "Inspector")}</div>
+    <div class="seg">${btn("camera", false, "Capture")}${btn("window", true, "Window")}</div>
     ${btn("download", false, "Export")}
   </div>
   <div class="body">
@@ -103,7 +101,6 @@ const chrome = `
       <div class="ir"><span>Position</span>${btn("keyframe")}${btn("link", true)}</div>
       <div class="ir"><span>Opacity</span>${btn("keyframe", true)}${btn("caret-down")}</div>
       <div class="ir"><span>Fill</span>${btn("eyedropper")}${btn("palette")}</div>
-      <div class="ir"><span>Order</span>${btn("bring-to-front")}${btn("bring-forward")}${btn("send-backward")}${btn("send-to-back")}</div>
       <div class="ir"><span>Text</span>${btn("type")}${btn("font")}</div>
     </div>
   </div>
