@@ -19,6 +19,9 @@ export function loadStylesheet(id: string, base: string) {
   return { path: file, base: path.dirname(file), content: readFileSync(file, "utf8") };
 }
 
+/** Forward slashes on every platform, so keys match the baseline file and the gate's messages. */
+export const toPosixPath = (relativePath: string): string => relativePath.replace(/\\/g, "/");
+
 /**
  * Studio's own sources, keyed by path relative to `from`, for every file the
  * caller keeps. Build output and dependencies are never walked.
@@ -33,8 +36,9 @@ export function listSourceFiles(
       const full = path.join(dir, entry.name);
       if (entry.isDirectory()) {
         if (entry.name !== "node_modules" && entry.name !== "dist") walk(full);
-      } else if (keep(path.relative(from, full))) {
-        files.set(path.relative(from, full), readFileSync(full, "utf8"));
+      } else {
+        const relative = toPosixPath(path.relative(from, full));
+        if (keep(relative)) files.set(relative, readFileSync(full, "utf8"));
       }
     }
   };
