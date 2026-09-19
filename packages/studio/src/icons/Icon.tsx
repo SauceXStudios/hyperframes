@@ -27,6 +27,12 @@ function renderShape(shape: Shape, i: number) {
     const [x, y, w, h, rx] = num(shape);
     return <rect key={i} x={x} y={y} width={w} height={h} rx={rx} />;
   }
+  if (shape.startsWith("R ")) {
+    const [x, y, w, h, rx] = num(shape);
+    return (
+      <rect key={i} x={x} y={y} width={w} height={h} rx={rx} fill="currentColor" stroke="none" />
+    );
+  }
   if (shape.startsWith("c ")) {
     const [cx, cy, r] = num(shape);
     return <circle key={i} cx={cx} cy={cy} r={r} />;
@@ -41,6 +47,8 @@ function renderShape(shape: Shape, i: number) {
 export function Icon({ name, size = 16, title, filled, ...rest }: IconProps) {
   const glyph: Glyph = GLYPHS[name];
   const solid = glyph.solid || (filled && glyph.fillable);
+  const strokeWidth = strokeWidthFor(size);
+  const shapes = strokeWidth < 1.5 && glyph.small ? glyph.small : glyph.shapes;
   return (
     <svg
       viewBox="0 0 16 16"
@@ -48,7 +56,7 @@ export function Icon({ name, size = 16, title, filled, ...rest }: IconProps) {
       height={size}
       fill={solid ? "currentColor" : "none"}
       stroke="currentColor"
-      strokeWidth={strokeWidthFor(size)}
+      strokeWidth={strokeWidth}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden={title ? undefined : true}
@@ -58,7 +66,7 @@ export function Icon({ name, size = 16, title, filled, ...rest }: IconProps) {
       {...rest}
     >
       {title ? <title>{title}</title> : null}
-      {glyph.shapes.map(renderShape)}
+      {shapes.map(renderShape)}
     </svg>
   );
 }

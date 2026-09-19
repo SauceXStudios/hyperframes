@@ -2,7 +2,32 @@
 // drift from the code. Usage: bun scripts/icon-specimen.tsx <out.html>
 import { writeFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
+import * as Ph from "@phosphor-icons/react";
 import { Icon, ICON_NAMES, type IconName } from "../src/icons";
+
+// The 20 most-used Studio icons today, Phosphor glyph beside ours.
+const TODAY: [IconName, Ph.Icon][] = [
+  ["chevron-down", Ph.CaretDown],
+  ["x", Ph.X],
+  ["plus", Ph.Plus],
+  ["check", Ph.Check],
+  ["trash", Ph.Trash],
+  ["eye", Ph.Eye],
+  ["eye-off", Ph.EyeSlash],
+  ["copy", Ph.Copy],
+  ["film", Ph.FilmStrip],
+  ["layers", Ph.Stack],
+  ["music", Ph.MusicNote],
+  ["type", Ph.TextT],
+  ["settings", Ph.Gear],
+  ["undo", Ph.ArrowCounterClockwise],
+  ["redo", Ph.ArrowClockwise],
+  ["camera", Ph.Camera],
+  ["scissors", Ph.Scissors],
+  ["magnet", Ph.Magnet],
+  ["warning", Ph.Warning],
+  ["pencil", Ph.PencilSimple],
+];
 
 const SIZES = [12, 14, 16, 20] as const;
 const STATES = [
@@ -84,6 +109,16 @@ const chrome = `
   </div>
 </section>`;
 
+const todayRows = [16, 12]
+  .map(
+    (size) =>
+      `<div class="row"><b>${size} px</b>${TODAY.map(
+        ([n, P]) =>
+          `<div class="pair"><span>${renderToStaticMarkup(<P size={size} />)}${svg(n, size)}</span><span>${n}</span></div>`,
+      ).join("")}</div>`,
+  )
+  .join("");
+
 const html = `<!doctype html><meta charset="utf-8"><title>Studio icons</title>
 <style>
 :root{--color-bg-0:#0a0a0a;--color-surface:#18181b;--color-hover:#27272a;--color-border:#1e1e1e;--color-text-0:#fafafa;--color-text-2:#a1a1aa;--color-text-4:#52525b;--color-accent:#3ce6ac}
@@ -92,7 +127,8 @@ h1{font-size:13px;color:var(--color-text-0);margin:24px 0 8px}
 .row{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--color-border)}
 .row b{width:120px;font-weight:500;font-size:11px}
 .row i{width:16px}
-.cell{display:flex;flex-direction:column;align-items:center;gap:2px;width:48px}
+.cell{display:flex;flex-direction:column;align-items:center;gap:2px;width:78px}
+.pair{display:flex;flex-direction:column;align-items:center;gap:2px;width:44px}.pair span{display:flex;gap:6px;font-size:8px;color:var(--color-text-4)}.pair svg{display:block}
 .cell span{font-size:9px;color:var(--color-text-4);white-space:nowrap}
 .cell svg{display:block}
 .chrome{border:1px solid var(--color-border);background:var(--color-bg-0);width:900px;font-size:11px;user-select:none}
@@ -121,6 +157,7 @@ h1{font-size:13px;color:var(--color-text-0);margin:24px 0 8px}
 .lane span{width:60px}.clip{height:20px;border-radius:4px;width:240px}
 .clip.v{background:#1f5fa5}.clip.t{background:#6b4fbb;width:140px;margin-left:40px}.clip.a{background:#1e7a5f;width:400px}
 </style>
+<h1>Today (Phosphor, left) and ours (right)</h1>${todayRows}
 <h1>Must stay distinct at 12 px</h1>${distinctRows}
 <h1>In Studio chrome (mock, 14 px)</h1>${chrome}
 <h1>Every icon at 12 / 14 / 16 / 20 px, then enabled / hover / active / disabled at 16 px</h1>${sizeRows}

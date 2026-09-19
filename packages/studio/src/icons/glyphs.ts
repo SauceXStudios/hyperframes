@@ -1,10 +1,12 @@
 // Studio's icon set. One 16-unit grid, 1-unit safe margin, drawn in
 // currentColor. A glyph is a list of shapes: "M…" path data, "r x y w h rx"
-// rounded rect, "c cx cy r" circle, "d cx cy r" filled dot.
+// rounded rect, "R x y w h rx" filled rect, "c cx cy r" circle, "d cx cy r"
+// filled dot. `small` replaces `shapes` below 14 px: fewer strokes, one mark.
 export type Shape = string;
 
 export interface Glyph {
   shapes: readonly Shape[];
+  small?: readonly Shape[];
   /** Always painted solid (small carets). */
   solid?: true;
   /** Closed silhouette that reads when painted solid; `filled` is ignored elsewhere. */
@@ -14,6 +16,8 @@ export interface Glyph {
 const FILE_BODY =
   "M9.5 2H4.5A1.5 1.5 0 0 0 3 3.5v9A1.5 1.5 0 0 0 4.5 14h7a1.5 1.5 0 0 0 1.5-1.5v-7Z";
 const FILE_FOLD = "M9.5 2v3.5H13";
+const SMALL_FILE =
+  "M9.5 2H4.5A1.5 1.5 0 0 0 3 3.5v9A1.5 1.5 0 0 0 4.5 14h7a1.5 1.5 0 0 0 1.5-1.5V6Z";
 const FOLDER =
   "M2 4.5A1.5 1.5 0 0 1 3.5 3H6l1.5 1.5h5A1.5 1.5 0 0 1 14 6v6a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 12Z";
 const SPEAKER = "M2.5 6H5l3.5-3v10L5 10H2.5Z";
@@ -104,13 +108,21 @@ export const GLYPHS = {
     ],
   },
   ungroup: { shapes: ["r 2 2 5.5 5.5 1.5", "r 8.5 8.5 5.5 5.5 1.5"] },
-  "bring-forward": { shapes: ["M2.5 11 8 8.5l5.5 2.5", "M8 8.5v-6", "M5.5 5 8 2.5 10.5 5"] },
-  "send-backward": { shapes: ["M2.5 5 8 7.5 13.5 5", "M8 7.5v6", "M5.5 11 8 13.5l2.5-2.5"] },
+  "bring-forward": {
+    shapes: ["M2.5 11 8 8.5l5.5 2.5", "M8 8.5v-6", "M5.5 5 8 2.5 10.5 5"],
+    small: ["M3 12h10", "M4 8.5 8 4.5l4 4"],
+  },
+  "send-backward": {
+    shapes: ["M2.5 5 8 7.5 13.5 5", "M8 7.5v6", "M5.5 11 8 13.5l2.5-2.5"],
+    small: ["M3 4h10", "M4 7.5 8 11.5l4-4"],
+  },
   "bring-to-front": {
     shapes: ["M2.5 10.5 8 8l5.5 2.5M2.5 13.5 8 11l5.5 2.5", "M8 8V2.5", "M5.5 5 8 2.5 10.5 5"],
+    small: ["M3 13h10", "M4 10.5 8 6.5l4 4M4 6.5 8 2.5l4 4"],
   },
   "send-to-back": {
     shapes: ["M2.5 2.5 8 5l5.5-2.5M2.5 5.5 8 8l5.5-2.5", "M8 8v5.5", "M5.5 11 8 13.5l2.5-2.5"],
+    small: ["M3 3h10", "M4 5.5 8 9.5l4-4M4 9.5 8 13.5l4-4"],
   },
   layers: {
     shapes: [
@@ -170,14 +182,32 @@ export const GLYPHS = {
   font: { shapes: ["M2 12l3-8 3 8", "M3.2 9h3.6", "c 11.5 9.5 2", "M13.5 7.5V12"] },
   folder: { shapes: [FOLDER], fillable: true },
   "folder-plus": { shapes: [FOLDER, "M8 7v4M6 9h4"] },
-  file: { shapes: [FILE_BODY, FILE_FOLD] },
+  file: { shapes: [FILE_BODY, FILE_FOLD], small: [SMALL_FILE] },
   "file-plus": { shapes: [FILE_BODY, FILE_FOLD, "M8 7.5v4M6 9.5h4"] },
-  "file-code": { shapes: [FILE_BODY, FILE_FOLD, "M6 8.5 4.5 10 6 11.5M10 8.5l1.5 1.5-1.5 1.5"] },
-  "file-image": { shapes: [FILE_BODY, FILE_FOLD, "d 6.5 8.5 .9", "M5 12l2.5-2.5 2 2 1.5-1.5"] },
-  "file-video": { shapes: [FILE_BODY, FILE_FOLD, "M6.5 8 10 10l-3.5 2Z"] },
-  "file-audio": { shapes: [FILE_BODY, FILE_FOLD, "M5.5 9.5V11M8 8v4.5M10.5 9v2.5"] },
-  "file-text": { shapes: [FILE_BODY, FILE_FOLD, "M5.5 8.5h5M5.5 11h3"] },
-  "file-font": { shapes: [FILE_BODY, FILE_FOLD, "M6 12l2-5 2 5", "M6.8 10.5h2.4"] },
+  "file-code": {
+    shapes: [FILE_BODY, FILE_FOLD, "M6 8.5 4.5 10 6 11.5M10 8.5l1.5 1.5-1.5 1.5"],
+    small: [SMALL_FILE, "M6.5 7 4.5 9l2 2M9.5 7l2 2-2 2"],
+  },
+  "file-image": {
+    shapes: [FILE_BODY, FILE_FOLD, "d 6.5 8.5 .9", "M5 12l2.5-2.5 2 2 1.5-1.5"],
+    small: [SMALL_FILE, "d 6 7.5 1.1", "M4.5 12l3-3 2 2 2.5-2.5"],
+  },
+  "file-video": {
+    shapes: [FILE_BODY, FILE_FOLD, "M6.5 8 10 10l-3.5 2Z"],
+    small: [SMALL_FILE, "M6.5 6.5 10.5 9l-4 2.5Z"],
+  },
+  "file-audio": {
+    shapes: [FILE_BODY, FILE_FOLD, "M5.5 9.5V11M8 8v4.5M10.5 9v2.5"],
+    small: [SMALL_FILE, "M5.5 8v3M8 6.5v6M10.5 7.5v4"],
+  },
+  "file-text": {
+    shapes: [FILE_BODY, FILE_FOLD, "M5.5 8.5h5M5.5 11h3"],
+    small: [SMALL_FILE, "M5.5 7.5h5M5.5 10.5h3"],
+  },
+  "file-font": {
+    shapes: [FILE_BODY, FILE_FOLD, "M6 12l2-5 2 5", "M6.8 10.5h2.4"],
+    small: [SMALL_FILE, "M5.5 12l2.5-6 2.5 6M6.4 10h3.2"],
+  },
   download: { shapes: ["M8 2.5v8", "M4.5 7 8 10.5 11.5 7", TRAY] },
   upload: { shapes: ["M8 10.5v-8", "M4.5 6 8 2.5 11.5 6", TRAY] },
   // chrome
@@ -201,9 +231,18 @@ export const GLYPHS = {
       "c 8 8 2",
     ],
   },
-  "sidebar-show": { shapes: ["r 2 2.5 12 11 2", "M6 2.5v11", "M8.5 6l2 2-2 2"] },
-  "sidebar-hide": { shapes: ["r 2 2.5 12 11 2", "M6 2.5v11", "M11 6l-2 2 2 2"] },
-  inspector: { shapes: ["r 2 2.5 12 11 2", "M10 2.5v11"] },
+  "sidebar-show": {
+    shapes: ["r 2 2.5 12 11 2", "M6 2.5v11", "M8.5 6l2 2-2 2"],
+    small: ["r 2 2.5 12 11 2", "R 2 2.5 4.5 11 2"],
+  },
+  "sidebar-hide": {
+    shapes: ["r 2 2.5 12 11 2", "M6 2.5v11", "M11 6l-2 2 2 2"],
+    small: ["r 2 2.5 12 11 2", "M6.5 2.5v11"],
+  },
+  inspector: {
+    shapes: ["r 2 2.5 12 11 2", "M10 2.5v11"],
+    small: ["r 2 2.5 12 11 2", "R 9.5 2.5 4.5 11 2"],
+  },
   window: { shapes: ["r 2 2.5 12 11 2", "M2 6.5h12", "M7 6.5v7"] },
   compare: { shapes: ["r 2 2 12 12 2", "M2 8h12"] },
   square: { shapes: ["r 2.5 2.5 11 11 2"], fillable: true },
