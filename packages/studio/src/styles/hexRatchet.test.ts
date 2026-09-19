@@ -27,20 +27,27 @@ function isScanned(relative: string): boolean {
   return /\.(tsx?|css)$/.test(relative);
 }
 
+/** Strings match first and are kept, so `"image/*"` or `"a//b"` never opens a comment. */
+const STRING_OR_COMMENT =
+  /("(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|`(?:\\.|[^`\\])*`)|\/\*[\s\S]*?\*\/|\/\/[^\n]*/g;
+
 /** Comments hold issue numbers like `#2291` that read as hex; count code only. */
-function stripComments(text: string): string {
-  return text.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:"'`])\/\/.*$/gm, "$1");
+function stripComments(text: string, lineComments: boolean): string {
+  return text.replace(STRING_OR_COMMENT, (match, string?: string) => {
+    if (string !== undefined) return match;
+    return match.startsWith("//") && !lineComments ? match : "";
+  });
 }
 
-function countColorLiterals(text: string): number {
-  return [...stripComments(text).matchAll(COLOR_LITERAL)].length;
+function countColorLiterals(text: string, lineComments = true): number {
+  return [...stripComments(text, lineComments).matchAll(COLOR_LITERAL)].length;
 }
 
 /** Repository-relative path to colour-literal count, for every scanned file. */
 function scan(): Map<string, number> {
   const counts = new Map<string, number>();
   for (const [file, text] of listSourceFiles(isScanned, REPO_ROOT)) {
-    const count = countColorLiterals(text);
+    const count = countColorLiterals(text, !file.endsWith(".css"));
     if (count > 0) counts.set(file, count);
   }
   return counts;
@@ -115,6 +122,12 @@ describe("colour literal counter", () => {
     // Known limit: an identifier that is exactly 3, 4, 6 or 8 hex characters
     // in code reads as a colour; the baseline absorbs it.
     expect(countColorLiterals(`href="#section-two" // see #12345`)).toBe(0);
+  });
+
+  it("keeps a colour that follows comment-shaped text inside a string", () => {
+    expect(countColorLiterals(`accept="image/*"; const c = "#161618"; x = "*/";`)).toBe(1);
+    expect(countColorLiterals("const u = `x//y`; const c = '#161618';")).toBe(1);
+    expect(countColorLiterals(`.a { background: url(//cdn.test/a.png) #161618; }`, false)).toBe(1);
   });
 
   it("ignores a colour-shaped issue number in a line or block comment", () => {
