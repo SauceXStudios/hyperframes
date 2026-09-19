@@ -169,8 +169,26 @@ describe("placementRefusal", () => {
   });
 
   it("refuses a clip still standing in for a split tail the reload has not reported", () => {
-    const cutTail = result({ start: 0, cuts: [{ kind: "remove", key: "a~tail" }] });
-    expect(placementRefusal(cutTail, "overwrite", [clip("a~tail", 0, 4)])).toMatch(/previous edit/);
+    const standIn = clip("a", 0, 4, { awaitingReload: true });
+    const cutBoth = result({
+      start: 0,
+      cuts: [
+        { kind: "remove", key: "a" },
+        { kind: "remove", key: "b" },
+      ],
+    });
+    expect(placementRefusal(cutBoth, "overwrite", [standIn, clip("b", 4, 4)])).toMatch(
+      /previous edit/,
+    );
+  });
+
+  it("refuses dragging a stand-in itself, and allows an author id that ends in ~tail", () => {
+    const standIn = clip("t", 8, 2, { awaitingReload: true });
+    expect(placementRefusal(cutA, "overwrite", [clip("a", 0, 4)], standIn)).toMatch(
+      /previous edit/,
+    );
+    const cutAuthored = result({ start: 0, cuts: [{ kind: "remove", key: "a~tail" }] });
+    expect(placementRefusal(cutAuthored, "overwrite", [clip("a~tail", 0, 4)])).toBeNull();
   });
 
   it("refuses when a clip that would be cut is an expanded child", () => {

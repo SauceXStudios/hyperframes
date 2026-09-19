@@ -32,8 +32,7 @@ export type PlacementStep =
   | { kind: "resize"; changes: TimelineGroupResizeChange[] }
   | { kind: "move"; edits: TimelineMoveEdit[] };
 
-/** Marks the stand-in id of a split tail that the reload has not reported yet. */
-const PENDING_TAIL_SUFFIX = "~tail";
+const WAIT_FOR_RELOAD = "Wait for the previous edit to finish";
 
 const moveEdit = (element: TimelineElement, start: number): TimelineMoveEdit => ({
   element,
@@ -126,14 +125,16 @@ export function placementRefusal(
   result: PlaceClipResult,
   mode: PlacementMode,
   laneClips: readonly TimelineElement[],
+  dragged?: TimelineElement,
 ): string | null {
   const byKey = new Map(laneClips.map((e) => [keyOf(e), e]));
+  if (dragged?.awaitingReload) return WAIT_FOR_RELOAD;
   const touched = [...result.cuts, ...result.shifts].map((c) => byKey.get(c.key));
   if (touched.some((el) => !el || !canMoveTimelineElement(el) || el.expandedParentStart != null)) {
     return "Cannot overwrite a locked or expanded clip";
   }
-  if (touched.some((el) => el && keyOf(el).endsWith(PENDING_TAIL_SUFFIX))) {
-    return "Wait for the previous edit to finish";
+  if (touched.some((el) => el?.awaitingReload)) {
+    return WAIT_FOR_RELOAD;
   }
   const unsplittable = result.cuts.some((cut) => {
     if (cut.kind !== "split") return false;
@@ -181,8 +182,9 @@ function pendingSplitTail(el: TimelineElement, at: number): TimelineElement {
     : el.playbackStart;
   return {
     ...el,
-    id: `${el.id}${PENDING_TAIL_SUFFIX}`,
-    key: `${keyOf(el)}${PENDING_TAIL_SUFFIX}`,
+    id: `${el.id}~tail`,
+    key: `${keyOf(el)}~tail`,
+    awaitingReload: true,
     domId: undefined,
     start: at,
     duration: round3(el.start + el.duration - at),
@@ -314,7 +316,7 @@ export function commitPlacementDrop(
   });
   if (result.cuts.length === 0 && result.shifts.length === 0) return null;
 
-  const refusal = placementRefusal(result, mode, laneClips);
+  const refusal = placementRefusal(result, mode, laneClips, drag.element);
   if (refusal) {
     placementOps.toast(refusal);
     return Promise.resolve();

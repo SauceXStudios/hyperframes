@@ -128,6 +128,12 @@ describe("a drop's timeline states never go back to an older one", () => {
     expect(await firstStateAfterDrop("overwrite", 1)).toBe("a@0+1 b@4+4 d@1+2 a~tail@3+1");
   });
 
+  it("marks the new tail as awaiting the reload so a second drop on it is refused", async () => {
+    await firstStateAfterDrop("overwrite", 1);
+    const tail = usePlayerStore.getState().elements.find((el) => el.id === "a~tail");
+    expect(tail?.awaitingReload).toBe(true);
+  });
+
   it("shows an insert's pushed clips, split head and tail in the first state after the drop", async () => {
     // d [2,4) inserted into a [0,4): head [0,2), tail [4,6), b pushed to [6,10).
     expect(await firstStateAfterDrop("insert", 2)).toBe("a@0+2 b@6+4 d@2+2 a~tail@4+2");
