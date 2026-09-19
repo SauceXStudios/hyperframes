@@ -279,6 +279,33 @@ describe("WebGPU adapter probe", () => {
   });
 });
 
+describe("Tune scroll cue", () => {
+  const source = readFileSync(join(here, "..", "docs", "snippets", "catalog-detail.jsx"), "utf-8");
+  const fn = source.slice(
+    source.indexOf("const hasMoreBelow"),
+    source.indexOf("// END hasMoreBelow"),
+  );
+  const hasMoreBelow = runInNewContext(`${fn} hasMoreBelow`, {}) as (
+    scrollHeight: number,
+    scrollTop: number,
+    clientHeight: number,
+  ) => boolean;
+
+  it("is true while content remains below the visible list, false once scrolled to the end", () => {
+    assert.equal(hasMoreBelow(800, 0, 300), true);
+    assert.equal(hasMoreBelow(800, 490, 300), true);
+    assert.equal(hasMoreBelow(800, 500, 300), false);
+    assert.equal(hasMoreBelow(300, 0, 300), false);
+  });
+
+  it("turns the pulse off under prefers-reduced-motion", () => {
+    assert.match(
+      source,
+      /@media \(prefers-reduced-motion: reduce\) \{\s*\n\s*\.hf-ve-tune-more \{ animation: none; \}/,
+    );
+  });
+});
+
 describe("snippet scope", () => {
   it("has no top-level helper outside its exports, because Mintlify only evaluates exports", () => {
     const source = readFileSync(
@@ -346,6 +373,23 @@ describe("tile reveal", () => {
     );
     assert.match(handler, /revealWhenPainted\(/);
     assert.doesNotMatch(handler.split("revealWhenPainted")[0] ?? "", /dataset\.ready = 'true'/);
+  });
+});
+
+describe("tile player concurrency cap", () => {
+  const source = readFileSync(join(here, "..", "docs", "snippets", "catalog-gallery.jsx"), "utf-8");
+  const css = readFileSync(join(here, "..", "docs", "catalog-gallery.css"), "utf-8");
+
+  it("caps dom-tier players wide enough to cover a full grid's worth of visible tiles", () => {
+    const columns = Number(css.match(/grid-template-columns:repeat\((\d+),/)?.[1]);
+    const cap = Number(source.match(/const MAX_DOM_PLAYERS = (\d+);/)?.[1]);
+    assert.ok(columns > 0 && cap > 0, "both constants must be found in their source files");
+    // Below 6 rows' worth, tiles at the bottom of a tall viewport stay on their dark
+    // fallback until hover steals another tile's slot -- the exact bug this guards.
+    assert.ok(
+      cap >= columns * 6,
+      `MAX_DOM_PLAYERS (${cap}) is too small for a ${columns}-column grid`,
+    );
   });
 });
 

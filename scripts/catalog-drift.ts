@@ -1,10 +1,11 @@
 // Fails when the committed docs/public/catalog, which the docs build serves as-is, differs from generator output.
 import { spawnSync } from "node:child_process";
-import { mkdirSync, readdirSync, readFileSync, mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, relative, resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { runAsCommand } from "./entrypoint.ts";
+import { discoverItems, primarySource } from "./generate-catalog-pages.ts";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const MAX_LISTED = 40;
@@ -34,6 +35,33 @@ export function treeDifferences(generatedRoot: string, committedRoot: string): s
   ];
 }
 
+/**
+ * `meta.codeLines` on a committed catalog page is copied from the registry source at generation
+ * time, not read live, so an edit to the source after the last regen leaves it silently wrong
+ * (motion-blur shipped 406 against a 722-line source). Checked against the source directly,
+ * skipping generate-catalog-pages.ts entirely, so this stays cheap enough to run every time.
+ */
+export function codeLinesDrift(committedCatalogDir: string): string[] {
+  const mismatches: string[] = [];
+  for (const { kind, manifest } of discoverItems()) {
+    const file = primarySource(kind, manifest);
+    if (!file) continue;
+    const dir = kind === "block" ? "blocks" : "components";
+    const pagePath = join(committedCatalogDir, dir, `${manifest.name}.mdx`);
+    if (!existsSync(pagePath)) continue; // an absent page is treeDifferences' job, not this one's
+    const match = readFileSync(pagePath, "utf-8").match(/"codeLines":(\d+)/);
+    if (!match || !match[1]) continue; // page has no code fence, nothing to compare
+    const committed = Number(match[1]);
+    const real = file.source.split("\n").length;
+    if (committed !== real) {
+      mismatches.push(
+        `stale codeLines: catalog/${dir}/${manifest.name}.mdx says ${committed}, source is ${real} lines`,
+      );
+    }
+  }
+  return mismatches;
+}
+
 function generateInto(outRoot: string): number {
   const run = spawnSync("npx", ["tsx", "scripts/generate-catalog-payloads.ts"], {
     cwd: repoRoot,
@@ -43,17 +71,17 @@ function generateInto(outRoot: string): number {
   return run.status ?? 1;
 }
 
-/** The catalog as `git` holds it, so a file the working tree has but a .gitignore rule keeps out cannot hide drift. */
-function extractCommittedCatalog(into: string): string {
-  const archive = spawnSync("git", ["archive", "HEAD", "docs/public/catalog"], {
+/** A tree as `git` holds it, so a file the working tree has but a .gitignore rule keeps out cannot hide drift. */
+function extractCommitted(gitPath: string, into: string): string {
+  const archive = spawnSync("git", ["archive", "HEAD", gitPath], {
     cwd: repoRoot,
     maxBuffer: 2 ** 31 - 1,
   });
-  if (archive.status !== 0) throw new Error("git archive of docs/public/catalog failed.");
+  if (archive.status !== 0) throw new Error(`git archive of ${gitPath} failed.`);
   mkdirSync(into, { recursive: true });
   const untar = spawnSync("tar", ["-x", "-C", into], { input: archive.stdout });
-  if (untar.status !== 0) throw new Error("could not unpack the committed catalog.");
-  return join(into, "docs/public/catalog");
+  if (untar.status !== 0) throw new Error(`could not unpack the committed ${gitPath}.`);
+  return join(into, gitPath);
 }
 
 async function main(): Promise<void> {
@@ -61,13 +89,32 @@ async function main(): Promise<void> {
   const outRoot = join(base, "generated");
   try {
     if (generateInto(outRoot) !== 0) throw new Error("The catalog payload generator failed.");
-    const committedRoot = extractCommittedCatalog(join(base, "committed"));
-    const differences = treeDifferences(outRoot, committedRoot);
-    if (differences.length === 0) return console.log("docs/public/catalog matches the generator.");
-    const listed = differences.slice(0, MAX_LISTED).map((line) => `  ${line}`);
-    throw new Error(
-      `docs/public/catalog differs from the generator in ${differences.length} file(s):\n${listed.join("\n")}\nRegenerate with \`tsx scripts/generate-catalog-payloads.ts\` and commit the result.`,
+    const committedPayloadRoot = extractCommitted(
+      "docs/public/catalog",
+      join(base, "committed-payload"),
     );
+    const differences = treeDifferences(outRoot, committedPayloadRoot);
+    const committedCatalogDir = extractCommitted("docs/catalog", join(base, "committed-catalog"));
+    const staleCodeLines = codeLinesDrift(committedCatalogDir);
+    if (differences.length === 0 && staleCodeLines.length === 0) {
+      return console.log("docs/public/catalog and every page's codeLines match the generator.");
+    }
+    const lines: string[] = [];
+    if (differences.length > 0) {
+      lines.push(
+        `docs/public/catalog differs from the generator in ${differences.length} file(s):`,
+        ...differences.slice(0, MAX_LISTED).map((line) => `  ${line}`),
+        "Regenerate with `tsx scripts/generate-catalog-payloads.ts` and commit the result.",
+      );
+    }
+    if (staleCodeLines.length > 0) {
+      lines.push(
+        `${staleCodeLines.length} page(s) have a stale codeLines:`,
+        ...staleCodeLines.slice(0, MAX_LISTED).map((line) => `  ${line}`),
+        "Regenerate with `tsx scripts/generate-catalog-pages.ts` and commit the result.",
+      );
+    }
+    throw new Error(lines.join("\n"));
   } finally {
     rmSync(base, { recursive: true, force: true });
   }
