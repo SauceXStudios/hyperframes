@@ -253,7 +253,9 @@ function regionsAfter(mask: string, anchor: RegExp): [number, number][] {
 // Every string bound to `name` by an assignment in this file. A name with no literal binding
 // (parameter, import, call result) yields nothing, so an over-broad reference scan is safe.
 function boundStrings(text: string, mask: string, name: string): string[] {
-  const anchor = new RegExp(`\\b${escapeRegex(name)}\\b(?:\\s*:[^=;{}()[\\]]*)?\\s*=(?!=)\\s*`);
+  const anchor = new RegExp(
+    `(?<![\\w$])${escapeRegex(name)}(?![\\w$])(?:\\s*:[^=;{}()[\\]]*)?\\s*=(?!=)\\s*`,
+  );
   return regionsAfter(mask, anchor).flatMap(([start, end]) => stringsIn(text, mask, start, end));
 }
 
