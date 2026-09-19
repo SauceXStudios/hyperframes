@@ -47,8 +47,12 @@ export function useShadowPreviewReload({
   const shadowProbeIntervalRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   // Invalidation counter, separate from the live slot's key: bumping it never remounts the live Player.
   const shadowGenRef = useRef(0);
-  const adapterReadyGenRef = useRef<number | null>(null);
+  const pendingCommitRef = useRef<{ gen: number; commit: () => void } | null>(null);
   const visuallyReadyGenRef = useRef<number | null>(null);
+  const onPromotedRef = useRef(onPromoted);
+  onPromotedRef.current = onPromoted;
+  const onReloadFailedRef = useRef(onReloadFailed);
+  onReloadFailedRef.current = onReloadFailed;
   const readyTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const cancelPendingLoadRef = useRef<() => void>(() => {});
   const [previewSlots, setPreviewSlots] = useState<PreviewIframeSlot[]>([{ gen: 0, role: "live" }]);
@@ -56,7 +60,7 @@ export function useShadowPreviewReload({
   const stopPendingShadow = useCallback(() => {
     clearTimeout(readyTimerRef.current);
     cancelPendingLoadRef.current();
-    adapterReadyGenRef.current = null;
+    pendingCommitRef.current = null;
     visuallyReadyGenRef.current = null;
   }, []);
 
@@ -72,39 +76,36 @@ export function useShadowPreviewReload({
       const message = `The preview did not reload (${cause}). The previous preview is still showing.`;
       logReload("shadow-failed", { cause });
       console.error(`[studio] ${message}`);
-      onReloadFailed?.(message);
+      onReloadFailedRef.current?.(message);
     },
-    [stopPendingShadow, isRefreshingRef, pendingSeekRef, onReloadFailed],
+    [stopPendingShadow, isRefreshingRef, pendingSeekRef],
   );
 
   const promoteWhenReady = useCallback(
     (gen: number) => {
       const shadow = shadowIframeRef.current;
-      const ready = adapterReadyGenRef.current === gen && visuallyReadyGenRef.current === gen;
-      if (!shadow || !ready || gen !== shadowGenRef.current) return;
+      const pending = pendingCommitRef.current;
+      const ready = pending?.gen === gen && visuallyReadyGenRef.current === gen;
+      if (!shadow || !pending || !ready || gen !== shadowGenRef.current) return;
       stopPendingShadow();
+      // The store takes the new document's timeline only now that it is the one on screen.
+      pending.commit();
       iframeRef.current = shadow;
       shadowIframeRef.current = null;
       attachIframeShortcutListeners();
       applyPreviewAudioState();
       setPreviewSlots((prev) => planShadowPromotion(prev, gen));
-      onPromoted?.();
+      onPromotedRef.current?.();
     },
-    [
-      stopPendingShadow,
-      iframeRef,
-      attachIframeShortcutListeners,
-      applyPreviewAudioState,
-      onPromoted,
-    ],
+    [stopPendingShadow, iframeRef, attachIframeShortcutListeners, applyPreviewAudioState],
   );
 
   const getShadowAdapter = useCallback(() => getAdapter(shadowIframeRef.current), [getAdapter]);
   const isCurrentShadow = useCallback((gen?: number) => gen === shadowGenRef.current, []);
   const markAdapterReady = useCallback(
-    (_iframe: HTMLIFrameElement | null, gen?: number) => {
+    (_iframe: HTMLIFrameElement | null, gen: number | undefined, commit: () => void) => {
       if (gen == null || gen !== shadowGenRef.current) return;
-      adapterReadyGenRef.current = gen;
+      pendingCommitRef.current = { gen, commit };
       promoteWhenReady(gen);
     },
     [promoteWhenReady],
@@ -136,12 +137,12 @@ export function useShadowPreviewReload({
   });
   cancelPendingLoadRef.current = cancelPendingLoad;
 
-  // The Player reports loaders (shader transition, assets) cleared.
-  const onShadowReadyToShow = useCallback(
-    (gen: number) => {
+  // The Player reports whether loaders (shader transition, assets) are cleared right now.
+  const onShadowReadyChange = useCallback(
+    (gen: number, ready: boolean) => {
       if (gen !== shadowGenRef.current) return;
-      visuallyReadyGenRef.current = gen;
-      promoteWhenReady(gen);
+      visuallyReadyGenRef.current = ready ? gen : null;
+      if (ready) promoteWhenReady(gen);
     },
     [promoteWhenReady],
   );
@@ -169,15 +170,17 @@ export function useShadowPreviewReload({
     shadowGenRef.current += 1;
     stopPendingShadow();
     shadowIframeRef.current = null;
+    isRefreshingRef.current = false;
+    pendingSeekRef.current = null;
     setPreviewSlots(planShadowDiscard);
-  }, [stopPendingShadow]);
+  }, [stopPendingShadow, isRefreshingRef, pendingSeekRef]);
 
   useMountEffect(() => stopPendingShadow);
 
   return {
     previewSlots,
     onShadowIframeLoad,
-    onShadowReadyToShow,
+    onShadowReadyChange,
     onShadowError: failShadow,
     setShadowIframeNode,
     beginShadowReload,

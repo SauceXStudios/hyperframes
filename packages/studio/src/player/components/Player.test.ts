@@ -207,29 +207,32 @@ describe("ready to show", () => {
     });
 
   it("holds while the shader transition loader is up and fires once it clears", async () => {
-    const onReadyToShow = vi.fn();
-    const { player } = await mountPlayer({ onReadyToShow });
+    const onReadyToShowChange = vi.fn();
+    const { player } = await mountPlayer({ onReadyToShowChange });
     const el = player as TestHyperframesPlayer;
 
     shaderState(el, true);
     loadAndReady(el);
     shaderState(el, true);
     await twoFrames();
-    expect(onReadyToShow).not.toHaveBeenCalled();
+    expect(onReadyToShowChange).not.toHaveBeenCalledWith(true);
 
     shaderState(el, false);
     await twoFrames();
-    expect(onReadyToShow).toHaveBeenCalledTimes(1);
+    expect(onReadyToShowChange).toHaveBeenLastCalledWith(true);
+
+    shaderState(el, true);
+    expect(onReadyToShowChange).toHaveBeenLastCalledWith(false);
   });
 
   it("does not fire for a document that failed to load", async () => {
-    const onReadyToShow = vi.fn();
-    const { player } = await mountPlayer({ onReadyToShow });
+    const onReadyToShowChange = vi.fn();
+    const { player } = await mountPlayer({ onReadyToShowChange });
     act(() => {
       player.dispatchEvent(new CustomEvent("error", { detail: { message: "boom" } }));
     });
     await twoFrames();
-    expect(onReadyToShow).not.toHaveBeenCalled();
+    expect(onReadyToShowChange).not.toHaveBeenCalledWith(true);
   });
 });
 

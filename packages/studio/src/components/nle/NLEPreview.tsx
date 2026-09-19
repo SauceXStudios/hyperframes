@@ -1,3 +1,7 @@
+import {
+  readPreviewCompositionSize,
+  type PreviewCompositionSize,
+} from "../../utils/previewCompositionSize";
 import { memo, useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import { Player } from "../../player";
 import type { PreviewIframeSlot } from "../../player/hooks/useTimelineSyncCallbacks";
@@ -20,7 +24,7 @@ interface NLEPreviewProps {
   onIframeLoad: () => void;
   previewSlots: PreviewIframeSlot[];
   onShadowIframeLoad: (gen: number) => void;
-  onShadowReadyToShow: (gen: number) => void;
+  onShadowReadyChange: (gen: number, ready: boolean) => void;
   onShadowError: (gen: number, message: string) => void;
   setShadowIframeNode: (node: HTMLIFrameElement | null) => void;
   resetPreviewSlots: () => void;
@@ -57,11 +61,6 @@ const SHADOW_IFRAME_STYLE: React.CSSProperties = {
   pointerEvents: "none",
 };
 
-interface PreviewCompositionSize {
-  width: number;
-  height: number;
-}
-
 function isPreviewAtFit(state: PreviewZoomState): boolean {
   return (
     Math.abs(state.zoomPercent - 100) < 0.5 &&
@@ -79,27 +78,6 @@ function loadInitialZoom(): PreviewZoomState {
         panY: stored.panY,
       }
     : DEFAULT_PREVIEW_ZOOM;
-}
-
-// fallow-ignore-next-line complexity
-function readPreviewCompositionSize(
-  iframe: HTMLIFrameElement | null,
-): PreviewCompositionSize | null {
-  try {
-    const doc = iframe?.contentDocument;
-    const root =
-      doc?.querySelector("[data-composition-id][data-width][data-height]") ??
-      doc?.querySelector("[data-width][data-height]");
-    if (!root) return null;
-    const width = Number.parseInt(root.getAttribute("data-width") ?? "", 10);
-    const height = Number.parseInt(root.getAttribute("data-height") ?? "", 10);
-    if (!Number.isFinite(width) || width <= 0 || !Number.isFinite(height) || height <= 0) {
-      return null;
-    }
-    return { width, height };
-  } catch {
-    return null;
-  }
 }
 
 export function resolvePreviewStageSize(
@@ -141,7 +119,7 @@ export const NLEPreview = memo(function NLEPreview({
   onIframeLoad,
   previewSlots,
   onShadowIframeLoad,
-  onShadowReadyToShow,
+  onShadowReadyChange,
   onShadowError,
   setShadowIframeNode,
   resetPreviewSlots,
@@ -542,7 +520,7 @@ export const NLEPreview = memo(function NLEPreview({
                   ref={setShadowIframeNode}
                   directUrl={slot.url}
                   onLoad={() => onShadowIframeLoad(slot.gen)}
-                  onReadyToShow={() => onShadowReadyToShow(slot.gen)}
+                  onReadyToShowChange={(ready) => onShadowReadyChange(slot.gen, ready)}
                   onPreviewError={(message) => onShadowError(slot.gen, message)}
                   portrait={portrait}
                   suppressLoadingOverlay

@@ -47,8 +47,15 @@ export interface UseTimelineSyncCallbacksParams {
   setIsPlaying: (v: boolean) => void;
   attachIframeShortcutListeners: () => void;
   applyPreviewAudioState: () => void;
-  /** Fires once the restore-seek painted; the shadow instance passes its promotion here. */
-  onAdapterReady?: (iframe: HTMLIFrameElement | null, context?: number) => void;
+  /**
+   * Fires once the restore-seek is issued and owns when `commit` (the store hydration) runs.
+   * The default reveals the iframe and commits at once; a shadow reload defers it to promotion.
+   */
+  onAdapterReady?: (
+    iframe: HTMLIFrameElement | null,
+    context: number | undefined,
+    commit: () => void,
+  ) => void;
   /** False when the load for `context` was superseded: it must then cause no side effects. */
   isCurrent?: (context?: number) => boolean;
   /** Fires when no adapter appeared within the wait window. */
@@ -74,6 +81,15 @@ export function revealIframe(iframe: HTMLIFrameElement | null): void {
   if (iframe && iframe.style.visibility === "hidden") {
     iframe.style.visibility = "";
   }
+}
+
+function revealAndCommit(
+  iframe: HTMLIFrameElement | null,
+  _context: number | undefined,
+  commit: () => void,
+): void {
+  revealIframe(iframe);
+  commit();
 }
 
 export type PreviewIframeRole = "live" | "shadow";
@@ -144,7 +160,7 @@ export function useTimelineSyncCallbacks({
   setIsPlaying,
   attachIframeShortcutListeners,
   applyPreviewAudioState,
-  onAdapterReady = revealIframe,
+  onAdapterReady = revealAndCommit,
   isCurrent,
   onLoadGiveUp,
 }: UseTimelineSyncCallbacksParams) {
@@ -230,31 +246,32 @@ export function useTimelineSyncCallbacks({
 
       adapter.pause();
       const startTime = seekAdapterToRestorePoint(adapter, pendingSeekRef);
-      // The restore-seek is issued: signal readiness (a shadow reload decides when to promote).
-      onAdapterReady(iframeRef.current, context);
-      // Keep non-React listeners such as the capture link and time display in sync
-      // with the initial adapter seek on iframe load.
-      liveTime.notify(startTime);
-      syncAdapterDuration(adapter, setDuration);
-      setCurrentTime(startTime);
-      if (!isRefreshingRef.current) {
-        // Enables Play from actual play-readiness, not just a known duration —
-        // a click before this resolves used to start the timeline with media,
-        // images or fonts still loading and never recover.
-        requestTimelineReady(safeContentDocument(iframeRef.current));
-      }
-      isRefreshingRef.current = false;
-      setIsPlaying(false);
+      const commit = () => {
+        // Keep non-React listeners such as the capture link and time display in sync
+        // with the initial adapter seek on iframe load.
+        liveTime.notify(startTime);
+        syncAdapterDuration(adapter, setDuration);
+        setCurrentTime(startTime);
+        if (!isRefreshingRef.current) {
+          // Enables Play from actual play-readiness, not just a known duration —
+          // a click before this resolves used to start the timeline with media,
+          // images or fonts still loading and never recover.
+          requestTimelineReady(safeContentDocument(iframeRef.current));
+        }
+        isRefreshingRef.current = false;
+        setIsPlaying(false);
 
-      hydrateTimelineFromPreview({
-        iframe: iframeRef.current,
-        adapter,
-        processTimelineMessage,
-        enrichMissingCompositions,
-        applyPreviewAudioState,
-        attachIframeShortcutListeners,
-        syncTimelineElements,
-      });
+        hydrateTimelineFromPreview({
+          iframe: iframeRef.current,
+          adapter,
+          processTimelineMessage,
+          enrichMissingCompositions,
+          applyPreviewAudioState,
+          attachIframeShortcutListeners,
+          syncTimelineElements,
+        });
+      };
+      onAdapterReady(iframeRef.current, context, commit);
       return true;
     },
     [

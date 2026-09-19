@@ -27,7 +27,7 @@ interface PlayerProps {
   directUrl?: string;
   onLoad: () => void;
   /** Fires once the loaded document is painted and every loader (shader, assets) has cleared. */
-  onReadyToShow?: () => void;
+  onReadyToShowChange?: (ready: boolean) => void;
   onPreviewError?: (message: string) => void;
   onCompositionLoadingChange?: (loading: boolean) => void;
   portrait?: boolean;
@@ -137,7 +137,7 @@ export const Player = forwardRef<HTMLIFrameElement, PlayerProps>(
       projectId,
       directUrl,
       onLoad,
-      onReadyToShow,
+      onReadyToShowChange,
       onPreviewError,
       onCompositionLoadingChange,
       portrait,
@@ -156,8 +156,8 @@ export const Player = forwardRef<HTMLIFrameElement, PlayerProps>(
     // promoted in place), so mount-time closures would go stale.
     const onLoadRef = useRef(onLoad);
     onLoadRef.current = onLoad;
-    const onReadyToShowRef = useRef(onReadyToShow);
-    onReadyToShowRef.current = onReadyToShow;
+    const onReadyToShowChangeRef = useRef(onReadyToShowChange);
+    onReadyToShowChangeRef.current = onReadyToShowChange;
     const onPreviewErrorRef = useRef(onPreviewError);
     onPreviewErrorRef.current = onPreviewError;
     const [loaded, setLoaded] = useState(false);
@@ -415,10 +415,13 @@ export const Player = forwardRef<HTMLIFrameElement, PlayerProps>(
       loaded && !compositionLoading && !shaderTransitionLoading && !assetsLoading && !previewError;
     // Two frames of grace so a loader that is about to raise again cannot slip through.
     useEffect(() => {
-      if (!readyToShow) return;
+      if (!readyToShow) {
+        onReadyToShowChangeRef.current?.(false);
+        return;
+      }
       let second = 0;
       const first = requestAnimationFrame(() => {
-        second = requestAnimationFrame(() => onReadyToShowRef.current?.());
+        second = requestAnimationFrame(() => onReadyToShowChangeRef.current?.(true));
       });
       return () => {
         cancelAnimationFrame(first);

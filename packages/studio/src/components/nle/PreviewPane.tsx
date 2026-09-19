@@ -62,7 +62,7 @@ export function PreviewPane({
     onIframeLoad,
     previewSlots,
     onShadowIframeLoad,
-    onShadowReadyToShow,
+    onShadowReadyChange,
     onShadowError,
     setShadowIframeNode,
     resetPreviewSlots,
@@ -139,7 +139,7 @@ export function PreviewPane({
             onIframeLoad={onIframeLoad}
             previewSlots={previewSlots}
             onShadowIframeLoad={onShadowIframeLoad}
-            onShadowReadyToShow={onShadowReadyToShow}
+            onShadowReadyChange={onShadowReadyChange}
             onShadowError={onShadowError}
             setShadowIframeNode={setShadowIframeNode}
             resetPreviewSlots={resetPreviewSlots}

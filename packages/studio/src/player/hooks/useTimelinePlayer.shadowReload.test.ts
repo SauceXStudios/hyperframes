@@ -85,7 +85,7 @@ describe("useTimelinePlayer shadow reload", () => {
 
     act(() => {
       getApi().onShadowIframeLoad(shadowSlot!.gen);
-      getApi().onShadowReadyToShow(shadowSlot!.gen);
+      getApi().onShadowReadyChange(shadowSlot!.gen, true);
     });
 
     // Promotion: a single atomic swap. Exactly one live slot, pointing at the
@@ -136,7 +136,7 @@ describe("useTimelinePlayer shadow reload", () => {
     // pending shadow.
     act(() => {
       getApi().onShadowIframeLoad(firstShadowGen!);
-      getApi().onShadowReadyToShow(firstShadowGen!);
+      getApi().onShadowReadyChange(firstShadowGen!, true);
     });
     expect(getApi().previewSlots.find((s) => s.role === "live")).toEqual({ gen: 0, role: "live" });
     expect(getApi().iframeRef.current).toBe(liveIframe);
@@ -190,7 +190,7 @@ describe("drop that removes a covered clip (reloadPreview -> refreshKey bump)", 
     await act(async () => {
       ctx!.setShadowIframeNode(shadowIframe);
       ctx!.onShadowIframeLoad(shadow!.gen);
-      ctx!.onShadowReadyToShow(shadow!.gen);
+      ctx!.onShadowReadyChange(shadow!.gen, true);
     });
     expect(ctx!.previewSlots).toEqual([{ ...shadow!, role: "live" }]);
     expect(ctx!.iframeRef.current).toBe(shadowIframe);
@@ -204,6 +204,7 @@ describe("shadow reload readiness and failure", () => {
   function beginReload(options: Parameters<typeof renderTimelinePlayerHarness>[0] = {}) {
     const harness = renderTimelinePlayerHarness(options);
     const { adapter, win } = makeAdapterWindow();
+    adapter.seek = vi.fn(adapter.seek);
     const live = makeFakeIframe(win);
     act(() => {
       harness.getApi().iframeRef.current = live;
@@ -231,7 +232,7 @@ describe("shadow reload readiness and failure", () => {
     expect(getApi().iframeRef.current).toBe(live);
     expect(getApi().previewSlots).toHaveLength(2);
 
-    act(() => getApi().onShadowReadyToShow(gen));
+    act(() => getApi().onShadowReadyChange(gen, true));
     expect(getApi().iframeRef.current).toBe(shadow.iframe);
     expect(getApi().previewSlots).toEqual([{ gen, role: "live", url: expect.any(String) }]);
     unmount(root);
@@ -242,7 +243,7 @@ describe("shadow reload readiness and failure", () => {
     const shadow = makeShadowWithSpies();
     act(() => {
       getApi().setShadowIframeNode(shadow.iframe);
-      getApi().onShadowReadyToShow(gen);
+      getApi().onShadowReadyChange(gen, true);
     });
     expect(getApi().previewSlots).toHaveLength(2);
     act(() => getApi().onShadowIframeLoad(gen));
@@ -296,6 +297,82 @@ describe("shadow reload readiness and failure", () => {
   });
 });
 
+describe("shadow reload store ownership and readiness", () => {
+  function setup(options?: Parameters<typeof renderTimelinePlayerHarness>[0]) {
+    const harness = renderTimelinePlayerHarness(options);
+    const live = makeAdapterWindow({ duration: 10 });
+    const liveIframe = makeFakeIframe(live.win);
+    act(() => {
+      harness.getApi().iframeRef.current = liveIframe;
+      harness.getApi().onIframeLoad();
+    });
+    act(() => harness.getApi().refreshPlayer());
+    const gen = harness.getApi().previewSlots.find((s) => s.role === "shadow")!.gen;
+    const shadow = makeAdapterWindow({ duration: 42 });
+    const shadowIframe = makeFakeIframe(shadow.win);
+    act(() => harness.getApi().setShadowIframeNode(shadowIframe));
+    return { ...harness, gen, shadowIframe, liveIframe };
+  }
+
+  it("does not promote when the loader re-raises after it had cleared", () => {
+    const { getApi, gen, liveIframe, root } = setup();
+    act(() => {
+      getApi().onShadowReadyChange(gen, true);
+      getApi().onShadowReadyChange(gen, false);
+      getApi().onShadowIframeLoad(gen);
+    });
+    expect(getApi().iframeRef.current).toBe(liveIframe);
+    act(() => getApi().onShadowReadyChange(gen, true));
+    expect(getApi().iframeRef.current).not.toBe(liveIframe);
+    unmount(root);
+  });
+
+  it("keeps the old timeline in the store until the shadow is promoted", () => {
+    const { getApi, gen, root } = setup();
+    const before = usePlayerStore.getState().duration;
+    act(() => getApi().onShadowIframeLoad(gen));
+    expect(usePlayerStore.getState().duration).toBe(before);
+    act(() => getApi().onShadowReadyChange(gen, true));
+    expect(usePlayerStore.getState().duration).toBe(42);
+    unmount(root);
+  });
+
+  it("never writes a failed shadow's timeline into the store", () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { getApi, gen, root } = setup();
+    const before = usePlayerStore.getState().duration;
+    act(() => getApi().onShadowIframeLoad(gen));
+    act(() => getApi().onShadowError(gen, "boom"));
+    expect(usePlayerStore.getState().duration).toBe(before);
+    unmount(root);
+  });
+
+  it("a composition switch clears the refresh flags so the next load restores the store playhead", () => {
+    const { getApi, liveIframe, root } = setup();
+    const seek = vi.fn();
+    (liveIframe.contentWindow as unknown as { __player: { seek: unknown } }).__player.seek = seek;
+    usePlayerStore.getState().setCurrentTime(7);
+    act(() => getApi().resetPreviewSlots());
+    act(() => getApi().onIframeLoad());
+    expect(seek).toHaveBeenCalledWith(7);
+    unmount(root);
+  });
+
+  it("uses the latest failure callback for a timer armed before it changed", () => {
+    vi.useFakeTimers();
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const first = vi.fn();
+    const latest = vi.fn();
+    const { getApi, rerender, root } = setup({ onPreviewReloadFailed: first });
+    expect(getApi().previewSlots).toHaveLength(2);
+    rerender({ onPreviewReloadFailed: latest });
+    act(() => void vi.advanceTimersByTime(SHADOW_READY_TIMEOUT_MS));
+    expect(latest).toHaveBeenCalled();
+    expect(first).not.toHaveBeenCalled();
+    unmount(root);
+  });
+});
+
 describe("NLEProvider iframe ref notifications", () => {
   it("tells the consumer about the reloaded iframe once, on promotion", async () => {
     vi.stubGlobal(
@@ -341,7 +418,7 @@ describe("NLEProvider iframe ref notifications", () => {
     await act(async () => {
       ctx!.setShadowIframeNode(shadowIframe);
       ctx!.onShadowIframeLoad(shadow.gen);
-      ctx!.onShadowReadyToShow(shadow.gen);
+      ctx!.onShadowReadyChange(shadow.gen, true);
     });
     expect(onIframeRef).toHaveBeenCalledTimes(callsAtBegin + 1);
     expect(onIframeRef).toHaveBeenLastCalledWith(shadowIframe);

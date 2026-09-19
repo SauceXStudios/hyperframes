@@ -381,7 +381,7 @@ export function useTimelinePlayer({
   const {
     previewSlots,
     onShadowIframeLoad,
-    onShadowReadyToShow,
+    onShadowReadyChange,
     onShadowError,
     setShadowIframeNode,
     beginShadowReload,
@@ -519,7 +519,7 @@ export function useTimelinePlayer({
     resetPlayer,
     previewSlots,
     onShadowIframeLoad,
-    onShadowReadyToShow,
+    onShadowReadyChange,
     onShadowError,
     setShadowIframeNode,
     resetPreviewSlots,

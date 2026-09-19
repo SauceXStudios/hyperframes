@@ -31,7 +31,7 @@ export interface NLEContextValue {
   // The hidden reload iframe NLEPreview renders next to the live one during a full reload.
   previewSlots: PreviewIframeSlot[];
   onShadowIframeLoad: (gen: number) => void;
-  onShadowReadyToShow: (gen: number) => void;
+  onShadowReadyChange: (gen: number, ready: boolean) => void;
   onShadowError: (gen: number, message: string) => void;
   setShadowIframeNode: (node: HTMLIFrameElement | null) => void;
   resetPreviewSlots: () => void;
@@ -98,7 +98,7 @@ export function NLEProvider({
     refreshPlayer,
     previewSlots,
     onShadowIframeLoad,
-    onShadowReadyToShow,
+    onShadowReadyChange,
     onShadowError,
     setShadowIframeNode,
     resetPreviewSlots,
@@ -341,7 +341,7 @@ export function NLEProvider({
     onIframeLoad,
     previewSlots,
     onShadowIframeLoad,
-    onShadowReadyToShow,
+    onShadowReadyChange,
     onShadowError,
     setShadowIframeNode,
     resetPreviewSlots,

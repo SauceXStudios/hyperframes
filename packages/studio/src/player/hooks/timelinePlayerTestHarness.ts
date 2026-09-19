@@ -41,7 +41,21 @@ export function renderTimelinePlayerHarness(options?: UseTimelinePlayerOptions) 
   });
 
   if (!latest) throw new Error("useTimelinePlayer did not mount");
-  return { api: latest as TimelinePlayerApi, getApi: () => latest as TimelinePlayerApi, root };
+  const rerender = (next?: UseTimelinePlayerOptions) =>
+    act(() => {
+      root.render(
+        React.createElement(TimelinePlayerHarness, {
+          onValue: (value) => (latest = value),
+          options: next,
+        }),
+      );
+    });
+  return {
+    api: latest as TimelinePlayerApi,
+    getApi: () => latest as TimelinePlayerApi,
+    root,
+    rerender,
+  };
 }
 
 export function makeFakeIframe(iframeWindow: Record<string, unknown>): HTMLIFrameElement {
