@@ -447,11 +447,8 @@ export function useTimelineEditing({
     forceReloadSdkSession,
   });
 
-  // Every handler that writes a project file is tracked here, the one place
-  // all hand edits (split, move, resize, razor, group move, hide, audio
-  // attrs, delete, drop) converge — so undo/redo (which already awaits the
-  // same shared registry via waitForPendingDomEditSaves) never races a still
-  // in-flight write.
+  // Every write-handler is tracked here, the one place all hand edits
+  // converge, so undo (already awaiting this registry) never races a write.
   const trackedRazorSplit = track(handleRazorSplit);
   return {
     handleTimelineElementMove: track(handleTimelineElementMove),
