@@ -70,7 +70,11 @@ function setRect(node: Element, rect: { width: number; height: number }) {
   });
 }
 
-function renderPreview() {
+function renderPreview(
+  previewSlots: Array<{ gen: number; role: "live" | "shadow"; url?: string }> = [
+    { gen: 0, role: "live" },
+  ],
+) {
   resizeCallbacks = [];
   const host = document.createElement("div");
   document.body.append(host);
@@ -83,6 +87,10 @@ function renderPreview() {
         projectId: "timeline-edit-playground",
         iframeRef,
         onIframeLoad: () => {},
+        previewSlots,
+        onShadowIframeLoad: () => {},
+        setShadowIframeNode: () => {},
+        resetPreviewSlots: () => {},
       }),
     );
   });
@@ -225,6 +233,19 @@ describe("NLEPreview", () => {
     });
 
     expect(view.stage.style.transform).toContain("translate3d(30px, -24px, 0)");
+    view.cleanup();
+  });
+
+  it("clips a shadow reload so its own loading overlay cannot paint over the live frame", () => {
+    const view = renderPreview([
+      { gen: 0, role: "live" },
+      { gen: 1, role: "shadow", url: "/api/projects/p/preview?_t=1" },
+    ]);
+    const players = [...view.stage.querySelectorAll<HTMLElement>('[data-testid="mock-player"]')];
+    expect(players).toHaveLength(2);
+    expect(players[0].style.clipPath).toBe("");
+    expect(players[1].style.clipPath).toBe("inset(100%)");
+    expect(players[1].style.visibility).toBe("hidden");
     view.cleanup();
   });
 });
