@@ -26,9 +26,7 @@ function readFrames(path, crop) {
   });
 }
 
-// The frame height depends on the crop aspect; probe it from the buffer size
-// by asking ffprobe would add a dependency, so derive it from the crop or the
-// video's own size.
+// Source video size, used to derive the output frame height when no crop is given.
 function probeSize(path) {
   return new Promise((resolve, reject) => {
     const child = spawn("ffprobe", [
@@ -102,8 +100,9 @@ function parseArgs(argv) {
 
 // fallow-ignore-next-line complexity
 async function checkVideo(path) {
-  const size = await probeSize(path);
-  const [cw, ch] = args.crop ? args.crop.split(":").map(Number) : [size.w, size.h];
+  const [cw, ch] = args.crop
+    ? args.crop.split(":").map(Number)
+    : Object.values(await probeSize(path));
   const frameSize = WIDTH * 2 * Math.round((WIDTH * (ch / cw)) / 2);
   const buf = await readFrames(path, args.crop);
   const frames = Math.floor(buf.length / frameSize);
