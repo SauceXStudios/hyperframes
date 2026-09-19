@@ -104,8 +104,10 @@ COPY packages/core/package.json packages/core/
 COPY packages/engine/package.json packages/engine/
 COPY packages/producer/package.json packages/producer/
 
+# A corrupt tarball extraction can print an error and then hang instead of
+# exiting (fix/regression-docker-build-timeout). Bound each attempt and retry.
 RUN npm install --global bun && \
-    bun install --frozen-lockfile && \
+    (timeout 300 bun install --frozen-lockfile || timeout 300 bun install --frozen-lockfile) && \
     npm uninstall --global bun
 
 # Bring in the source. We're not building the producer's dist/ here — bun's
