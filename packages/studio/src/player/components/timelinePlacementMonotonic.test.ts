@@ -106,7 +106,7 @@ describe("a drop's timeline states never go back to an older one", () => {
     unmount();
   });
 
-  it("shows a split's head, the dropped clip and the new tail in the first state after the drop", async () => {
+  async function firstStateAfterDrop(mode: "overwrite" | "insert", at: number) {
     const a = clip("a", 0, 4);
     const b = clip("b", 4, 4, { playbackStart: 1 });
     const dropped = clip("d", 20, 2);
@@ -118,32 +118,19 @@ describe("a drop's timeline states never go back to an older one", () => {
       d: { start: 20, duration: 2 },
     });
     const { states, stop } = recordStoreStates((el) => `${el.id}@${el.start}+${el.duration}`);
-
-    await commitPlacementDrop(dragOf(dropped, 1), depsOf(lane, project), "overwrite", project.move);
+    await commitPlacementDrop(dragOf(dropped, at), depsOf(lane, project), mode, project.move);
     stop();
+    return states[0];
+  }
 
+  it("shows a split's head, the dropped clip and the new tail in the first state after the drop", async () => {
     // d [1,3) inside a [0,4): head [0,1), tail [3,4), all in the very first store write.
-    expect(states[0]).toBe("a@0+1 b@4+4 d@1+2 a~tail@3+1");
+    expect(await firstStateAfterDrop("overwrite", 1)).toBe("a@0+1 b@4+4 d@1+2 a~tail@3+1");
   });
 
   it("shows an insert's pushed clips, split head and tail in the first state after the drop", async () => {
-    const a = clip("a", 0, 4);
-    const b = clip("b", 4, 4);
-    const dropped = clip("d", 20, 2);
-    const lane = [a, b, dropped];
-    usePlayerStore.getState().setElements(lane);
-    const project = createFakeProject({
-      a: { start: 0, duration: 4 },
-      b: { start: 4, duration: 4 },
-      d: { start: 20, duration: 2 },
-    });
-    const { states, stop } = recordStoreStates((el) => `${el.id}@${el.start}+${el.duration}`);
-
-    await commitPlacementDrop(dragOf(dropped, 2), depsOf(lane, project), "insert", project.move);
-    stop();
-
     // d [2,4) inserted into a [0,4): head [0,2), tail [4,6), b pushed to [6,10).
-    expect(states[0]).toBe("a@0+2 b@6+4 d@2+2 a~tail@4+2");
+    expect(await firstStateAfterDrop("insert", 2)).toBe("a@0+2 b@6+4 d@2+2 a~tail@4+2");
   });
 
   it("takes the preview's manifest again once the drop is over", () => {

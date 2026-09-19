@@ -65,8 +65,7 @@ export function useTimelinePlayer() {
   const { setIsPlaying, setCurrentTime, setDuration, requestTimelineReady, setElements } =
     usePlayerStore.getState();
 
-  // The fixture lease and the drop's manifest hold belong at this shared synchronization
-  // boundary so every iframe discovery path has the same owner for deciding whether it may write.
+  // Every iframe discovery path funnels through here, so the fixture lease and manifest hold live here.
   const syncTimelineElements = useCallback(
     // The lease guard adds one deliberate branch at the shared synchronization boundary.
     // fallow-ignore-next-line complexity

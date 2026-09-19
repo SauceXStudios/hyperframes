@@ -218,6 +218,11 @@ describe("commitPlacementDrop: one undo step for the move and every cut", () => 
     d: { start: 20, duration: 2 },
   };
 
+  function expectOneUndoStep(project: ReturnType<typeof createFakeProject>) {
+    expect(project.history().undo).toHaveLength(1);
+    expect(project.undo()).toBe(project.serializeInitial());
+  }
+
   async function drop(at: number, mode: "overwrite" | "insert" = "overwrite", lane = [a, b]) {
     const project = createFakeProject(start);
     const placed = commitPlacementDrop(
@@ -239,8 +244,7 @@ describe("commitPlacementDrop: one undo step for the move and every cut", () => 
       b: { start: 6, duration: 2, playbackStart: 3 },
       d: { start: 4, duration: 2 },
     });
-    expect(project.history().undo).toHaveLength(1);
-    expect(project.undo()).toBe(project.serializeInitial());
+    expectOneUndoStep(project);
   });
 
   it("removed: a clip the drop fully covers is deleted and the drop lands", async () => {
@@ -256,8 +260,7 @@ describe("commitPlacementDrop: one undo step for the move and every cut", () => 
       a: { start: 0, duration: 4 },
       d: { start: 4, duration: 6 },
     });
-    expect(project.history().undo).toHaveLength(1);
-    expect(project.undo()).toBe(project.serializeInitial());
+    expectOneUndoStep(project);
   });
 
   it("trimmed tail: the drop over a tail shortens the clip underneath", async () => {
@@ -265,8 +268,7 @@ describe("commitPlacementDrop: one undo step for the move and every cut", () => 
     // d [2,4): a loses [2,4) so it ends at 2.
     expect(project.doc().a).toEqual({ start: 0, duration: 2 });
     expect(project.doc().d).toEqual({ start: 2, duration: 2 });
-    expect(project.history().undo).toHaveLength(1);
-    expect(project.undo()).toBe(project.serializeInitial());
+    expectOneUndoStep(project);
   });
 
   it("split: a drop inside a clip leaves a head and a tail, one undo removes the tail too", async () => {
@@ -278,8 +280,7 @@ describe("commitPlacementDrop: one undo step for the move and every cut", () => 
       "a-split": { start: 3, duration: 1, playbackStart: 3 },
       d: { start: 1, duration: 2 },
     });
-    expect(project.history().undo).toHaveLength(1);
-    expect(project.undo()).toBe(project.serializeInitial());
+    expectOneUndoStep(project);
   });
 
   it("insert: what follows is pushed right and the straddled clip is split around the drop", async () => {
@@ -291,8 +292,7 @@ describe("commitPlacementDrop: one undo step for the move and every cut", () => 
       "b-split": { start: 8, duration: 2, playbackStart: 3 },
       d: { start: 6, duration: 2 },
     });
-    expect(project.history().undo).toHaveLength(1);
-    expect(project.undo()).toBe(project.serializeInitial());
+    expectOneUndoStep(project);
   });
 
   it("refuses the whole drop when a clip it would cut is locked, writing nothing", async () => {
@@ -370,83 +370,60 @@ describe("runPlacementSteps failures", () => {
 });
 
 // A drop reloads the preview exactly once, after every step lands, never once per step.
+function reloadDeps(
+  over: { split?: () => Promise<boolean>; remove?: () => Promise<boolean> } = {},
+) {
+  const reloadPreview = vi.fn();
+  const ops = {
+    split: over.split ?? (async () => true),
+    remove: over.remove ?? (async () => true),
+    toast: vi.fn(),
+    reloadPreview,
+  };
+  return {
+    reloadPreview,
+    deps: { ops, resize: vi.fn(), move: async () => true, applyToStore: vi.fn() },
+  };
+}
+const removeA = { kind: "remove", elements: [clip("a", 0, 4)] } as const;
+const emptyMove = { kind: "move", edits: [] } as const;
+
 describe("runPlacementSteps: one reload per drop, after every step lands", () => {
   it("reloads exactly once, after the move step, when the drop contains a remove", async () => {
     const calls: string[] = [];
-    const reloadPreview = vi.fn(() => calls.push("reload"));
-    const remove = vi.fn(async () => {
-      calls.push("remove");
-      return true;
-    });
-    const move = vi.fn(async () => {
-      calls.push("move");
-      return true;
-    });
-    await runPlacementSteps(
-      [
-        { kind: "remove", elements: [clip("a", 0, 4)] },
-        { kind: "move", edits: [] },
-      ],
-      {
-        ops: { split: async () => true, remove, toast: vi.fn(), reloadPreview },
-        resize: vi.fn(),
-        move,
-        applyToStore: vi.fn(),
+    const { reloadPreview, deps } = reloadDeps({
+      remove: async () => {
+        calls.push("remove");
+        return true;
       },
-    );
+    });
+    reloadPreview.mockImplementation(() => calls.push("reload"));
+    await runPlacementSteps([removeA, emptyMove], {
+      ...deps,
+      move: async () => {
+        calls.push("move");
+        return true;
+      },
+    });
     expect(calls).toEqual(["remove", "move", "reload"]);
     expect(reloadPreview).toHaveBeenCalledTimes(1);
   });
 
   it("reloads exactly once when the drop contains a split", async () => {
-    const reloadPreview = vi.fn();
-    const split = vi.fn(async () => true);
-    await runPlacementSteps(
-      [
-        { kind: "split", element: clip("a", 0, 4), at: 2 },
-        { kind: "move", edits: [] },
-      ],
-      {
-        ops: { split, remove: async () => true, toast: vi.fn(), reloadPreview },
-        resize: vi.fn(),
-        move: async () => true,
-        applyToStore: vi.fn(),
-      },
-    );
+    const { reloadPreview, deps } = reloadDeps();
+    await runPlacementSteps([{ kind: "split", element: clip("a", 0, 4), at: 2 }, emptyMove], deps);
     expect(reloadPreview).toHaveBeenCalledTimes(1);
   });
 
   it("never reloads a move/resize-only drop (a plain trim stays flash-free)", async () => {
-    const reloadPreview = vi.fn();
-    await runPlacementSteps(
-      [
-        { kind: "resize", changes: [] },
-        { kind: "move", edits: [] },
-      ],
-      {
-        ops: { split: async () => true, remove: async () => true, toast: vi.fn(), reloadPreview },
-        resize: vi.fn(async () => undefined),
-        move: async () => true,
-        applyToStore: vi.fn(),
-      },
-    );
+    const { reloadPreview, deps } = reloadDeps();
+    await runPlacementSteps([{ kind: "resize", changes: [] }, emptyMove], deps);
     expect(reloadPreview).not.toHaveBeenCalled();
   });
 
   it("reloads once when a step failed, because the store was already told the end state", async () => {
-    const reloadPreview = vi.fn();
-    await runPlacementSteps(
-      [
-        { kind: "remove", elements: [clip("a", 0, 4)] },
-        { kind: "move", edits: [] },
-      ],
-      {
-        ops: { split: async () => true, remove: async () => false, toast: vi.fn(), reloadPreview },
-        resize: vi.fn(),
-        move: async () => true,
-        applyToStore: vi.fn(),
-      },
-    );
+    const { reloadPreview, deps } = reloadDeps({ remove: async () => false });
+    await runPlacementSteps([removeA, emptyMove], deps);
     expect(reloadPreview).toHaveBeenCalledTimes(1);
   });
 });
