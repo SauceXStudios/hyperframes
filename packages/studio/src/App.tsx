@@ -1,4 +1,4 @@
-import { useLivePreviewIframe, usePreviewIframeStore } from "./player/store/previewIframeStore";
+import { useOwnPreviewIframe, usePreviewIframeStore } from "./player/store/previewIframeStore";
 import { buildProjectApiPath } from "./utils/projectRouting";
 import { useState, useCallback, useRef, useMemo, useLayoutEffect } from "react";
 import type { LeftSidebarHandle, SidebarTab } from "./components/sidebar/LeftSidebar";
@@ -69,7 +69,7 @@ export function StudioApp() {
   const initialUrlStateRef = useRef(readStudioUrlStateFromWindow());
   useStudioSessionStart(projectId, resolving, waitingForServer);
   const [compIdToSrc, setCompIdToSrc] = useState<Map<string, string>>(new Map());
-  const previewIframe = useLivePreviewIframe();
+  const previewIframe = useOwnPreviewIframe();
   const [compositionLoading, setCompositionLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const [previewDocumentVersion, refreshPreviewDocumentVersion] = usePreviewDocumentVersion();
