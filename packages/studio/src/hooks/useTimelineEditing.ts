@@ -501,8 +501,7 @@ export function useTimelineEditing({
   });
 
   // Every write-handler is tracked here, the one place all hand edits
-  // converge, so undo never races a write; canEdit gates the same point.
-  // Coverage boundary: see the PR body, not every kind resolves an element.
+  // converge, so undo (already awaiting this registry) never races a write.
   const trackedRazorSplit = track(guard((element) => [element], handleRazorSplit));
   return {
     handleTimelineElementMove: track(guard((element) => [element], handleTimelineElementMove)),
