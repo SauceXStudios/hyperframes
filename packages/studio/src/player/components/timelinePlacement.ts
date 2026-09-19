@@ -43,9 +43,8 @@ export interface PlaceClipInput {
 const overlaps = (a0: number, a1: number, b0: number, b1: number) => a0 < b1 && b0 < a1;
 
 /**
- * Premiere's drop rules: an overwrite cuts away the range the clip covers,
- * an insert splits a straddled clip at the drop point and pushes what follows.
- * Nothing moves to another track and nothing is left hidden.
+ * Premiere's drop rules: an overwrite cuts away the range the clip covers, an insert splits
+ * a straddled clip at the drop point and pushes what follows. Nothing changes track or hides.
  */
 export function placeClip({
   clips,
