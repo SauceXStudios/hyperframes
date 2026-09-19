@@ -13,7 +13,7 @@ export interface IconProps extends Omit<SVGProps<SVGSVGElement>, "name" | "fill"
   filled?: boolean;
 }
 
-// Size classes, not a linear scale: 12/14 px get the thinner stroke.
+// Size classes, not a linear scale: below 14 px the stroke thins to 1.25.
 function isSmall(size: number | string): boolean {
   const px = typeof size === "number" ? size : Number.parseFloat(size);
   return Number.isFinite(px) && px < 14;

@@ -143,7 +143,7 @@ export const GLYPHS = {
     shapes: ["M3 2.5h3.5V8a1.5 1.5 0 0 0 3 0V2.5H13V8A5 5 0 0 1 3 8Z", "M3 5.5h3.5M9.5 5.5H13"],
     fillable: true,
   },
-  snap: { shapes: ["M11.5 2v12", "r 2.5 5.5 5 5 1.5", "M8.5 6.5 10 8l-1.5 1.5"], fillable: true },
+  snap: { shapes: ["M11.5 2v12", "r 2.5 5.5 5 5 1.5", "M8.5 6.5 10 8l-1.5 1.5Z"], fillable: true },
   grid: { shapes: ["r 2 2 12 12 2", "M2 6h12M2 10h12M6 2v12M10 2v12"] },
   path: { shapes: ["M3.5 11.5C4 6 6.5 4.5 8 8s4 3.5 4.5-3", "c 2.5 12.5 1.25", "c 13.5 3.5 1.25"] },
   ruler: { shapes: ["r 2 5.5 12 5 1.5", "M5 5.5V8M8 5.5v3.5M11 5.5V8"] },

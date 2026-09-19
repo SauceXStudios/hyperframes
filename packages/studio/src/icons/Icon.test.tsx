@@ -5,30 +5,51 @@ import { GLYPHS, ICON_NAMES } from "./glyphs";
 import * as named from "./index";
 
 const NUMBER = /-?\d*\.?\d+/g;
-// Coordinates of every absolute command; relative segments are bounded by
-// their absolute neighbours and arc radii/flags are not positions.
-const COORDS_PER: Record<string, [tuple: number, keep: number]> = {
-  M: [2, 2],
-  L: [2, 2],
-  T: [2, 2],
-  H: [1, 1],
-  V: [1, 1],
-  C: [6, 6],
-  S: [4, 4],
-  Q: [4, 4],
-  A: [7, 2],
-};
-function absolutePoints(d: string): number[] {
+const ARGS: Record<string, number> = { m: 2, l: 2, t: 2, h: 1, v: 1, c: 6, s: 4, q: 4, a: 7, z: 0 };
+
+type Pen = { x: number; y: number; sx: number; sy: number };
+
+// One command's points as x,y pairs before resolving relative offsets.
+function segmentPairs(k: string, seg: number[], pen: Pen, rel: boolean): number[] {
+  if (k === "a") return [seg[5], seg[6]];
+  if (k === "h") return [seg[0], rel ? 0 : pen.y];
+  if (k === "v") return [rel ? 0 : pen.x, seg[0]];
+  return seg;
+}
+
+function resolvePairs(pairs: number[], pen: Pen, rel: boolean): number[] {
+  return rel ? pairs.map((v, i) => (i % 2 ? pen.y : pen.x) + v) : pairs;
+}
+
+function advance(k: string, pts: number[], pen: Pen): void {
+  pen.x = pts[pts.length - 2];
+  pen.y = pts[pts.length - 1];
+  if (k === "m") [pen.sx, pen.sy] = [pen.x, pen.y];
+}
+
+// Every point a path visits (anchors and control points), relative commands
+// resolved against the current point; arcs contribute their end points.
+function pathPoints(d: string): number[] {
   const out: number[] = [];
+  const pen: Pen = { x: 0, y: 0, sx: 0, sy: 0 };
   for (const [, cmd, body] of d.matchAll(/([A-Za-z])([^A-Za-z]*)/g)) {
-    const spec = COORDS_PER[cmd];
-    if (!spec) continue;
+    const k = cmd.toLowerCase();
+    const n = ARGS[k];
     const nums = (body.match(NUMBER) ?? []).map(Number);
-    for (let i = 0; i + spec[0] <= nums.length; i += spec[0])
-      out.push(...nums.slice(i + spec[0] - spec[1], i + spec[0]));
+    if (k === "z") [pen.x, pen.y] = [pen.sx, pen.sy];
+    for (let i = 0; n > 0 && i + n <= nums.length; i += n) {
+      const pts = resolvePairs(
+        segmentPairs(k, nums.slice(i, i + n), pen, cmd === k),
+        pen,
+        cmd === k,
+      );
+      out.push(...pts);
+      advance(k, pts, pen);
+    }
   }
   return out;
 }
+
 function primitiveBox(shape: string): number[] {
   const [x, y, a, b] = shape.split(" ").slice(1).map(Number);
   return shape.startsWith("c") || shape.startsWith("d")
@@ -42,9 +63,19 @@ describe("studio icon set", () => {
       n
         .split("-")
         .map((w) => w[0].toUpperCase() + w.slice(1))
-        .join("");
-    for (const name of ICON_NAMES)
+        .join("") + "Icon";
+    for (const name of ICON_NAMES) {
       expect(typeof named[pascal(name) as keyof typeof named]).toBe("function");
+    }
+    const extra = Object.keys(named).filter((k) => !k.endsWith("Icon") || k === "Icon");
+    expect(extra.sort()).toEqual(["GLYPHS", "ICON_NAMES", "Icon", "strokeWidthFor"]);
+  });
+
+  it("resolves relative path commands when checking the margin", () => {
+    expect(pathPoints("M8 8h-8")).toEqual([8, 8, 0, 8]);
+    expect(pathPoints("M8 8v9")).toEqual([8, 8, 8, 17]);
+    expect(pathPoints("M2 2l1 1c1 1 2 2 3 3z")).toEqual([2, 2, 3, 3, 4, 4, 5, 5, 6, 6]);
+    expect(pathPoints("M2 2a1 1 0 0 1 3 3")).toEqual([2, 2, 5, 5]);
   });
 
   it.each(ICON_NAMES)("%s renders in currentColor on the 16 grid", (name) => {
@@ -53,17 +84,6 @@ describe("studio icon set", () => {
     expect(html).toContain('stroke="currentColor"');
     expect(html).not.toMatch(/#[0-9a-f]{3,8}|rgb\(/i);
     expect(html).toContain('aria-hidden="true"');
-  });
-
-  it.each(ICON_NAMES)("%s stays inside the 1 px safe margin", (name) => {
-    const glyph = GLYPHS[name] as { shapes: readonly string[]; small?: readonly string[] };
-    for (const shape of [...glyph.shapes, ...(glyph.small ?? [])]) {
-      const points = /^[Mm]/.test(shape) ? absolutePoints(shape) : primitiveBox(shape);
-      for (const v of points) {
-        expect(v, `${name}: ${shape}`).toBeGreaterThanOrEqual(1);
-        expect(v, `${name}: ${shape}`).toBeLessThanOrEqual(15);
-      }
-    }
   });
 
   it("announces itself only when given a title", () => {
@@ -92,5 +112,18 @@ describe("studio icon set", () => {
     expect(strokeWidthFor(14)).toBe(1.5);
     expect(strokeWidthFor("20px")).toBe(1.5);
     expect(renderToStaticMarkup(<Icon name="x" size={12} />)).toContain('stroke-width="1.25"');
+  });
+});
+
+describe("studio icon set safe margin", () => {
+  it.each(ICON_NAMES)("%s stays inside the 1 px safe margin", (name) => {
+    const glyph = GLYPHS[name] as { shapes: readonly string[]; small?: readonly string[] };
+    for (const shape of [...glyph.shapes, ...(glyph.small ?? [])]) {
+      const points = /^[Mm]/.test(shape) ? pathPoints(shape) : primitiveBox(shape);
+      for (const v of points) {
+        expect(v, `${name}: ${shape}`).toBeGreaterThanOrEqual(1);
+        expect(v, `${name}: ${shape}`).toBeLessThanOrEqual(15);
+      }
+    }
   });
 });
