@@ -1492,6 +1492,49 @@ describe("useTimelineEditing: canEdit gate", () => {
     unmount();
   });
 
+  it("resolves toggle-track-hidden against the expanded rows, not the raw timelineElements prop", async () => {
+    // A regression: an earlier version resolved canEdit's target from the
+    // `timelineElements` prop, the same raw list the real handler's own
+    // comment (timelineTrackVisibility.ts) warns against using for track
+    // lookups — a virtual sub-comp child only exists in the expanded rows.
+    // Proven here by making them disagree: the store has the element,
+    // the prop passed to the hook does not.
+    const iframe = createPreviewIframe([{ id: "clip", track: 0 }]);
+    const clip = timelineElement({ id: "clip", track: 0, zIndex: 0 });
+    usePlayerStore.getState().setElements([clip]);
+    const showToast = vi.fn();
+    const writeProjectFile = vi.fn<(...args: unknown[]) => Promise<void>>(async () => {});
+    let hook: ReturnType<typeof useTimelineEditing> | null = null;
+    function Harness() {
+      hook = useTimelineEditing({
+        projectId: "p1",
+        activeCompPath: "index.html",
+        timelineElements: [], // deliberately does not contain `clip`
+        showToast,
+        writeProjectFile,
+        recordEdit: vi.fn(),
+        reloadPreview: vi.fn(),
+        previewIframeRef: { current: iframe },
+        pendingTimelineEditPathRef: { current: new Set<string>() },
+        uploadProjectFiles: vi.fn(),
+        canEdit: (element) =>
+          element.id === "clip" ? { blocked: true, reason: "Reserved by an agent" } : true,
+      });
+      return null;
+    }
+    const { unmount } = mountHarness(<Harness />);
+    if (!hook) throw new Error("Expected hook to mount");
+
+    await act(async () => {
+      await hook!.handleToggleTrackHidden(0, true);
+      await flushAsyncWork();
+    });
+
+    expect(showToast).toHaveBeenCalledWith("Reserved by an agent", "error");
+    expect(writeProjectFile).not.toHaveBeenCalled();
+    unmount();
+  });
+
   it("lets an unblocked element through while a blocked one is refused", async () => {
     const iframe = createPreviewIframe([
       { id: "free", track: 0 },

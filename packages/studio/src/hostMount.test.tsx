@@ -6,7 +6,8 @@
 import { act, createElement, useRef } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { StudioFileConflictError } from "./utils/studioSaveDiagnostics";
+// Backend/storage mocking only, standing in for a host's own server and
+// persistence — not part of the host's integration code under test.
 import { studioFileContentVersion } from "./utils/studioFileVersion";
 import { createMemoryEditHistoryStorage } from "./utils/editHistoryStorage";
 import {
@@ -16,6 +17,7 @@ import {
   usePersistentEditHistory,
   useEditHistoryActions,
   ExternalFileConflictBanner,
+  StudioFileConflictError,
   type ExternalFileChangeCoordinatorHandle,
   type TimelineElement,
 } from "./index";
@@ -39,10 +41,9 @@ function stubHostProjectDisk(
 ) {
   const content = { ...initial };
   const readsSeen = new Set<string>();
-  // The real backend's etag is a content hash, and useProjectFileWriter
-  // derives its expected If-Match from that same hash (studioFileVersion.ts)
-  // rather than reading the server first — an arbitrary counter here would
-  // make every write from a host that hasn't just read the file look stale.
+  // The real backend's etag is a content hash (useProjectFileWriter derives
+  // If-Match the same way) — an arbitrary counter here would make every
+  // write from a host that hasn't just read the file look stale.
   const versionOf = (path: string) => studioFileContentVersion(content[path]);
 
   async function handlePut(path: string, init: RequestInit | undefined) {
