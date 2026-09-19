@@ -41,10 +41,13 @@ function seed(state: {
   return controller;
 }
 
+const mountedRoots: Array<() => void> = [];
+
 function mountHook<P>(hook: (props: P) => unknown, initial: P) {
   const host = document.createElement("div");
   document.body.append(host);
   const root = createRoot(host);
+  mountedRoots.push(() => act(() => root.unmount()));
   let latest: unknown;
   function Harness({ props }: { props: P }) {
     latest = hook(props);
@@ -56,6 +59,7 @@ function mountHook<P>(hook: (props: P) => unknown, initial: P) {
 }
 
 afterEach(() => {
+  for (const unmount of mountedRoots.splice(0)) unmount();
   vi.restoreAllMocks();
   document.body.innerHTML = "";
   useDockLayoutStore.setState({ controller: null });
@@ -75,6 +79,21 @@ describe("useSlideshowDockPanel", () => {
     expect(controller.close).toHaveBeenCalledWith("slideshow");
   });
 
+  it("leaves a slideshow panel that a restored layout already holds alone", () => {
+    const controller = seed({ open: ["design", "slideshow"] });
+    mountHook(useSlideshowDockPanel, true);
+    expect(controller.open).not.toHaveBeenCalled();
+  });
+
+  it("waits for the dock to mount, then opens the panel once", () => {
+    const controller = seed({});
+    useDockLayoutStore.setState({ controller: null });
+    mountHook(useSlideshowDockPanel, true);
+    expect(controller.open).not.toHaveBeenCalled();
+    act(() => useDockLayoutStore.setState({ controller }));
+    expect(controller.open).toHaveBeenCalledWith("slideshow");
+  });
+
   it("does not reopen a panel the user closed while the file is still a slideshow", () => {
     const controller = seed({});
     const view = mountHook(useSlideshowDockPanel, true);
@@ -86,14 +105,30 @@ describe("useSlideshowDockPanel", () => {
 });
 
 describe("useBlockParamsDismissal", () => {
-  const props = { hasBlockParams: true, hasSelection: false, onDismiss: vi.fn() };
+  const props = { hasBlockParams: true, selection: null as unknown, onDismiss: vi.fn() };
 
   it("dismisses block params when an element is selected", () => {
     seed({ visible: ["design"] });
     const onDismiss = vi.fn();
     const view = mountHook(useBlockParamsDismissal, { ...props, onDismiss });
     expect(onDismiss).not.toHaveBeenCalled();
-    view.render({ ...props, onDismiss, hasSelection: true });
+    view.render({ ...props, onDismiss, selection: { id: "a" } });
+    expect(onDismiss).toHaveBeenCalled();
+  });
+
+  it("keeps block params that open while an element is already selected", () => {
+    seed({ visible: ["design"] });
+    const onDismiss = vi.fn();
+    const selected = { id: "a" };
+    const view = mountHook(useBlockParamsDismissal, {
+      ...props,
+      onDismiss,
+      hasBlockParams: false,
+      selection: selected,
+    });
+    view.render({ ...props, onDismiss, hasBlockParams: true, selection: selected });
+    expect(onDismiss).not.toHaveBeenCalled();
+    view.render({ ...props, onDismiss, hasBlockParams: true, selection: { id: "b" } });
     expect(onDismiss).toHaveBeenCalled();
   });
 

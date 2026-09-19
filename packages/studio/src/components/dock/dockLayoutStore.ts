@@ -25,6 +25,8 @@ export interface DockSnapshot {
   /** Open panels whose tab is showing and whose group is not hidden. */
   visiblePanels: ReadonlySet<PanelId>;
   activePanel: PanelId | null;
+  /** The tab each group shows, so a restored layout still records what every side column last showed. */
+  groupActivePanels?: readonly PanelId[];
 }
 
 type LastActive = Partial<Record<PanelZone, PanelId>>;
@@ -53,13 +55,17 @@ export const useDockLayoutStore = create<DockLayoutState>((set, get) => ({
   lastActive: {},
   pendingActivation: null,
   attach: (controller) => set({ controller }),
-  detach: () => set({ controller: null }),
+  detach: () => set({ controller: null, lastActive: {} }),
   sync: (snapshot) =>
     set((state) => {
+      const lastActive = { ...state.lastActive };
+      for (const id of snapshot.groupActivePanels ?? []) {
+        const zone = PANEL_DEFINITIONS[id].zone;
+        if (zone !== "center") lastActive[zone] = id;
+      }
       const { activePanel } = snapshot;
-      if (!activePanel) return snapshot;
-      const zone = PANEL_DEFINITIONS[activePanel].zone;
-      return { ...snapshot, lastActive: { ...state.lastActive, [zone]: activePanel } };
+      if (activePanel) lastActive[PANEL_DEFINITIONS[activePanel].zone] = activePanel;
+      return { ...snapshot, lastActive };
     }),
   takePendingActivation: () => {
     const { pendingActivation } = get();

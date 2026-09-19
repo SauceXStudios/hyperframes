@@ -1,30 +1,36 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useDockLayoutStore, visiblePanelInZone } from "../components/dock/dockLayoutStore";
 
 /** Opens the Slideshow panel when the file becomes a slideshow and closes it when it stops being one; a user's own close sticks. */
 export function useSlideshowDockPanel(isSlideshowComposition: boolean) {
+  const controller = useDockLayoutStore((state) => state.controller);
   useEffect(() => {
-    const { controller, openPanels } = useDockLayoutStore.getState();
-    const inDock = openPanels.has("slideshow");
-    if (isSlideshowComposition && !inDock) controller?.open("slideshow");
-    if (!isSlideshowComposition && inDock) controller?.close("slideshow");
-  }, [isSlideshowComposition]);
+    if (!controller) return;
+    const inDock = useDockLayoutStore.getState().openPanels.has("slideshow");
+    if (isSlideshowComposition && !inDock) controller.open("slideshow");
+    if (!isSlideshowComposition && inDock) controller.close("slideshow");
+  }, [isSlideshowComposition, controller]);
 }
 
-/** Block params replace the Design body only until something else takes the user's attention. */
+/** Block params replace the Design body until a different element is picked or Design stops showing. */
 export function useBlockParamsDismissal({
   hasBlockParams,
-  hasSelection,
+  selection,
   onDismiss,
 }: {
   hasBlockParams: boolean;
-  hasSelection: boolean;
-  onDismiss?: () => void;
+  selection: unknown;
+  onDismiss: () => void;
 }) {
   const designVisible = useDockLayoutStore((state) => state.visiblePanels.has("design"));
+  const selectionWhenOpened = useRef(selection);
   useEffect(() => {
-    if (hasBlockParams && (hasSelection || !designVisible)) onDismiss?.();
-  }, [hasBlockParams, hasSelection, designVisible, onDismiss]);
+    if (!hasBlockParams) selectionWhenOpened.current = selection;
+  }, [hasBlockParams, selection]);
+  useEffect(() => {
+    const picked = selection != null && selection !== selectionWhenOpened.current;
+    if (hasBlockParams && (picked || !designVisible)) onDismiss();
+  }, [hasBlockParams, selection, designVisible, onDismiss]);
 }
 
 /** Caption edit mode owns the Design panel: whenever the right column shows something else, bring Design back. */
