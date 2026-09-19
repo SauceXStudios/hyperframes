@@ -98,16 +98,17 @@ export { resolveSourceFile, applyPatch } from "./utils/sourcePatcher";
 export type { PatchOperation } from "./utils/sourcePatcher";
 export { parseStyleString, mergeStyleIntoTag, findElementBlock } from "./utils/htmlEditor";
 
-// Timeline editing: Studio's own hand-edit path, undo/redo, the etag-guarded
-// writer and the conflict banner, for a host mounting the timeline outside
-// EditorShell. A host's waitForPendingDomEditSaves must also call
-// flushStudioPendingEdits, or undo/redo can race a write in flight.
-export { flushStudioPendingEdits } from "./utils/studioPendingEdits";
-export type { StudioPendingEditsDrainResult } from "./utils/studioPendingEdits";
+// Timeline editing: Studio's own hand-edit path, undo/redo, the
+// etag-guarded writer and the conflict banner, for a host mounting the
+// timeline outside EditorShell.
 export { usePersistentEditHistory } from "./hooks/usePersistentEditHistory";
 export type { UsePersistentEditHistoryOptions } from "./hooks/usePersistentEditHistory";
 export { useTimelineEditing } from "./hooks/useTimelineEditing";
 export type { UseTimelineEditingOptions } from "./hooks/useTimelineEditingTypes";
+// A host's own waitForPendingDomEditSaves must also call this, or undo/redo
+// can race a write still in flight (see useTrackPendingTimelineEdit.ts).
+export { flushStudioPendingEdits } from "./utils/studioPendingEdits";
+export type { StudioPendingEditsDrainResult } from "./utils/studioPendingEdits";
 export type {
   CanEditTimelineElement,
   TimelineEditPermission,
@@ -119,6 +120,9 @@ export type {
 } from "./hooks/useEditHistoryActions";
 export { useProjectFileWriter } from "./hooks/useProjectFileWriter";
 export type { UseProjectFileWriterOptions } from "./hooks/useProjectFileWriter";
+// A host's writeProjectFile throws this on a 409; catch it to know when
+// to show ExternalFileConflictBanner.
+export { StudioFileConflictError } from "./utils/studioSaveDiagnostics";
 export { ExternalFileConflictBanner } from "./components/ExternalFileConflictBanner";
 export type {
   ExternalFileChangeCoordinatorHandle,
