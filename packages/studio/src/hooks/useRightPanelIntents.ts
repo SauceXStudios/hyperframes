@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useDockLayoutStore, visiblePanelInZone } from "../components/dock/dockLayoutStore";
+import type { DomEditSelection } from "../components/editor/domEditing";
+import { domEditSelectionsTargetSame } from "../utils/domEditHelpers";
 
 /** Opens the Slideshow panel when the file becomes a slideshow and closes it when it stops being one; a user's own close sticks. */
 export function useSlideshowDockPanel(isSlideshowComposition: boolean) {
@@ -19,7 +21,7 @@ export function useBlockParamsDismissal({
   onDismiss,
 }: {
   hasBlockParams: boolean;
-  selection: unknown;
+  selection: DomEditSelection | null;
   onDismiss: () => void;
 }) {
   const designVisible = useDockLayoutStore((state) => state.visiblePanels.has("design"));
@@ -28,7 +30,8 @@ export function useBlockParamsDismissal({
     if (!hasBlockParams) selectionWhenOpened.current = selection;
   }, [hasBlockParams, selection]);
   useEffect(() => {
-    const picked = selection != null && selection !== selectionWhenOpened.current;
+    const picked =
+      selection != null && !domEditSelectionsTargetSame(selection, selectionWhenOpened.current);
     if (hasBlockParams && (picked || !designVisible)) onDismiss();
   }, [hasBlockParams, selection, designVisible, onDismiss]);
 }

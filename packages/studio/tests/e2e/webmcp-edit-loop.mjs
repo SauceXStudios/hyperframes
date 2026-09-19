@@ -351,9 +351,9 @@ async function findMountedThumbnailUrl(page, sourceFile, previous = null) {
     { source: sourceFile, old: previous },
   );
   return page.evaluate((source) => {
-    const image = [
-      ...document.querySelectorAll('.hf-dock img[src*="/thumbnail/"]'),
-    ].find((candidate) => candidate.src.includes(source));
+    const image = [...document.querySelectorAll('.hf-dock img[src*="/thumbnail/"]')].find(
+      (candidate) => candidate.src.includes(source),
+    );
     return image?.src ?? null;
   }, sourceFile);
 }

@@ -3,6 +3,7 @@
 import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { DomEditSelection } from "../components/editor/domEditing";
 import { useDockLayoutStore, type DockController } from "../components/dock/dockLayoutStore";
 import { PANEL_IDS, type PanelId } from "../components/dock/panelRegistry";
 import {
@@ -105,21 +106,26 @@ describe("useSlideshowDockPanel", () => {
 });
 
 describe("useBlockParamsDismissal", () => {
-  const props = { hasBlockParams: true, selection: null as unknown, onDismiss: vi.fn() };
+  const pick = (id: string) => ({ id, sourceFile: "index.html" }) as unknown as DomEditSelection;
+  const props = {
+    hasBlockParams: true,
+    selection: null as DomEditSelection | null,
+    onDismiss: vi.fn(),
+  };
 
   it("dismisses block params when an element is selected", () => {
     seed({ visible: ["design"] });
     const onDismiss = vi.fn();
     const view = mountHook(useBlockParamsDismissal, { ...props, onDismiss });
     expect(onDismiss).not.toHaveBeenCalled();
-    view.render({ ...props, onDismiss, selection: { id: "a" } });
+    view.render({ ...props, onDismiss, selection: pick("a") });
     expect(onDismiss).toHaveBeenCalled();
   });
 
   it("keeps block params that open while an element is already selected", () => {
     seed({ visible: ["design"] });
     const onDismiss = vi.fn();
-    const selected = { id: "a" };
+    const selected = pick("a");
     const view = mountHook(useBlockParamsDismissal, {
       ...props,
       onDismiss,
@@ -128,7 +134,9 @@ describe("useBlockParamsDismissal", () => {
     });
     view.render({ ...props, onDismiss, hasBlockParams: true, selection: selected });
     expect(onDismiss).not.toHaveBeenCalled();
-    view.render({ ...props, onDismiss, hasBlockParams: true, selection: { id: "b" } });
+    view.render({ ...props, onDismiss, hasBlockParams: true, selection: pick("a") });
+    expect(onDismiss).not.toHaveBeenCalled();
+    view.render({ ...props, onDismiss, hasBlockParams: true, selection: pick("b") });
     expect(onDismiss).toHaveBeenCalled();
   });
 
