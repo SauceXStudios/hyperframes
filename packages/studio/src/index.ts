@@ -92,13 +92,10 @@ export { resolveSourceFile, applyPatch } from "./utils/sourcePatcher";
 export type { PatchOperation } from "./utils/sourcePatcher";
 export { parseStyleString, mergeStyleIntoTag, findElementBlock } from "./utils/htmlEditor";
 
-// Timeline editing: Studio's own hand-edit path (split, move, resize, razor,
-// group move, toggle hidden, audio attrs, delete, drop), its undo/redo, the
-// etag-guarded writer, and the conflict banner — for a host mounting the
-// timeline outside EditorShell with the same save path Studio uses.
-// Every hand edit is tracked into this same registry; a host's own
-// waitForPendingDomEditSaves must drain it too, the same way Studio's does,
-// or undo/redo can race a write still in flight (see useTrackPendingTimelineEdit).
+// Timeline editing: Studio's own hand-edit path, undo/redo, the etag-guarded
+// writer and the conflict banner, for a host mounting the timeline outside
+// EditorShell. A host's waitForPendingDomEditSaves must also call
+// flushStudioPendingEdits, or undo/redo can race a write in flight.
 export { flushStudioPendingEdits } from "./utils/studioPendingEdits";
 export type { StudioPendingEditsDrainResult } from "./utils/studioPendingEdits";
 export { usePersistentEditHistory } from "./hooks/usePersistentEditHistory";
