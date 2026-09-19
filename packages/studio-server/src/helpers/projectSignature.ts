@@ -75,11 +75,6 @@ interface ProjectSignatureFile {
   textContentEligible: boolean;
 }
 
-interface ProjectSignatureCacheEntry {
-  fingerprint: string;
-  signature: string;
-}
-
 const projectSignatureCache = new Map<string, ProjectSignatureCacheEntry>();
 
 function isPathWithin(parentDir: string, childPath: string): boolean {
@@ -195,10 +190,33 @@ export async function resolveProjectAndSignature(
   return { project, signature: resolveProjectSignature(adapter, project.dir) };
 }
 
-/**
- * Creates a stable preview cache-busting signature for project source plus Studio manifests.
- */
-export function createProjectSignature(projectDir: string): string {
+interface ProjectSignatures {
+  signature: string;
+  fileHashes: Record<string, string>;
+}
+
+interface ProjectSignatureCacheEntry {
+  fingerprint: string;
+  signatures: ProjectSignatures;
+}
+
+function hashFile(entry: ProjectSignatureFile): string {
+  const hash = createHash("sha256");
+  hash.update(String(entry.size));
+  hash.update("\0");
+  if (entry.textContentEligible) {
+    try {
+      hash.update(readFileSync(entry.file));
+    } catch {
+      hash.update(String(entry.mtimeMs));
+    }
+  } else {
+    hash.update(String(entry.mtimeMs));
+  }
+  return hash.digest("hex").slice(0, 16);
+}
+
+function computeProjectSignatures(projectDir: string): ProjectSignatures {
   const normalizedProjectDir = resolve(projectDir);
   const files: ProjectSignatureFile[] = [];
   collectProjectSignatureFiles(normalizedProjectDir, normalizedProjectDir, files);
@@ -207,27 +225,42 @@ export function createProjectSignature(projectDir: string): string {
 
   const fingerprint = createProjectFingerprint(normalizedProjectDir, files);
   const cached = projectSignatureCache.get(normalizedProjectDir);
-  if (cached?.fingerprint === fingerprint) return cached.signature;
+  if (cached?.fingerprint === fingerprint) return cached.signatures;
 
   const hash = createHash("sha256");
+  const fileHashes: Record<string, string> = {};
   for (const entry of files) {
     const relativePath = relative(normalizedProjectDir, entry.file);
+    const fileHash = hashFile(entry);
+    fileHashes[relativePath.split(sep).join("/")] = fileHash;
     hash.update(relativePath);
     hash.update("\0");
-    hash.update(String(entry.size));
-    hash.update("\0");
-    if (entry.textContentEligible) {
-      try {
-        hash.update(readFileSync(entry.file));
-      } catch {
-        hash.update(String(entry.mtimeMs));
-      }
-    } else {
-      hash.update(String(entry.mtimeMs));
-    }
+    hash.update(fileHash);
     hash.update("\0");
   }
-  const signature = hash.digest("hex").slice(0, 24);
-  projectSignatureCache.set(normalizedProjectDir, { fingerprint, signature });
-  return signature;
+  const signatures = { signature: hash.digest("hex").slice(0, 24), fileHashes };
+  projectSignatureCache.set(normalizedProjectDir, { fingerprint, signatures });
+  return signatures;
+}
+
+/**
+ * Creates a stable preview cache-busting signature for project source plus Studio manifests.
+ */
+export function createProjectSignature(projectDir: string): string {
+  return computeProjectSignatures(projectDir).signature;
+}
+
+/** Above this many files the per-file map is dropped for the whole-project signature. */
+export const MAX_FILE_SIGNATURE_FILES = 3000;
+
+export type ProjectFileSignatures = { files: Record<string, string> } | { all: string };
+
+/**
+ * Per-file content hashes (posix paths relative to the project) that share the
+ * project signature's memoized walk. Large projects fall back to `{ all }`.
+ */
+export function createProjectFileSignatures(projectDir: string): ProjectFileSignatures {
+  const { signature, fileHashes } = computeProjectSignatures(projectDir);
+  if (Object.keys(fileHashes).length > MAX_FILE_SIGNATURE_FILES) return { all: signature };
+  return { files: fileHashes };
 }

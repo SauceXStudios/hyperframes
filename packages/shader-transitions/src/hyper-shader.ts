@@ -13,6 +13,7 @@ import {
 import { getFragSource, type ShaderName } from "./shaders/registry.js";
 import { initCapture, captureScene } from "./capture.js";
 import { installPageSideCompositor } from "./engineModePageComposite.js";
+import { getSceneDependencySignature } from "./sceneDependencies.js";
 
 declare const gsap: {
   timeline: (opts: Record<string, unknown>) => GsapTimeline;
@@ -259,11 +260,6 @@ function isGsapAnimationOnlyScript(text: string): boolean {
 }
 
 function getDocumentScriptSignature(doc: Document): string {
-  const projectSignature = Array.from(
-    doc.querySelectorAll<HTMLMetaElement>('meta[name="hyperframes-project-signature"]'),
-  )
-    .map((meta) => meta.getAttribute("content") || "")
-    .join("\n");
   const scriptText = Array.from(doc.querySelectorAll<HTMLScriptElement>("script"))
     .filter((script) => {
       if (script.src) return true;
@@ -282,14 +278,14 @@ function getDocumentScriptSignature(doc: Document): string {
       return `${attrs}\n${script.src ? "" : script.textContent || ""}`;
     })
     .join("\n");
-  return stableHash(`${projectSignature}\n${scriptText}`);
+  return stableHash(scriptText);
 }
 
-function getSceneSignature(sceneId: string): string {
+export function getSceneSignature(sceneId: string): string {
   const scene = document.getElementById(sceneId);
   if (!scene) return "missing";
   return stableHash(
-    `${getDocumentStyleSignature(document)}\n${getDocumentScriptSignature(document)}\n${getSceneSignatureHtml(scene)}`,
+    `${getDocumentStyleSignature(document)}\n${getDocumentScriptSignature(document)}\n${getSceneDependencySignature(scene, document)}\n${getSceneSignatureHtml(scene)}`,
   );
 }
 

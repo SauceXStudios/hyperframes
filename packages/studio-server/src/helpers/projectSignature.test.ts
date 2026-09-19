@@ -6,12 +6,19 @@ import {
   futimesSync,
   mkdtempSync,
   openSync,
+  mkdirSync,
   rmSync,
+  writeFileSync,
   writeSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
-import { affectsProjectSignature, createProjectSignature } from "./projectSignature.js";
+import {
+  MAX_FILE_SIGNATURE_FILES,
+  affectsProjectSignature,
+  createProjectFileSignatures,
+  createProjectSignature,
+} from "./projectSignature.js";
 
 const temporaryProjects: string[] = [];
 
@@ -79,5 +86,59 @@ describe("createProjectSignature", () => {
     } finally {
       closeSync(descriptor);
     }
+  });
+});
+
+describe("createProjectFileSignatures", () => {
+  function makeProject(files: Record<string, string>): string {
+    const project = mkdtempSync(resolve(tmpdir(), "hf-file-signatures-"));
+    temporaryProjects.push(project);
+    for (const [name, content] of Object.entries(files)) {
+      mkdirSync(resolve(project, name, ".."), { recursive: true });
+      writeFileSync(resolve(project, name), content);
+    }
+    return project;
+  }
+
+  function fileMap(project: string): Record<string, string> {
+    const result = createProjectFileSignatures(project);
+    if (!("files" in result)) throw new Error("expected a per-file map");
+    return result.files;
+  }
+
+  it("changes only the edited file's hash, keyed by posix relative path", () => {
+    const project = makeProject({ "index.html": "a", "assets/app.js": "one", "assets/b.js": "b" });
+    const before = fileMap(project);
+    writeFileSync(resolve(project, "assets/app.js"), "two!");
+    const after = fileMap(project);
+
+    expect(Object.keys(before).sort()).toEqual(["assets/app.js", "assets/b.js", "index.html"]);
+    expect(after["assets/app.js"]).not.toBe(before["assets/app.js"]);
+    expect(after["index.html"]).toBe(before["index.html"]);
+    expect(after["assets/b.js"]).toBe(before["assets/b.js"]);
+  });
+
+  it("returns the memoized result while no file's stat fingerprint changed", () => {
+    const project = makeProject({ "index.html": "a" });
+    expect(fileMap(project)).toBe(fileMap(project));
+  });
+
+  it("drops a deleted file from the map", () => {
+    const project = makeProject({ "index.html": "a", "gone.js": "x" });
+    fileMap(project);
+    rmSync(resolve(project, "gone.js"));
+    expect(fileMap(project)).not.toHaveProperty("gone.js");
+  });
+
+  it("falls back to the whole-project signature above the file cap", () => {
+    const files: Record<string, string> = {};
+    for (let i = 0; i <= MAX_FILE_SIGNATURE_FILES; i += 1) files[`f/${i}.txt`] = "x";
+    const project = makeProject(files);
+    const before = createProjectFileSignatures(project);
+    writeFileSync(resolve(project, "f/0.txt"), "changed");
+    const after = createProjectFileSignatures(project);
+
+    expect(before).toEqual({ all: expect.any(String) });
+    expect(after).not.toEqual(before);
   });
 });

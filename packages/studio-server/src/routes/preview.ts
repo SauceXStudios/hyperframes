@@ -10,6 +10,7 @@ import { resolveWithinProject } from "../helpers/safePath.js";
 import { getMimeType } from "../helpers/mime.js";
 import { buildSubCompositionHtml } from "../helpers/subComposition.js";
 import {
+  createProjectFileSignatures,
   resolveProjectAndSignature,
   resolveProjectSignature,
 } from "../helpers/projectSignature.js";
@@ -44,21 +45,39 @@ import {
 } from "../helpers/mediaProxyPreview.js";
 
 const PROJECT_SIGNATURE_META = "hyperframes-project-signature";
+const FILE_SIGNATURES_META = "hyperframes-file-signatures";
 const GSAP_CDN_VERSION = "3.15.0";
 const GSAP_CDN_SCRIPT = `<script src="https://cdn.jsdelivr.net/npm/gsap@${GSAP_CDN_VERSION}/dist/gsap.min.js"></script>`;
 const GSAP_CUSTOM_EASE_CDN_SCRIPT = `<script src="https://cdn.jsdelivr.net/npm/gsap@${GSAP_CDN_VERSION}/dist/CustomEase.min.js"></script>`;
 const GSAP_MOTION_PATH_CDN_SCRIPT = `<script src="https://cdn.jsdelivr.net/npm/gsap@${GSAP_CDN_VERSION}/dist/MotionPathPlugin.min.js"></script>`;
 
-function injectProjectSignature(html: string, signature: string): string {
-  const tag = `<meta name="${PROJECT_SIGNATURE_META}" content="${signature}">`;
-  if (html.includes(`name="${PROJECT_SIGNATURE_META}"`)) {
-    return html.replace(
-      new RegExp(`<meta\\s+name=["']${PROJECT_SIGNATURE_META}["'][^>]*>`, "i"),
-      tag,
-    );
+function injectMetaTag(html: string, name: string, content: string): string {
+  const tag = `<meta name="${name}" content="${content}">`;
+  if (html.includes(`name="${name}"`)) {
+    return html.replace(new RegExp(`<meta\\s+name=["']${name}["'][^>]*>`, "i"), () => tag);
   }
-  if (html.includes("</head>")) return html.replace("</head>", `${tag}\n</head>`);
+  if (html.includes("</head>")) return html.replace("</head>", () => `${tag}\n</head>`);
   return `${tag}\n${html}`;
+}
+
+function injectProjectSignature(html: string, signature: string): string {
+  return injectMetaTag(html, PROJECT_SIGNATURE_META, signature);
+}
+
+function escapeAttribute(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function injectFileSignatures(html: string, projectDir: string, projectId: string): string {
+  const payload = {
+    root: `/api/projects/${projectId}/preview/`,
+    ...createProjectFileSignatures(projectDir),
+  };
+  return injectMetaTag(html, FILE_SIGNATURES_META, escapeAttribute(JSON.stringify(payload)));
 }
 
 function readStudioMotionManifestContent(projectDir: string): string {
@@ -255,11 +274,16 @@ function injectStudioPreviewAugmentations(
   adapter: StudioApiAdapter,
   projectDir: string,
   activeCompositionPath: string,
+  projectId: string,
 ): string {
   return injectStudioMotionScript(
     injectMotionPathPluginIfNeeded(
       injectGsapCdnFallback(
-        injectProjectSignature(html, resolveProjectSignature(adapter, projectDir)),
+        injectFileSignatures(
+          injectProjectSignature(html, resolveProjectSignature(adapter, projectDir)),
+          projectDir,
+          projectId,
+        ),
       ),
     ),
     projectDir,
@@ -384,6 +408,7 @@ export function registerPreviewRoutes(api: Hono, adapter: PreviewApiAdapter): vo
         adapter,
         project.dir,
         mainCompositionPath,
+        project.id,
       );
       if (previewVariables) bundled = injectPreviewVariables(bundled, previewVariables);
       bundled = await injectMediaCodecMap(
@@ -408,6 +433,7 @@ export function registerPreviewRoutes(api: Hono, adapter: PreviewApiAdapter): vo
           adapter,
           project.dir,
           fallback.compositionPath,
+          project.id,
         );
         if (previewVariables) {
           fallbackAugmented = injectPreviewVariables(fallbackAugmented, previewVariables);
@@ -493,7 +519,7 @@ export function registerPreviewRoutes(api: Hono, adapter: PreviewApiAdapter): vo
     );
     if (!html) return c.text("not found", 404);
     html = ensureHfIds(await transformPreviewHtml(html, adapter, project, compPath));
-    html = injectStudioPreviewAugmentations(html, adapter, project.dir, compPath);
+    html = injectStudioPreviewAugmentations(html, adapter, project.dir, compPath, project.id);
     if (previewVariables) html = injectPreviewVariables(html, previewVariables);
     html = await injectMediaCodecMap(html, adapter, project.dir, compPath, mediaCodecProbeCache);
     return c.html(html, 200, previewCacheHeaders(etag));

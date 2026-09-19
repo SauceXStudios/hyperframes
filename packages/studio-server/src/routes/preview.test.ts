@@ -337,6 +337,25 @@ describe("registerPreviewRoutes", () => {
     );
   });
 
+  it("injects an escaped per-file signature map rooted at the project preview path", async () => {
+    const projectDir = createProjectDir();
+    writeFileSync(join(projectDir, 'we"ird<&>.js'), "x");
+    const app = new Hono();
+    registerPreviewRoutes(app, createAdapter(projectDir));
+
+    const html = await (await app.request("http://localhost/projects/demo/preview")).text();
+    const match = /<meta name="hyperframes-file-signatures" content="([^"]*)">/.exec(html);
+    const decoded = match![1]!
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&amp;/g, "&");
+    const payload = JSON.parse(decoded) as { root: string; files: Record<string, string> };
+
+    expect(payload.root).toBe("/api/projects/demo/preview/");
+    expect(Object.keys(payload.files).sort()).toEqual(["index.html", 'we"ird<&>.js']);
+  });
+
   it("updates the preview signature after project text edits", async () => {
     const projectDir = createProjectDir();
     const file = join(projectDir, "scene.js");
