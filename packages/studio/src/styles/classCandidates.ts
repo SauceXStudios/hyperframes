@@ -3,6 +3,8 @@
 // `*Styles`/`*Classes` bindings). Bare strings are ignored so prose and paths never become "classes".
 // Pure: text in, candidates out.
 
+import { escapeRegex } from "../utils/sourcePatcher";
+
 /** A class candidate and where it came from. */
 export interface ClassCandidate {
   /** The utility with its variant prefixes removed (`hover:bg-x` -> `bg-x`). */
@@ -251,9 +253,7 @@ function regionsAfter(mask: string, anchor: RegExp): [number, number][] {
 // Every string bound to `name` by an assignment in this file. A name with no literal binding
 // (parameter, import, call result) yields nothing, so an over-broad reference scan is safe.
 function boundStrings(text: string, mask: string, name: string): string[] {
-  const anchor = new RegExp(
-    `\\b${name.replace(/\$/g, "\\$")}\\b(?:\\s*:[^=;{}()[\\]]*)?\\s*=(?!=)\\s*`,
-  );
+  const anchor = new RegExp(`\\b${escapeRegex(name)}\\b(?:\\s*:[^=;{}()[\\]]*)?\\s*=(?!=)\\s*`);
   return regionsAfter(mask, anchor).flatMap(([start, end]) => stringsIn(text, mask, start, end));
 }
 

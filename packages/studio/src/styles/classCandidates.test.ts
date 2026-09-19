@@ -41,6 +41,12 @@ describe("extractClassCandidates", () => {
     expect(bases(source)).toEqual(["h-ctl", "rounded-hologram"]);
   });
 
+  it("follows an identifier that contains a dollar sign", () => {
+    const source = `const $cls = "flex-none";\nconst a = <div className={$cls} />;`;
+
+    expect(bases(source)).toEqual(["flex-none"]);
+  });
+
   it("does not read a lookup key's default value as a class", () => {
     // `variant` is the key, not the class list, so the default it falls back
     // to is a map entry name and never reaches markup.
