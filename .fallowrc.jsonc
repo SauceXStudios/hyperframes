@@ -457,10 +457,6 @@
     // require intrusive middleware changes beyond this PR's scope.
     "minLines": 6,
     "ignore": [
-      // FileTree.tsx / LeftSidebar.tsx: pre-existing 8-line structural clone
-      // (shared sidebar node shape); surfaced by the UX-sweep line shifts.
-      "packages/studio/src/components/editor/FileTree.tsx",
-      "packages/studio/src/components/sidebar/LeftSidebar.tsx",
       // AWS Lambda and GCP Cloud Run deliberately mirror the same distributed
       // rendering lifecycle while retaining provider-specific SDK, storage, and
       // retry semantics. The Plan v2 AWS adapter extends that existing symmetry;
@@ -894,8 +890,7 @@
       "packages/studio/src/components/sidebar/AudioRow.tsx",
       "packages/studio/src/components/sidebar/BlocksTab.tsx",
       "packages/studio/src/components/sidebar/CompositionsTab.tsx",
-      "packages/studio/src/components/sidebar/LeftSidebar.tsx",
-      "packages/studio/src/components/StudioRightPanel.tsx",
+      "packages/studio/src/components/StudioRightPanels.tsx",
       "packages/studio/src/components/StudioToast.tsx",
       "packages/studio/src/components/ui/Tooltip.tsx",
       "packages/studio/src/components/ui/useDialogBehavior.ts",

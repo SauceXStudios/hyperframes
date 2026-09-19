@@ -1,7 +1,6 @@
 import { useCallback, useEffect } from "react";
 import type { StudioRightPanelsProps } from "./StudioRightPanels.types";
 
-export type { StudioRightPanelsProps };
 import { PropertyPanel } from "./editor/PropertyPanel";
 import { LayersPanel } from "./editor/LayersPanel";
 import { CaptionPropertyPanel } from "../captions/components/CaptionPropertyPanel";
@@ -300,19 +299,20 @@ export function StudioRightPanels({
     </DesignPanelPromoteProvider>
   );
 
-  const designBody = activeBlockParams ? (
-    <BlockParamsPanel
-      blockName={activeBlockParams.blockName}
-      blockTitle={activeBlockParams.blockTitle}
-      params={activeBlockParams.params}
-      compositionPath={activeBlockParams.compositionPath}
-      onClose={onCloseBlockParams ?? (() => {})}
-    />
-  ) : captionEditMode ? (
-    <CaptionPropertyPanel iframeRef={previewIframeRef} />
-  ) : (
-    propertyPanel
-  );
+  let designBody = propertyPanel;
+  if (activeBlockParams) {
+    designBody = (
+      <BlockParamsPanel
+        blockName={activeBlockParams.blockName}
+        blockTitle={activeBlockParams.blockTitle}
+        params={activeBlockParams.params}
+        compositionPath={activeBlockParams.compositionPath}
+        onClose={onCloseBlockParams ?? (() => {})}
+      />
+    );
+  } else if (captionEditMode) {
+    designBody = <CaptionPropertyPanel iframeRef={previewIframeRef} />;
+  }
 
   return (
     <>

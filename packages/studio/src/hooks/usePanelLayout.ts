@@ -36,8 +36,9 @@ export function usePanelLayout(initialState?: InitialPanelLayoutState) {
     if (rightCollapsed != null) store.setZoneVisible("right", !rightCollapsed);
   }, [controller]);
 
-  const rightPanelTab = tabForPanel(visiblePanelInZone("right", lastActive, visiblePanels));
-  const rightCollapsed = visiblePanelInZone("right", lastActive, visiblePanels) === null;
+  const visibleRight = visiblePanelInZone("right", lastActive, visiblePanels);
+  const rightPanelTab = tabForPanel(visibleRight);
+  const rightCollapsed = visibleRight === null;
 
   const setRightPanelTab = useCallback((tab: RightPanelTab) => {
     useDockLayoutStore.getState().activatePanel(panelForTab(tab));

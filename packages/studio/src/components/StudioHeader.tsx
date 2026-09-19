@@ -12,7 +12,6 @@ export interface StudioHeaderProps {
   handleCaptureFrameClick: (event: MouseEvent<HTMLAnchorElement>) => void;
   refreshCaptureFrameTime: () => void;
   capturing?: boolean;
-  inspectorButtonActive: boolean;
   inspectorPanelActive: boolean;
   onExport?: () => void;
 }
@@ -159,7 +158,6 @@ export function StudioHeader({
   handleCaptureFrameClick,
   refreshCaptureFrameTime,
   capturing,
-  inspectorButtonActive,
   inspectorPanelActive,
   onExport,
 }: StudioHeaderProps) {
