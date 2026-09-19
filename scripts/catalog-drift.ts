@@ -35,11 +35,8 @@ export function treeDifferences(generatedRoot: string, committedRoot: string): s
   ];
 }
 
-/** A committed page's `meta.codeLines` is copied from the source at generation time, so an edit
- * to the source after the last regen leaves it silently wrong (motion-blur shipped 406 against
- * a 722-line source). Checked against the source directly, not through the page generator. */
 /** One item's stale-codeLines message, or null when there's nothing to compare (no source file,
- * no committed page yet, or a page with no code fence). */
+ * no committed page, or a page with no code fence). */
 function codeLinesMismatch(
   item: ReturnType<typeof discoverItems>[number],
   committedCatalogDir: string,

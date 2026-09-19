@@ -304,6 +304,13 @@ describe("Tune scroll cue", () => {
       /@media \(prefers-reduced-motion: reduce\) \{\s*\n\s*\.hf-ve-tune-more \{ animation: none; \}/,
     );
   });
+
+  it("watches every row for height changes, not just the first", () => {
+    // A note that grows on a row other than the first (e.g. the file-drop control's
+    // status text) must still retrigger the cue -- watching one child would miss it.
+    assert.match(source, /for \(const child of el\.children\) observer\.observe\(child\);/);
+    assert.doesNotMatch(source, /el\.firstElementChild/);
+  });
 });
 
 describe("snippet scope", () => {
