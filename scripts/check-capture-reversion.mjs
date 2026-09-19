@@ -1,17 +1,23 @@
 #!/usr/bin/env node
 // Flags a capture region that briefly returns to an older picture (A, B, A frames).
 // node scripts/check-capture-reversion.mjs [--crop=W:H:X:Y] [--window=N] [--change=D] [--same=D] <video>...
-// Frames are cropped, 96px wide, gray; D is mean abs pixel diff (0-255). Exit 1 if flagged.
+// Frames are cropped, 96px wide, gray; D is mean abs pixel diff (0-255). Exit 0 clean, 1 flagged, 2 could not check.
 
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const WIDTH = 96;
-const args = { crop: undefined, window: 20, change: 1.0, same: 0.25 };
+const USAGE =
+  "usage: node scripts/check-capture-reversion.mjs [--crop=W:H:X:Y] [--window=N] [--change=D] [--same=D] <video> ...";
 
-function readFrames(path, crop) {
+/** Output frame height for a source of cw x ch scaled to WIDTH: even, at least 2. */
+export function frameHeight(cw, ch) {
+  return Math.max(2, 2 * Math.round((WIDTH * (ch / cw)) / 2));
+}
+
+function readFrames(path, crop, height) {
   return new Promise((resolve, reject) => {
-    const scale = `scale=${WIDTH}:-2:flags=area,format=gray`;
+    const scale = `scale=${WIDTH}:${height}:flags=area,format=gray`;
     const vf = crop ? `crop=${crop},${scale}` : scale;
     const child = spawn("ffmpeg", ["-v", "error", "-i", path, "-vf", vf, "-f", "rawvideo", "-"]);
     const chunks = [];
@@ -43,9 +49,10 @@ function probeSize(path) {
     let out = "";
     child.stdout.on("data", (c) => (out += c));
     child.on("error", reject);
-    child.on("close", () => {
+    child.on("close", (code) => {
       const [w, h] = out.trim().split(",").map(Number);
-      resolve({ w, h });
+      if (code !== 0 || !(w > 0) || !(h > 0)) return reject(new Error(`ffprobe found no video size in ${path}`));
+      resolve([w, h]);
     });
   });
 }
@@ -88,26 +95,39 @@ export function findReversions(buf, frameSize, { window, change, same }) {
   return [...byPeak.values()].sort((x, y) => x.changed - y.changed);
 }
 
-function parseArgs(argv) {
+/** Options and video paths from argv; throws on a malformed flag so a typo cannot read as "clean". */
+export function parseArgs(argv) {
+  const options = { crop: undefined, window: 20, change: 1.0, same: 0.25 };
   const paths = [];
   for (const arg of argv) {
-    const m = /^--(crop|window|change|same)=(.*)$/.exec(arg);
-    if (m) args[m[1]] = m[1] === "crop" ? m[2] : Number(m[2]);
-    else paths.push(arg);
+    const m = /^--([a-z]+)=(.*)$/.exec(arg);
+    if (!m) {
+      if (arg.startsWith("--")) throw new Error(`unknown option ${arg}`);
+      paths.push(arg);
+    } else if (m[1] === "crop") {
+      if (!/^[1-9]\d*:[1-9]\d*:\d+:\d+$/.test(m[2])) throw new Error(`--crop needs W:H:X:Y, got ${m[2]}`);
+      options.crop = m[2];
+    } else if (m[1] in options) {
+      const n = Number(m[2]);
+      if (m[2] === "" || !Number.isFinite(n) || n < 0) throw new Error(`--${m[1]} needs a number, got ${m[2]}`);
+      options[m[1]] = n;
+    } else {
+      throw new Error(`unknown option ${arg}`);
+    }
   }
-  return paths;
+  return { options, paths };
 }
 
 // fallow-ignore-next-line complexity
-async function checkVideo(path) {
-  const [cw, ch] = args.crop
-    ? args.crop.split(":").map(Number)
-    : Object.values(await probeSize(path));
-  const frameSize = WIDTH * 2 * Math.round((WIDTH * (ch / cw)) / 2);
-  const buf = await readFrames(path, args.crop);
+async function checkVideo(path, options) {
+  const [cw, ch] = options.crop ? options.crop.split(":").map(Number) : await probeSize(path);
+  const height = frameHeight(cw, ch);
+  const frameSize = WIDTH * height;
+  const buf = await readFrames(path, options.crop, height);
   const frames = Math.floor(buf.length / frameSize);
-  const hits = findReversions(buf, frameSize, args);
-  const crop = args.crop ? `  crop=${args.crop}` : "";
+  if (frames === 0) throw new Error(`no frames decoded from ${path}`);
+  const hits = findReversions(buf, frameSize, options);
+  const crop = options.crop ? `  crop=${options.crop}` : "";
   console.log(
     `${hits.length ? "FLAGGED" : "clean"}  ${path}${crop}  (${frames} frames checked, 0-${frames - 1})`,
   );
@@ -121,16 +141,16 @@ async function checkVideo(path) {
 
 // fallow-ignore-next-line complexity
 async function main(argv) {
-  const paths = parseArgs(argv);
-  if (paths.length === 0) {
-    console.error(
-      "usage: node scripts/check-capture-reversion.mjs [--crop=W:H:X:Y] [--window=N] [--change=D] [--same=D] <video> ...",
-    );
+  try {
+    const { options, paths } = parseArgs(argv);
+    if (paths.length === 0) throw new Error(USAGE);
+    let flagged = false;
+    for (const path of paths) flagged = (await checkVideo(path, options)) || flagged;
+    process.exit(flagged ? 1 : 0);
+  } catch (error) {
+    console.error(`check-capture-reversion: ${error.message}`);
     process.exit(2);
   }
-  let flagged = false;
-  for (const path of paths) flagged = (await checkVideo(path)) || flagged;
-  process.exit(flagged ? 1 : 0);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) main(process.argv.slice(2));

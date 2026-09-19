@@ -149,7 +149,7 @@ The script wipes `docs/catalog/` before regenerating, so deleted items are autom
 
 ### Checking a capture
 
-A screen recording attached to a PR must not show a region briefly returning to an older picture (a clip that reappears for one frame, a panel that flashes its previous state). Run `node scripts/check-capture-reversion.mjs [--crop=W:H:X:Y] <video>...` once per region that matters; it needs `ffmpeg` and `ffprobe`, exits 1 on a flagged video, and names the frames that differ and the two matching frames around them. Continuous motion is not flagged, but a toast or cursor inside the crop can be, so crop it out or check the named frames by eye.
+A screen recording attached to a PR must not show a region briefly returning to an older picture (a clip that reappears for one frame, a panel that flashes its previous state). Run `node scripts/check-capture-reversion.mjs [--crop=W:H:X:Y] <video>...` once per region that matters; it needs `ffmpeg` (and `ffprobe` when no `--crop` is given), takes `--window`, `--change` and `--same` to tune the match, exits 0 when clean, 1 when a video is flagged and 2 when it could not check (bad option, missing binary or file), and names the frames that differ and the two matching frames around them. Continuous motion is not flagged, but a toast or cursor inside the crop can be, so crop it out or check the named frames by eye.
 
 ## Packages
 
