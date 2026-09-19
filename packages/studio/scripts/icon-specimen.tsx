@@ -1,6 +1,6 @@
 // Renders the icon specimen sheet from the module itself, so the sheet cannot
 // drift from the code. Usage: bun scripts/icon-specimen.tsx <out.html>
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
 import * as Ph from "@phosphor-icons/react";
 import { Icon, ICON_NAMES, type IconName } from "../src/icons";
@@ -28,6 +28,12 @@ const TODAY: [IconName, Ph.Icon][] = [
   ["warning", Ph.Warning],
   ["pencil", Ph.PencilSimple],
 ];
+
+// The specimen paints with Studio's own tokens, read off theme.css so the two cannot drift.
+const THEME = readFileSync(new URL("../src/styles/theme.css", import.meta.url), "utf8");
+const TOKENS = [...THEME.matchAll(/(--color-[\w-]+):\s*([^;]+);/g)]
+  .map(([, k, v]) => `${k}:${v}`)
+  .join(";");
 
 const SIZES = [12, 14, 16, 20] as const;
 const STATES = [
@@ -121,7 +127,7 @@ const todayRows = [16, 12]
 
 const html = `<!doctype html><meta charset="utf-8"><title>Studio icons</title>
 <style>
-:root{--color-bg-0:#0a0a0a;--color-surface:#18181b;--color-hover:#27272a;--color-border:#1e1e1e;--color-text-0:#fafafa;--color-text-2:#a1a1aa;--color-text-4:#52525b;--color-accent:#3ce6ac}
+:root{${TOKENS}}
 body{margin:0;background:var(--color-bg-0);color:var(--color-text-2);font:12px/1.4 -apple-system,Inter,system-ui,sans-serif;padding:24px}
 h1{font-size:13px;color:var(--color-text-0);margin:24px 0 8px}
 .row{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--color-border)}

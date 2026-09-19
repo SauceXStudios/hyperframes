@@ -22,6 +22,7 @@ const FOLDER =
   "M2 4.5A1.5 1.5 0 0 1 3.5 3H6l1.5 1.5h5A1.5 1.5 0 0 1 14 6v6a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 12Z";
 const SPEAKER = "M2.5 6H5l3.5-3v10L5 10H2.5Z";
 const DIAMOND = "M8 2.5 13.5 8 8 13.5 2.5 8Z";
+const PANEL = "r 2 2.5 12 11 2";
 const TRAY = "M2.5 11v1.5A1.5 1.5 0 0 0 4 14h8a1.5 1.5 0 0 0 1.5-1.5V11";
 const MAGNIFIER = ["c 7 7 4.5", "M10.5 10.5 14 14"];
 
@@ -175,7 +176,7 @@ export const GLYPHS = {
       "c 8 8.5 2.5",
     ],
   },
-  image: { shapes: ["r 2 2.5 12 11 2", "c 5.5 6 1.25", "M2 11.5 6 8l3 3 2-1.5 3 2.5"] },
+  image: { shapes: [PANEL, "c 5.5 6 1.25", "M2 11.5 6 8l3 3 2-1.5 3 2.5"] },
   film: { shapes: ["r 2 3 12 10 2", "M5 3v10M11 3v10M2 6.5h3M2 9.5h3M11 6.5h3M11 9.5h3"] },
   music: { shapes: ["M6 12.5v-9l7-1.5V11", "c 4 12.5 2", "c 11 11 2"] },
   type: { shapes: ["M3 3.5h10", "M3 3.5v2M13 3.5v2", "M8 3.5V13", "M6 13h4"] },
@@ -232,18 +233,18 @@ export const GLYPHS = {
     ],
   },
   "sidebar-show": {
-    shapes: ["r 2 2.5 12 11 2", "M6 2.5v11", "M8.5 6l2 2-2 2"],
-    small: ["r 2 2.5 12 11 2", "R 2 2.5 4.5 11 2"],
+    shapes: [PANEL, "M6 2.5v11", "M8.5 6l2 2-2 2"],
+    small: [PANEL, "R 2 2.5 4.5 11 2"],
   },
   "sidebar-hide": {
-    shapes: ["r 2 2.5 12 11 2", "M6 2.5v11", "M11 6l-2 2 2 2"],
-    small: ["r 2 2.5 12 11 2", "M6.5 2.5v11"],
+    shapes: [PANEL, "M6 2.5v11", "M11 6l-2 2 2 2"],
+    small: [PANEL, "M6.5 2.5v11"],
   },
   inspector: {
-    shapes: ["r 2 2.5 12 11 2", "M10 2.5v11"],
-    small: ["r 2 2.5 12 11 2", "R 9.5 2.5 4.5 11 2"],
+    shapes: [PANEL, "M10 2.5v11"],
+    small: [PANEL, "R 9.5 2.5 4.5 11 2"],
   },
-  window: { shapes: ["r 2 2.5 12 11 2", "M2 6.5h12", "M7 6.5v7"] },
+  window: { shapes: [PANEL, "M2 6.5h12", "M7 6.5v7"] },
   compare: { shapes: ["r 2 2 12 12 2", "M2 8h12"] },
   square: { shapes: ["r 2.5 2.5 11 11 2"], fillable: true },
   palette: {

@@ -1,4 +1,4 @@
-import type { CSSProperties, SVGProps } from "react";
+import type { ReactNode, SVGProps } from "react";
 import { GLYPHS, type Glyph, type IconName, type Shape } from "./glyphs";
 
 export type { IconName };
@@ -11,44 +11,46 @@ export interface IconProps extends Omit<SVGProps<SVGSVGElement>, "name" | "fill"
   title?: string;
   /** Active state: the glyph is painted solid. */
   filled?: boolean;
-  style?: CSSProperties;
 }
 
 // Size classes, not a linear scale: 12/14 px get the thinner stroke.
-export function strokeWidthFor(size: number | string): number {
+function isSmall(size: number | string): boolean {
   const px = typeof size === "number" ? size : Number.parseFloat(size);
-  return Number.isFinite(px) && px < 14 ? 1.25 : 1.5;
+  return Number.isFinite(px) && px < 14;
 }
+export const strokeWidthFor = (size: number | string): number => (isSmall(size) ? 1.25 : 1.5);
 
-const num = (s: string) => s.split(" ").slice(1).map(Number);
+const SOLID = { fill: "currentColor", stroke: "none" } as const;
 
 function renderShape(shape: Shape, i: number) {
-  if (shape.startsWith("r ")) {
-    const [x, y, w, h, rx] = num(shape);
-    return <rect key={i} x={x} y={y} width={w} height={h} rx={rx} />;
+  const kind = shape[0];
+  const n = shape.split(" ").slice(1).map(Number);
+  const solid = kind === "R" || kind === "d" ? SOLID : undefined;
+  if (kind === "r" || kind === "R") {
+    return <rect key={i} x={n[0]} y={n[1]} width={n[2]} height={n[3]} rx={n[4]} {...solid} />;
   }
-  if (shape.startsWith("R ")) {
-    const [x, y, w, h, rx] = num(shape);
-    return (
-      <rect key={i} x={x} y={y} width={w} height={h} rx={rx} fill="currentColor" stroke="none" />
-    );
-  }
-  if (shape.startsWith("c ")) {
-    const [cx, cy, r] = num(shape);
-    return <circle key={i} cx={cx} cy={cy} r={r} />;
-  }
-  if (shape.startsWith("d ")) {
-    const [cx, cy, r] = num(shape);
-    return <circle key={i} cx={cx} cy={cy} r={r} fill="currentColor" stroke="none" />;
-  }
+  if (kind === "c" || kind === "d")
+    return <circle key={i} cx={n[0]} cy={n[1]} r={n[2]} {...solid} />;
   return <path key={i} d={shape} />;
+}
+
+// Shape nodes depend only on the glyph and its size class, so build them once.
+const nodes = new Map<string, ReactNode[]>();
+function shapeNodes(name: IconName, small: boolean): ReactNode[] {
+  const key = `${name}:${small}`;
+  let built = nodes.get(key);
+  if (!built) {
+    const glyph: Glyph = GLYPHS[name];
+    built = ((small && glyph.small) || glyph.shapes).map(renderShape);
+    nodes.set(key, built);
+  }
+  return built;
 }
 
 export function Icon({ name, size = 16, title, filled, ...rest }: IconProps) {
   const glyph: Glyph = GLYPHS[name];
   const solid = glyph.solid || (filled && glyph.fillable);
-  const strokeWidth = strokeWidthFor(size);
-  const shapes = strokeWidth < 1.5 && glyph.small ? glyph.small : glyph.shapes;
+  const small = isSmall(size);
   return (
     <svg
       viewBox="0 0 16 16"
@@ -56,7 +58,7 @@ export function Icon({ name, size = 16, title, filled, ...rest }: IconProps) {
       height={size}
       fill={solid ? "currentColor" : "none"}
       stroke="currentColor"
-      strokeWidth={strokeWidth}
+      strokeWidth={small ? 1.25 : 1.5}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden={title ? undefined : true}
@@ -66,7 +68,7 @@ export function Icon({ name, size = 16, title, filled, ...rest }: IconProps) {
       {...rest}
     >
       {title ? <title>{title}</title> : null}
-      {shapes.map(renderShape)}
+      {shapeNodes(name, small)}
     </svg>
   );
 }

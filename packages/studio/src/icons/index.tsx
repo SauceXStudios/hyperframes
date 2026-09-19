@@ -1,7 +1,7 @@
-import { Icon, type IconProps } from "./Icon";
+import { Icon, type IconName, type IconProps } from "./Icon";
 
 type GlyphProps = Omit<IconProps, "name">;
-const named = (name: IconProps["name"]) => (props: GlyphProps) => <Icon name={name} {...props} />;
+const named = (name: IconName) => (props: GlyphProps) => <Icon name={name} {...props} />;
 
 export const Check = named("check");
 export const X = named("x");
