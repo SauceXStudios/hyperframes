@@ -1648,6 +1648,58 @@ describe("useTimelineEditing: canEdit gate", () => {
     expect(fetchMock).not.toHaveBeenCalled();
     unmount();
   });
+
+  it("refuses a group write when its members live only inside a sub-composition", async () => {
+    // syncStoredGroupAttribute mirrors into domClipChildren for a group with
+    // no flat twin (timelineAudioGroupVolume.ts) — the resolver must check
+    // that array too, or a sub-comp-only group's write goes ungated.
+    const iframe = createPreviewIframe([]);
+    usePlayerStore.getState().setElements([]);
+    usePlayerStore.getState().setDomClipChildren([
+      {
+        id: "sub-member",
+        parentId: "host",
+        hostId: "host",
+        label: "Sub member",
+        stackingContextId: "root",
+        audioGroup: "hf-group",
+      },
+    ]);
+    const showToast = vi.fn();
+    const fetchMock = vi.fn(async () => {
+      throw new Error("must not be called: canEdit should have refused the write");
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    let hook: ReturnType<typeof useTimelineEditing> | null = null;
+    function Harness() {
+      hook = useTimelineEditing({
+        projectId: "p1",
+        activeCompPath: "index.html",
+        timelineElements: [],
+        showToast,
+        writeProjectFile: vi.fn(),
+        recordEdit: vi.fn(),
+        reloadPreview: vi.fn(),
+        previewIframeRef: { current: iframe },
+        pendingTimelineEditPathRef: { current: new Set<string>() },
+        uploadProjectFiles: vi.fn(),
+        canEdit: (element) =>
+          element.id === "sub-member" ? { blocked: true, reason: "Reserved by an agent" } : true,
+      });
+      return null;
+    }
+    const { unmount } = mountHarness(<Harness />);
+    if (!hook) throw new Error("Expected hook to mount");
+
+    await act(async () => {
+      await hook!.setAudioGroupAttribute.setQuiet("hf-group", "data-volume", "0.5", "Set volume");
+      await flushAsyncWork();
+    });
+
+    expect(showToast).toHaveBeenCalledWith("Reserved by an agent", "error");
+    expect(fetchMock).not.toHaveBeenCalled();
+    unmount();
+  });
 });
 
 // Regression: track()/guard() must return the same wrapped handler across

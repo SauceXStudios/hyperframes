@@ -500,12 +500,27 @@ export function useTimelineEditing({
     handleAutoGroupCarveSources: track(handleAutoGroupCarveSources),
     setAudioGroupAttribute: {
       ...setAudioGroupAttribute,
-      // Same member-resolution syncStoredGroupAttribute uses (timelineAudioGroupVolume.ts).
+      // Same two-array member lookup syncStoredGroupAttribute mirrors into
+      // (timelineAudioGroupVolume.ts): a sub-composition's group members have
+      // no flat twin, only a domClipChildren entry, so both are checked.
       setQuiet: track(
-        guard(
-          (groupId) => usePlayerStore.getState().elements.filter((el) => el.audioGroup === groupId),
-          setAudioGroupAttribute.setQuiet,
-        ),
+        guard((groupId) => {
+          const state = usePlayerStore.getState();
+          const flatMembers = state.elements.filter((el) => el.audioGroup === groupId);
+          const domMembers = state.domClipChildren
+            .filter((child) => child.audioGroup === groupId)
+            .map(
+              (child): TimelineElement => ({
+                id: child.id,
+                domId: child.id,
+                tag: "div",
+                start: 0,
+                duration: 0,
+                track: -1,
+              }),
+            );
+          return [...flatMembers, ...domMembers];
+        }, setAudioGroupAttribute.setQuiet),
       ),
     },
     setElementFxAttribute: {
