@@ -5,6 +5,7 @@ import { useStudioShellContext } from "../contexts/StudioContext";
 import { usePanelLayoutContext } from "../contexts/PanelLayoutContext";
 import { trackStudioEvent } from "../utils/studioTelemetry";
 import { Tooltip } from "./ui";
+import { Dock } from "./dock/Dock";
 
 export interface StudioHeaderProps {
   captureFrameHref: string;
@@ -138,19 +139,12 @@ function HyperframesLogo() {
   );
 }
 
-/**
- * Does the header's Inspector button open the panel, or close it?
- *
- * Takes the EFFECTIVE collapse state, so a panel the window has railed away
- * counts as closed even though the user's stored intent still says open. The
- * argument name is the guard: passing raw intent here is the bug this exists
- * to keep out.
- */
+/** Does the header's Inspector button open the panel, or close it? */
 export function shouldOpenInspector(
-  effectiveRightCollapsed: boolean,
+  rightCollapsed: boolean,
   inspectorPanelActive: boolean,
 ): boolean {
-  return effectiveRightCollapsed || !inspectorPanelActive;
+  return rightCollapsed || !inspectorPanelActive;
 }
 
 // fallow-ignore-next-line complexity
@@ -165,11 +159,7 @@ export function StudioHeader({
   onExport,
 }: StudioHeaderProps) {
   const { projectId, editHistory, handleUndo, handleRedo, renderQueue } = useStudioShellContext();
-  // effectiveRightCollapsed, not the raw intent: in the auto-railed state the
-  // intent is still "open" while the panel is hidden, so branching on intent
-  // made this button write rightCollapsed=true — and that value is synced into
-  // the shareable Studio URL, so a dead click would rewrite a link.
-  const { effectiveRightCollapsed, setRightCollapsed, setRightPanelTab } = usePanelLayoutContext();
+  const { rightCollapsed, setRightCollapsed, setRightPanelTab } = usePanelLayoutContext();
   const isRendering = renderQueue.isRendering;
   const ffmpegMissing = renderQueue.ffmpegMissing;
 
@@ -284,11 +274,12 @@ export function StudioHeader({
             <span>{capturing ? "Capturing…" : "Capture"}</span>
           </a>
         </Tooltip>
+        <Dock.WindowMenu />
         <Tooltip label="Inspector" side="bottom">
           <button
             type="button"
             onClick={() => {
-              if (shouldOpenInspector(effectiveRightCollapsed, inspectorPanelActive)) {
+              if (shouldOpenInspector(rightCollapsed, inspectorPanelActive)) {
                 trackStudioEvent("panel_toggle", { panel: "inspector", collapsed: false });
                 setRightPanelTab("design");
                 setRightCollapsed(false);

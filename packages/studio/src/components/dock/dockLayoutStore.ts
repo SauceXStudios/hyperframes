@@ -89,3 +89,14 @@ export const useDockLayoutStore = create<DockLayoutState>((set, get) => ({
   },
   resetLayout: () => get().controller?.reset(),
 }));
+
+/** The panel of `zone` the user is looking at: the last one focused if still showing, else any showing. */
+export function visiblePanelInZone(
+  zone: PanelZone,
+  lastActive: LastActive,
+  visiblePanels: ReadonlySet<PanelId>,
+): PanelId | null {
+  const last = lastActive[zone];
+  if (last && visiblePanels.has(last)) return last;
+  return panelsInZone(zone).find((id) => visiblePanels.has(id)) ?? null;
+}
