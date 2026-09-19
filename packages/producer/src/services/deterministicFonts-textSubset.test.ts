@@ -230,4 +230,26 @@ describe("Google Fonts text subsetting", () => {
 
     expect(text).toContain("Ａ");
   });
+
+  it("scans a multi-MB document without building a per-character array", async () => {
+    const html = `<!doctype html><html><head><style>
+        p { font-family: "Noto Performance Test", sans-serif; }
+      </style></head><body><p>旅</p><i data-payload="${"xyz".repeat(400_000)}"></i></body></html>`;
+    const realFrom = Array.from;
+    let wholeDocumentCopies = 0;
+    Array.from = ((source: unknown, ...rest: unknown[]) => {
+      if (typeof source === "string" && source.length > 100_000) wholeDocumentCopies += 1;
+      return (realFrom as (...args: unknown[]) => unknown[])(source, ...rest);
+    }) as typeof Array.from;
+    let text: string;
+    try {
+      text = await subsetTextFor(html);
+    } finally {
+      Array.from = realFrom;
+    }
+
+    expect(wholeDocumentCopies).toBe(0);
+    expect(text.startsWith("<!")).toBe(true);
+    for (const character of "xyz旅") expect(text).toContain(character);
+  });
 });

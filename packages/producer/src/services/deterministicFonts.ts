@@ -1410,8 +1410,12 @@ function extractGoogleFontsText(html: string): string | undefined {
 
   // Intentional over-approximation: raw html includes base64, scripts, and
   // class names, but they collapse in the Set and the budget gate catches bloat.
+  // Iterate strings directly: Array.from(html) allocates one element per code point (~0.3s per 5 MB).
+  const sourceCharacters = new Set<string>();
+  for (const character of html) sourceCharacters.add(character);
+  for (const character of decodedBodyText) sourceCharacters.add(character);
   const uniqueCharacters = new Set<string>();
-  for (const character of new Set([...Array.from(html), ...Array.from(decodedBodyText)])) {
+  for (const character of sourceCharacters) {
     addCaseClosure(uniqueCharacters, character, locales);
   }
 
