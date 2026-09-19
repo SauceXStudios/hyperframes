@@ -11,13 +11,9 @@ const REAL_ITEM = "orbit-card";
 const REAL_CODE_LINES = 102;
 
 function catalogDir(codeLines: number): string {
-  const root = mkdtempSync(join(tmpdir(), "catalog-drift-codelines-"));
-  mkdirSync(join(root, "blocks"), { recursive: true });
-  writeFileSync(
-    join(root, "blocks", `${REAL_ITEM}.mdx`),
-    `---\ntitle: "Orbit Card"\n---\n<CatalogDetail meta={{"codeLines":${codeLines}}} hasCode />\n`,
-  );
-  return root;
+  return tree({
+    [`blocks/${REAL_ITEM}.mdx`]: `---\ntitle: "Orbit Card"\n---\n<CatalogDetail meta={{"codeLines":${codeLines}}} hasCode />\n`,
+  });
 }
 
 function tree(files: Record<string, string>): string {

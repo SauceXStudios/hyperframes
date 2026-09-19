@@ -5,16 +5,31 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { installFetchMirror } from "./catalog-fetch-mirror.ts";
 
-function recordDir(): string {
-  return mkdtempSync(join(tmpdir(), "catalog-mirror-record-"));
-}
-
-function stubFetch(contentType: string, bodyBytes: number): void {
+/**
+ * Runs `run` against a fresh record-mode mirror stubbed to answer every fetch with
+ * `bodyBytes` bytes of `contentType`; `run` is responsible for calling `mirror.finish()`
+ * itself if its assertions depend on the written index. Always restores `fetch` and
+ * cleans up the temp dir after, even if `mirror.finish()` already restored `fetch`.
+ */
+async function withRecordMirror(
+  contentType: string,
+  bodyBytes: number,
+  run: (dir: string, mirror: ReturnType<typeof installFetchMirror>) => Promise<void> | void,
+): Promise<void> {
+  const realFetch = globalThis.fetch;
+  const dir = mkdtempSync(join(tmpdir(), "catalog-mirror-record-"));
   globalThis.fetch = (async () =>
     new Response(new Uint8Array(bodyBytes), {
       status: 200,
       headers: { "content-type": contentType },
     })) as typeof fetch;
+  const mirror = installFetchMirror(dir, "record");
+  try {
+    await run(dir, mirror);
+  } finally {
+    globalThis.fetch = realFetch;
+    rmSync(dir, { recursive: true });
+  }
 }
 
 function mirrorDir(): string {
@@ -48,56 +63,44 @@ test("an unmirrored fetch fails and is still reported after the caller swallows 
 });
 
 test("record writes an allowed, small response to disk and indexes it", async () => {
-  const realFetch = globalThis.fetch;
-  const dir = recordDir();
-  stubFetch("text/css; charset=utf-8", 12);
-  const mirror = installFetchMirror(dir, "record");
-  const response = await fetch("https://cdn.example/a.css");
-  assert.equal(response.status, 200);
-  mirror.assertNoMisses();
-  mirror.finish();
-  const files = readdirSync(dir).filter((f) => f.endsWith(".bin"));
-  assert.equal(files.length, 1);
-  const [file] = files;
-  assert.ok(file);
-  assert.equal(readFileSync(join(dir, file)).length, 12);
-  const index = JSON.parse(readFileSync(join(dir, "index.json"), "utf-8"));
-  assert.equal(index["https://cdn.example/a.css"].file, file);
-  globalThis.fetch = realFetch;
-  rmSync(dir, { recursive: true });
+  await withRecordMirror("text/css; charset=utf-8", 12, async (dir, mirror) => {
+    const response = await fetch("https://cdn.example/a.css");
+    assert.equal(response.status, 200);
+    mirror.assertNoMisses();
+    mirror.finish();
+    const files = readdirSync(dir).filter((f) => f.endsWith(".bin"));
+    assert.equal(files.length, 1);
+    const [file] = files;
+    assert.ok(file);
+    assert.equal(readFileSync(join(dir, file)).length, 12);
+    const index = JSON.parse(readFileSync(join(dir, "index.json"), "utf-8"));
+    assert.equal(index["https://cdn.example/a.css"].file, file);
+  });
 });
 
 test("record refuses a content-type the generator does not expect", async () => {
-  const realFetch = globalThis.fetch;
-  const dir = recordDir();
-  stubFetch("application/octet-stream", 12);
-  const mirror = installFetchMirror(dir, "record");
-  await fetch("https://cdn.example/a.bin");
-  assert.throws(
-    () => mirror.assertNoMisses(),
-    /content-type application\/octet-stream is not mirrored/,
-  );
-  mirror.finish();
-  assert.deepEqual(
-    readdirSync(dir).filter((f) => f.endsWith(".bin")),
-    [],
-  );
-  globalThis.fetch = realFetch;
-  rmSync(dir, { recursive: true });
+  await withRecordMirror("application/octet-stream", 12, async (dir, mirror) => {
+    await fetch("https://cdn.example/a.bin");
+    assert.throws(
+      () => mirror.assertNoMisses(),
+      /content-type application\/octet-stream is not mirrored/,
+    );
+    mirror.finish();
+    assert.deepEqual(
+      readdirSync(dir).filter((f) => f.endsWith(".bin")),
+      [],
+    );
+  });
 });
 
 test("record refuses a body over the mirror's size cap", async () => {
-  const realFetch = globalThis.fetch;
-  const dir = recordDir();
-  stubFetch("text/css", 8 * 1024 * 1024 + 1);
-  const mirror = installFetchMirror(dir, "record");
-  await fetch("https://cdn.example/huge.css");
-  assert.throws(() => mirror.assertNoMisses(), /exceeds the 8388608-byte mirror cap/);
-  mirror.finish();
-  assert.deepEqual(
-    readdirSync(dir).filter((f) => f.endsWith(".bin")),
-    [],
-  );
-  globalThis.fetch = realFetch;
-  rmSync(dir, { recursive: true });
+  await withRecordMirror("text/css", 8 * 1024 * 1024 + 1, async (dir, mirror) => {
+    await fetch("https://cdn.example/huge.css");
+    assert.throws(() => mirror.assertNoMisses(), /exceeds the 8388608-byte mirror cap/);
+    mirror.finish();
+    assert.deepEqual(
+      readdirSync(dir).filter((f) => f.endsWith(".bin")),
+      [],
+    );
+  });
 });

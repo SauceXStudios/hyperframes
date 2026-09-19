@@ -99,21 +99,28 @@ async function main(): Promise<void> {
     if (differences.length === 0 && staleCodeLines.length === 0) {
       return console.log("docs/public/catalog and every page's codeLines match the generator.");
     }
-    const lines: string[] = [];
-    if (differences.length > 0) {
-      lines.push(
-        `docs/public/catalog differs from the generator in ${differences.length} file(s):`,
-        ...differences.slice(0, MAX_LISTED).map((line) => `  ${line}`),
-        "Regenerate with `tsx scripts/generate-catalog-payloads.ts` and commit the result.",
-      );
-    }
-    if (staleCodeLines.length > 0) {
-      lines.push(
-        `${staleCodeLines.length} page(s) have a stale codeLines:`,
-        ...staleCodeLines.slice(0, MAX_LISTED).map((line) => `  ${line}`),
-        "Regenerate with `tsx scripts/generate-catalog-pages.ts` and commit the result.",
-      );
-    }
+    const sections = [
+      {
+        items: differences,
+        header: (n: number) => `docs/public/catalog differs from the generator in ${n} file(s):`,
+        regenCmd:
+          "Regenerate with `tsx scripts/generate-catalog-payloads.ts` and commit the result.",
+      },
+      {
+        items: staleCodeLines,
+        header: (n: number) => `${n} page(s) have a stale codeLines:`,
+        regenCmd: "Regenerate with `tsx scripts/generate-catalog-pages.ts` and commit the result.",
+      },
+    ];
+    const lines = sections.flatMap(({ items, header, regenCmd }) =>
+      items.length === 0
+        ? []
+        : [
+            header(items.length),
+            ...items.slice(0, MAX_LISTED).map((line) => `  ${line}`),
+            regenCmd,
+          ],
+    );
     throw new Error(lines.join("\n"));
   } finally {
     rmSync(base, { recursive: true, force: true });

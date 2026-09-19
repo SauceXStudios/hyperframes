@@ -2087,11 +2087,15 @@ export const CatalogDetail = ({
     const el = tuneListRef.current;
     if (el) setTuneMoreBelow(hasMoreBelow(el.scrollHeight, el.scrollTop, el.clientHeight));
   };
+  // The resize listener only needs to exist while the panel is mounted; content-driven
+  // rechecks (below) would otherwise tear it down and re-add it on every keystroke.
   useEffect(() => {
     if (!tunePanel) return;
-    checkTuneMoreBelow();
     window.addEventListener("resize", checkTuneMoreBelow);
     return () => window.removeEventListener("resize", checkTuneMoreBelow);
+  }, [tunePanel]);
+  useEffect(() => {
+    if (tunePanel) checkTuneMoreBelow();
   }, [tunePanel, variables, values, notes]);
   let webgpuStage = player;
   if (webgpu && hasAdapter === null) webgpuStage = <div className="aspect-video w-full" />;
