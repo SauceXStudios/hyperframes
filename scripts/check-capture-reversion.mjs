@@ -4,6 +4,7 @@
 // Frames are cropped, 96px wide, gray; D is mean abs pixel diff (0-255). Exit 0 clean, 1 flagged, 2 could not check.
 
 import { spawn } from "node:child_process";
+import { realpathSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const WIDTH = 96;
@@ -51,7 +52,8 @@ function probeSize(path) {
     child.on("error", reject);
     child.on("close", (code) => {
       const [w, h] = out.trim().split(",").map(Number);
-      if (code !== 0 || !(w > 0) || !(h > 0)) return reject(new Error(`ffprobe found no video size in ${path}`));
+      if (code !== 0 || !(w > 0) || !(h > 0))
+        return reject(new Error(`ffprobe found no video size in ${path}`));
       resolve([w, h]);
     });
   });
@@ -105,11 +107,13 @@ export function parseArgs(argv) {
       if (arg.startsWith("--")) throw new Error(`unknown option ${arg}`);
       paths.push(arg);
     } else if (m[1] === "crop") {
-      if (!/^[1-9]\d*:[1-9]\d*:\d+:\d+$/.test(m[2])) throw new Error(`--crop needs W:H:X:Y, got ${m[2]}`);
+      if (!/^[1-9]\d*:[1-9]\d*:\d+:\d+$/.test(m[2]))
+        throw new Error(`--crop needs W:H:X:Y, got ${m[2]}`);
       options.crop = m[2];
     } else if (m[1] in options) {
       const n = Number(m[2]);
-      if (m[2] === "" || !Number.isFinite(n) || n < 0) throw new Error(`--${m[1]} needs a number, got ${m[2]}`);
+      if (m[2] === "" || !Number.isFinite(n) || n < 0)
+        throw new Error(`--${m[1]} needs a number, got ${m[2]}`);
       options[m[1]] = n;
     } else {
       throw new Error(`unknown option ${arg}`);
@@ -139,18 +143,26 @@ async function checkVideo(path, options) {
   return hits.length > 0;
 }
 
+/** Checks every video; 2 if any could not be checked, else 1 if any is flagged, else 0. */
 // fallow-ignore-next-line complexity
 async function main(argv) {
+  let code = 0;
   try {
     const { options, paths } = parseArgs(argv);
     if (paths.length === 0) throw new Error(USAGE);
-    let flagged = false;
-    for (const path of paths) flagged = (await checkVideo(path, options)) || flagged;
-    process.exit(flagged ? 1 : 0);
+    for (const path of paths) {
+      try {
+        if (await checkVideo(path, options)) code = Math.max(code, 1);
+      } catch (error) {
+        console.error(`check-capture-reversion: ${error.message}`);
+        code = 2;
+      }
+    }
   } catch (error) {
     console.error(`check-capture-reversion: ${error.message}`);
-    process.exit(2);
+    code = 2;
   }
+  process.exit(code);
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) main(process.argv.slice(2));
+if (realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) main(process.argv.slice(2));

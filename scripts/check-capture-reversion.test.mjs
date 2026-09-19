@@ -1,4 +1,9 @@
 import { strict as assert } from "node:assert";
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, symlinkSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { test } from "node:test";
 
 import { findReversions, frameHeight, parseArgs } from "./check-capture-reversion.mjs";
@@ -46,10 +51,10 @@ test("a middle frame that matches only one side is not a reversion", () => {
 });
 
 test("hits come back ordered by the changed frame", () => {
-  const hits = findReversions(frames(10, 200, 10, 10, 90, 10), SIZE, OPTS);
+  const hits = findReversions(frames(60, 10, 60, 10, 200, 60, 10), SIZE, OPTS);
   assert.deepEqual(
     hits.map((h) => h.changed),
-    [1, 4],
+    [1, 2, 4],
   );
 });
 
@@ -65,7 +70,13 @@ test("frame height is even and never below 2", () => {
 });
 
 test("a malformed option throws instead of reading as clean", () => {
-  for (const bad of ["--crop=iw:200:0:0", "--window=abc", "--change=", "--same=-1", "--crp=1:1:0:0"]) {
+  for (const bad of [
+    "--crop=iw:200:0:0",
+    "--window=abc",
+    "--change=",
+    "--same=-1",
+    "--crp=1:1:0:0",
+  ]) {
     assert.throws(() => parseArgs([bad, "v.webm"]), bad);
   }
 });
@@ -76,3 +87,60 @@ test("options and paths are separated", () => {
   assert.equal(options.crop, "1280:200:0:600");
   assert.equal(options.window, 5);
 });
+
+const SCRIPT = fileURLToPath(new URL("./check-capture-reversion.mjs", import.meta.url));
+const hasFfmpeg = spawnSync("ffmpeg", ["-version"]).status === 0;
+
+function run(script, ...args) {
+  return spawnSync(process.execPath, [script, ...args], { encoding: "utf8" });
+}
+
+function makeClip(dir, name, filter) {
+  const path = join(dir, name);
+  const r = spawnSync("ffmpeg", [
+    "-v",
+    "error",
+    "-y",
+    "-f",
+    "lavfi",
+    "-i",
+    filter,
+    "-frames:v",
+    "6",
+    path,
+  ]);
+  assert.equal(r.status, 0, String(r.stderr));
+  return path;
+}
+
+test("the CLI exits 2 with no videos, even when run through a symlink", () => {
+  const dir = mkdtempSync(join(tmpdir(), "reversion-"));
+  const link = join(dir, "check.mjs");
+  symlinkSync(SCRIPT, link);
+  for (const script of [SCRIPT, link]) {
+    const r = run(script);
+    assert.equal(r.status, 2);
+    assert.match(r.stderr, /usage/);
+  }
+});
+
+test(
+  "the CLI exits 0 clean, 1 flagged, 2 unreadable, and keeps going past a bad file",
+  { skip: !hasFfmpeg },
+  () => {
+    const dir = mkdtempSync(join(tmpdir(), "reversion-"));
+    const still = makeClip(dir, "still.mp4", "color=c=black:s=64x64:r=10");
+    const blink = makeClip(
+      dir,
+      "blink.mp4",
+      "color=c=black:s=64x64:r=10,drawbox=x=0:y=0:w=64:h=64:c=white:t=fill:enable='between(n,2,2)'",
+    );
+    assert.equal(run(SCRIPT, still).status, 0);
+    const flagged = run(SCRIPT, blink);
+    assert.equal(flagged.status, 1);
+    assert.match(flagged.stdout, /FLAGGED/);
+    const mixed = run(SCRIPT, blink, join(dir, "missing.mp4"), still);
+    assert.equal(mixed.status, 2);
+    assert.match(mixed.stdout, /FLAGGED[\s\S]*clean/);
+  },
+);
