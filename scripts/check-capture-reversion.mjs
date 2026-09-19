@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Flags a capture region that briefly returns to an older picture (A, B, A frames).
-// node scripts/check-capture-reversion.mjs [--crop=W:H:X:Y] [--window=N] [--change=D] [--same=D] <video>...
+// node scripts/check-capture-reversion.mjs [--crop=W:H:X:Y] [--window=N] [--change=D] [--same=D] [--timeout=S] <video>...
 // Frames are cropped, 96px wide, gray; D is mean abs pixel diff (0-255). Exit 0 clean, 1 flagged, 2 could not check.
 
 import { spawn } from "node:child_process";
@@ -8,25 +8,31 @@ import { realpathSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const WIDTH = 96;
+const DEFAULT_TIMEOUT_S = 120;
 const USAGE =
-  "usage: node scripts/check-capture-reversion.mjs [--crop=W:H:X:Y] [--window=N] [--change=D] [--same=D] <video> ...";
+  "usage: node scripts/check-capture-reversion.mjs [--crop=W:H:X:Y] [--window=N] [--change=D] [--same=D] [--timeout=S] <video> ...";
 
 /** Output frame height for a source of cw x ch scaled to WIDTH: even, at least 2. */
 export function frameHeight(cw, ch) {
   return Math.max(2, 2 * Math.round((WIDTH * (ch / cw)) / 2));
 }
 
-function readFrames(path, crop, height) {
+function readFrames(path, crop, height, timeoutMs) {
   return new Promise((resolve, reject) => {
     const scale = `scale=${WIDTH}:${height}:flags=area,format=gray`;
     const vf = crop ? `crop=${crop},${scale}` : scale;
     const child = spawn("ffmpeg", ["-v", "error", "-i", path, "-vf", vf, "-f", "rawvideo", "-"]);
     const chunks = [];
     let stderr = "";
+    const timer = setTimeout(() => {
+      child.kill();
+      reject(new Error(`ffmpeg did not finish within ${timeoutMs / 1000}s for ${path}`));
+    }, timeoutMs);
     child.stdout.on("data", (c) => chunks.push(c));
     child.stderr.on("data", (c) => (stderr += c));
     child.on("error", reject);
     child.on("close", (code) => {
+      clearTimeout(timer);
       if (code !== 0) return reject(new Error(`ffmpeg exited ${code} for ${path}: ${stderr}`));
       resolve(Buffer.concat(chunks));
     });
@@ -81,10 +87,14 @@ function peakBetween(buf, frameSize, i, k, change) {
 }
 
 // fallow-ignore-next-line complexity
-export function findReversions(buf, frameSize, { window, change, same }) {
+export function findReversions(buf, frameSize, { window, change, same }, deadline = Infinity) {
+  if (!Number.isInteger(frameSize) || frameSize <= 0) {
+    throw new Error(`frame size must be a positive integer, got ${frameSize}`);
+  }
   const count = Math.floor(buf.length / frameSize);
   const byPeak = new Map();
   for (let i = 0; i < count; i++) {
+    if (Date.now() > deadline) throw new Error("comparison did not finish within the time limit");
     for (let k = i + 2; k <= Math.min(count - 1, i + window); k++) {
       if (dist(buf, frameSize, i, k) > same) continue;
       const { peak, delta } = peakBetween(buf, frameSize, i, k, change);
@@ -99,7 +109,13 @@ export function findReversions(buf, frameSize, { window, change, same }) {
 
 /** Options and video paths from argv; throws on a malformed flag so a typo cannot read as "clean". */
 export function parseArgs(argv) {
-  const options = { crop: undefined, window: 20, change: 1.0, same: 0.25 };
+  const options = {
+    crop: undefined,
+    window: 20,
+    change: 1.0,
+    same: 0.25,
+    timeout: DEFAULT_TIMEOUT_S,
+  };
   const paths = [];
   for (const arg of argv) {
     const m = /^--([a-z]+)=(.*)$/.exec(arg);
@@ -127,10 +143,11 @@ async function checkVideo(path, options) {
   const [cw, ch] = options.crop ? options.crop.split(":").map(Number) : await probeSize(path);
   const height = frameHeight(cw, ch);
   const frameSize = WIDTH * height;
-  const buf = await readFrames(path, options.crop, height);
+  const deadline = Date.now() + options.timeout * 1000;
+  const buf = await readFrames(path, options.crop, height, options.timeout * 1000);
   const frames = Math.floor(buf.length / frameSize);
   if (frames === 0) throw new Error(`no frames decoded from ${path}`);
-  const hits = findReversions(buf, frameSize, options);
+  const hits = findReversions(buf, frameSize, options, deadline);
   const crop = options.crop ? `  crop=${options.crop}` : "";
   console.log(
     `${hits.length ? "FLAGGED" : "clean"}  ${path}${crop}  (${frames} frames checked, 0-${frames - 1})`,

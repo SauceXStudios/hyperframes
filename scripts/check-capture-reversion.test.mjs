@@ -144,3 +144,17 @@ test(
     assert.match(mixed.stdout, /FLAGGED[\s\S]*clean/);
   },
 );
+
+test("a zero or fractional frame size throws instead of looping", () => {
+  for (const bad of [0, -4, 1.5, Number.NaN]) {
+    assert.throws(() => findReversions(frames(10, 10, 10), bad, OPTS), /positive integer/);
+  }
+});
+
+test("a comparison past its deadline throws", () => {
+  assert.throws(() => findReversions(frames(10, 200, 10), SIZE, OPTS, 0), /time limit/);
+});
+
+test("--timeout is parsed as seconds", () => {
+  assert.equal(parseArgs(["--timeout=30", "v.webm"]).options.timeout, 30);
+});
