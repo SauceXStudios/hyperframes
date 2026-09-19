@@ -2096,7 +2096,7 @@ export const CatalogDetail = ({
       check();
       const observer = new ResizeObserver(check);
       observer.observe(el);
-      if (el.firstElementChild) observer.observe(el.firstElementChild);
+      for (const child of el.children) observer.observe(child);
       return () => observer.disconnect();
     }, []);
     return (
