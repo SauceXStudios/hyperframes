@@ -36,7 +36,7 @@ describe("buildNpxCommand", () => {
       });
       expect(out.trim()).toBe("9.9.9");
     } finally {
-      rmSync(dir, { recursive: true, force: true });
+      rmSync(dir, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
     }
   });
 });
