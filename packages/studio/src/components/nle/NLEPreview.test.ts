@@ -4,6 +4,7 @@ import React, { act, createRef } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useTimelinePlayer } from "../../player/hooks/useTimelinePlayer";
+import { makeAdapterWindow } from "../../player/hooks/timelinePlayerTestHarness";
 import { NLEPreview, getPreviewPlayerKey, resolvePreviewStageSize } from "./NLEPreview";
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -280,6 +281,79 @@ describe("NLEPreview", () => {
 
     act(() => root.render(React.createElement(Harness, { projectId: "b" })));
     expect(playerMounts).toEqual(["live", "live"]);
+
+    act(() => root.unmount());
+    host.remove();
+  });
+
+  it("retires the superseded live iframe in the same commit as promotion, across a rapid back-to-back reload burst", () => {
+    type TimelinePlayerApi = ReturnType<typeof useTimelinePlayer>;
+    let latest: TimelinePlayerApi | null = null;
+    const Harness = () => {
+      const api = useTimelinePlayer();
+      latest = api;
+      return React.createElement(NLEPreview, {
+        projectId: "timeline-edit-playground",
+        iframeRef: api.iframeRef,
+        onIframeLoad: api.onIframeLoad,
+        previewSlots: api.previewSlots,
+        onShadowIframeLoad: api.onShadowIframeLoad,
+        onShadowReadyChange: api.onShadowReadyChange,
+        onShadowError: api.onShadowError,
+        setShadowIframeNode: api.setShadowIframeNode,
+        resetPreviewSlots: api.resetPreviewSlots,
+      });
+    };
+    const getApi = () => latest as TimelinePlayerApi;
+    const host = document.createElement("div");
+    document.body.append(host);
+    const root = createRoot(host);
+
+    function mockPlayerNodes() {
+      return [...host.querySelectorAll<HTMLElement>('[data-testid="mock-player"]')];
+    }
+
+    // The mock Player renders a <div>, not a real <iframe>; give it a fake
+    // adapter window and a src so the real reload/promotion machinery
+    // (which only cares about .contentWindow/.contentDocument/.src) runs
+    // unmodified, same as timelinePlayerTestHarness's makeFakeIframe.
+    function wireAdapter(node: HTMLElement, duration: number) {
+      const { win } = makeAdapterWindow({ duration });
+      Object.defineProperty(node, "contentWindow", { value: win, configurable: true });
+      Object.defineProperty(node, "contentDocument", {
+        value: document.implementation.createHTMLDocument("preview"),
+        configurable: true,
+      });
+      (node as unknown as { src: string }).src = "http://localhost/api/projects/p/preview";
+    }
+
+    // Mount the live frame.
+    act(() => root.render(React.createElement(Harness)));
+    expect(mockPlayerNodes()).toHaveLength(1);
+    wireAdapter(mockPlayerNodes()[0], 10);
+    act(() => getApi().onIframeLoad());
+
+    // Two reload+promote cycles back to back, the way 14 rapid host-triggered
+    // touches drive this hook in the field: nothing here waits for a settle
+    // tail between cycles, matching how the real reload loop fires.
+    for (let cycle = 0; cycle < 2; cycle++) {
+      act(() => getApi().refreshPlayer());
+      expect(mockPlayerNodes()).toHaveLength(2);
+      const shadowGen = getApi().previewSlots.find((slot) => slot.role === "shadow")!.gen;
+      const shadowNode = mockPlayerNodes()[1];
+      wireAdapter(shadowNode, 10 + cycle);
+
+      act(() => {
+        getApi().onShadowIframeLoad(shadowGen);
+        getApi().onShadowReadyChange(shadowGen, true);
+      });
+
+      // Checked immediately after the promoting act() resolves, not after any
+      // extra tick or settle wait: promotion must retire the old live iframe
+      // in the same commit, not merely "eventually" once more renders happen.
+      expect(getApi().previewSlots).toHaveLength(1);
+      expect(mockPlayerNodes()).toHaveLength(1);
+    }
 
     act(() => root.unmount());
     host.remove();
