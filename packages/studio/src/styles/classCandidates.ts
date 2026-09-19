@@ -1,34 +1,7 @@
-/**
- * Pulls the Tailwind class candidates out of a TypeScript or TSX source file.
- *
- * The token gate needs the set of classes Studio's markup *claims*, so that
- * Tailwind can be asked whether each one resolves. Tailwind's own extractor is
- * no help here: it scans everything and silently drops what it cannot compile,
- * which is exactly the failure this gate exists to catch.
- *
- * So the reader is deliberately narrow. It only looks inside places where a
- * string is unambiguously a class list:
- *
- *   - a `className=` / `class=` JSX attribute,
- *   - an argument to a class-building call (`cn`, `clsx`, `twMerge`, ...),
- *   - an object property whose name ends in `class`/`className`,
- *   - anything bound to an identifier that one of those places then uses
- *     (`const buttonSizes = { md: "h-7 rounded-button" }` never reaches a
- *     `className` literal, but `cn(buttonSizes[size])` does),
- *   - a binding whose name ends in `Styles`/`Classes`/`ClassName(s)`, which
- *     catches the same shape when the map is exported and consumed by another
- *     file, where a single-file reader cannot follow it.
- *
- * What makes a string a class is where it is *used*, not what its variable is
- * called: naming the map `buttonSizes` instead of `sizeStyles` must not take
- * its classes out of the gate.
- *
- * Everything else in the file is ignored, because a heuristic that guesses at
- * bare strings turns prose and file paths into "unresolved classes" and the
- * gate stops being believed.
- *
- * Pure: text in, candidates out. No file system, no Tailwind.
- */
+// Pulls Tailwind class candidates out of a TS/TSX file: only strings unambiguously used as class lists
+// (className/class attributes, cn/clsx/cva-style calls, `*class` properties, identifiers those use,
+// `*Styles`/`*Classes` bindings). Bare strings are ignored so prose and paths never become "classes".
+// Pure: text in, candidates out.
 
 /** A class candidate and where it came from. */
 export interface ClassCandidate {
@@ -42,15 +15,9 @@ export interface ClassCandidate {
 
 const OPEN: Record<string, string> = { "{": "}", "(": ")", "[": "]" };
 
-/**
- * If a span that is not code starts at `i` (a string, a template literal, a
- * line comment or a block comment), the index of its last character. Otherwise
- * -1. Never runs past the end of the text.
- *
- * Known limit: a regular-expression literal containing a quote is read as a
- * string. The cost is a spurious candidate, which the gate reports out loud
- * rather than swallowing.
- */
+// Index of the last char of the non-code span (string, template, line or block comment) starting at
+// `i`, else -1. Known limit: a regex literal containing a quote reads as a string; the cost is a
+// spurious candidate, which the gate reports.
 function endOfSpan(text: string, i: number): number {
   const ch = text[i];
   if (ch === '"' || ch === "'" || ch === "`") {
@@ -68,11 +35,8 @@ function endOfSpan(text: string, i: number): number {
   return -1;
 }
 
-/**
- * Index just past the region that starts at `start` (an opening bracket),
- * skipping over strings, template literals and comments. Returns `text.length`
- * when the region never closes.
- */
+// Index just past the region starting at `start` (an opening bracket), skipping strings, templates
+// and comments; `text.length` when it never closes.
 function endOfRegion(text: string, start: number): number {
   const stack: string[] = [];
   for (let i = start; i < text.length; i += 1) {
@@ -108,13 +72,8 @@ function endOfString(text: string, start: number): number {
   return text.length;
 }
 
-/**
- * Splits a template literal body into the chunks that are safe to read.
- *
- * A chunk that touches an interpolation is dropped at that edge, because
- * `` `w-${size}` `` claims no class called `w-`. A chunk only survives at an
- * interpolated edge when whitespace separates it from the hole.
- */
+// Splits a template literal body into safe chunks. A chunk touching an interpolation is dropped at
+// that edge (`w-${size}` claims no class `w-`) unless whitespace separates it from the hole.
 function templateChunks(body: string): string[] {
   const chunks: string[] = [];
   let cursor = 0;
@@ -133,20 +92,9 @@ function templateChunks(body: string): string[] {
   return chunks;
 }
 
-/**
- * A same-length copy of the file with every comment body and every string body
- * blanked out. Quotes, brackets and code survive, so offsets still line up
- * with the original text.
- *
- * The anchors are matched against this mask rather than the raw file, which is
- * what keeps two whole classes of noise out of the results:
- *
- *  - prose. One apostrophe in a doc comment ("don't") opens a string that
- *    swallows the paragraph after it, and every word arrives as a class.
- *  - generated code. `captions/generator.ts` writes `x.className = 'word'`
- *    into a string; that is markup for the composition it emits, not for
- *    Studio, and Studio's stylesheet is the wrong judge of it.
- */
+// A same-length copy with comment and string bodies blanked, so offsets line up. Anchors match
+// against it to keep out prose (one apostrophe in a comment opens a string that swallows the rest)
+// and generated code (`captions/generator.ts` writes `x.className = 'word'` into a string).
 function maskLiterals(text: string): string {
   let out = "";
   for (let i = 0; i < text.length; i += 1) {
@@ -191,11 +139,8 @@ function isClassList(mask: string, start: number, i: number, body: string): bool
 }
 
 /**
- * Does a string inside the bracket that opens at `i` hold classes?
- *
- * `className={TIER_CLASS[resolveValueTier(field.inlineStyles["font-weight"],
- * "400")]}` sits inside a class region, but "font-weight" is a lookup key. A
- * bracket opened by a name that is not a class builder closes the door.
+ * Does a string inside the bracket that opens at `i` hold classes? A bracket opened by a
+ * non-class-builder name closes the door: `T[f.inlineStyles["font-weight"]]` has a lookup key.
  */
 function opensClassContext(mask: string, from: number, i: number): boolean {
   const name = /([A-Za-z_$][\w$]*)\s*$/.exec(mask.slice(Math.max(from, i - 40), i))?.[1];
@@ -244,14 +189,8 @@ function stripVariants(token: string): string {
 // comment stripper, which treats a quote in a regex literal as a string.
 const TOKEN = /^[-@[a-z0-9][^\s\u0022\u0027\u0060\\]*$/;
 
-/**
- * The class contexts. Each anchor is matched, then the balanced region that
- * follows it is read for strings. `lastIndex` advances past the region so a
- * nested `cn()` inside a `className=` is not read twice.
- *
- * The first `CLASS_POSITIONS` of them are places a class actually lands, so an
- * identifier used inside one is a class the file spells somewhere else.
- */
+// Class contexts: each anchor's balanced region is read for strings. The first `CLASS_POSITIONS` are
+// places a class lands, so identifiers used inside them are followed to their bindings.
 const ANCHORS = [
   // className={...} / className="..." / class="..."
   /\bclass(?:Name)?\s*=\s*/g,
@@ -259,15 +198,9 @@ const ANCHORS = [
   /\b(?:cn|clsx|classnames|classNames|twMerge|twJoin|cva|tv)\s*\(/g,
   // { className: "...", itemClass: "..." }
   /\b\w*[Cc]lass(?:Names?)?\s*:\s*/g,
-  // const sizeStyles: Record<Size, string> = { ... } / baseClasses = "..."
-  // Kept for the map this file cannot see used: an exported class map whose
-  // only `className` is in another module. Within one file the reference scan
-  // below covers the same shape under any name.
-  // The prefix and the plural are both required: a bare `style=` is the JSX
-  // inline-style attribute and a singular `fxPresetStyle` is a sheet of CSS
-  // text; neither holds class names.
-  // The optional group is a type annotation. Without it the gap would also
-  // span `computedStyles["z-index"] !== "auto"`, whose `=` is a comparison.
+  // const sizeStyles: Record<Size, string> = { ... } / baseClasses = "..." (exported maps used elsewhere)
+  // Prefix and plural both required: bare `style=` is the JSX attribute, `fxPresetStyle` is CSS text.
+  // The optional group is a type annotation; without it the gap spans `computedStyles["z-index"] !== "auto"`.
   /\b\w+(?:Styles|Classes|ClassNames?)\b(?:\s*:[^=;{}()[\]]*)?\s*=(?!=)\s*/g,
 ] as const;
 
@@ -281,11 +214,8 @@ const REFERENCE = /(?<![.\w$])[A-Za-z_$][\w$]*/g;
 // being looked up, and `variant = "secondary"` is a default, not a class.
 const SUBSCRIPT = /(?<=[\w$)\]])\s*\[[^[\]]*\]/g;
 
-/**
- * Index just past the bracketed region or the string that starts at `at`, or
- * -1 when neither does. Anything else after an anchor is not a class list:
- * `const styles = getComputedStyle(el)` matches the binding-name anchor.
- */
+// End of the bracketed region or string at `at`, else -1: `const styles = getComputedStyle(el)`
+// matches the binding-name anchor but is not a class list.
 function regionAfter(mask: string, at: number): number {
   if (OPEN[mask[at]]) return endOfRegion(mask, at);
   if (QUOTE.test(mask[at])) return endOfString(mask, at) + 1;
@@ -302,11 +232,8 @@ function collect(byRaw: Map<string, ClassCandidate>, list: string): void {
   }
 }
 
-/**
- * Every `[start, end)` an anchor opens: each match, paired with the end of the
- * bracketed region or string that follows it. `lastIndex` jumps past the region
- * so a nested `cn()` inside a `className=` is not read twice.
- */
+// Every `[start, end)` an anchor opens. `lastIndex` jumps past each region so a nested `cn()`
+// inside a `className=` is not read twice.
 function regionsAfter(mask: string, anchor: RegExp): [number, number][] {
   const pattern = new RegExp(anchor.source, "g");
   const regions: [number, number][] = [];
@@ -321,14 +248,8 @@ function regionsAfter(mask: string, anchor: RegExp): [number, number][] {
   return regions;
 }
 
-/**
- * Every string bound to `name` by an assignment anywhere in the file.
- *
- * This is the whole of the data flow, and one file's worth of it is enough:
- * a class map is declared beside the component that reads it. A name with no
- * literal binding (a parameter, an import, a call result) yields nothing,
- * which is why an over-broad reference scan is safe.
- */
+// Every string bound to `name` by an assignment in this file. A name with no literal binding
+// (parameter, import, call result) yields nothing, so an over-broad reference scan is safe.
 function boundStrings(text: string, mask: string, name: string): string[] {
   const anchor = new RegExp(
     `\\b${name.replace(/\$/g, "\\$")}\\b(?:\\s*:[^=;{}()[\\]]*)?\\s*=(?!=)\\s*`,

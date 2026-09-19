@@ -1,12 +1,5 @@
-/**
- * Where the style tests read from.
- *
- * Three tests in this folder compile Studio's stylesheet or walk Studio's
- * sources, and each needs the same two things: Tailwind's own entry file
- * resolved from `node_modules`, and the file list that `@source` in
- * `studio.css` describes. Kept here so the gate, the ratchet and the theme
- * test cannot disagree about which files are Studio's.
- */
+// Where the style tests read from: Tailwind's entry resolved from `node_modules`, and the file list
+// that `@source` in `studio.css` describes, shared so the gate, ratchet and theme test agree.
 
 import { createRequire } from "node:module";
 import { readdirSync, readFileSync } from "node:fs";

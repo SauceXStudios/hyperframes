@@ -1,20 +1,7 @@
-/**
- * The token gate (R11, AE1).
- *
- * Tailwind has no strict mode for the classes it finds in markup: a class it
- * cannot compile is silently dropped, so `rounded-button` renders as no radius
- * at all and nothing anywhere goes red. This test closes that hole by asking
- * Tailwind itself. Studio's real entry stylesheet is compiled with every class
- * the source claims as the candidate list, and any candidate that produces no
- * selector is reported as `file: class`.
- *
- * Tailwind is the only judge, so there is no allowlist to maintain and nothing
- * to keep in step: static utilities, arbitrary values, tokens from `theme.css`
- * and Studio's own hand-written CSS rules all appear in the emitted sheet.
- *
- * A class that fails here is fixed by adding the token to `theme.css`, or by
- * changing the markup. It is never excused.
- */
+// The token gate (R11, AE1). Tailwind silently drops a class it cannot compile, so `rounded-button`
+// renders as no radius and nothing goes red. This compiles Studio's real entry stylesheet with every
+// class the source claims and reports any candidate producing no selector as `file: class`.
+// Tailwind is the only judge, so there is no allowlist; a failing class is fixed, never excused.
 
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -23,24 +10,15 @@ import { describe, expect, it } from "vitest";
 import { extractClassCandidates } from "./classCandidates";
 import { listSourceFiles, loadStylesheet, STYLES_DIR } from "./styleSources";
 
-/**
- * A class selector in the emitted CSS, with Tailwind's escapes removed, so
- * `.hover\:bg-surface\/50` reads back as the candidate that produced it.
- */
+// A class selector in the emitted CSS, escapes removed: `.hover\:bg-surface\/50` reads back as its candidate.
 const CLASS_SELECTOR = /\.((?:\\.|[^\s.,{}()>+~:[\]#'"*/\\])+)/g;
 
-/**
- * Tailwind's two variant markers. They are written in markup and carry a
- * variant name (`group/card`), but they produce no rule of their own, so no
- * compiled selector can ever vouch for them. Nothing else is exempt.
- */
+// Tailwind's `group`/`peer` variant markers (`group/card`) produce no rule of their own, so no
+// compiled selector can vouch for them. Nothing else is exempt.
 const MARKERS = new Set(["group", "peer"]);
 
-/**
- * `hf-` is HyperFrames' reserved prefix for its own semantic hooks. Those are
- * not utilities and carry no design value, so Tailwind is the wrong judge of
- * them: the gate covers Tailwind's namespace, and this one is Studio's.
- */
+// `hf-` is HyperFrames' reserved prefix for semantic hooks, not utilities, so Tailwind is the
+// wrong judge of them.
 const HOOK_PREFIX = /^hf-/;
 
 /** Compile Studio's stylesheet and return every class it can produce. */
@@ -57,11 +35,8 @@ async function resolvable(candidates: string[]): Promise<Set<string>> {
   return selectors;
 }
 
-/**
- * `file: class` for every class the sources claim that Tailwind cannot make.
- * Sources are passed in so the fixtures below exercise the same code path the
- * tree does.
- */
+// `file: class` for every class the sources claim that Tailwind cannot make. Sources are passed
+// in so the fixtures exercise the same code path as the tree.
 async function unresolved(sources: ReadonlyMap<string, string>): Promise<string[]> {
   const claims = new Map<string, string[]>();
   for (const [file, source] of sources) {
@@ -81,23 +56,16 @@ async function unresolved(sources: ReadonlyMap<string, string>): Promise<string[
   return failures.sort();
 }
 
-/**
- * Every file the gate reads. This mirrors the `@source` globs in `studio.css`,
- * so a class the gate accepts is a class Tailwind was given the chance to see.
- * Tests are excluded: a fixture in a test is not markup.
- */
+// Every file the gate reads, mirroring the `@source` globs in `studio.css`. Tests are excluded:
+// a fixture in a test is not markup.
 function studioSources(): Map<string, string> {
   return listSourceFiles((file) => /\.tsx?$/.test(file) && !/\.test\.tsx?$/.test(file));
 }
 
 describe("token gate", () => {
   it("names the file and the class when a class resolves to nothing", async () => {
-    // Covers AE1. `rounded-hologram` is shaped exactly like a token name and
-    // is defined nowhere, which is the whole failure mode: it reads as real in
-    // review and renders as nothing at runtime.
-    //
-    // The map is called `buttonSizes`, not `sizeStyles`: what puts a string in
-    // front of the gate is the `cn()` that consumes it, not its variable name.
+    // AE1: `rounded-hologram` looks like a token name but is defined nowhere. The map is named
+    // `buttonSizes`, not `sizeStyles`: the `cn()` that consumes it puts it in front of the gate.
     const failures = await unresolved(
       new Map([
         [
