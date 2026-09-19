@@ -18,7 +18,15 @@ run_with_timeout() {
   local elapsed=0
   while kill -0 "$pid" 2>/dev/null; do
     if ((elapsed >= seconds)); then
-      kill -TERM "$pid" 2>/dev/null
+      # Git Bash's `kill -TERM` on a native Windows binary (bun.exe) is a
+      # best-effort thread-injection emulation, not a real signal, and can
+      # fail to land -- the exact hang this function exists to prevent.
+      # taskkill //T (kills the child tree) //F (TerminateProcess) is real.
+      if [[ "${OS:-}" == "Windows_NT" ]]; then
+        taskkill //F //T //PID "$pid" 2>/dev/null
+      else
+        kill -TERM "$pid" 2>/dev/null
+      fi
       wait "$pid" 2>/dev/null
       return 124
     fi
