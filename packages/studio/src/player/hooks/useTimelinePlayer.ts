@@ -3,6 +3,7 @@ import { usePlayerStore, liveTime, type TimelineElement } from "../store/playerS
 import { useMountEffect } from "../../hooks/useMountEffect";
 import { usePlaybackKeyboard } from "./usePlaybackKeyboard";
 import { useTimelineSyncCallbacks } from "./useTimelineSyncCallbacks";
+import { useShadowPreviewReload } from "./useShadowPreviewReload";
 import { useTimelinePlayerLoop } from "./useTimelinePlayerLoop";
 import { logReload } from "../../utils/reloadDebug";
 
@@ -130,43 +131,30 @@ export function useTimelinePlayer() {
 
   // Pre-existing dispatcher complexity — surfaced by this PR's line shifts, not new logic.
   // fallow-ignore-next-line complexity
-  const getAdapter = useCallback((): PlaybackAdapter | null => {
-    try {
-      const iframe = iframeRef.current;
-      const win = iframe?.contentWindow as IframeWindow | null;
-      if (!iframe || !win) return null;
+  const getAdapter = useCallback(
+    (overrideIframe?: HTMLIFrameElement | null): PlaybackAdapter | null => {
+      try {
+        // A caller passing shadowIframeRef.current (currently null, no shadow
+        // attached yet) must get "no adapter", not silently fall back to the
+        // live iframe — so this checks for undefined (no override argument at
+        // all), not nullishness.
+        const iframe = overrideIframe !== undefined ? overrideIframe : iframeRef.current;
+        const win = iframe?.contentWindow as IframeWindow | null;
+        if (!iframe || !win) return null;
 
-      const playerAdapter =
-        win.__player && typeof win.__player.play === "function" ? win.__player : null;
-      const docDuration = readTimelineDurationFromDocument(iframe.contentDocument);
-      const adapterDur = getAdapterDuration(playerAdapter);
+        const playerAdapter =
+          win.__player && typeof win.__player.play === "function" ? win.__player : null;
+        const docDuration = readTimelineDurationFromDocument(iframe.contentDocument);
+        const adapterDur = getAdapterDuration(playerAdapter);
 
-      if (adapterDur > 0 && docDuration <= adapterDur) {
-        releaseStaticSeekCache(staticSeekAdapterRef, staticSeekWarnedRef);
-        return playerAdapter;
-      }
-
-      let timelineAdapter: PlaybackAdapter | null = null;
-      if (win.__timeline) {
-        const adapter = wrapTimeline(win.__timeline);
-        const dur = getAdapterDuration(adapter);
-        if (dur > 0 && docDuration <= dur) {
+        if (adapterDur > 0 && docDuration <= adapterDur) {
           releaseStaticSeekCache(staticSeekAdapterRef, staticSeekWarnedRef);
-          return adapter;
+          return playerAdapter;
         }
-        if (dur > 0) timelineAdapter ??= adapter;
-      }
 
-      if (win.__timelines) {
-        const keys = Object.keys(win.__timelines);
-        if (keys.length > 0) {
-          // Resolve the root composition id from the DOM — the outermost [data-composition-id]
-          // is the master; otherwise Object.keys() order lets a sub-composition hijack transport.
-          const rootId = iframe?.contentDocument
-            ?.querySelector("[data-composition-id]")
-            ?.getAttribute("data-composition-id");
-          const key = rootId && rootId in win.__timelines ? rootId : keys[keys.length - 1];
-          const adapter = wrapTimeline(win.__timelines[key]);
+        let timelineAdapter: PlaybackAdapter | null = null;
+        if (win.__timeline) {
+          const adapter = wrapTimeline(win.__timeline);
           const dur = getAdapterDuration(adapter);
           if (dur > 0 && docDuration <= dur) {
             releaseStaticSeekCache(staticSeekAdapterRef, staticSeekWarnedRef);
@@ -174,38 +162,58 @@ export function useTimelinePlayer() {
           }
           if (dur > 0) timelineAdapter ??= adapter;
         }
-      }
 
-      // The document timeline extends past every native adapter's duration.
-      // Wrap the best available adapter with the effective duration so the
-      // seek slider, seek clamping, and duration display cover the full range.
-      const bestAdapter = playerAdapter ?? timelineAdapter;
-      const effectiveDuration = Math.max(
-        usePlayerStore.getState().duration,
-        docDuration,
-        adapterDur,
-      );
-      if (
-        bestAdapter &&
-        effectiveDuration > 0 &&
-        ("renderSeek" in bestAdapter || typeof bestAdapter.seek === "function")
-      ) {
-        return resolveStaticSeekFallback({
-          cache: staticSeekAdapterRef,
-          warned: staticSeekWarnedRef,
-          bestAdapter,
-          effectiveDuration,
+        if (win.__timelines) {
+          const keys = Object.keys(win.__timelines);
+          if (keys.length > 0) {
+            // Resolve the root composition id from the DOM — the outermost [data-composition-id]
+            // is the master; otherwise Object.keys() order lets a sub-composition hijack transport.
+            const rootId = iframe?.contentDocument
+              ?.querySelector("[data-composition-id]")
+              ?.getAttribute("data-composition-id");
+            const key = rootId && rootId in win.__timelines ? rootId : keys[keys.length - 1];
+            const adapter = wrapTimeline(win.__timelines[key]);
+            const dur = getAdapterDuration(adapter);
+            if (dur > 0 && docDuration <= dur) {
+              releaseStaticSeekCache(staticSeekAdapterRef, staticSeekWarnedRef);
+              return adapter;
+            }
+            if (dur > 0) timelineAdapter ??= adapter;
+          }
+        }
+
+        // The document timeline extends past every native adapter's duration.
+        // Wrap the best available adapter with the effective duration so the
+        // seek slider, seek clamping, and duration display cover the full range.
+        const bestAdapter = playerAdapter ?? timelineAdapter;
+        const effectiveDuration = Math.max(
+          usePlayerStore.getState().duration,
           docDuration,
-          clock: getDefaultStaticSeekPlaybackClock(win),
-          getPlaybackRate: () => usePlayerStore.getState().playbackRate,
-        });
-      }
+          adapterDur,
+        );
+        if (
+          bestAdapter &&
+          effectiveDuration > 0 &&
+          ("renderSeek" in bestAdapter || typeof bestAdapter.seek === "function")
+        ) {
+          return resolveStaticSeekFallback({
+            cache: staticSeekAdapterRef,
+            warned: staticSeekWarnedRef,
+            bestAdapter,
+            effectiveDuration,
+            docDuration,
+            clock: getDefaultStaticSeekPlaybackClock(win),
+            getPlaybackRate: () => usePlayerStore.getState().playbackRate,
+          });
+        }
 
-      return bestAdapter;
-    } catch {
-      return null;
-    }
-  }, []);
+        return bestAdapter;
+      } catch {
+        return null;
+      }
+    },
+    [],
+  );
 
   const { startRAFLoop, stopRAFLoop, stopReverseLoop } = useTimelinePlayerLoop({
     rafRef,
@@ -435,6 +443,30 @@ export function useTimelinePlayer() {
       attachIframeShortcutListeners,
       applyPreviewAudioState,
     });
+
+  // AD132/D-801: full-reload edits (drops/inserts/lane-moves) load behind a
+  // hidden shadow iframe instead of navigating the visible one; see
+  // useShadowPreviewReload.ts for the mechanism.
+  const {
+    previewSlots,
+    onShadowIframeLoad,
+    setShadowIframeNode,
+    beginShadowReload,
+    resetPreviewSlots,
+  } = useShadowPreviewReload({
+    iframeRef,
+    getAdapter,
+    pendingSeekRef,
+    isRefreshingRef,
+    syncTimelineElements,
+    setDuration,
+    setCurrentTime,
+    requestTimelineReady,
+    setIsPlaying,
+    attachIframeShortcutListeners,
+    applyPreviewAudioState,
+  });
+
   const saveSeekPosition = useCallback(() => {
     // Never DEGRADE the saved position. Overlapping reloads (e.g. an external
     // file drop = upload reload + insert reload back-to-back) call this while
@@ -464,22 +496,20 @@ export function useTimelinePlayer() {
     if (!iframe) return;
     logReload("refreshPlayer", () => ({ stack: new Error("refreshPlayer").stack }));
     saveSeekPosition();
-    // Hide the iframe across the full reload so the user never sees the reloading
-    // document's RAW DOM (every clip stacked and visible) in the window between the
-    // new document parsing and the runtime initializing + seeking. initializeAdapter
-    // reveals it again right after its restore seek renders the correct frame.
-    // Tradeoff: this shows the parent stage background (a brief "freeze"/blank, on
-    // the order of the reload time ~100-300ms) INSTEAD of the all-clips flash. A
-    // blank is far less jarring than a burst of every asset appearing at once.
-    // Only the FULL-reload edits (drops/inserts) hit this — timing edits now take
-    // the soft-reload path and never touch refreshPlayer.
-    iframe.style.visibility = "hidden";
+    // AD132/D-801: the live iframe is never touched or hidden. The new
+    // document loads behind a hidden shadow iframe (beginShadowReload); once
+    // its restore-seek paints the correct frame, promoteShadowToLive swaps it
+    // in. The visible frame is always either the old content or the new
+    // content, never neither — a hide-then-reveal window can no longer show
+    // a blank frame because there is no hide step. Only FULL-reload edits
+    // (drops/inserts/lane-moves) hit this — timing edits take the soft-reload
+    // path and never call refreshPlayer.
     const src = iframe.src;
     const url = new URL(src, window.location.origin);
     url.searchParams.set("_t", String(Date.now()));
     applyPreviewVariablesToUrl(url);
-    iframe.src = url.toString();
-  }, [saveSeekPosition]);
+    beginShadowReload(url.toString());
+  }, [saveSeekPosition, beginShadowReload]);
   const getAdapterRef = useRef(getAdapter);
   getAdapterRef.current = getAdapter;
 
@@ -557,5 +587,11 @@ export function useTimelinePlayer() {
     refreshPlayer,
     saveSeekPosition,
     resetPlayer,
+    // AD132/D-801 hidden-shadow-reload plumbing, consumed by NLEPreview to
+    // render the extra (hidden) iframe during a full-reload transition.
+    previewSlots,
+    onShadowIframeLoad,
+    setShadowIframeNode,
+    resetPreviewSlots,
   };
 }

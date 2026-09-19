@@ -1,5 +1,6 @@
 import { memo, useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import { Player } from "../../player";
+import type { PreviewIframeSlot } from "../../player/hooks/useTimelineSyncCallbacks";
 import {
   DEFAULT_PREVIEW_ZOOM,
   canStartPreviewPan,
@@ -17,6 +18,12 @@ interface NLEPreviewProps {
   projectId: string;
   iframeRef: RefObject<HTMLIFrameElement | null>;
   onIframeLoad: () => void;
+  /** AD132/D-801: at most one extra "shadow" slot exists during a full-reload
+   *  transition; see planShadowReload/planShadowPromotion. */
+  previewSlots: PreviewIframeSlot[];
+  onShadowIframeLoad: (gen: number) => void;
+  setShadowIframeNode: (node: HTMLIFrameElement | null) => void;
+  resetPreviewSlots: () => void;
   onCompositionLoadingChange?: (loading: boolean) => void;
   portrait?: boolean;
   directUrl?: string;
@@ -39,6 +46,15 @@ export function getPreviewPlayerKey({
 const ZOOM_HUD_TIMEOUT_MS = 1200;
 const ZOOM_SETTLE_MS = 200;
 const PREVIEW_STAGE_INSET_PX = 16;
+
+// AD132/D-801: a shadow reload's iframe stays fully out of the visible/
+// interactive surface until promoteShadowToLive makes it the live one.
+const SHADOW_IFRAME_STYLE: React.CSSProperties = {
+  position: "absolute",
+  inset: 0,
+  visibility: "hidden",
+  pointerEvents: "none",
+};
 
 interface PreviewCompositionSize {
   width: number;
@@ -122,6 +138,10 @@ export const NLEPreview = memo(function NLEPreview({
   projectId,
   iframeRef,
   onIframeLoad,
+  previewSlots,
+  onShadowIframeLoad,
+  setShadowIframeNode,
+  resetPreviewSlots,
   onCompositionLoadingChange,
   portrait,
   directUrl,
@@ -136,6 +156,19 @@ export const NLEPreview = memo(function NLEPreview({
   useEffect(() => {
     onStageRef?.(stageRef);
   }, [onStageRef]);
+
+  // The previewed composition itself changed (project switch, sub-composition
+  // drill-down): drop any in-flight shadow reload, which would otherwise
+  // carry a URL for the composition being navigated away from. Skipped on
+  // the very first mount — nothing to drop yet.
+  const previousActiveKeyRef = useRef(activeKey);
+  useEffect(() => {
+    if (previousActiveKeyRef.current === activeKey) return;
+    previousActiveKeyRef.current = activeKey;
+    resetPreviewSlots();
+  }, [activeKey, resetPreviewSlots]);
+
+  const liveGenRef = useRef<number | null>(null);
   const [compositionSize, setCompositionSize] = useState<PreviewCompositionSize | null>(null);
   const gutterPx = usePreviewGuidesStore((s) => (s.rulerVisible ? RULER_GUTTER_PX : 0));
   const [stageSize, setStageSize] = useState(() => resolvePreviewStageSize(0, 0, null, portrait));
@@ -298,6 +331,23 @@ export const NLEPreview = memo(function NLEPreview({
       writeTransform(zoomRef.current);
     }
   }, [writeTransform]);
+
+  // AD132/D-801: once a shadow is promoted, iframeRef (from the player hook)
+  // points at the new live node, but previewIframeRef/compositionSize/zoom
+  // are local to this component and only ever synced from the live Player's
+  // own onLoad — which does not fire again on a promotion (the shadow's
+  // onLoad already fired; the live node itself never reloads). Re-sync them
+  // here whenever the live slot's identity changes.
+  useEffect(() => {
+    const live = previewSlots.find((slot) => slot.role === "live");
+    if (!live || live.gen === liveGenRef.current) return;
+    const isPromotion = liveGenRef.current !== null;
+    liveGenRef.current = live.gen;
+    if (!isPromotion) return;
+    previewIframeRef.current = iframeRef.current;
+    updateCompositionSizeFromPreview();
+    applyInitialZoom();
+  }, [previewSlots, iframeRef, updateCompositionSizeFromPreview, applyInitialZoom]);
 
   useEffect(() => {
     const viewport = viewportRef.current;
@@ -469,25 +519,42 @@ export const NLEPreview = memo(function NLEPreview({
                 style={{ position: "absolute", inset: 0, zIndex: 0 }}
               />
             )}
-            <Player
-              key={activeKey}
-              ref={setPreviewIframeRef}
-              projectId={directUrl ? undefined : projectId}
-              directUrl={directUrl}
-              onLoad={() => {
-                updateCompositionSizeFromPreview();
-                onIframeLoad();
-                applyInitialZoom();
-              }}
-              onCompositionLoadingChange={onCompositionLoadingChange}
-              portrait={portrait}
-              suppressLoadingOverlay={suppressLoadingOverlay}
-              style={
-                directUrl?.includes("/components/")
-                  ? { position: "absolute", inset: 0, zIndex: 1 }
-                  : undefined
-              }
-            />
+            {previewSlots.map((slot) =>
+              slot.role === "live" ? (
+                <Player
+                  key={`${activeKey}-${slot.gen}`}
+                  ref={setPreviewIframeRef}
+                  projectId={directUrl ? undefined : projectId}
+                  directUrl={directUrl}
+                  onLoad={() => {
+                    updateCompositionSizeFromPreview();
+                    onIframeLoad();
+                    applyInitialZoom();
+                  }}
+                  onCompositionLoadingChange={onCompositionLoadingChange}
+                  portrait={portrait}
+                  suppressLoadingOverlay={suppressLoadingOverlay}
+                  style={
+                    directUrl?.includes("/components/")
+                      ? { position: "absolute", inset: 0, zIndex: 1 }
+                      : undefined
+                  }
+                />
+              ) : (
+                // AD132/D-801: loads behind the live slot, hidden, until its
+                // own restore-seek paints the right frame — the live slot
+                // above is never touched while this loads.
+                <Player
+                  key={`${activeKey}-${slot.gen}`}
+                  ref={setShadowIframeNode}
+                  directUrl={slot.url}
+                  onLoad={() => onShadowIframeLoad(slot.gen)}
+                  portrait={portrait}
+                  suppressLoadingOverlay
+                  style={SHADOW_IFRAME_STYLE}
+                />
+              ),
+            )}
           </div>
         </div>
         <div

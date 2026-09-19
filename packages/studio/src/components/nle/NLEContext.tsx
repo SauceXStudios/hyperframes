@@ -2,6 +2,7 @@ import { buildProjectApiPath } from "../../utils/projectRouting";
 import { useContext, useState, useCallback, useRef, useEffect, type ReactNode } from "react";
 import { useTimelinePlayer, usePlayerStore } from "../../player";
 import type { TimelineElement } from "../../player";
+import type { PreviewIframeSlot } from "../../player/hooks/useTimelineSyncCallbacks";
 import type { CompositionLevel } from "./CompositionBreadcrumb";
 import { useCompositionStack } from "./useCompositionStack";
 import { MIN_TIMELINE_H, fitTimelineHeight } from "../../utils/fitPanels";
@@ -27,6 +28,12 @@ export interface NLEContextValue {
   seek: (time: number, options?: { keepPlaying?: boolean }) => boolean;
   refreshPlayer: () => void;
   onIframeLoad: () => void;
+  // AD132/D-801: the hidden-shadow-reload iframe, rendered by NLEPreview
+  // alongside the live one only during a full-reload transition.
+  previewSlots: PreviewIframeSlot[];
+  onShadowIframeLoad: (gen: number) => void;
+  setShadowIframeNode: (node: HTMLIFrameElement | null) => void;
+  resetPreviewSlots: () => void;
   // composition stack (from useCompositionStack)
   compositionStack: CompositionLevel[];
   updateCompositionStack: React.Dispatch<React.SetStateAction<CompositionLevel[]>>;
@@ -84,6 +91,10 @@ export function NLEProvider({
     seek,
     onIframeLoad: baseOnIframeLoad,
     refreshPlayer,
+    previewSlots,
+    onShadowIframeLoad,
+    setShadowIframeNode,
+    resetPreviewSlots,
   } = useTimelinePlayer();
 
   // Reset timeline state when the project changes. Done in an effect, not during
@@ -303,7 +314,11 @@ export function NLEProvider({
   onIframeRefStable.current = onIframeRef;
   useEffect(() => {
     onIframeRefStable.current?.(iframeRef.current);
-  }, [compositionStack.length, refreshKey, iframeRef]);
+    // previewSlots is in deps so this re-fires once promoteShadowToLive
+    // repoints iframeRef at the swapped-in iframe (AD132/D-801) — otherwise
+    // an external consumer (e.g. App.tsx's own iframe ref) would keep
+    // pointing at the retired iframe after every full-reload edit.
+  }, [compositionStack.length, refreshKey, iframeRef, previewSlots]);
 
   const value: NLEContextValue = {
     projectId,
@@ -312,6 +327,10 @@ export function NLEProvider({
     seek,
     refreshPlayer,
     onIframeLoad,
+    previewSlots,
+    onShadowIframeLoad,
+    setShadowIframeNode,
+    resetPreviewSlots,
     compositionStack,
     updateCompositionStack,
     handleNavigateComposition,

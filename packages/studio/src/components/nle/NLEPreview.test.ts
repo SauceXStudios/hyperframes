@@ -83,6 +83,10 @@ function renderPreview() {
         projectId: "timeline-edit-playground",
         iframeRef,
         onIframeLoad: () => {},
+        previewSlots: [{ gen: 0, role: "live" }],
+        onShadowIframeLoad: () => {},
+        setShadowIframeNode: () => {},
+        resetPreviewSlots: () => {},
       }),
     );
   });

@@ -46,6 +46,15 @@ interface UseTimelineSyncCallbacksParams {
   setIsPlaying: (v: boolean) => void;
   attachIframeShortcutListeners: () => void;
   applyPreviewAudioState: () => void;
+  /**
+   * Called once initializeAdapter's restore-seek has rendered the correct
+   * frame. Defaults to revealIframe (the live iframe, never actually
+   * hidden anymore, so this is a no-op there). The shadow instantiation
+   * passes the promotion callback instead — same signal, different action.
+   * `context` carries opaque caller data (the shadow's generation number)
+   * through untouched.
+   */
+  onAdapterReady?: (iframe: HTMLIFrameElement | null, context?: number) => void;
 }
 
 /**
@@ -63,15 +72,55 @@ interface UseTimelineSyncCallbacksParams {
  * playhead (the clamp below is the one sanctioned move — content shrank past it).
  */
 /**
- * Undo the `visibility: hidden` that refreshPlayer sets across a full reload.
- * Safe to call when the iframe was never hidden (idempotent no-op). Every reload
- * completion + failure path funnels through here so the preview can never get
- * stuck invisible.
+ * Undo a hidden `visibility` a caller may have set on an iframe. Safe to call
+ * when the iframe was never hidden (idempotent no-op). This is the default
+ * "adapter ready" handler for the always-visible live iframe, which
+ * refreshPlayer no longer hides (see planShadowReload) — kept for the
+ * initial mount and as the fallback signature other callers rely on.
  */
 export function revealIframe(iframe: HTMLIFrameElement | null): void {
   if (iframe && iframe.style.visibility === "hidden") {
     iframe.style.visibility = "";
   }
+}
+
+export type PreviewIframeRole = "live" | "shadow";
+
+export interface PreviewIframeSlot {
+  gen: number;
+  role: PreviewIframeRole;
+  url?: string;
+}
+
+/**
+ * AD132/D-801: a full-reload edit (drop/insert/lane-move) never touches the
+ * live iframe. Instead it queues a hidden "shadow" slot pointed at the reload
+ * URL, replacing any earlier shadow that never became live — that content
+ * went stale before it ever painted, so there is nothing in it worth keeping.
+ * The live slot is untouched, so the visible frame never blanks.
+ */
+export function planShadowReload(
+  slots: PreviewIframeSlot[],
+  nextGen: number,
+  url: string,
+): PreviewIframeSlot[] {
+  const live = slots.find((slot) => slot.role === "live");
+  return live ? [live, { gen: nextGen, role: "shadow", url }] : [{ gen: nextGen, role: "live" }];
+}
+
+/**
+ * Swap a ready shadow in for the live slot with a single array replacement,
+ * so a render can never show zero (or two) live slots — the old live slot
+ * disappears in the exact update that makes the shadow the new one. A
+ * readyGen that no longer matches the current shadow (superseded by a later
+ * reload before it painted) is a no-op.
+ */
+export function planShadowPromotion(
+  slots: PreviewIframeSlot[],
+  readyGen: number,
+): PreviewIframeSlot[] {
+  const ready = slots.find((slot) => slot.gen === readyGen && slot.role === "shadow");
+  return ready ? [{ ...ready, role: "live" }] : slots;
 }
 
 /**
@@ -110,6 +159,7 @@ export function useTimelineSyncCallbacks({
   setIsPlaying,
   attachIframeShortcutListeners,
   applyPreviewAudioState,
+  onAdapterReady = revealIframe,
 }: UseTimelineSyncCallbacksParams) {
   // Convert a runtime timeline message (from iframe postMessage) into TimelineElements
   const processTimelineMessage = useCallback(
@@ -187,94 +237,103 @@ export function useTimelineSyncCallbacks({
     } catch {}
   }, [iframeRef, syncTimelineElements]);
 
-  const initializeAdapter = useCallback(() => {
-    const adapter = getAdapter();
-    if (!adapter || adapter.getDuration() <= 0) return false;
+  const initializeAdapter = useCallback(
+    (context?: number) => {
+      const adapter = getAdapter();
+      if (!adapter || adapter.getDuration() <= 0) return false;
 
-    adapter.pause();
-    const startTime = seekAdapterToRestorePoint(adapter, pendingSeekRef);
-    // The correct frame is now rendered — reveal the iframe that refreshPlayer hid
-    // for the reload, so the user sees the restored frame directly (never the raw
-    // all-clips DOM). Cleared unconditionally: any later failure path must not leave
-    // the preview stuck invisible.
-    revealIframe(iframeRef.current);
-    // Keep non-React listeners such as the capture link and time display in sync
-    // with the initial adapter seek on iframe load.
-    liveTime.notify(startTime);
-    syncAdapterDuration(adapter, setDuration);
-    setCurrentTime(startTime);
-    if (!isRefreshingRef.current) {
-      // Enables Play from actual play-readiness, not just a known duration —
-      // a click before this resolves used to start the timeline with media,
-      // images or fonts still loading and never recover.
-      requestTimelineReady(safeContentDocument(iframeRef.current));
-    }
-    isRefreshingRef.current = false;
-    setIsPlaying(false);
+      adapter.pause();
+      const startTime = seekAdapterToRestorePoint(adapter, pendingSeekRef);
+      // The correct frame is now rendered — signal readiness so the caller can
+      // reveal it (the live iframe, never hidden anymore) or promote it (a
+      // shadow reload, AD132/D-801) — never before this point, so the visible
+      // frame is either the old content or the new one, never neither.
+      onAdapterReady(iframeRef.current, context);
+      // Keep non-React listeners such as the capture link and time display in sync
+      // with the initial adapter seek on iframe load.
+      liveTime.notify(startTime);
+      syncAdapterDuration(adapter, setDuration);
+      setCurrentTime(startTime);
+      if (!isRefreshingRef.current) {
+        // Enables Play from actual play-readiness, not just a known duration —
+        // a click before this resolves used to start the timeline with media,
+        // images or fonts still loading and never recover.
+        requestTimelineReady(safeContentDocument(iframeRef.current));
+      }
+      isRefreshingRef.current = false;
+      setIsPlaying(false);
 
-    hydrateTimelineFromPreview({
-      iframe: iframeRef.current,
-      adapter,
+      hydrateTimelineFromPreview({
+        iframe: iframeRef.current,
+        adapter,
+        processTimelineMessage,
+        enrichMissingCompositions,
+        applyPreviewAudioState,
+        attachIframeShortcutListeners,
+        syncTimelineElements,
+      });
+      return true;
+    },
+    [
+      getAdapter,
+      setDuration,
+      setCurrentTime,
+      requestTimelineReady,
+      setIsPlaying,
       processTimelineMessage,
       enrichMissingCompositions,
-      applyPreviewAudioState,
-      attachIframeShortcutListeners,
       syncTimelineElements,
-    });
-    return true;
-  }, [
-    getAdapter,
-    setDuration,
-    setCurrentTime,
-    requestTimelineReady,
-    setIsPlaying,
-    processTimelineMessage,
-    enrichMissingCompositions,
-    syncTimelineElements,
-    attachIframeShortcutListeners,
-    applyPreviewAudioState,
-    iframeRef,
-    isRefreshingRef,
-    pendingSeekRef,
-  ]);
+      attachIframeShortcutListeners,
+      applyPreviewAudioState,
+      onAdapterReady,
+      iframeRef,
+      isRefreshingRef,
+      pendingSeekRef,
+    ],
+  );
 
-  const onIframeLoad = useCallback(() => {
-    applyPreviewAudioState();
-    if (probeIntervalRef.current) clearInterval(probeIntervalRef.current);
+  const onIframeLoad = useCallback(
+    (context?: number) => {
+      applyPreviewAudioState();
+      if (probeIntervalRef.current) clearInterval(probeIntervalRef.current);
 
-    // Fast path: adapter already available (in-place reloads, cached compositions)
-    if (initializeAdapter()) return;
+      // Fast path: adapter already available (in-place reloads, cached compositions)
+      if (initializeAdapter(context)) return;
 
-    // The runtime posts "state" or "timeline" messages once ready.
-    // Listen for those instead of polling.
-    const iframe = iframeRef.current;
-    let settled = false;
+      // The runtime posts "state" or "timeline" messages once ready.
+      // Listen for those instead of polling.
+      const iframe = iframeRef.current;
+      let settled = false;
 
-    const trySettle = () => {
-      if (settled) return;
-      if (initializeAdapter()) {
-        settled = true;
+      const trySettle = () => {
+        if (settled) return;
+        if (initializeAdapter(context)) {
+          settled = true;
+          window.removeEventListener("message", onMessage);
+          if (probeIntervalRef.current) clearInterval(probeIntervalRef.current);
+        }
+      };
+
+      const onMessage = (e: MessageEvent) => {
+        if (isPreviewReadinessMessage(e, iframe)) trySettle();
+      };
+      window.addEventListener("message", onMessage);
+
+      // Safety net: if no message arrives within 5s, try one last time then give up.
+      probeIntervalRef.current = setTimeout(() => {
+        if (!settled) {
+          trySettle();
+        }
         window.removeEventListener("message", onMessage);
-        if (probeIntervalRef.current) clearInterval(probeIntervalRef.current);
-      }
-    };
-
-    const onMessage = (e: MessageEvent) => {
-      if (isPreviewReadinessMessage(e, iframe)) trySettle();
-    };
-    window.addEventListener("message", onMessage);
-
-    // Safety net: if no message arrives within 5s, try one last time then give up.
-    probeIntervalRef.current = setTimeout(() => {
-      if (!settled) {
-        trySettle();
-      }
-      window.removeEventListener("message", onMessage);
-      // Never leave the preview stuck invisible if the runtime never settled
-      // (initializeAdapter reveals on success; this covers the give-up case).
-      revealIframe(iframeRef.current);
-    }, 5000) as unknown as ReturnType<typeof setInterval>;
-  }, [initializeAdapter, iframeRef, probeIntervalRef, applyPreviewAudioState]);
+        // Never leave the live iframe stuck invisible if the runtime never
+        // settled. A shadow that gives up here is simply never promoted — the
+        // live iframe it would have replaced was never touched, so there is
+        // nothing to undo.
+        revealIframe(iframeRef.current);
+      }, 5000) as unknown as ReturnType<typeof setInterval>;
+    },
+    [initializeAdapter, iframeRef, probeIntervalRef, applyPreviewAudioState],
+  );
 
   // Stable refs so mount-effect closures always call the latest version
   const processTimelineMessageRef = { current: processTimelineMessage };
