@@ -158,6 +158,7 @@ export function StudioHeader({
 }: StudioHeaderProps) {
   const { projectId, editHistory, handleUndo, handleRedo, renderQueue } = useStudioShellContext();
   const { rightCollapsed, setRightCollapsed, setRightPanelTab } = usePanelLayoutContext();
+  const inspectorOpen = !rightCollapsed && inspectorPanelActive;
   const isRendering = renderQueue.isRendering;
   const ffmpegMissing = renderQueue.ffmpegMissing;
 
@@ -288,9 +289,9 @@ export function StudioHeader({
               // the panel shouldn't deselect the element.
               setRightCollapsed(true);
             }}
-            aria-pressed={!rightCollapsed && inspectorPanelActive}
+            aria-pressed={inspectorOpen}
             className={`h-7 flex items-center gap-1.5 px-2.5 rounded-md text-[11px] font-medium border transition-colors active:scale-[0.98] ${
-              !rightCollapsed && inspectorPanelActive
+              inspectorOpen
                 ? "text-studio-accent bg-studio-accent/10 border-studio-accent/30"
                 : "text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800 border-transparent"
             }`}
