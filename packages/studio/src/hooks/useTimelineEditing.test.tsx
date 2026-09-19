@@ -1569,6 +1569,85 @@ describe("useTimelineEditing: canEdit gate", () => {
     expect(writeProjectFile).toHaveBeenCalled();
     hook.unmount();
   });
+
+  it("refuses razor-split-all when it would split a blocked clip, writing nothing", async () => {
+    const iframe = createPreviewIframe([{ id: "clip", track: 0 }]);
+    const clip = timelineElement({ id: "clip", track: 0, zIndex: 0, start: 0, duration: 2 });
+    usePlayerStore.getState().setElements([clip]);
+    const showToast = vi.fn();
+    const fetchMock = vi.fn(async () => {
+      throw new Error("must not be called: canEdit should have refused the split");
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    let hook: ReturnType<typeof useTimelineEditing> | null = null;
+    function Harness() {
+      hook = useTimelineEditing({
+        projectId: "p1",
+        activeCompPath: "index.html",
+        timelineElements: [clip],
+        showToast,
+        writeProjectFile: vi.fn(),
+        recordEdit: vi.fn(),
+        reloadPreview: vi.fn(),
+        previewIframeRef: { current: iframe },
+        pendingTimelineEditPathRef: { current: new Set<string>() },
+        uploadProjectFiles: vi.fn(),
+        canEdit: () => ({ blocked: true, reason: "Reserved by an agent" }),
+      });
+      return null;
+    }
+    const { unmount } = mountHarness(<Harness />);
+    if (!hook) throw new Error("Expected hook to mount");
+
+    await act(async () => {
+      await hook!.handleRazorSplitAll(1);
+      await flushAsyncWork();
+    });
+
+    expect(showToast).toHaveBeenCalledWith("Reserved by an agent", "error");
+    expect(fetchMock).not.toHaveBeenCalled();
+    unmount();
+  });
+
+  it("refuses a blocked group's audio attribute write, writing nothing", async () => {
+    const iframe = createPreviewIframe([{ id: "member", track: 0 }]);
+    const member = timelineElement({ id: "member", track: 0, zIndex: 0 });
+    usePlayerStore.getState().setElements([{ ...member, audioGroup: "hf-group" }]);
+    const showToast = vi.fn();
+    const fetchMock = vi.fn(async () => {
+      throw new Error("must not be called: canEdit should have refused the write");
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    let hook: ReturnType<typeof useTimelineEditing> | null = null;
+    function Harness() {
+      hook = useTimelineEditing({
+        projectId: "p1",
+        activeCompPath: "index.html",
+        timelineElements: [member],
+        showToast,
+        writeProjectFile: vi.fn(),
+        recordEdit: vi.fn(),
+        reloadPreview: vi.fn(),
+        previewIframeRef: { current: iframe },
+        pendingTimelineEditPathRef: { current: new Set<string>() },
+        uploadProjectFiles: vi.fn(),
+        canEdit: (element) =>
+          element.id === "member" ? { blocked: true, reason: "Reserved by an agent" } : true,
+      });
+      return null;
+    }
+    const { unmount } = mountHarness(<Harness />);
+    if (!hook) throw new Error("Expected hook to mount");
+
+    await act(async () => {
+      await hook!.setAudioGroupAttribute.setQuiet("hf-group", "data-volume", "0.5", "Set volume");
+      await flushAsyncWork();
+    });
+
+    expect(showToast).toHaveBeenCalledWith("Reserved by an agent", "error");
+    expect(fetchMock).not.toHaveBeenCalled();
+    unmount();
+  });
 });
 
 // Regression: track()/guard() must return the same wrapped handler across
