@@ -374,6 +374,10 @@ export function StudioApp() {
       domEditSession.domEditSelection,
       gestureState === "recording",
     );
+  // The dock has no separate "railed by window width" state (it shrinks
+  // panels, never auto-hides the group), so rightCollapsed is already the
+  // value that decides whether the panel is actually showing.
+  const inspectorButtonActive = !panelLayout.rightCollapsed && inspectorPanelActive;
   useStudioUrlState({
     projectId,
     activeCompPath,
@@ -444,6 +448,7 @@ export function StudioApp() {
                   handleCaptureFrameClick={frameCapture.handleCaptureFrameClick}
                   refreshCaptureFrameTime={frameCapture.refreshCaptureFrameTime}
                   capturing={frameCapture.capturing}
+                  inspectorButtonActive={inspectorButtonActive}
                   inspectorPanelActive={inspectorPanelActive}
                   onExport={() => {
                     void (async () => {
