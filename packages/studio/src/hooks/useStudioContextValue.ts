@@ -66,10 +66,7 @@ export function buildStudioContextValue(input: StudioContextInput): StudioContex
 }
 
 export interface InspectorState {
-  layersPanelActive: boolean;
-  designPanelActive: boolean;
   inspectorPanelActive: boolean;
-  inspectorButtonActive: boolean;
   shouldShowMotionPath: boolean;
   shouldShowSelectedDomBounds: boolean;
 }
@@ -81,14 +78,9 @@ export function useInspectorState(
   isGestureRecording?: boolean,
 ): InspectorState {
   return useMemo(() => {
-    const layersPanelActive = visiblePanels.has("layers");
-    const designPanelActive = visiblePanels.has("design");
-    const inspectorPanelActive = layersPanelActive || designPanelActive;
+    const inspectorPanelActive = visiblePanels.has("layers") || visiblePanels.has("design");
     return {
-      layersPanelActive,
-      designPanelActive,
       inspectorPanelActive,
-      inspectorButtonActive: inspectorPanelActive,
       // Deliberately wider than shouldShowSelectedDomBounds: the on-canvas path
       // handles ARE the arc-drag affordance, so gating them on an open Inspector
       // would make keyframe path editing reachable only from a side panel.

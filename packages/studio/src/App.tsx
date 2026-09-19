@@ -359,17 +359,13 @@ export function StudioApp() {
     [appHotkeys, resetConsoleErrors, refreshPreviewDocumentVersion],
   );
   const visiblePanels = useDockLayoutStore((state) => state.visiblePanels);
-  const {
-    inspectorPanelActive,
-    inspectorButtonActive,
-    shouldShowMotionPath,
-    shouldShowSelectedDomBounds,
-  } = useInspectorState(
-    visiblePanels,
-    isPlaying,
-    domEditSession.domEditSelection,
-    gestureState === "recording",
-  );
+  const { inspectorPanelActive, shouldShowMotionPath, shouldShowSelectedDomBounds } =
+    useInspectorState(
+      visiblePanels,
+      isPlaying,
+      domEditSession.domEditSelection,
+      gestureState === "recording",
+    );
   useStudioUrlState({
     projectId,
     activeCompPath,
@@ -440,7 +436,6 @@ export function StudioApp() {
                   handleCaptureFrameClick={frameCapture.handleCaptureFrameClick}
                   refreshCaptureFrameTime={frameCapture.refreshCaptureFrameTime}
                   capturing={frameCapture.capturing}
-                  inspectorButtonActive={inspectorButtonActive}
                   inspectorPanelActive={inspectorPanelActive}
                   onExport={() => {
                     void (async () => {

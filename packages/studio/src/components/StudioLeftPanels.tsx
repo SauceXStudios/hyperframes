@@ -13,7 +13,7 @@ import { useStudioShellContext } from "../contexts/StudioContext";
 import { useFileManagerContext } from "../contexts/FileManagerContext";
 import { getPersistedRenderSettings } from "./renders/renderSettings";
 
-export interface StudioLeftPanelsProps {
+interface StudioLeftPanelsProps {
   onSelectComposition: (comp: string) => void;
   onAddBlock: (blockName: string) => void;
   onPreviewBlock?: (preview: BlockPreviewInfo | null) => void;
