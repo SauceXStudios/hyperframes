@@ -2,7 +2,6 @@ import { useCallback, type ReactNode } from "react";
 import { Timeline } from "../../player";
 import type { TimelineElement } from "../../player";
 import type { BlockedTimelineEditIntent } from "../../player/components/timelineEditing";
-import { TimelineResizeDivider } from "./TimelineResizeDivider";
 import { useTimelineEditContext } from "../../contexts/TimelineEditContext";
 import { trackStudioExpandedClipEdit } from "../../telemetry/events";
 import { useNLEContext } from "./NLEContext";
@@ -132,10 +131,6 @@ export function TimelinePane({
     handleDrillDown,
     compositionStack,
     updateCompositionStack,
-    timelineH,
-    setTimelineH,
-    persistTimelineH,
-    containerRef,
     timelineDisabled,
     timelineSessionEpoch,
   } = useNLEContext();
@@ -254,20 +249,8 @@ export function TimelinePane({
   );
 
   return (
-    <>
-      <TimelineResizeDivider
-        timelineH={timelineH}
-        setTimelineH={setTimelineH}
-        persistTimelineH={persistTimelineH}
-        containerRef={containerRef}
-        disabled={timelineDisabled}
-      />
-
-      {/* Timeline section — inner padding (not margin) keeps the divider's
-          height math exact while giving the panel a gap from the shell edges. */}
       <div
-        className="relative flex flex-col shrink-0 px-px pb-px"
-        style={{ height: timelineH }}
+        className="relative flex h-full flex-col"
         aria-disabled={timelineDisabled || undefined}
       >
         <div
@@ -320,6 +303,5 @@ export function TimelinePane({
           </div>
         )}
       </div>
-    </>
   );
 }

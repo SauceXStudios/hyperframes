@@ -1,7 +1,7 @@
 import { useOwnPreviewIframe, usePreviewIframeStore } from "./player/store/previewIframeStore";
 import { buildProjectApiPath } from "./utils/projectRouting";
 import { useState, useCallback, useRef, useMemo, useLayoutEffect } from "react";
-import type { LeftSidebarHandle, SidebarTab } from "./components/sidebar/LeftSidebar";
+import { useDockLayoutStore } from "./components/dock/dockLayoutStore";
 import { useRenderQueue } from "./components/renders/useRenderQueue";
 import { usePlayerStore } from "./player";
 import { StudioOverlays } from "./components/StudioOverlays";
@@ -48,9 +48,9 @@ import type { DomEditSelection } from "./components/editor/domEditing";
 import { StudioHeader } from "./components/StudioHeader";
 import { useGestureCommit } from "./hooks/useGestureCommit";
 import { GestureTrailOverlay } from "./components/editor/GestureTrailOverlay";
-import { StudioLeftSidebar } from "./components/StudioLeftSidebar";
+import { StudioLeftPanels } from "./components/StudioLeftPanels";
 import { EditorShell } from "./components/EditorShell";
-import { StudioRightPanel } from "./components/StudioRightPanel";
+import { StudioRightPanels } from "./components/StudioRightPanels";
 import { TimelineToolbar } from "./components/TimelineToolbar";
 import { StudioPlaybackProvider, StudioShellProvider } from "./contexts/StudioContext";
 import { PanelLayoutProvider } from "./contexts/PanelLayoutContext";
@@ -75,7 +75,6 @@ export function StudioApp() {
   const [previewDocumentVersion, refreshPreviewDocumentVersion] = usePreviewDocumentVersion();
   const [blockPreview, setBlockPreview] = useState<BlockPreviewInfo | null>(null);
   const previewIframeRef = useRef<HTMLIFrameElement | null>(null);
-  const leftSidebarRef = useRef<LeftSidebarHandle>(null);
   const captionEditMode = useCaptionStore((s) => s.isEditMode);
   const captionHasSelection = useCaptionStore((s) => s.selectedSegmentIds.size > 0);
   const captionSync = useCaptionSync(projectId);
@@ -234,7 +233,6 @@ export function StudioApp() {
     showToast,
     syncHistoryPreviewAfterApply: previewPersistence.syncHistoryPreviewAfterApply,
     waitForPendingDomEditSaves: previewPersistence.waitForPendingDomEditSaves,
-    leftSidebarRef,
     handleCopy,
     handlePaste,
     handleCut,
@@ -247,10 +245,6 @@ export function StudioApp() {
     activeCompPath,
     forceReloadSdkSession: sdkHandle.forceReload,
     onToggleRecording: () => handleToggleRecordingRef.current(),
-  });
-  const sidebarTabRef = useRef({
-    select: (t: SidebarTab) => leftSidebarRef.current?.selectTab(t),
-    get: () => leftSidebarRef.current?.getTab() ?? "compositions",
   });
   const domEditSession = useDomEditSession({
     projectId,
@@ -286,8 +280,6 @@ export function StudioApp() {
     reloadPreview,
     setRefreshKey,
     openSourceForSelection: fileManager.openSourceForSelection,
-    selectSidebarTab: sidebarTabRef.current.select,
-    getSidebarTab: sidebarTabRef.current.get,
     sdkSession: editFlowSdkSession,
     publishSdkSession: sdkHandle.publish,
     forceReloadSdkSession: sdkHandle.forceReload,
@@ -367,16 +359,14 @@ export function StudioApp() {
     },
     [appHotkeys, resetConsoleErrors, refreshPreviewDocumentVersion],
   );
+  const visiblePanels = useDockLayoutStore((state) => state.visiblePanels);
   const {
-    designPanelActive,
     inspectorPanelActive,
     inspectorButtonActive,
     shouldShowMotionPath,
     shouldShowSelectedDomBounds,
   } = useInspectorState(
-    panelLayout.rightPanelTab,
-    panelLayout.rightInspectorPanes,
-    panelLayout.effectiveRightCollapsed,
+    visiblePanels,
     isPlaying,
     domEditSession.domEditSelection,
     gestureState === "recording",
@@ -468,25 +458,21 @@ export function StudioApp() {
                 )}
                 <ExternalFileConflictBanner coordinator={externalFileChanges} />
                 <EditorShell
-                  left={
-                    <StudioLeftSidebar
-                      leftSidebarRef={leftSidebarRef}
-                      onSelectComposition={handleSelectComposition}
-                      onAddBlock={handleAddBlock}
-                      onPreviewBlock={setBlockPreview}
-                      onLint={handleLint}
-                      linting={linting}
-                      lintFindingCount={lintModal?.length ?? findingsByFile.size}
-                      lintFindingsByFile={findingsByFile}
-                      lintHasError={hasLintError}
-                      onAddAssetToTimeline={handleAddAssetAtPlayhead}
-                      onAddCompositionToTimeline={handleAddCompositionAtPlayhead}
-                    />
-                  }
-                  right={
-                    panelLayout.effectiveRightCollapsed ? null : (
-                      <StudioRightPanel
-                        designPanelActive={designPanelActive}
+                  panels={
+                    <>
+                      <StudioLeftPanels
+                        onSelectComposition={handleSelectComposition}
+                        onAddBlock={handleAddBlock}
+                        onPreviewBlock={setBlockPreview}
+                        onLint={handleLint}
+                        linting={linting}
+                        lintFindingCount={lintModal?.length ?? findingsByFile.size}
+                        lintFindingsByFile={findingsByFile}
+                        lintHasError={hasLintError}
+                        onAddAssetToTimeline={handleAddAssetAtPlayhead}
+                        onAddCompositionToTimeline={handleAddCompositionAtPlayhead}
+                      />
+                      <StudioRightPanels
                         activeBlockParams={activeBlockParams}
                         onCloseBlockParams={() => {
                           setActiveBlockParams(null);
@@ -504,7 +490,7 @@ export function StudioApp() {
                         onAutoGroupCarveSources={timelineEditing.handleAutoGroupCarveSources}
                         onAddMediaOverlay={handleAddMediaOverlay}
                       />
-                    )
+                    </>
                   }
                   timelineToolbar={timelineToolbar}
                   renderClipContent={renderClipContent}

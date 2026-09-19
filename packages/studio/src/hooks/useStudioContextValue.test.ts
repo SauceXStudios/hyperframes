@@ -4,14 +4,12 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { DomEditSelection } from "../components/editor/domEditing";
-import type { RightInspectorPanes } from "../utils/studioHelpers";
+import type { PanelId } from "../components/dock/panelRegistry";
 import { makeSelection } from "./domSelectionTestHarness";
 import { useInspectorState, type InspectorState } from "./useStudioContextValue";
 
 interface HarnessProps {
-  rightPanelTab: string;
-  rightInspectorPanes: RightInspectorPanes;
-  rightCollapsed: boolean;
+  visiblePanels: ReadonlySet<PanelId>;
   isPlaying: boolean;
   isGestureRecording: boolean;
   domEditSelection: DomEditSelection | null;
@@ -22,9 +20,7 @@ function renderInspectorState(props: HarnessProps): InspectorState {
 
   function Harness() {
     state = useInspectorState(
-      props.rightPanelTab,
-      props.rightInspectorPanes,
-      props.rightCollapsed,
+      props.visiblePanels,
       props.isPlaying,
       props.domEditSelection,
       props.isGestureRecording,
@@ -42,9 +38,7 @@ function selectedProps(
 ): HarnessProps & { domEditSelection: DomEditSelection } {
   const element = document.createElement("div");
   return {
-    rightPanelTab: "renders",
-    rightInspectorPanes: { layers: false, design: false },
-    rightCollapsed: true,
+    visiblePanels: new Set<PanelId>(["preview", "timeline", "renders"]),
     isPlaying: false,
     isGestureRecording: false,
     domEditSelection: makeSelection("Selected", element),
@@ -79,14 +73,11 @@ describe("useInspectorState", () => {
     expect(renderInspectorState(selectedProps()).shouldShowSelectedDomBounds).toBe(false);
     expect(
       renderInspectorState(
-        selectedProps({
-          rightPanelTab: "design",
-          rightInspectorPanes: { layers: false, design: true },
-        }),
+        selectedProps({ visiblePanels: new Set<PanelId>(["design"]) }),
       ).shouldShowSelectedDomBounds,
     ).toBe(true);
     expect(
-      renderInspectorState(selectedProps({ rightPanelTab: "variables" }))
+      renderInspectorState(selectedProps({ visiblePanels: new Set<PanelId>(["variables"]) }))
         .shouldShowSelectedDomBounds,
     ).toBe(true);
   });
