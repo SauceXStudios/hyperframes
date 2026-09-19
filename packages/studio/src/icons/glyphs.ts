@@ -116,12 +116,29 @@ export const GLYPHS = {
       "M2.5 11.75 8 14.5l5.5-2.75",
     ],
   },
-  // Studio's own default z-order glyphs (CanvasContextMenu.tsx), reproduced
-  // verbatim in the module's format per Miguel's D-813 am.3 call: no redraw.
-  "bring-forward": { shapes: ["M3 11 L8 8.5 L13 11 L8 13.5 Z", "M8 8.5 L8 2", "M5.5 4.5 L8 2 L10.5 4.5"] },
-  "send-backward": { shapes: ["M3 5 L8 2.5 L13 5 L8 7.5 Z", "M8 7.5 L8 14", "M5.5 11.5 L8 14 L10.5 11.5"] },
-  "bring-to-front": { shapes: ["M3 9.5 L8 7 L13 9.5 L8 12 Z", "M3 12.5 L8 10 L13 12.5 L8 15 Z", "M8 12.5 L8 2", "M5.5 4.5 L8 2 L10.5 4.5"] },
-  "send-to-back": { shapes: ["M3 4 L8 1.5 L13 4 L8 6.5 Z", "M3 7 L8 4.5 L13 7 L8 9.5 Z", "M8 3.5 L8 14", "M5.5 11.5 L8 14 L10.5 11.5"] },
+  // Studio's existing z-order glyphs (CanvasContextMenu.tsx), kept verbatim.
+  "bring-forward": {
+    shapes: ["M3 11 L8 8.5 L13 11 L8 13.5 Z", "M8 8.5 L8 2", "M5.5 4.5 L8 2 L10.5 4.5"],
+  },
+  "send-backward": {
+    shapes: ["M3 5 L8 2.5 L13 5 L8 7.5 Z", "M8 7.5 L8 14", "M5.5 11.5 L8 14 L10.5 11.5"],
+  },
+  "bring-to-front": {
+    shapes: [
+      "M3 9.5 L8 7 L13 9.5 L8 12 Z",
+      "M3 12.5 L8 10 L13 12.5 L8 15 Z",
+      "M8 12.5 L8 2",
+      "M5.5 4.5 L8 2 L10.5 4.5",
+    ],
+  },
+  "send-to-back": {
+    shapes: [
+      "M3 4 L8 1.5 L13 4 L8 6.5 Z",
+      "M3 7 L8 4.5 L13 7 L8 9.5 Z",
+      "M8 3.5 L8 14",
+      "M5.5 11.5 L8 14 L10.5 11.5",
+    ],
+  },
   crosshair: { shapes: ["c 8 8 5", "M8 1.5V4M8 12v2.5M1.5 8H4M12 8h2.5", "d 8 8 1"] },
   sparkle: { shapes: ["M8 2l1.5 4.5L14 8l-4.5 1.5L8 14l-1.5-4.5L2 8l4.5-1.5Z"], fillable: true },
   // timeline
