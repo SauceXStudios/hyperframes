@@ -1531,11 +1531,9 @@ describe("useTimelineEditing: canEdit gate", () => {
   });
 });
 
-/**
- * Regression: track()/guard() must return the SAME wrapped handler across
- * renders for the same underlying fn, or every consumer using a handler as
- * a memo/effect dependency (App.tsx) re-runs on every render for nothing.
- */
+// Regression: track()/guard() must return the same wrapped handler across
+// renders for the same fn, or a consumer using it as a memo/effect
+// dependency re-runs on every render for nothing.
 describe("useTimelineEditing: handler identity is stable across renders", () => {
   it("returns the same handleTimelineElementMove reference on a re-render", () => {
     const iframe = createPreviewIframe([{ id: "clip", track: 0 }]);
