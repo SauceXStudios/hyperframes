@@ -1,39 +1,45 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useDockLayoutStore, visiblePanelInZone } from "../components/dock/dockLayoutStore";
-import type { DomEditSelection } from "../components/editor/domEditing";
-import { domEditSelectionsTargetSame } from "../utils/domEditHelpers";
 
-/** Opens the Slideshow panel when the file becomes a slideshow and closes it when it stops being one; a user's own close sticks. */
+/** Opens the Slideshow panel when the file becomes a slideshow and closes it when it stops being one; a user's own close, and a restored layout's placement, stick. */
 export function useSlideshowDockPanel(isSlideshowComposition: boolean) {
   const controller = useDockLayoutStore((state) => state.controller);
+  const wasSlideshow = useRef(false);
   useEffect(() => {
     if (!controller) return;
     const inDock = useDockLayoutStore.getState().openPanels.has("slideshow");
     if (isSlideshowComposition && !inDock) controller.open("slideshow");
-    if (!isSlideshowComposition && inDock) controller.close("slideshow");
+    if (!isSlideshowComposition && wasSlideshow.current && inDock) controller.close("slideshow");
+    wasSlideshow.current = isSlideshowComposition;
   }, [isSlideshowComposition, controller]);
 }
 
-/** Block params replace the Design body until a different element is picked or Design stops showing. */
+/** Block params replace the Design body until Design stops showing; picking another tab dismisses them elsewhere. */
 export function useBlockParamsDismissal({
   hasBlockParams,
-  selection,
   onDismiss,
 }: {
   hasBlockParams: boolean;
-  selection: DomEditSelection | null;
   onDismiss: () => void;
 }) {
   const designVisible = useDockLayoutStore((state) => state.visiblePanels.has("design"));
-  const selectionWhenOpened = useRef(selection);
   useEffect(() => {
-    if (!hasBlockParams) selectionWhenOpened.current = selection;
-  }, [hasBlockParams, selection]);
-  useEffect(() => {
-    const picked =
-      selection != null && !domEditSelectionsTargetSame(selection, selectionWhenOpened.current);
-    if (hasBlockParams && (picked || !designVisible)) onDismiss();
-  }, [hasBlockParams, selection, designVisible, onDismiss]);
+    if (hasBlockParams && !designVisible) onDismiss();
+  }, [hasBlockParams, designVisible, onDismiss]);
+}
+
+/** Wraps a tab setter so any tab other than block-params first dismisses the block-params view. */
+export function useDismissingTabSetter<Tab extends string>(
+  setTab: (tab: Tab) => void,
+  dismissBlockParams: () => void,
+) {
+  return useCallback(
+    (tab: Tab) => {
+      if (tab !== "block-params") dismissBlockParams();
+      setTab(tab);
+    },
+    [setTab, dismissBlockParams],
+  );
 }
 
 /** Caption edit mode owns the Design panel: whenever the right column shows something else, bring Design back. */

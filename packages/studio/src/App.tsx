@@ -1,7 +1,7 @@
 import { useOwnPreviewIframe, usePreviewIframeStore } from "./player/store/previewIframeStore";
 import { buildProjectApiPath } from "./utils/projectRouting";
 import { useState, useCallback, useRef, useMemo, useLayoutEffect } from "react";
-import { useRightPanelIntent } from "./hooks/useRightPanelIntents";
+import { useDismissingTabSetter, useRightPanelIntent } from "./hooks/useRightPanelIntents";
 import { useRenderQueue } from "./components/renders/useRenderQueue";
 import { usePlayerStore } from "./player";
 import { StudioOverlays } from "./components/StudioOverlays";
@@ -201,6 +201,13 @@ export function StudioApp() {
     setRightCollapsed: panelLayout.setRightCollapsed,
     setRightPanelTab: panelLayout.setRightPanelTab,
   });
+  const dismissBlockParams = useCallback(() => setActiveBlockParams(null), [setActiveBlockParams]);
+  const setRightPanelTab = useDismissingTabSetter(panelLayout.setRightPanelTab, dismissBlockParams);
+  const layout = useMemo(
+    () => ({ ...panelLayout, setRightPanelTab }),
+    [panelLayout, setRightPanelTab],
+  );
+
   const clearDomSelectionRef = useRef<() => void>(() => {});
   const domEditSelectionBridgeRef = useRef<DomEditSelection | null>(null);
   type DomEditDelete = (s: DomEditSelection, o?: { expandGroup?: boolean }) => Promise<void>;
@@ -258,7 +265,7 @@ export function StudioApp() {
     setSelectedTimelineElementId,
     setTimelineSelectionSet,
     setRightCollapsed: panelLayout.setRightCollapsed,
-    setRightPanelTab: panelLayout.setRightPanelTab,
+    setRightPanelTab,
     showToast,
     isRecordingRef: isGestureRecordingRef,
     refreshPreviewDocumentVersion,
@@ -383,7 +390,7 @@ export function StudioApp() {
     applyMarqueeSelection: domEditSession.applyMarqueeSelection,
     buildDomSelectionFromTarget: domEditSession.buildDomSelectionFromTarget,
     applyDomSelection: domEditSession.applyDomSelection,
-    setRightPanelTab: panelLayout.setRightPanelTab,
+    setRightPanelTab,
     initialState: initialUrlStateRef.current,
   });
   const studioCtxValue = buildStudioContextValue({
@@ -423,7 +430,7 @@ export function StudioApp() {
   return (
     <StudioShellProvider value={studioCtxValue}>
       <StudioPlaybackProvider value={studioCtxValue}>
-        <PanelLayoutProvider value={panelLayout}>
+        <PanelLayoutProvider value={layout}>
           <FileManagerProvider value={fileManager}>
             <DomEditProvider value={domEditSession}>
               <div
@@ -469,7 +476,7 @@ export function StudioApp() {
                       />
                       <StudioRightPanels
                         activeBlockParams={activeBlockParams}
-                        onDismissBlockParams={() => setActiveBlockParams(null)}
+                        onDismissBlockParams={dismissBlockParams}
                         onCloseBlockParams={() => {
                           setActiveBlockParams(null);
                           panelLayout.setRightPanelTab("design");

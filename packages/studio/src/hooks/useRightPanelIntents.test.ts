@@ -3,12 +3,12 @@
 import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { DomEditSelection } from "../components/editor/domEditing";
 import { useDockLayoutStore, type DockController } from "../components/dock/dockLayoutStore";
 import { PANEL_IDS, type PanelId } from "../components/dock/panelRegistry";
 import {
   useBlockParamsDismissal,
   useCaptionDesignFocus,
+  useDismissingTabSetter,
   useRightPanelIntent,
   useSlideshowDockPanel,
 } from "./useRightPanelIntents";
@@ -80,6 +80,16 @@ describe("useSlideshowDockPanel", () => {
     expect(controller.close).toHaveBeenCalledWith("slideshow");
   });
 
+  it("keeps a restored slideshow placement while the file is still loading", () => {
+    const controller = seed({ open: ["design", "slideshow"] });
+    const view = mountHook(useSlideshowDockPanel, false);
+    expect(controller.close).not.toHaveBeenCalled();
+    view.render(true);
+    expect(controller.open).not.toHaveBeenCalled();
+    view.render(false);
+    expect(controller.close).toHaveBeenCalledWith("slideshow");
+  });
+
   it("leaves a slideshow panel that a restored layout already holds alone", () => {
     const controller = seed({ open: ["design", "slideshow"] });
     mountHook(useSlideshowDockPanel, true);
@@ -106,47 +116,42 @@ describe("useSlideshowDockPanel", () => {
 });
 
 describe("useBlockParamsDismissal", () => {
-  const pick = (id: string) => ({ id, sourceFile: "index.html" }) as unknown as DomEditSelection;
-  const props = {
-    hasBlockParams: true,
-    selection: null as DomEditSelection | null,
-    onDismiss: vi.fn(),
-  };
+  const props = { hasBlockParams: true, onDismiss: vi.fn() };
 
-  it("dismisses block params when an element is selected", () => {
+  it("keeps block params while the Design panel is showing", () => {
     seed({ visible: ["design"] });
     const onDismiss = vi.fn();
-    const view = mountHook(useBlockParamsDismissal, { ...props, onDismiss });
+    mountHook(useBlockParamsDismissal, { ...props, onDismiss });
     expect(onDismiss).not.toHaveBeenCalled();
-    view.render({ ...props, onDismiss, selection: pick("a") });
-    expect(onDismiss).toHaveBeenCalled();
-  });
-
-  it("keeps block params that open while an element is already selected", () => {
-    seed({ visible: ["design"] });
-    const onDismiss = vi.fn();
-    const selected = pick("a");
-    const view = mountHook(useBlockParamsDismissal, {
-      ...props,
-      onDismiss,
-      hasBlockParams: false,
-      selection: selected,
-    });
-    view.render({ ...props, onDismiss, hasBlockParams: true, selection: selected });
-    expect(onDismiss).not.toHaveBeenCalled();
-    view.render({ ...props, onDismiss, hasBlockParams: true, selection: pick("a") });
-    expect(onDismiss).not.toHaveBeenCalled();
-    view.render({ ...props, onDismiss, hasBlockParams: true, selection: pick("b") });
-    expect(onDismiss).toHaveBeenCalled();
   });
 
   it("dismisses block params when the Design panel is no longer showing", () => {
     seed({ visible: ["design"] });
     const onDismiss = vi.fn();
     mountHook(useBlockParamsDismissal, { ...props, onDismiss });
-    expect(onDismiss).not.toHaveBeenCalled();
     act(() => useDockLayoutStore.setState({ visiblePanels: new Set<PanelId>(["layers"]) }));
     expect(onDismiss).toHaveBeenCalled();
+  });
+});
+
+describe("useDismissingTabSetter", () => {
+  it("dismisses block params for any tab but block-params, then switches", () => {
+    const setTab = vi.fn();
+    const dismiss = vi.fn();
+    const view = mountHook(
+      ({ tab }: { tab: string }) => {
+        const set = useDismissingTabSetter(setTab, dismiss);
+        return () => set(tab);
+      },
+      { tab: "design" },
+    );
+    (view.value() as () => void)();
+    expect(dismiss).toHaveBeenCalledTimes(1);
+    expect(setTab).toHaveBeenCalledWith("design");
+    view.render({ tab: "block-params" });
+    (view.value() as () => void)();
+    expect(dismiss).toHaveBeenCalledTimes(1);
+    expect(setTab).toHaveBeenLastCalledWith("block-params");
   });
 });
 
