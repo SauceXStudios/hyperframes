@@ -178,6 +178,42 @@ describe("resolvePreviewStageSize", () => {
   });
 });
 
+// Mounts the real useTimelinePlayer hook feeding a real NLEPreview render (the
+// mocked Player still stands in for the DOM iframe), so array-state and DOM
+// node counts move together the way they do in the app.
+function renderRealPreviewHarness() {
+  type TimelinePlayerApi = ReturnType<typeof useTimelinePlayer>;
+  let latest: TimelinePlayerApi | null = null;
+  const Harness = ({ projectId = "timeline-edit-playground" }: { projectId?: string }) => {
+    const api = useTimelinePlayer();
+    latest = api;
+    return React.createElement(NLEPreview, {
+      projectId,
+      iframeRef: api.iframeRef,
+      onIframeLoad: api.onIframeLoad,
+      previewSlots: api.previewSlots,
+      onShadowIframeLoad: api.onShadowIframeLoad,
+      onShadowReadyChange: api.onShadowReadyChange,
+      onShadowError: api.onShadowError,
+      setShadowIframeNode: api.setShadowIframeNode,
+      resetPreviewSlots: api.resetPreviewSlots,
+    });
+  };
+  const host = document.createElement("div");
+  document.body.append(host);
+  const root = createRoot(host);
+  return {
+    Harness,
+    getApi: () => latest as TimelinePlayerApi,
+    host,
+    root,
+    cleanup() {
+      act(() => root.unmount());
+      host.remove();
+    },
+  };
+}
+
 describe("NLEPreview", () => {
   beforeEach(() => {
     globalThis.ResizeObserver = MockResizeObserver as typeof ResizeObserver;
@@ -259,55 +295,18 @@ describe("NLEPreview", () => {
 
   it("mounts the live player once when the composition switches", () => {
     playerMounts.length = 0;
-    const Harness = ({ projectId }: { projectId: string }) => {
-      const api = useTimelinePlayer();
-      return React.createElement(NLEPreview, {
-        projectId,
-        iframeRef: api.iframeRef,
-        onIframeLoad: api.onIframeLoad,
-        previewSlots: api.previewSlots,
-        onShadowIframeLoad: api.onShadowIframeLoad,
-        onShadowReadyChange: api.onShadowReadyChange,
-        onShadowError: api.onShadowError,
-        setShadowIframeNode: api.setShadowIframeNode,
-        resetPreviewSlots: api.resetPreviewSlots,
-      });
-    };
-    const host = document.createElement("div");
-    document.body.append(host);
-    const root = createRoot(host);
+    const { Harness, root, cleanup } = renderRealPreviewHarness();
     act(() => root.render(React.createElement(Harness, { projectId: "a" })));
     expect(playerMounts).toEqual(["live"]);
 
     act(() => root.render(React.createElement(Harness, { projectId: "b" })));
     expect(playerMounts).toEqual(["live", "live"]);
 
-    act(() => root.unmount());
-    host.remove();
+    cleanup();
   });
 
   it("retires the superseded live iframe in the same commit as promotion, across a rapid back-to-back reload burst", () => {
-    type TimelinePlayerApi = ReturnType<typeof useTimelinePlayer>;
-    let latest: TimelinePlayerApi | null = null;
-    const Harness = () => {
-      const api = useTimelinePlayer();
-      latest = api;
-      return React.createElement(NLEPreview, {
-        projectId: "timeline-edit-playground",
-        iframeRef: api.iframeRef,
-        onIframeLoad: api.onIframeLoad,
-        previewSlots: api.previewSlots,
-        onShadowIframeLoad: api.onShadowIframeLoad,
-        onShadowReadyChange: api.onShadowReadyChange,
-        onShadowError: api.onShadowError,
-        setShadowIframeNode: api.setShadowIframeNode,
-        resetPreviewSlots: api.resetPreviewSlots,
-      });
-    };
-    const getApi = () => latest as TimelinePlayerApi;
-    const host = document.createElement("div");
-    document.body.append(host);
-    const root = createRoot(host);
+    const { Harness, getApi, host, root, cleanup } = renderRealPreviewHarness();
 
     function mockPlayerNodes() {
       return [...host.querySelectorAll<HTMLElement>('[data-testid="mock-player"]')];
@@ -355,7 +354,6 @@ describe("NLEPreview", () => {
       expect(mockPlayerNodes()).toHaveLength(1);
     }
 
-    act(() => root.unmount());
-    host.remove();
+    cleanup();
   });
 });
