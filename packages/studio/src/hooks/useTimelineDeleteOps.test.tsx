@@ -120,22 +120,12 @@ describe("useTimelineDeleteOps: ripple undo label", () => {
   });
 });
 
-/**
- * Regression for a data-loss bug: a delete's remove-element write reaches
- * disk before its history entry is recorded (recordEdit lands after). Undo
- * fired inside that window used to find no entry to restore, and the delete
- * stayed on disk permanently. Undo already awaits Studio's shared
- * pending-edit flush (waitForPendingDomEditSaves -> flushStudioPendingEdits)
- * before consuming history, so wrapping the delete handler with
- * useTrackPendingTimelineEdit must make that flush wait for recordEdit too.
- * Fails (recordEdit not yet called when flush resolves) without the wrap.
- */
+// Regression: a delete's write can reach disk before its history entry is
+// recorded, so an Undo fired in that window found nothing to restore.
+// Fails without useTrackPendingTimelineEdit's wrap (see that file).
 describe("useTimelineDeleteOps: undo race", () => {
-  // data-composition-id (not data-hf-root) is what readRootCompositionDuration
-  // reads. The remove-element mock below returns content with hf-c actually
-  // gone (not the untouched fixture the other describe block above uses) —
-  // needed so the delete is a real content diff, and saveProjectFilesWithHistory
-  // actually writes and calls recordEdit instead of silently no-op'ing.
+  // data-composition-id (readRootCompositionDuration's key) plus a
+  // remove-element mock that actually drops hf-c: needed for a real diff.
   const html = `<!DOCTYPE html><html data-composition-variables='[]'><body>
 <div data-hf-id="hf-stage" data-composition-id="main" data-duration="6">
 <div data-hf-id="hf-a" data-start="0" data-duration="2"></div>
@@ -170,11 +160,9 @@ describe("useTimelineDeleteOps: undo race", () => {
     vi.unstubAllGlobals();
   });
 
-  // A manually-resolved gate stands in for the delete's own write landing.
-  // Using a real timer here would race the fix's own microtask hops
-  // unpredictably (verified: a wall-clock version of this test kept passing
-  // even with the fix's tracking call deleted) — only a gate under the
-  // test's own control proves the flush actually waited for it.
+  // A manually-resolved gate stands in for the delete's write landing — a
+  // real timer raced the fix's own microtasks unpredictably (verified: it
+  // kept passing even with the fix's tracking call deleted).
   function deferred<T>() {
     let resolve!: (value: T) => void;
     const promise = new Promise<T>((r) => (resolve = r));
