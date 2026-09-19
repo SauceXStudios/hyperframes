@@ -2,7 +2,7 @@
 
 import { act } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { TimelineElement } from "../player";
+import { usePlayerStore, type TimelineElement } from "../player";
 import { applyRippleShifts, useTimelineDeleteOps } from "./useTimelineDeleteOps";
 import { installReactActEnvironment, mountReactHarness } from "./domSelectionTestHarness";
 
@@ -181,5 +181,26 @@ describe("useTimelineDeleteOps: ripple undo label", () => {
     });
 
     expect(reloadPreview).toHaveBeenCalledTimes(1);
+  });
+
+  it("an overwrite delete leaves the store to the drop, a plain delete rewrites it", async () => {
+    const handleTimelineGroupMove = vi.fn().mockResolvedValue(undefined);
+    const dropEndState = [el("hf-a", 1, 1), el("hf-c", 6, 2)];
+    const { b, getHook } = mountDeleteHarness({ handleTimelineGroupMove });
+
+    usePlayerStore.getState().setElements(dropEndState);
+    await act(async () => {
+      await getHook().deleteTimelineElements([b], {
+        coalesceKey: "clip-overwrite:5",
+        coalesceMs: Number.POSITIVE_INFINITY,
+      });
+    });
+    expect(usePlayerStore.getState().elements).toEqual(dropEndState);
+
+    await act(async () => {
+      await getHook().handleTimelineElementDelete(b);
+    });
+    expect(usePlayerStore.getState().elements.map((e) => e.id)).toEqual(["hf-a", "hf-c"]);
+    expect(usePlayerStore.getState().elements).not.toEqual(dropEndState);
   });
 });

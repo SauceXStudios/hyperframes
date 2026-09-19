@@ -168,6 +168,11 @@ describe("placementRefusal", () => {
     ).toMatch(/locked or expanded/);
   });
 
+  it("refuses a clip still standing in for a split tail the reload has not reported", () => {
+    const cutTail = result({ start: 0, cuts: [{ kind: "remove", key: "a~tail" }] });
+    expect(placementRefusal(cutTail, "overwrite", [clip("a~tail", 0, 4)])).toMatch(/previous edit/);
+  });
+
   it("refuses when a clip that would be cut is an expanded child", () => {
     expect(
       placementRefusal(cutA, "overwrite", [clip("a", 0, 4, { expandedParentStart: 2 })]),

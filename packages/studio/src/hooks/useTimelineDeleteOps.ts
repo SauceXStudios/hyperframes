@@ -217,8 +217,9 @@ export function useTimelineDeleteOps({
           }
         }
 
-        usePlayerStore.getState().setElements(applyRippleShifts(survivors, rippleApplied));
         if (!overwrite) {
+          // A folded delete leaves the store to the drop, which already wrote its end state.
+          usePlayerStore.getState().setElements(applyRippleShifts(survivors, rippleApplied));
           usePlayerStore.getState().setSelectedElementId(null);
           usePlayerStore.getState().setSelectedElementIds(new Set());
         }

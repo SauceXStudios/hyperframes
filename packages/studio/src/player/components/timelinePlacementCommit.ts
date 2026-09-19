@@ -32,6 +32,9 @@ export type PlacementStep =
   | { kind: "resize"; changes: TimelineGroupResizeChange[] }
   | { kind: "move"; edits: TimelineMoveEdit[] };
 
+/** Marks the stand-in id of a split tail that the reload has not reported yet. */
+const PENDING_TAIL_SUFFIX = "~tail";
+
 const moveEdit = (element: TimelineElement, start: number): TimelineMoveEdit => ({
   element,
   updates: { start, track: element.track },
@@ -129,6 +132,9 @@ export function placementRefusal(
   if (touched.some((el) => !el || !canMoveTimelineElement(el) || el.expandedParentStart != null)) {
     return "Cannot overwrite a locked or expanded clip";
   }
+  if (touched.some((el) => el && keyOf(el).endsWith(PENDING_TAIL_SUFFIX))) {
+    return "Wait for the previous edit to finish";
+  }
   const unsplittable = result.cuts.some((cut) => {
     if (cut.kind !== "split") return false;
     const at = mode === "overwrite" ? cut.tail.start : result.start;
@@ -175,8 +181,8 @@ function pendingSplitTail(el: TimelineElement, at: number): TimelineElement {
     : el.playbackStart;
   return {
     ...el,
-    id: `${el.id}~tail`,
-    key: `${keyOf(el)}~tail`,
+    id: `${el.id}${PENDING_TAIL_SUFFIX}`,
+    key: `${keyOf(el)}${PENDING_TAIL_SUFFIX}`,
     domId: undefined,
     start: at,
     duration: round3(el.start + el.duration - at),
