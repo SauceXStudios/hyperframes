@@ -30,10 +30,20 @@ export function usePanelLayout(initialState?: InitialPanelLayoutState) {
     const { rightCollapsed, rightPanelTab } = initialRef.current ?? {};
     initialRef.current = undefined;
     const store = useDockLayoutStore.getState();
-    if (rightPanelTab && store.openPanels.has(panelForTab(rightPanelTab))) {
-      store.activatePanel(panelForTab(rightPanelTab));
+    const wanted = rightPanelTab ? panelForTab(rightPanelTab) : null;
+    let unsubscribe = () => {};
+    if (wanted && store.openPanels.has(wanted)) {
+      store.activatePanel(wanted);
+    } else if (wanted === "slideshow") {
+      // The slideshow panel only opens once the composition loads and turns out to be one.
+      unsubscribe = useDockLayoutStore.subscribe((state) => {
+        if (!state.openPanels.has("slideshow")) return;
+        unsubscribe();
+        state.activatePanel("slideshow");
+      });
     }
     if (rightCollapsed != null) store.setZoneVisible("right", !rightCollapsed);
+    return () => unsubscribe();
   }, [controller]);
 
   const visibleRight = visiblePanelInZone("right", lastActive, visiblePanels);

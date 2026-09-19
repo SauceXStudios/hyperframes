@@ -1,7 +1,7 @@
 import { useOwnPreviewIframe, usePreviewIframeStore } from "./player/store/previewIframeStore";
 import { buildProjectApiPath } from "./utils/projectRouting";
 import { useState, useCallback, useRef, useMemo, useLayoutEffect } from "react";
-import { useDockLayoutStore } from "./components/dock/dockLayoutStore";
+import { useRightPanelIntent } from "./hooks/useRightPanelIntents";
 import { useRenderQueue } from "./components/renders/useRenderQueue";
 import { usePlayerStore } from "./player";
 import { StudioOverlays } from "./components/StudioOverlays";
@@ -359,10 +359,10 @@ export function StudioApp() {
     },
     [appHotkeys, resetConsoleErrors, refreshPreviewDocumentVersion],
   );
-  const visiblePanels = useDockLayoutStore((state) => state.visiblePanels);
+  const rightPanel = useRightPanelIntent();
   const { inspectorPanelActive, shouldShowMotionPath, shouldShowSelectedDomBounds } =
     useInspectorState(
-      visiblePanels,
+      rightPanel,
       isPlaying,
       domEditSession.domEditSelection,
       gestureState === "recording",
@@ -469,6 +469,7 @@ export function StudioApp() {
                       />
                       <StudioRightPanels
                         activeBlockParams={activeBlockParams}
+                        onDismissBlockParams={() => setActiveBlockParams(null)}
                         onCloseBlockParams={() => {
                           setActiveBlockParams(null);
                           panelLayout.setRightPanelTab("design");

@@ -9,7 +9,7 @@ import { makeSelection } from "./domSelectionTestHarness";
 import { useInspectorState, type InspectorState } from "./useStudioContextValue";
 
 interface HarnessProps {
-  visiblePanels: ReadonlySet<PanelId>;
+  rightPanel: PanelId | null;
   isPlaying: boolean;
   isGestureRecording: boolean;
   domEditSelection: DomEditSelection | null;
@@ -20,7 +20,7 @@ function renderInspectorState(props: HarnessProps): InspectorState {
 
   function Harness() {
     state = useInspectorState(
-      props.visiblePanels,
+      props.rightPanel,
       props.isPlaying,
       props.domEditSelection,
       props.isGestureRecording,
@@ -38,7 +38,7 @@ function selectedProps(
 ): HarnessProps & { domEditSelection: DomEditSelection } {
   const element = document.createElement("div");
   return {
-    visiblePanels: new Set<PanelId>(["preview", "timeline", "renders"]),
+    rightPanel: "renders",
     isPlaying: false,
     isGestureRecording: false,
     domEditSelection: makeSelection("Selected", element),
@@ -72,13 +72,10 @@ describe("useInspectorState", () => {
   it("keeps selected DOM bounds coupled to the inspector or variables panel", () => {
     expect(renderInspectorState(selectedProps()).shouldShowSelectedDomBounds).toBe(false);
     expect(
-      renderInspectorState(
-        selectedProps({ visiblePanels: new Set<PanelId>(["design"]) }),
-      ).shouldShowSelectedDomBounds,
+      renderInspectorState(selectedProps({ rightPanel: "design" })).shouldShowSelectedDomBounds,
     ).toBe(true);
     expect(
-      renderInspectorState(selectedProps({ visiblePanels: new Set<PanelId>(["variables"]) }))
-        .shouldShowSelectedDomBounds,
+      renderInspectorState(selectedProps({ rightPanel: "variables" })).shouldShowSelectedDomBounds,
     ).toBe(true);
   });
 });

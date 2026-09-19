@@ -72,13 +72,13 @@ export interface InspectorState {
 }
 
 export function useInspectorState(
-  visiblePanels: ReadonlySet<PanelId>,
+  rightPanel: PanelId | null,
   isPlaying: boolean,
   domEditSelection: DomEditSelection | null,
   isGestureRecording?: boolean,
 ): InspectorState {
   return useMemo(() => {
-    const inspectorPanelActive = visiblePanels.has("layers") || visiblePanels.has("design");
+    const inspectorPanelActive = rightPanel === "layers" || rightPanel === "design";
     return {
       inspectorPanelActive,
       // Deliberately wider than shouldShowSelectedDomBounds: the on-canvas path
@@ -90,11 +90,9 @@ export function useInspectorState(
       // The Variables tab also works against the canvas selection (bind card),
       // so the selection outline stays visible there too.
       shouldShowSelectedDomBounds:
-        (inspectorPanelActive || visiblePanels.has("variables")) &&
-        !isPlaying &&
-        !isGestureRecording,
+        (inspectorPanelActive || rightPanel === "variables") && !isPlaying && !isGestureRecording,
     };
-  }, [visiblePanels, isPlaying, isGestureRecording, domEditSelection]);
+  }, [rightPanel, isPlaying, isGestureRecording, domEditSelection]);
 }
 
 /** Lets an OS file drop reach `onDrop` anywhere in the shell; the timeline shows its own landing preview. */

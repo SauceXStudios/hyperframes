@@ -165,6 +165,11 @@ export function StudioHeader({
   const { rightCollapsed, setRightCollapsed, setRightPanelTab } = usePanelLayoutContext();
   const isRendering = renderQueue.isRendering;
   const ffmpegMissing = renderQueue.ffmpegMissing;
+  // The dock has no separate "railed by window width" state (it shrinks
+  // panels, never auto-hides the group), so rightCollapsed is already the
+  // effective value: the button reads pressed only when the panel is both
+  // open and actually showing the Inspector.
+  const inspectorButtonActive = !rightCollapsed && inspectorPanelActive;
 
   return (
     <div className="flex items-center justify-between h-10 px-3 bg-surface border-b border-border-strong shrink-0">
