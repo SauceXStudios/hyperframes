@@ -20,6 +20,8 @@ interface NLEPreviewProps {
   onIframeLoad: () => void;
   previewSlots: PreviewIframeSlot[];
   onShadowIframeLoad: (gen: number) => void;
+  onShadowReadyToShow: (gen: number) => void;
+  onShadowError: (gen: number, message: string) => void;
   setShadowIframeNode: (node: HTMLIFrameElement | null) => void;
   resetPreviewSlots: () => void;
   onCompositionLoadingChange?: (loading: boolean) => void;
@@ -45,9 +47,8 @@ const ZOOM_HUD_TIMEOUT_MS = 1200;
 const ZOOM_SETTLE_MS = 200;
 const PREVIEW_STAGE_INSET_PX = 16;
 
-// AD132/D-801: a shadow reload stays out of the visible/interactive surface until
-// promoted. clip-path, not just visibility: the player's loading overlay sets
-// its own visibility:visible and would otherwise paint over the live frame.
+// clip-path as well as visibility: the player's loading overlay sets its own
+// visibility:visible and would otherwise paint over the live frame.
 const SHADOW_IFRAME_STYLE: React.CSSProperties = {
   position: "absolute",
   inset: 0,
@@ -140,6 +141,8 @@ export const NLEPreview = memo(function NLEPreview({
   onIframeLoad,
   previewSlots,
   onShadowIframeLoad,
+  onShadowReadyToShow,
+  onShadowError,
   setShadowIframeNode,
   resetPreviewSlots,
   onCompositionLoadingChange,
@@ -539,6 +542,8 @@ export const NLEPreview = memo(function NLEPreview({
                   ref={setShadowIframeNode}
                   directUrl={slot.url}
                   onLoad={() => onShadowIframeLoad(slot.gen)}
+                  onReadyToShow={() => onShadowReadyToShow(slot.gen)}
+                  onPreviewError={(message) => onShadowError(slot.gen, message)}
                   portrait={portrait}
                   suppressLoadingOverlay
                   style={SHADOW_IFRAME_STYLE}

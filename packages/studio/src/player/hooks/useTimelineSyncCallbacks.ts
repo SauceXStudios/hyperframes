@@ -49,6 +49,10 @@ export interface UseTimelineSyncCallbacksParams {
   applyPreviewAudioState: () => void;
   /** Fires once the restore-seek painted; the shadow instance passes its promotion here. */
   onAdapterReady?: (iframe: HTMLIFrameElement | null, context?: number) => void;
+  /** False when the load for `context` was superseded: it must then cause no side effects. */
+  isCurrent?: (context?: number) => boolean;
+  /** Fires when no adapter appeared within the wait window. */
+  onLoadGiveUp?: (context?: number) => void;
 }
 
 /**
@@ -88,6 +92,11 @@ export function planShadowReload(
 ): PreviewIframeSlot[] {
   const live = slots.find((slot) => slot.role === "live");
   return live ? [live, { gen: nextGen, role: "shadow", url }] : [{ gen: nextGen, role: "live" }];
+}
+
+/** Drop any pending shadow; the live slot (and its key) is untouched. */
+export function planShadowDiscard(slots: PreviewIframeSlot[]): PreviewIframeSlot[] {
+  return slots.filter((slot) => slot.role === "live");
 }
 
 /** Atomically make the ready shadow the only (live) slot; a stale readyGen is a no-op. */
@@ -136,6 +145,8 @@ export function useTimelineSyncCallbacks({
   attachIframeShortcutListeners,
   applyPreviewAudioState,
   onAdapterReady = revealIframe,
+  isCurrent,
+  onLoadGiveUp,
 }: UseTimelineSyncCallbacksParams) {
   // Convert a runtime timeline message (from iframe postMessage) into TimelineElements
   const processTimelineMessage = useCallback(
@@ -213,15 +224,13 @@ export function useTimelineSyncCallbacks({
 
   const initializeAdapter = useCallback(
     (context?: number) => {
+      if (isCurrent && !isCurrent(context)) return true;
       const adapter = getAdapter();
       if (!adapter || adapter.getDuration() <= 0) return false;
 
       adapter.pause();
       const startTime = seekAdapterToRestorePoint(adapter, pendingSeekRef);
-      // The correct frame is now rendered — signal readiness so the caller can
-      // reveal it (the live iframe, never hidden anymore) or promote it (a
-      // shadow reload, AD132/D-801) — never before this point, so the visible
-      // frame is either the old content or the new one, never neither.
+      // The restore-seek is issued: signal readiness (a shadow reload decides when to promote).
       onAdapterReady(iframeRef.current, context);
       // Keep non-React listeners such as the capture link and time display in sync
       // with the initial adapter seek on iframe load.
@@ -260,6 +269,7 @@ export function useTimelineSyncCallbacks({
       attachIframeShortcutListeners,
       applyPreviewAudioState,
       onAdapterReady,
+      isCurrent,
       iframeRef,
       isRefreshingRef,
       pendingSeekRef,
@@ -305,12 +315,18 @@ export function useTimelineSyncCallbacks({
           trySettle();
         }
         window.removeEventListener("message", onMessage);
-        // A shadow that gives up here is never promoted; the live iframe was never touched.
+        if (!settled) onLoadGiveUp?.(context);
         revealIframe(iframeRef.current);
       }, 5000) as unknown as ReturnType<typeof setInterval>;
     },
-    [initializeAdapter, iframeRef, probeIntervalRef, applyPreviewAudioState],
+    [initializeAdapter, iframeRef, probeIntervalRef, applyPreviewAudioState, onLoadGiveUp],
   );
+
+  const cancelPendingLoad = useCallback(() => {
+    if (probeIntervalRef.current) clearInterval(probeIntervalRef.current);
+    stopWaitingRef.current?.();
+    stopWaitingRef.current = null;
+  }, [probeIntervalRef]);
 
   // Stable refs so mount-effect closures always call the latest version
   const processTimelineMessageRef = { current: processTimelineMessage };
@@ -323,5 +339,6 @@ export function useTimelineSyncCallbacks({
     enrichMissingCompositionsRef,
     initializeAdapter,
     onIframeLoad,
+    cancelPendingLoad,
   };
 }

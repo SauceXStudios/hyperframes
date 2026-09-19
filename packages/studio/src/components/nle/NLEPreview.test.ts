@@ -3,9 +3,12 @@
 import React, { act, createRef } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { useTimelinePlayer } from "../../player/hooks/useTimelinePlayer";
 import { NLEPreview, getPreviewPlayerKey, resolvePreviewStageSize } from "./NLEPreview";
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+
+const playerMounts: string[] = [];
 
 vi.mock("../../player", async () => {
   const React = await import("react");
@@ -14,6 +17,7 @@ vi.mock("../../player", async () => {
     Player: React.forwardRef(function MockPlayer(
       props: {
         onLoad?: () => void;
+        suppressLoadingOverlay?: boolean;
         style?: React.CSSProperties;
       },
       ref: React.ForwardedRef<HTMLIFrameElement>,
@@ -21,6 +25,7 @@ vi.mock("../../player", async () => {
       React.useEffect(() => {
         props.onLoad?.();
       }, [props]);
+      React.useState(() => playerMounts.push(props.suppressLoadingOverlay ? "shadow" : "live"));
 
       return React.createElement("div", {
         ref: ref as React.ForwardedRef<HTMLDivElement>,
@@ -89,6 +94,8 @@ function renderPreview(
         onIframeLoad: () => {},
         previewSlots,
         onShadowIframeLoad: () => {},
+        onShadowReadyToShow: () => {},
+        onShadowError: () => {},
         setShadowIframeNode: () => {},
         resetPreviewSlots: () => {},
       }),
@@ -247,5 +254,34 @@ describe("NLEPreview", () => {
     expect(players[1].style.clipPath).toBe("inset(100%)");
     expect(players[1].style.visibility).toBe("hidden");
     view.cleanup();
+  });
+
+  it("mounts the live player once when the composition switches", () => {
+    playerMounts.length = 0;
+    const Harness = ({ projectId }: { projectId: string }) => {
+      const api = useTimelinePlayer();
+      return React.createElement(NLEPreview, {
+        projectId,
+        iframeRef: api.iframeRef,
+        onIframeLoad: api.onIframeLoad,
+        previewSlots: api.previewSlots,
+        onShadowIframeLoad: api.onShadowIframeLoad,
+        onShadowReadyToShow: api.onShadowReadyToShow,
+        onShadowError: api.onShadowError,
+        setShadowIframeNode: api.setShadowIframeNode,
+        resetPreviewSlots: api.resetPreviewSlots,
+      });
+    };
+    const host = document.createElement("div");
+    document.body.append(host);
+    const root = createRoot(host);
+    act(() => root.render(React.createElement(Harness, { projectId: "a" })));
+    expect(playerMounts).toEqual(["live"]);
+
+    act(() => root.render(React.createElement(Harness, { projectId: "b" })));
+    expect(playerMounts).toEqual(["live", "live"]);
+
+    act(() => root.unmount());
+    host.remove();
   });
 });

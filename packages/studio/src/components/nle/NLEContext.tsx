@@ -28,10 +28,11 @@ export interface NLEContextValue {
   seek: (time: number, options?: { keepPlaying?: boolean }) => boolean;
   refreshPlayer: () => void;
   onIframeLoad: () => void;
-  // AD132/D-801: the hidden-shadow-reload iframe, rendered by NLEPreview
-  // alongside the live one only during a full-reload transition.
+  // The hidden reload iframe NLEPreview renders next to the live one during a full reload.
   previewSlots: PreviewIframeSlot[];
   onShadowIframeLoad: (gen: number) => void;
+  onShadowReadyToShow: (gen: number) => void;
+  onShadowError: (gen: number, message: string) => void;
   setShadowIframeNode: (node: HTMLIFrameElement | null) => void;
   resetPreviewSlots: () => void;
   // composition stack (from useCompositionStack)
@@ -72,6 +73,8 @@ export interface NLEProviderProps {
   onCompositionChange?: (compositionPath: string | null) => void;
   onCompIdToSrcChange?: (map: Map<string, string>) => void;
   onCompositionLoadingChange?: (loading: boolean) => void;
+  /** A preview reload was abandoned; the previous preview is still showing. */
+  onPreviewReloadFailed?: (message: string) => void;
   children: ReactNode;
 }
 
@@ -83,8 +86,10 @@ export function NLEProvider({
   onCompositionChange,
   onCompIdToSrcChange,
   onCompositionLoadingChange,
+  onPreviewReloadFailed,
   children,
 }: NLEProviderProps) {
+  const shadowPromotedRef = useRef<() => void>(() => {});
   const {
     iframeRef,
     togglePlay,
@@ -93,9 +98,14 @@ export function NLEProvider({
     refreshPlayer,
     previewSlots,
     onShadowIframeLoad,
+    onShadowReadyToShow,
+    onShadowError,
     setShadowIframeNode,
     resetPreviewSlots,
-  } = useTimelinePlayer();
+  } = useTimelinePlayer({
+    onShadowPromoted: () => shadowPromotedRef.current(),
+    onPreviewReloadFailed,
+  });
 
   // Reset timeline state when the project changes. Done in an effect, not during
   // render: reset() updates the player store, and updating another store/component
@@ -128,14 +138,20 @@ export function NLEProvider({
     refreshPlayer();
   }, [refreshKey, refreshPlayer]);
 
-  const onIframeLoad = useCallback(() => {
-    baseOnIframeLoad();
+  // Steps that follow every load of the live iframe, including a reload promoted in place.
+  const afterLiveIframeLoad = useCallback(() => {
     // Pre-load + register MotionPathPlugin once so adding a motion path in the
     // studio doesn't take the async plugin-load flash path on the first soft
     // reload (the comp may not ship the plugin until it actually uses one).
     ensureMotionPathPluginLoaded(iframeRef.current);
     onIframeRef?.(iframeRef.current);
-  }, [baseOnIframeLoad, iframeRef, onIframeRef]);
+  }, [iframeRef, onIframeRef]);
+  shadowPromotedRef.current = afterLiveIframeLoad;
+
+  const onIframeLoad = useCallback(() => {
+    baseOnIframeLoad();
+    afterLiveIframeLoad();
+  }, [baseOnIframeLoad, afterLiveIframeLoad]);
 
   const {
     compositionStack,
@@ -314,11 +330,7 @@ export function NLEProvider({
   onIframeRefStable.current = onIframeRef;
   useEffect(() => {
     onIframeRefStable.current?.(iframeRef.current);
-    // previewSlots is in deps so this re-fires once promoteShadowToLive
-    // repoints iframeRef at the swapped-in iframe (AD132/D-801) — otherwise
-    // an external consumer (e.g. App.tsx's own iframe ref) would keep
-    // pointing at the retired iframe after every full-reload edit.
-  }, [compositionStack.length, refreshKey, iframeRef, previewSlots]);
+  }, [compositionStack.length, refreshKey, iframeRef]);
 
   const value: NLEContextValue = {
     projectId,
@@ -329,6 +341,8 @@ export function NLEProvider({
     onIframeLoad,
     previewSlots,
     onShadowIframeLoad,
+    onShadowReadyToShow,
+    onShadowError,
     setShadowIframeNode,
     resetPreviewSlots,
     compositionStack,

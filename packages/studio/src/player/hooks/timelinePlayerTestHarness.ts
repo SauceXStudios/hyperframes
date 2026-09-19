@@ -3,7 +3,7 @@
 import React, { act, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { vi } from "vitest";
-import { useTimelinePlayer } from "./useTimelinePlayer";
+import { useTimelinePlayer, type UseTimelinePlayerOptions } from "./useTimelinePlayer";
 import { usePlayerStore } from "../store/playerStore";
 
 export type TimelinePlayerApi = ReturnType<typeof useTimelinePlayer>;
@@ -13,8 +13,14 @@ export function resetPlayerStore() {
   usePlayerStore.setState({ requestedSeekTime: null });
 }
 
-function TimelinePlayerHarness({ onValue }: { onValue: (value: TimelinePlayerApi) => void }) {
-  const value = useTimelinePlayer();
+function TimelinePlayerHarness({
+  onValue,
+  options,
+}: {
+  onValue: (value: TimelinePlayerApi) => void;
+  options?: UseTimelinePlayerOptions;
+}) {
+  const value = useTimelinePlayer(options);
   useEffect(() => {
     onValue(value);
   }, [onValue, value]);
@@ -22,7 +28,7 @@ function TimelinePlayerHarness({ onValue }: { onValue: (value: TimelinePlayerApi
 }
 
 /** `api` is the first render's snapshot; `getApi()` returns the latest render's value. */
-export function renderTimelinePlayerHarness() {
+export function renderTimelinePlayerHarness(options?: UseTimelinePlayerOptions) {
   let latest: TimelinePlayerApi | null = null;
   const host = document.createElement("div");
   document.body.append(host);
@@ -30,7 +36,7 @@ export function renderTimelinePlayerHarness() {
 
   act(() => {
     root.render(
-      React.createElement(TimelinePlayerHarness, { onValue: (value) => (latest = value) }),
+      React.createElement(TimelinePlayerHarness, { onValue: (value) => (latest = value), options }),
     );
   });
 

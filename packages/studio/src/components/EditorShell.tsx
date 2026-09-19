@@ -162,6 +162,7 @@ export function EditorShell({
           activeCompositionPath={activeCompPath}
           onIframeRef={handlePreviewIframeRef}
           onCompIdToSrcChange={setCompIdToSrc}
+          onPreviewReloadFailed={(message) => showToast(message, "error")}
           onCompositionLoadingChange={setCompositionLoading}
           onCompositionChange={(compPath) => {
             // Sync activeCompPath when the user drills down via the timeline or

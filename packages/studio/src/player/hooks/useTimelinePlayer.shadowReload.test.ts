@@ -4,6 +4,8 @@
 import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { SHADOW_READY_TIMEOUT_MS } from "./useShadowPreviewReload";
+import { usePlayerStore } from "../store/playerStore";
 import { NLEProvider, useNLEContext, type NLEContextValue } from "../../components/nle/NLEContext";
 import {
   makeAdapterWindow,
@@ -14,7 +16,14 @@ import {
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
+vi.mock("../../utils/gsapSoftReload", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../../utils/gsapSoftReload")>()),
+  ensureMotionPathPluginLoaded: vi.fn(),
+}));
+
 afterEach(() => {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
   document.body.innerHTML = "";
   resetPlayerStore();
 });
@@ -25,7 +34,15 @@ function makeLiveIframe(): HTMLIFrameElement {
   return iframe;
 }
 
-describe("useTimelinePlayer shadow reload (AD132/D-801)", () => {
+function makeShadowWithSpies() {
+  const { adapter, win } = makeAdapterWindow();
+  adapter.seek = vi.fn(adapter.seek);
+  const iframe = makeFakeIframe(win);
+  iframe.src = "http://localhost/api/projects/demo/preview?_t=1";
+  return { adapter, iframe };
+}
+
+describe("useTimelinePlayer shadow reload", () => {
   it("never hides or removes the live iframe before the shadow signals it has painted", () => {
     const { getApi, root } = renderTimelinePlayerHarness();
     const liveIframe = makeLiveIframe();
@@ -68,6 +85,7 @@ describe("useTimelinePlayer shadow reload (AD132/D-801)", () => {
 
     act(() => {
       getApi().onShadowIframeLoad(shadowSlot!.gen);
+      getApi().onShadowReadyToShow(shadowSlot!.gen);
     });
 
     // Promotion: a single atomic swap. Exactly one live slot, pointing at the
@@ -97,9 +115,9 @@ describe("useTimelinePlayer shadow reload (AD132/D-801)", () => {
     // The first shadow's iframe finishes loading and is fully adapter-ready
     // (a real "would have painted correctly" candidate) before it is
     // superseded.
-    const firstShadowIframe = makeLiveIframe();
+    const firstShadow = makeShadowWithSpies();
     act(() => {
-      getApi().setShadowIframeNode(firstShadowIframe);
+      getApi().setShadowIframeNode(firstShadow.iframe);
     });
 
     // A second edit lands before the first shadow's readiness was consumed.
@@ -118,9 +136,11 @@ describe("useTimelinePlayer shadow reload (AD132/D-801)", () => {
     // pending shadow.
     act(() => {
       getApi().onShadowIframeLoad(firstShadowGen!);
+      getApi().onShadowReadyToShow(firstShadowGen!);
     });
     expect(getApi().previewSlots.find((s) => s.role === "live")).toEqual({ gen: 0, role: "live" });
     expect(getApi().iframeRef.current).toBe(liveIframe);
+    expect(firstShadow.adapter.seek).not.toHaveBeenCalled();
 
     unmount(root);
   });
@@ -170,9 +190,162 @@ describe("drop that removes a covered clip (reloadPreview -> refreshKey bump)", 
     await act(async () => {
       ctx!.setShadowIframeNode(shadowIframe);
       ctx!.onShadowIframeLoad(shadow!.gen);
+      ctx!.onShadowReadyToShow(shadow!.gen);
     });
     expect(ctx!.previewSlots).toEqual([{ ...shadow!, role: "live" }]);
     expect(ctx!.iframeRef.current).toBe(shadowIframe);
+
+    await act(async () => root.unmount());
+    vi.unstubAllGlobals();
+  });
+});
+
+describe("shadow reload readiness and failure", () => {
+  function beginReload(options: Parameters<typeof renderTimelinePlayerHarness>[0] = {}) {
+    const harness = renderTimelinePlayerHarness(options);
+    const { adapter, win } = makeAdapterWindow();
+    const live = makeFakeIframe(win);
+    act(() => {
+      harness.getApi().iframeRef.current = live;
+      harness.getApi().onIframeLoad();
+    });
+    adapter.pause.mockClear();
+    act(() => harness.getApi().refreshPlayer());
+    const gen = harness.getApi().previewSlots.find((s) => s.role === "shadow")!.gen;
+    return { ...harness, live, liveAdapter: adapter, gen };
+  }
+
+  it("pauses the live adapter when a reload starts", () => {
+    const { liveAdapter, root } = beginReload();
+    expect(liveAdapter.pause).toHaveBeenCalled();
+    unmount(root);
+  });
+
+  it("does not promote a shadow whose loader is still up, and promotes once it clears", () => {
+    const { getApi, live, gen, root } = beginReload();
+    const shadow = makeShadowWithSpies();
+    act(() => {
+      getApi().setShadowIframeNode(shadow.iframe);
+      getApi().onShadowIframeLoad(gen);
+    });
+    expect(getApi().iframeRef.current).toBe(live);
+    expect(getApi().previewSlots).toHaveLength(2);
+
+    act(() => getApi().onShadowReadyToShow(gen));
+    expect(getApi().iframeRef.current).toBe(shadow.iframe);
+    expect(getApi().previewSlots).toEqual([{ gen, role: "live", url: expect.any(String) }]);
+    unmount(root);
+  });
+
+  it("promotes when the loader clears before the adapter is ready", () => {
+    const { getApi, gen, root } = beginReload();
+    const shadow = makeShadowWithSpies();
+    act(() => {
+      getApi().setShadowIframeNode(shadow.iframe);
+      getApi().onShadowReadyToShow(gen);
+    });
+    expect(getApi().previewSlots).toHaveLength(2);
+    act(() => getApi().onShadowIframeLoad(gen));
+    expect(getApi().iframeRef.current).toBe(shadow.iframe);
+    unmount(root);
+  });
+
+  it("drops a shadow that never becomes ready, keeps the live frame and reports why", () => {
+    vi.useFakeTimers();
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const onPreviewReloadFailed = vi.fn();
+    const { getApi, live, root } = beginReload({ onPreviewReloadFailed });
+    expect(getApi().previewSlots).toHaveLength(2);
+
+    act(() => void vi.advanceTimersByTime(SHADOW_READY_TIMEOUT_MS));
+
+    expect(getApi().previewSlots).toEqual([{ gen: 0, role: "live" }]);
+    expect(getApi().iframeRef.current).toBe(live);
+    expect(live.style.visibility).toBe("");
+    expect(onPreviewReloadFailed).toHaveBeenCalledWith(expect.stringContaining("too long"));
+    expect(consoleError).toHaveBeenCalled();
+    unmount(root);
+  });
+
+  it("drops a shadow whose document reports an error and reports the cause", () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const onPreviewReloadFailed = vi.fn();
+    const { getApi, live, gen, root } = beginReload({ onPreviewReloadFailed });
+
+    act(() => getApi().onShadowError(gen, "Composition timeline not found after 8s"));
+
+    expect(getApi().previewSlots).toEqual([{ gen: 0, role: "live" }]);
+    expect(getApi().iframeRef.current).toBe(live);
+    expect(onPreviewReloadFailed).toHaveBeenCalledWith(
+      expect.stringContaining("Composition timeline not found after 8s"),
+    );
+    unmount(root);
+  });
+
+  it("runs no load side effects for a superseded shadow", () => {
+    const { getApi, gen, root } = beginReload();
+    usePlayerStore.getState().setCurrentTime(7);
+    const stale = makeShadowWithSpies();
+    act(() => {
+      getApi().setShadowIframeNode(stale.iframe);
+      getApi().refreshPlayer();
+    });
+    act(() => getApi().onShadowIframeLoad(gen));
+    expect(stale.adapter.seek).not.toHaveBeenCalled();
+    unmount(root);
+  });
+});
+
+describe("NLEProvider iframe ref notifications", () => {
+  it("tells the consumer about the reloaded iframe once, on promotion", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("{}", { status: 404 })),
+    );
+    const { ensureMotionPathPluginLoaded } = await import("../../utils/gsapSoftReload");
+    const onIframeRef = vi.fn();
+    let ctx: NLEContextValue | null = null;
+    const Probe = () => {
+      ctx = useNLEContext();
+      return null;
+    };
+    const host = document.createElement("div");
+    document.body.append(host);
+    const root = createRoot(host);
+    const render = (refreshKey: number) =>
+      act(async () => {
+        root.render(
+          React.createElement(
+            NLEProvider,
+            { projectId: "demo", refreshKey, onIframeRef },
+            React.createElement(Probe),
+          ),
+        );
+        await Promise.resolve();
+      });
+    await render(0);
+    const live = makeLiveIframe();
+    await act(async () => {
+      ctx!.iframeRef.current = live;
+      ctx!.onIframeLoad();
+    });
+    onIframeRef.mockClear();
+    vi.mocked(ensureMotionPathPluginLoaded).mockClear();
+
+    await render(1);
+    const callsAtBegin = onIframeRef.mock.calls.length;
+    expect(onIframeRef.mock.calls.every(([iframe]) => iframe === live)).toBe(true);
+
+    const shadow = ctx!.previewSlots.find((s) => s.role === "shadow")!;
+    const shadowIframe = makeLiveIframe();
+    await act(async () => {
+      ctx!.setShadowIframeNode(shadowIframe);
+      ctx!.onShadowIframeLoad(shadow.gen);
+      ctx!.onShadowReadyToShow(shadow.gen);
+    });
+    expect(onIframeRef).toHaveBeenCalledTimes(callsAtBegin + 1);
+    expect(onIframeRef).toHaveBeenLastCalledWith(shadowIframe);
+    expect(ensureMotionPathPluginLoaded).toHaveBeenCalledWith(shadowIframe);
 
     await act(async () => root.unmount());
     vi.unstubAllGlobals();

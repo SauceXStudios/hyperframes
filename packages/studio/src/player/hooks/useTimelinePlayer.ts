@@ -39,7 +39,17 @@ import { createPreviewMessageHandler } from "./previewMessageRouter";
 import { timelineElementsChanged } from "./timelinePlayerSync";
 import { safeContentDocument } from "./timelineSyncHydration";
 
-export function useTimelinePlayer() {
+export interface UseTimelinePlayerOptions {
+  /** Runs right after a reloaded preview becomes the live iframe. */
+  onShadowPromoted?: () => void;
+  /** A reload was abandoned (cause in the message); the previous preview is still showing. */
+  onPreviewReloadFailed?: (message: string) => void;
+}
+
+export function useTimelinePlayer({
+  onShadowPromoted,
+  onPreviewReloadFailed,
+}: UseTimelinePlayerOptions = {}) {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const rafRef = useRef<number>(0);
   const probeIntervalRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
@@ -371,6 +381,8 @@ export function useTimelinePlayer() {
   const {
     previewSlots,
     onShadowIframeLoad,
+    onShadowReadyToShow,
+    onShadowError,
     setShadowIframeNode,
     beginShadowReload,
     resetPreviewSlots,
@@ -386,6 +398,8 @@ export function useTimelinePlayer() {
     setIsPlaying,
     attachIframeShortcutListeners,
     applyPreviewAudioState,
+    onPromoted: onShadowPromoted,
+    onReloadFailed: onPreviewReloadFailed,
   });
 
   const saveSeekPosition = useCallback(() => {
@@ -417,13 +431,15 @@ export function useTimelinePlayer() {
     if (!iframe) return;
     logReload("refreshPlayer", () => ({ stack: new Error("refreshPlayer").stack }));
     saveSeekPosition();
+    // The old iframe is no longer navigated away, so stop its playback (and audio) here.
+    getAdapter()?.pause();
     // The live iframe is never hidden; the reload loads in a shadow and is promoted once painted.
     const src = iframe.src;
     const url = new URL(src, window.location.origin);
     url.searchParams.set("_t", String(Date.now()));
     applyPreviewVariablesToUrl(url);
     beginShadowReload(url.toString());
-  }, [saveSeekPosition, beginShadowReload]);
+  }, [saveSeekPosition, getAdapter, beginShadowReload]);
   const getAdapterRef = useRef(getAdapter);
   getAdapterRef.current = getAdapter;
 
@@ -503,6 +519,8 @@ export function useTimelinePlayer() {
     resetPlayer,
     previewSlots,
     onShadowIframeLoad,
+    onShadowReadyToShow,
+    onShadowError,
     setShadowIframeNode,
     resetPreviewSlots,
   };
