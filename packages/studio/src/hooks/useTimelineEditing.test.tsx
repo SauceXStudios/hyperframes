@@ -1454,11 +1454,8 @@ describe("useTimelineEditing duration rollback on failed persist", () => {
   });
 });
 
-/**
- * canEdit gates every write at the boundary useTimelineEditing already owns:
- * blocked means no fetch write, no recordEdit, and the host's reason toasted.
- * Absent canEdit must behave exactly as before (asserted above this block).
- */
+// Blocked means no fetch write, no recordEdit, and the host's reason
+// toasted. Absent canEdit behaves exactly as before (asserted above).
 describe("useTimelineEditing: canEdit gate", () => {
   it("refuses a move with the host's reason, writing nothing", async () => {
     const { clip, move, writeProjectFile, recordEdit, showToast, unmount } = setupSingleClipHarness(

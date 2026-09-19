@@ -468,13 +468,8 @@ export function useTimelineEditing({
   });
 
   // Every write-handler is tracked here, the one place all hand edits
-  // converge, so undo (already awaiting this registry) never races a write.
-  // canEdit is checked at the same point, ahead of tracking: split, move,
-  // resize, group move/resize, delete and the fx-attribute persist are
-  // covered by resolving their element(s); toggle-hidden resolves by key or
-  // track. Not covered here: the audio-group attribute (keyed by a group id
-  // with no element to resolve), razor-split-all, and the three drop
-  // handlers (they add content, not edit an existing element).
+  // converge, so undo never races a write; canEdit gates the same point.
+  // Coverage boundary: see the PR body, not every kind resolves an element.
   const trackedRazorSplit = track(
     guard((element: TimelineElement, _splitTime: number) => [element], handleRazorSplit),
   );

@@ -1,11 +1,8 @@
 // @vitest-environment happy-dom
 
-/**
- * Proves the package's public export surface, not internal hook paths, is
- * enough for a host to mount Studio's real hand-edit path outside EditorShell:
- * an edit is written through the history save path, Undo restores it, and a
- * 409 surfaces the conflict banner. See D-812/index.ts "Timeline editing".
- */
+// Proves the package's public exports, not internal hook paths, are enough
+// for a host to mount hand editing outside EditorShell: an edit writes
+// through the history path, Undo restores it, and a 409 shows the banner.
 import { act, createElement, useRef } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
