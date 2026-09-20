@@ -293,24 +293,22 @@ describe("TimelineLanes disclosure target", () => {
     return ariaControlsTargets(host)[0] ?? null;
   }
 
+  function expectNoDisclosure(view: ReturnType<typeof renderLanes>): void {
+    expect(ariaControlsTarget(view.host)).toBeNull();
+    expect(ariaControlsTargets(view.host)).toEqual([]);
+    act(() => view.root.unmount());
+  }
+
   // aria-controls used to name a div in the sticky label column: it computed to
   // 0x0 and held no diamonds at all.
   it("resolves the caret's aria-controls to an element holding the property lanes", () => {
     const view = renderLanes({ animations: ANIMATIONS, expandedClipIds: ["clip-a"] });
-    const target = ariaControlsTarget(view.host);
-
-    expect(target).toBeNull();
-    expect(ariaControlsTargets(view.host)).toEqual([]);
-    act(() => view.root.unmount());
+    expectNoDisclosure(view);
   });
 
   it("still resolves the caret's aria-controls while the layer is collapsed", () => {
     const view = renderLanes({ animations: ANIMATIONS, expandedClipIds: [] });
-    const target = ariaControlsTarget(view.host);
-
-    expect(target).toBeNull();
-    expect(ariaControlsTargets(view.host)).toEqual([]);
-    act(() => view.root.unmount());
+    expectNoDisclosure(view);
   });
 
   // Two timelines on one page (a mini-timeline in a modal beside the main one)
