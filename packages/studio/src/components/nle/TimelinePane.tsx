@@ -3,7 +3,6 @@ import { Timeline } from "../../player";
 import type { TimelineElement, TimelineTimeRange } from "../../player";
 import type { BlockedTimelineEditIntent } from "../../player/components/timelineEditing";
 import { useTimelineEditContext } from "../../contexts/TimelineEditContext";
-import { trackStudioExpandedClipEdit } from "../../telemetry/events";
 import { useNLEContext } from "./NLEContext";
 import type { TimelineMoveOperation } from "../../hooks/timelineMoveAdapter";
 
@@ -164,7 +163,6 @@ export function TimelinePane({
     (element: TimelineElement, updates: Pick<TimelineElement, "start" | "track">) => {
       const basis = element.expandedParentStart;
       if (basis === undefined) return onMoveElement?.(element, updates);
-      trackStudioExpandedClipEdit({ action: "move" });
       onMoveElement?.(toLocalElement(element, basis), {
         ...updates,
         start: Math.max(0, updates.start - basis),
@@ -185,7 +183,6 @@ export function TimelinePane({
       // Match the sibling handlers: report the telemetry when the batch touches at
       // least one expanded sub-comp child (the clips being rebased to local coords).
       if (edits.some(({ element }) => element.expandedParentStart !== undefined)) {
-        trackStudioExpandedClipEdit({ action: "move" });
       }
       if (!onMoveElements) return;
       return forwardRebasedTimelineMoveElements(
@@ -206,7 +203,6 @@ export function TimelinePane({
     ) => {
       const basis = element.expandedParentStart;
       if (basis === undefined) return onResizeElement?.(element, updates);
-      trackStudioExpandedClipEdit({ action: "resize" });
       onResizeElement?.(toLocalElement(element, basis), {
         ...updates,
         start: Math.max(0, updates.start - basis),
@@ -227,7 +223,6 @@ export function TimelinePane({
     ) => {
       if (!onResizeElements) return;
       if (changes.some(({ element }) => element.expandedParentStart !== undefined)) {
-        trackStudioExpandedClipEdit({ action: "resize" });
       }
       return forwardRebasedTimelineResizeElements(changes, options, onResizeElements);
     },
@@ -238,7 +233,6 @@ export function TimelinePane({
     (element: TimelineElement) => {
       const basis = element.expandedParentStart;
       if (basis === undefined) return onDeleteElement?.(element);
-      trackStudioExpandedClipEdit({ action: "delete" });
       return onDeleteElement?.(toLocalElement(element, basis));
     },
     [onDeleteElement, toLocalElement],
@@ -248,7 +242,6 @@ export function TimelinePane({
     (element: TimelineElement, splitTime: number) => {
       const basis = element.expandedParentStart;
       if (basis === undefined) return onSplitElement?.(element, splitTime);
-      trackStudioExpandedClipEdit({ action: "split" });
       return onSplitElement?.(toLocalElement(element, basis), Math.max(0, splitTime - basis));
     },
     [onSplitElement, toLocalElement],

@@ -28,11 +28,17 @@ const groups: never[] = [];
 const trackGroupOf = new Map();
 const gsapAnimations = new Map();
 
-function Harness({ snapshots }: { snapshots: Array<readonly TimelineLogicalRow[]> }) {
-  usePlayerStore((state) => state.requestedSeekTime);
+function Harness({
+  snapshots,
+  inputTracks = tracks,
+}: {
+  snapshots: Array<readonly TimelineLogicalRow[]>;
+  inputTracks?: typeof tracks;
+}) {
+  usePlayerStore((state) => state.currentTime);
   const logicalRows = useTimelineLogicalRows({
-    tracks,
-    displayTrackOrder,
+    tracks: inputTracks,
+    displayTrackOrder: inputTracks.map(([track]) => track),
     laneCounts,
     selectedElementId: null,
     selectedElementIds,
@@ -60,6 +66,38 @@ describe("useTimelineLogicalRows", () => {
     act(() => usePlayerStore.setState({ requestedSeekTime: 1 }));
 
     expect(snapshots.at(-1)).toBe(first);
+    act(() => root.unmount());
+  });
+
+  it("keeps a nested element in one row as the playhead crosses it", () => {
+    const nestedTracks = [
+      [
+        0,
+        [
+          {
+            id: "nested-div",
+            tag: "div",
+            track: 0,
+            start: 1,
+            duration: 2,
+            parentCompositionId: "scene",
+          },
+        ],
+      ],
+    ] as const satisfies typeof tracks;
+    const host = document.createElement("div");
+    const root = createRoot(host);
+    const snapshots: Array<readonly TimelineLogicalRow[]> = [];
+    act(() => root.render(<Harness snapshots={snapshots} inputTracks={nestedTracks} />));
+    const before = snapshots.at(-1);
+
+    act(() => usePlayerStore.setState({ currentTime: 2.5 }));
+
+    const after = snapshots.at(-1);
+    expect(before).toHaveLength(1);
+    expect(after).toHaveLength(1);
+    expect(after?.[0]?.items).toHaveLength(1);
+    expect(after).toBe(before);
     act(() => root.unmount());
   });
 });
