@@ -83,17 +83,13 @@ export function isFocusedEaseRequestCurrent(
 }
 
 export interface KeyframeSlice {
-  /** @deprecated Expansion state is retained only for fixture compatibility; no timeline renderer reads it. */
-  expandedClipIds: Set<string>;
-  toggleClipExpanded: (id: string) => void;
-  setClipExpanded: (id: string, expanded: boolean) => void;
-  expandClips: (ids: string[]) => void;
-  /** @deprecated Compatibility for old fixtures; no renderer reads this state. */
-  expandedLaneOwnerIds: Set<string>;
   /** Selected collapsed (`element:pct`) or expanded (`element:group:animation:clipPct`) diamonds. */
   selectedKeyframes: Set<string>;
   toggleSelectedKeyframe: (key: string) => void;
   clearSelectedKeyframes: () => void;
+
+  /** Clips whose keyframe property lanes are expanded in the timeline. */
+  /** Union-expand clips (keyframed clips are expanded by default on load). */
 
   /**
    * Groups whose member rows the caret has HIDDEN (structural, not lanes).
@@ -106,6 +102,10 @@ export interface KeyframeSlice {
    */
   collapsedGroupIds: Set<string>;
   toggleGroupExpanded: (id: string) => void;
+
+  /** Rows (clip id or group id) whose automation-lane rows the `∿` button opened. */
+  expandedLaneOwnerIds: Set<string>;
+  toggleLaneOwnerExpanded: (id: string) => void;
 
   /**
    * Project/session/element-scoped request. Its nonce is monotonic across store
@@ -142,23 +142,6 @@ export function createKeyframeSlice(
   getTimelineSessionIdentity: () => TimelineSessionIdentity,
 ): KeyframeSlice {
   return {
-    expandedClipIds: new Set(),
-    toggleClipExpanded: (id) =>
-      set((state) => {
-        const next = new Set(state.expandedClipIds);
-        if (next.has(id)) next.delete(id);
-        else next.add(id);
-        return { expandedClipIds: next };
-      }),
-    setClipExpanded: (id, expanded) =>
-      set((state) => {
-        const next = new Set(state.expandedClipIds);
-        if (expanded) next.add(id);
-        else next.delete(id);
-        return { expandedClipIds: next };
-      }),
-    expandClips: (ids) => set({ expandedClipIds: new Set(ids) }),
-    expandedLaneOwnerIds: new Set(),
     selectedKeyframes: new Set(),
     toggleSelectedKeyframe: (key) =>
       set((state) => {
@@ -169,6 +152,7 @@ export function createKeyframeSlice(
       }),
     clearSelectedKeyframes: () => set({ selectedKeyframes: new Set() }),
 
+
     collapsedGroupIds: new Set(),
     toggleGroupExpanded: (id) =>
       set((state) => {
@@ -176,6 +160,15 @@ export function createKeyframeSlice(
         if (next.has(id)) next.delete(id);
         else next.add(id);
         return { collapsedGroupIds: next };
+      }),
+
+    expandedLaneOwnerIds: new Set(),
+    toggleLaneOwnerExpanded: (id) =>
+      set((state) => {
+        const next = new Set(state.expandedLaneOwnerIds);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        return { expandedLaneOwnerIds: next };
       }),
 
     focusedEaseSegment: null,

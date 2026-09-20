@@ -2,8 +2,8 @@ import { useMemo, useRef } from "react";
 import type { GsapAnimation } from "@hyperframes/core/gsap-parser";
 import { animationLaneGroups } from "./TimelinePropertyLanes";
 import { isAudioOrVideoTimelineElement } from "../../utils/timelineInspector";
-import { elementAutomationLanes } from "./automationLaneData";
-import type { TimelineElement } from "../store/playerStore";
+import { elementAutomationLanes, groupAutomationLanes } from "./automationLaneData";
+import { usePlayerStore, type TimelineElement } from "../store/playerStore";
 import type { DraggedClipState } from "./timelineClipDragTypes";
 import { useTimelineTrackDerivations } from "./useTimelineTrackDerivations";
 import {
@@ -11,7 +11,16 @@ import {
   createTimelineRowGeometry,
   type TimelineRowGeometry,
   trackHeights,
+  type TimelineTrackHeightClip,
 } from "./timelineLayout";
+import type { TimelineTrackGroupInfo } from "./useTimelineTrackDerivations";
+import { groupAutomationElement } from "./groupAutomationElement";
+import { AUTOMATION_LANE_H } from "./automationLaneHeight";
+
+/** Automation rows the GROUP itself owns — its `data-automation`, not its members'. */
+function groupOwnLaneCount(group: TimelineTrackGroupInfo): number {
+  return groupAutomationLanes([groupAutomationElement(group, 0)]).length;
+}
 
 export { getTrackStyle } from "./timelineIcons";
 
@@ -51,6 +60,10 @@ function automationLaneCountOf(element: TimelineElement): number {
  * clips on one row share a lane row per property. Counting only the active clip's
  * lanes reserved a height that changed with the selection.
  */
+function trackAutomationLaneCount(elements: readonly TimelineElement[]): number {
+  return groupAutomationLanes(elements).length;
+}
+
 /**
  * Is this row disclosed? Expansion is stored per clip, but it reads as a property
  * of the ROW: the active clip changes with the selection, so asking only about it
@@ -122,16 +135,65 @@ function computeLaneCounts(
  *  looks at a row's clips — always gives them TRACK_H. Override those
  *  specific rows post-hoc: TRACK_H while collapsed, plus the group's own
  *  automation rows once its `∿` is open. */
+function applyGroupStripHeights(
+  tracks: readonly (readonly [number, readonly TimelineElement[]])[],
+  rowHeights: number[],
+  groups: readonly TimelineTrackGroupInfo[],
+  expandedLaneOwnerIds: ReadonlySet<string>,
+): number[] {
+  if (groups.length === 0) return rowHeights;
+  const groupByAnchor = new Map(groups.map((group) => [group.anchorKey, group]));
+  return tracks.map(([track], index) => {
+    const group = groupByAnchor.get(track);
+    if (!group || !expandedLaneOwnerIds.has(group.id)) return rowHeights[index] ?? TRACK_H;
+    // The group's own automation rows, which its `∿` discloses. A row sized
+    // without them clipped every lane it had just promised in the count.
+    return TRACK_H + groupOwnLaneCount(group) * AUTOMATION_LANE_H;
+  });
+}
+
 function useTimelineRowHeights(
   tracks: [number, TimelineElement[]][],
   gsapAnimations: Map<string, GsapAnimation[]>,
+  selectedElementId: string | null,
+  selectedElementIds: ReadonlySet<string>,
+  groups: readonly TimelineTrackGroupInfo[],
 ) {
+  const expandedLaneOwnerIds = usePlayerStore((s) => s.expandedLaneOwnerIds);
   const { laneCounts, rowGeometry } = useMemo(() => {
     const laneCounts = computeLaneCounts(tracks, gsapAnimations);
     // Keyframe lanes follow only the active clip, so a track with several
     // keyframed elements never reserves empty lanes for the ones not shown.
     // Automation lanes follow the whole row: they are shared per property.
-    const rowHeights = trackHeights(tracks.map(() => []));
+    const heightTracks: TimelineTrackHeightClip[][] = tracks.map(([, elements]) => {
+      const active = resolveTrackKeyframeClip(
+        elements,
+        laneCounts,
+        selectedElementId,
+        selectedElementIds,
+      );
+      if (!active) return [];
+      const clipId = active.key ?? active.id;
+      return [
+        {
+          clipId,
+          laneCount: 0,
+          automationLaneCount: trackAutomationLaneCount(elements),
+        },
+      ];
+    });
+    const rowHeights = applyGroupStripHeights(
+      tracks,
+      tracks.map(([, elements], index) => {
+        const active = resolveTrackKeyframeClip(elements, laneCounts, selectedElementId, selectedElementIds);
+        const activeId = active ? (active.key ?? active.id) : null;
+        return activeId !== null && expandedLaneOwnerIds.has(activeId)
+          ? TRACK_H + trackAutomationLaneCount(elements) * AUTOMATION_LANE_H
+          : TRACK_H;
+      }),
+      groups,
+      expandedLaneOwnerIds,
+    );
     return {
       laneCounts,
       rowGeometry: createTimelineRowGeometry(
@@ -139,7 +201,14 @@ function useTimelineRowHeights(
         rowHeights,
       ),
     };
-  }, [gsapAnimations, tracks]);
+  }, [
+    expandedLaneOwnerIds,
+    gsapAnimations,
+    groups,
+    tracks,
+    selectedElementId,
+    selectedElementIds,
+  ]);
   const rowGeometryRef = useRef<TimelineRowGeometry>(rowGeometry);
   rowGeometryRef.current = rowGeometry;
   return {
@@ -153,8 +222,8 @@ function useTimelineRowHeights(
 export function useTimelineTrackLayout(
   expandedElements: TimelineElement[],
   gsapAnimations: Map<string, GsapAnimation[]>,
-  _selectedElementId: string | null,
-  _selectedElementIds: ReadonlySet<string>,
+  selectedElementId: string | null,
+  selectedElementIds: ReadonlySet<string>,
 ) {
   const { tracks, trackStyles, trackOrder, groups, trackGroupOf } =
     useTimelineTrackDerivations(expandedElements);
@@ -163,6 +232,9 @@ export function useTimelineTrackLayout(
   const { laneCounts, rowGeometry, rowGeometryRef, rowHeights } = useTimelineRowHeights(
     tracks,
     gsapAnimations,
+    selectedElementId,
+    selectedElementIds,
+    groups,
   );
 
   return {

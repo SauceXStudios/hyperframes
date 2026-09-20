@@ -74,7 +74,7 @@ interface TimelineTrackHeaderProps {
   isGroupMember?: boolean;
   rovingTargetId?: string | null;
   theme: TimelineTheme;
-  onToggleClipExpanded?: () => void;
+  onToggleClipExpanded: () => void;
   onToggleTrackHidden: TimelineEditCallbacks["onToggleTrackHidden"];
   onTogglePropertyGroupKeyframe?: TimelineEditCallbacks["onTogglePropertyGroupKeyframe"];
   /** Drop one envelope. Absent while the lanes are read-only, which is what
@@ -100,7 +100,7 @@ export function TimelineTrackHeader({
   isAudioTrack,
   isGroupMember = false,
   theme,
-  onToggleClipExpanded = () => undefined,
+  onToggleClipExpanded,
   onToggleTrackHidden,
   onTogglePropertyGroupKeyframe,
   onRemoveAutomationLane,
@@ -196,13 +196,13 @@ export function TimelineTrackHeader({
   );
   // Automation counts as something to disclose: gating the caret on tweens alone
   // left an audio clip's envelopes unreachable, since the track could not expand.
-  const disclosable = false;
+  const disclosable = automationRows.length > 0;
   // Which HEADER LAYOUT the row wears — not the same question as `disclosable`.
   // An audio track that automates something is still an audio track: it keeps
   // the music glyph and the group indent and gains the `∿`. Tying layout to
   // disclosability swapped it for the keyframe-layer row (a `◇`, no indent) the
   // moment an envelope appeared.
-  const isKeyframeLayer = !!keyframeClip && disclosable && !isAudioTrack;
+  const isKeyframeLayer = false;
   // What the lane disclosure calls this row. A row of several clips is named
   // for the TRACK, not for whichever is selected — the lanes are the track's,
   // shared per property, so "Narration 2 lanes" read as if they were that one
@@ -387,33 +387,6 @@ export function TimelineTrackHeader({
           </LayerDisclosureRow>
         </>
       )}
-      {/* The caret expands TWO disjoint subtrees: these label-column rows,
-            which carry the per-lane keyframe controls, and the diamond lanes
-            on the canvas. `lanesId` names the canvas lanes (rendered by
-            TimelineLanes), because that is what a sighted user watches appear
-            and what following the reference has to land on. These rows are not
-            empty and are not the target; they are absolutely positioned inside
-            the sticky column, which is what made a wrapper HERE compute to
-            0x0 and hold no diamonds. */}
-      {isExpanded &&
-        keyframeClip &&
-        lanes.map((lane, laneIndex) => (
-          <PropertyGroupHeaderRow
-            key={lane.group}
-            lanesId={lanesId}
-            lane={lane}
-            laneIndex={laneIndex}
-            isLastLane={laneIndex === lanes.length - 1 && automationRows.length === 0}
-            expandedElement={keyframeClip}
-            currentTime={currentTime}
-            clipPercentage={clipPercentage}
-            gutterBackground={gutterFill(theme.gutterBackground, isGroupMember)}
-            columnWidth={showTrackLabel ? LABEL_COL_W : contentOrigin}
-            onTogglePropertyGroupKeyframe={onTogglePropertyGroupKeyframe}
-            onSeek={onSeek}
-            rovingTargetId={rovingTargetId}
-          />
-        ))}
       {/* Below the keyframe rows and stepping by its own height, which is how
             TimelineAutomationLaneSlot lays the envelopes out on the canvas. The
             two have to agree or a name labels the wrong curve. */}

@@ -2,13 +2,21 @@ import { Fragment, useId, useMemo } from "react";
 import { BeatStrip, BeatBackgroundLines } from "./BeatStrip";
 import { TimelineClip } from "./TimelineClip";
 import { TimelineCompactDiamonds } from "./TimelineCompactDiamonds";
+import { TimelinePropertyLanes } from "./TimelinePropertyLanes";
+import { TimelineAutomationLaneSlot } from "./TimelineAutomationLaneSlot";
+import { useAutomationLanes } from "./useAutomationLanes";
+import { useAutomationSelectionKeyboard } from "../../hooks/useAutomationSelectionKeyboard";
 import { TimelineTrackHeader } from "./TimelineTrackHeader";
 import { TimelineGroupRow } from "./TimelineGroupRow";
 import { useTimelineLaneRowIndexes, useTimelineGroupDisclosure } from "./useTimelineLaneRowIndexes";
-import { resolveTrackKeyframeClip, trackShowsBeatStrip } from "./useTimelineTrackLayout";
+import {
+  resolveTrackKeyframeClip,
+  trackShowsBeatStrip,
+} from "./useTimelineTrackLayout";
 import { trackDisplayNumber, trackDisplaySuffix } from "./timelineTrackDisplay";
+import { clipTimingStart } from "../../hooks/gsapShared";
 import { getTimelineEditCapabilities } from "./timelineEditing";
-import { CLIP_Y } from "./timelineLayout";
+import { CLIP_Y, TRACK_H } from "./timelineLayout";
 import { usePlayerStore } from "../store/playerStore";
 import { isMultiDragPassenger, multiDragPassengerOffsetPx } from "./timelineMultiDragPreview";
 import { useTimelineMultiDragActorWindows } from "./useTimelineMultiDragActorWindows";
@@ -17,8 +25,6 @@ import { isAudioTimelineElement, isMusicTrack } from "../../utils/timelineInspec
 import { createClipGestureHandlers } from "./timelineClipGestureHandlers";
 import { renderClipChildren, resolveClipRenderContext } from "./timelineClipChildren";
 import { TimelineTrackRow } from "./TimelineTrackRow";
-import { TimelineAutomationLaneSlot } from "./TimelineAutomationLaneSlot";
-import { useAutomationLanes } from "./useAutomationLanes";
 import { isTimelineClipActive } from "./useTimelineActiveClips";
 import { queryTimelineClipIndex } from "../lib/timelineClipIndex";
 import { getTimelineElementIdentity } from "../lib/timelineElementHelpers";
@@ -92,11 +98,13 @@ export function TimelineLanes({
   // ponytail: One per-instance namespace prevents aria-controls and aria-owns
   // from resolving into a second timeline that renders the same logical rows.
   const lanesIdPrefix = `timeline-lanes${useId().replaceAll(":", "")}`;
-  const { collapsedGroupIds, toggleGroupExpanded } = useTimelineGroupDisclosure();
+  const { collapsedGroupIds, expandedLaneOwnerIds, toggleGroupExpanded, toggleLaneOwnerExpanded } =
+    useTimelineGroupDisclosure();
   const automationLanes = useAutomationLanes();
   // A group's automation clock is COMPOSITION time (groups doc §1.3), so its
   // synthetic lane element spans the whole composition rather than a clip.
   const compositionDuration = usePlayerStore((s) => s.duration);
+  useAutomationSelectionKeyboard({ lanes: automationLanes });
   const { logicalRowsByTrack, groupByAnchor } = useTimelineLaneRowIndexes(logicalRows, groups);
   // Which tracks are group MEMBERS, so their headers can render the level-2
   // nesting their `aria-level` already reports.
@@ -114,7 +122,6 @@ export function TimelineLanes({
     focusedTargetId,
     rowGeometry,
     scrollRef,
-    onToggleRow: () => undefined,
   });
   return (
     <div
@@ -149,8 +156,16 @@ export function TimelineLanes({
                 theme={theme}
                 rovingTargetId={keyboard.rovingTargetId}
                 collapsedGroupIds={collapsedGroupIds}
+                expandedLaneOwnerIds={expandedLaneOwnerIds}
                 toggleGroupExpanded={toggleGroupExpanded}
+                toggleLaneOwnerExpanded={toggleLaneOwnerExpanded}
+                lanes={automationLanes}
+                pps={pps}
+                currentTime={currentTime}
                 compositionDuration={compositionDuration}
+                beatTimes={beatAnalysis?.beatTimes}
+                contentGutter={contentGutter}
+                trackContentWidth={trackContentWidth}
               />
             );
           }
@@ -191,27 +206,54 @@ export function TimelineLanes({
             selectedElementIds,
           );
           const keyframeClipKey = keyframeClip?.key ?? keyframeClip?.id;
+          const rowExpanded = keyframeClipKey !== undefined && expandedLaneOwnerIds.has(keyframeClipKey);
+          // How tall a clip BAR is drawn. An expanded row is mostly lanes, and a
+          // clip left to fill it painted its waveform straight over them — so the
+          // bar is capped for every clip on the row, not just the one whose
+          // property lanes are showing. Undefined means "fill the row", which is
+          // right only while it is collapsed and the row is nothing but bar.
+          const clipBarHeight = rowExpanded ? TRACK_H - 2 * CLIP_Y : undefined;
           // The clips whose envelopes this row draws, at their dragged positions.
           // Once per row, not once per clip in the map below.
+          const automationElements = els.map(getPreviewElement);
           // Minted here because this is the only place that sees BOTH ends of
           // the disclosure: the caret in the sticky header and the diamond lanes
           // on the canvas. Keyed by display row, not by `trackNum`, which is a
           // fractional sort key and would mint ids like `...-0.16666666666666666`.
           const lanesId = `${lanesIdPrefix}-track-${row}`;
+          // The caret reveals two canvas regions now: the active clip's keyframe
+          // lanes and the track's automation lanes. They cannot be one element —
+          // one belongs to a clip, the other to the row — so the caret names both.
+          const automationLanesId = `${lanesId}-automation`;
           // The header's remove buttons write through the same binding the lanes
           // themselves edit through, so a deletion persists exactly like dragging
           // a point does — and the binding reports read-only for an unselected
           // clip, which is what leaves the buttons off rather than offering one
           // that cannot act.
+          const headerLanes =
+            keyframeClip && keyframeClipKey
+              ? automationLanes.bind(
+                  keyframeClip,
+                  selectedElementId === keyframeClipKey || selectedElementIds.has(keyframeClipKey),
+                )
+              : null;
+          const removeAutomationLane =
+            headerLanes && !headerLanes.readOnly
+              ? (target: string) =>
+                  headerLanes.onCommit({
+                    version: 1,
+                    lanes: headerLanes.lanes.filter((lane) => lane.target !== target),
+                  })
+              : undefined;
           return (
             <TimelineTrackRow
               key={rowKey}
               index={row}
               rowKey={rowKey}
               logicalRow={logicalRow}
-              propertyRows={[]}
+              propertyRows={trackLogicalRows.slice(1)}
               lanesId={lanesId}
-              headerLanesId=""
+              headerLanesId={`${lanesId} ${automationLanesId}`}
               top={rowGeometry.getRowTop(row)}
               height={rowHeight}
               virtualized={rowsVirtualized}
@@ -230,20 +272,25 @@ export function TimelineLanes({
                   els[0]?.id ??
                   `Track${trackDisplaySuffix(displayNumber)}`
                 }
-                lanesId=""
+                lanesId={`${lanesId} ${automationLanesId}`}
                 contentOrigin={contentOrigin}
                 keyframeClip={keyframeClip}
                 trackElements={els}
                 clipCount={els.length}
-                isExpanded={false}
+                isExpanded={rowExpanded}
                 animations={keyframeClipKey ? (gsapAnimations.get(keyframeClipKey) ?? []) : []}
                 currentTime={currentTime}
                 isTrackHidden={isTrackHidden}
                 isAudioTrack={isAudioTrack}
                 isGroupMember={groupMemberTracks.has(trackNum)}
                 theme={theme}
+                onToggleClipExpanded={() => {
+                  const keys = els.map(getTimelineElementIdentity);
+                  if (keys.length > 0) toggleRowExpandedTracked(keys);
+                }}
                 onToggleTrackHidden={onToggleTrackHidden}
                 onTogglePropertyGroupKeyframe={onTogglePropertyGroupKeyframe}
+                onRemoveAutomationLane={removeAutomationLane}
                 onSeek={onSeek}
                 rovingTargetId={keyboard.rovingTargetId}
               />
@@ -311,6 +358,8 @@ export function TimelineLanes({
                     // Only the track's active keyframe clip shows expanded lanes;
                     // other clips (incl. siblings on a shared track) show compact
                     // diamonds on their own bar instead.
+                    const isTrackKeyframeClip = elementKey === keyframeClipKey;
+                    const showsLanes = isTrackKeyframeClip && rowExpanded;
                     const capabilities = getTimelineEditCapabilities(el);
                     const isSelected =
                       selectedElementId === elementKey || selectedElementIds.has(elementKey);
@@ -368,7 +417,7 @@ export function TimelineLanes({
                         el={previewElement}
                         pps={pps}
                         clipY={CLIP_Y}
-                        clipHeight={undefined}
+                        clipHeight={clipBarHeight}
                         isSelected={isSelected}
                         isHovered={hoveredClip === clipKey}
                         isDragging={false}
@@ -401,7 +450,7 @@ export function TimelineLanes({
                       </TimelineClip>
                     );
                     const compactKeyframes = keyframeCache?.get(elementKey);
-                    const compactDiamonds = compactKeyframes && (
+                    const compactDiamonds = !showsLanes && compactKeyframes && (
                       <TimelineCompactDiamonds
                         key={`${clipKey}-diamonds`}
                         element={previewElement}
@@ -425,6 +474,44 @@ export function TimelineLanes({
                     );
                     // Keep this shell mounted while collapsed so aria-controls stays valid
                     // and multi-drag cannot remount the subtree mid-gesture.
+                    const propertyLanes = isTrackKeyframeClip && (
+                      <TimelinePropertyLanes
+                        key={`${clipKey}-property-lanes`}
+                        id={lanesId}
+                        animations={showsLanes ? (gsapAnimations.get(elementKey) ?? []) : []}
+                        // clipTimingStart, not the raw start: an expanded sub-comp
+                        // child's start is host-absolute while its tweens are
+                        // local to its own file.
+                        clipStart={clipTimingStart(previewElement)}
+                        clipDuration={previewElement.duration}
+                        clipLeftPx={previewElement.start * pps}
+                        clipWidthPx={Math.max(previewElement.duration * pps, 4)}
+                        accentColor={clipStyle.accent}
+                        isSelected={isSelected}
+                        currentPercentage={
+                          previewElement.duration > 0
+                            ? ((currentTime - previewElement.start) / previewElement.duration) * 100
+                            : 0
+                        }
+                        elementId={elementKey}
+                        selectedKeyframes={selectedKeyframes}
+                        rovingTargetId={keyboard.rovingTargetId}
+                        onSelectSegment={(target) => onSelectSegment?.(elementKey, target)}
+                        onClickKeyframe={(target) => onClickKeyframe?.(previewElement, target)}
+                        onShiftClickKeyframe={(target) =>
+                          onShiftClickKeyframe?.(elementKey, target)
+                        }
+                        onContextMenuKeyframe={(e, target) =>
+                          onContextMenuKeyframe?.(e, elementKey, target)
+                        }
+                        onMoveKeyframe={(target, toClipPercentage) =>
+                          onMoveKeyframe?.(elementKey, target, toClipPercentage) ??
+                          Promise.resolve(false)
+                        }
+                        suppressClickRef={suppressClickRef}
+                      />
+                    );
+
                     // Keep one keyed top-level child per element. Returning an
                     // array here makes React reconcile the outer array by
                     // position, so a window shift remounts otherwise stable
@@ -434,6 +521,7 @@ export function TimelineLanes({
                         <Fragment key={clipKey}>
                           {clip}
                           {compactDiamonds}
+                          {propertyLanes}
                         </Fragment>
                       );
                     }
@@ -450,25 +538,41 @@ export function TimelineLanes({
                       >
                         {clip}
                         {compactDiamonds}
+                        {propertyLanes}
                       </div>
                     );
                   })
                 }
-                {isAudioTrack && (
-                  <TimelineAutomationLaneSlot
-                    elements={els}
-                    isSelected={(element) => {
-                      const key = getTimelineElementIdentity(element);
-                      return selectedElementId === key || selectedElementIds.has(key);
-                    }}
-                    lanes={automationLanes}
-                    pps={pps}
-                    laneCount={0}
-                    accentColor={ts.accent}
-                    currentTime={currentTime}
-                    beatTimes={beatAnalysis?.beatTimes}
-                  />
-                )}
+                {/* The automation lanes belong to the ROW, so they are mounted
+                    here rather than under the active clip's property lanes.
+                    Hanging off that clip meant selecting a sibling moved the
+                    whole subtree into a different clip's element and remounted
+                    every lane — which threw away each lane's hover state (and
+                    any gesture mid-flight), so pressing a lane to select its
+                    clip made the handles you were reaching for disappear.
+
+                    Mounted in BOTH disclosure states, empty while collapsed, so
+                    the caret's aria-controls resolves either way — same reason
+                    the keyframe lanes are. Absolute positions inside resolve
+                    against this same relative row, so the geometry is unchanged
+                    by the move. */}
+                <div id={automationLanesId}>
+                  {rowExpanded ? (
+                    <TimelineAutomationLaneSlot
+                      elements={automationElements}
+                      isSelected={(element) => {
+                        const key = getTimelineElementIdentity(element);
+                        return selectedElementId === key || selectedElementIds.has(key);
+                      }}
+                      lanes={automationLanes}
+                      pps={pps}
+                      laneCount={0}
+                      accentColor={getTrackStyle(keyframeClip?.tag ?? "").accent}
+                      currentTime={currentTime}
+                      beatTimes={beatAnalysis?.beatTimes}
+                    />
+                  ) : null}
+                </div>
               </div>
             </TimelineTrackRow>
           );
