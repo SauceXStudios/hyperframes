@@ -86,7 +86,9 @@ async function main() {
       console.warn(`[build-copy] skill not found, skipping: skills/${skill}`);
       continue;
     }
-    copyDir(src, join(DIST, "skills", skill));
+    const destination = join(DIST, "skills", skill);
+    rmSync(destination, { recursive: true, force: true });
+    copyDir(src, destination);
   }
 
   // The media-use engine lives with the CLI source, but keeps its published
