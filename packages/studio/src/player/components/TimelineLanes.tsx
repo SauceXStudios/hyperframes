@@ -454,24 +454,6 @@ export function TimelineLanes({
                     );
                   })
                 }
-                {/* The automation lanes belong to the ROW, so they are mounted
-                    here rather than under the active clip's property lanes.
-                    Hanging off that clip meant selecting a sibling moved the
-                    whole subtree into a different clip's element and remounted
-                    every lane — which threw away each lane's hover state (and
-                    any gesture mid-flight), so pressing a lane to select its
-                    clip made the handles you were reaching for disappear.
-
-                    Mounted in BOTH disclosure states, empty while collapsed, so
-                    the caret's aria-controls resolves either way — same reason
-                    the keyframe lanes are. Absolute positions inside resolve
-                    against this same relative row, so the geometry is unchanged
-                    by the move. */}
-              </div>
-            </TimelineTrackRow>
-          );
-                  })
-                }
                 {isAudioTrack && (
                   <TimelineAutomationLaneSlot
                     elements={els}
@@ -488,5 +470,10 @@ export function TimelineLanes({
                   />
                 )}
               </div>
+            </TimelineTrackRow>
+          );
+        })
+      }
+    </div>
   );
 }
