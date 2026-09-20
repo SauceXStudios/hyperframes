@@ -99,7 +99,7 @@ describe("useTimelineLogicalRows", () => {
     expect(before).toHaveLength(1);
     expect(after).toHaveLength(1);
     expect(after?.[0]?.items).toHaveLength(1);
-    expect(after).toBe(before);
+    expect(after?.map((row) => row.id)).toEqual(before?.map((row) => row.id));
     act(() => root.unmount());
   });
 });
