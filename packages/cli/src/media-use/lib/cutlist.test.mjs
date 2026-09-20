@@ -8,7 +8,18 @@ import { test } from "node:test";
 import { compileCutList } from "./cutlist.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const SCRIPT = join(HERE, "..", "transcript-cut.mjs");
+const SCRIPT = join(
+  HERE,
+  "..",
+  "..",
+  "..",
+  "..",
+  "..",
+  "skills",
+  "media-use",
+  "scripts",
+  "transcript-cut.mjs",
+);
 
 test("explicit --remove ranges invert to kept segments", () => {
   const transcript = [

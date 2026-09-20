@@ -10,7 +10,16 @@ import { CAPABILITIES, listModels } from "./local-models.mjs";
 // test enforces the weakness→owner matrix in references/meta.md so a claim can't rot — if
 // a capability's entrypoint disappears, this fails.
 
-const SKILL = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+const SKILL = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "..",
+  "..",
+  "..",
+  "..",
+  "..",
+  "skills",
+  "media-use",
+);
 
 test("weakness: audio-only → media-use resolves image + icon", () => {
   for (const t of ["image", "icon"]) {
