@@ -23,7 +23,21 @@ import { catalogFromRegistry, localVectorRevision } from "./catalog-artifact.js"
 type RegistryItem = { name: string; type?: string };
 type Registry = { items: RegistryItem[]; catalogArtifact?: { revision?: string } };
 type Artifact = { model?: string; dimensions?: number; revision?: string; names?: string[] };
-type MediaArtifact = { rows?: Array<{ id?: string; file?: string }> };
+type MediaArtifact = {
+  model?: string;
+  modelRevision?: string;
+  dimensions?: number;
+  revision?: string;
+  names?: string[];
+  rows?: Array<{
+    id?: string;
+    file?: string;
+    title?: string;
+    description?: string;
+    tags?: string[];
+    kind?: string;
+  }>;
+};
 
 const REGISTRY = "registry/registry.json";
 const ARTIFACT = "registry/catalog-artifact/local-vectors.json";
@@ -70,8 +84,21 @@ const expectedRevision = localVectorRevision(
 );
 const artifactRevisionMatches = artifact.revision === expectedRevision;
 const registryRevisionMatches = registry.catalogArtifact?.revision === expectedRevision;
-const mediaSource = read<Record<string, { file?: string }>>(MEDIA_MANIFEST);
+const mediaSource = read<Record<string, { file?: string; description?: string }>>(MEDIA_MANIFEST);
 const mediaArtifact = read<MediaArtifact>(MEDIA_ARTIFACT);
+const mediaEntries = new Map(
+  Object.entries(mediaSource).map(([id, source]) => [
+    id,
+    `${id}\n${source.description ?? ""}\nsfx\nsfx`,
+  ]),
+);
+const expectedMediaRevision = localVectorRevision(
+  LOCAL_MODEL_ID,
+  LOCAL_MODEL_REVISION,
+  LOCAL_MODEL_DIMENSIONS,
+  mediaEntries,
+);
+const mediaBin = readFileSync(MEDIA_ARTIFACT.replace(/\.json$/, ".bin"));
 const mediaRows = new Map(
   (mediaArtifact.rows ?? [])
     .filter(
@@ -87,6 +114,17 @@ const missingMediaRows = Object.entries(mediaSource)
   )
   .map(([id]) => id)
   .sort();
+const mediaNames = mediaArtifact.names ?? [];
+const mediaRowsMatchNames =
+  (mediaArtifact.rows ?? []).length === mediaNames.length &&
+  (mediaArtifact.rows ?? []).every((row, index) => row.id === mediaNames[index]);
+const mediaArtifactValid =
+  mediaArtifact.model === LOCAL_MODEL_ID &&
+  mediaArtifact.modelRevision === LOCAL_MODEL_REVISION &&
+  mediaArtifact.dimensions === LOCAL_MODEL_DIMENSIONS &&
+  mediaArtifact.revision === expectedMediaRevision &&
+  mediaRowsMatchNames &&
+  mediaBin.byteLength === mediaNames.length * LOCAL_MODEL_DIMENSIONS * 4;
 
 const show = (names: string[]) =>
   names
@@ -103,6 +141,9 @@ console.log(
 if (missingMediaRows.length > 0) {
   console.error(`\n${missingMediaRows.length} bundled SFX file(s) have no matching media row:`);
   console.error(show(missingMediaRows));
+}
+if (!mediaArtifactValid) {
+  console.error("\nThe published media vector metadata or binary does not match the SFX manifest.");
 }
 
 if (dropped.length > 0) {
@@ -128,7 +169,8 @@ if (
   unindexed.length > 0 ||
   !artifactRevisionMatches ||
   !registryRevisionMatches ||
-  missingMediaRows.length > 0
+  missingMediaRows.length > 0 ||
+  !mediaArtifactValid
 ) {
   console.error(
     "\nMeaning search is stale. Word search still uses the live registry.\n\n" +

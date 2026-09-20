@@ -87,8 +87,17 @@ function vectorPairAgrees(
     const parsed = JSON.parse(meta.toString("utf-8")) as {
       names?: string[];
       dimensions?: number;
+      rows?: Array<{ id?: string }>;
     };
     if (parsed.dimensions !== LOCAL_MODEL_DIMENSIONS) return false;
+    if (
+      artifactBasename === "media-vectors" &&
+      (!parsed.rows ||
+        parsed.rows.length !== (parsed.names?.length ?? -1) ||
+        parsed.rows.some((row, index) => row.id !== parsed.names?.[index]))
+    ) {
+      return false;
+    }
     return bin.byteLength === (parsed.names?.length ?? -1) * LOCAL_MODEL_DIMENSIONS * 4;
   } catch {
     return false;
