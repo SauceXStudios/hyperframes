@@ -92,10 +92,10 @@ async function main() {
   // The media-use engine lives with the CLI source, but keeps its published
   // skill-relative layout so the moved .mjs tree can run without a rewrite.
   const mediaEngine = join(CLI_ROOT, "src", "media-use");
-  rmSync(join(DIST, "skills", "media-use", "scripts", "lib", "media-fetch.mjs"), {
-    force: true,
-  });
-  copyDir(join(mediaEngine, "lib"), join(DIST, "skills", "media-use", "scripts", "lib"));
+  const publishedMediaLib = join(DIST, "skills", "media-use", "scripts", "lib");
+  rmSync(publishedMediaLib, { recursive: true, force: true });
+  mkdirSync(publishedMediaLib, { recursive: true });
+  copyDir(join(mediaEngine, "lib"), publishedMediaLib);
   cpSync(
     join(mediaEngine, "resolve.mjs"),
     join(DIST, "skills", "media-use", "scripts", "resolve.mjs"),
