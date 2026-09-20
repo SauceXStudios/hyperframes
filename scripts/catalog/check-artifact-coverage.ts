@@ -18,7 +18,12 @@ import {
   LOCAL_MODEL_ID,
   LOCAL_MODEL_REVISION,
 } from "../../packages/cli/src/registry/localModel.js";
-import { catalogFromRegistry, localVectorRevision } from "./catalog-artifact.js";
+import {
+  catalogFromRegistry,
+  localVectorRevision,
+  mediaMetadataRevision,
+  sha256Hex,
+} from "./catalog-artifact.js";
 
 type RegistryItem = { name: string; type?: string };
 type Registry = { items: RegistryItem[]; catalogArtifact?: { revision?: string } };
@@ -28,6 +33,8 @@ type MediaArtifact = {
   modelRevision?: string;
   dimensions?: number;
   revision?: string;
+  metadataRevision?: string;
+  credits?: { file?: string; sha256?: string };
   names?: string[];
   rows?: Array<{
     id?: string;
@@ -84,12 +91,24 @@ const expectedRevision = localVectorRevision(
 );
 const artifactRevisionMatches = artifact.revision === expectedRevision;
 const registryRevisionMatches = registry.catalogArtifact?.revision === expectedRevision;
-const mediaSource = read<Record<string, { file?: string; description?: string }>>(MEDIA_MANIFEST);
+const mediaSource =
+  read<Record<string, { file?: string; description?: string; duration?: number }>>(MEDIA_MANIFEST);
 const mediaArtifact = read<MediaArtifact>(MEDIA_ARTIFACT);
-const mediaEntries = new Map(
-  Object.entries(mediaSource).map(([id, source]) => [
+const mediaRowsFromSource = Object.entries(mediaSource)
+  .sort(([left], [right]) => left.localeCompare(right))
+  .map(([id, source]) => ({
     id,
-    `${id}\n${source.description ?? ""}\nsfx\nsfx`,
+    kind: "sfx",
+    title: id,
+    description: source.description ?? "",
+    tags: ["sfx"],
+    file: `skills/media-use/audio/assets/sfx/${source.file ?? ""}`,
+    ...(source.duration === undefined ? {} : { duration: source.duration }),
+  }));
+const mediaEntries = new Map(
+  mediaRowsFromSource.map((row) => [
+    row.id,
+    `${row.title}\n${row.description}\n${row.tags.join(" ")}\n${row.kind}`,
   ]),
 );
 const expectedMediaRevision = localVectorRevision(
@@ -98,6 +117,11 @@ const expectedMediaRevision = localVectorRevision(
   LOCAL_MODEL_DIMENSIONS,
   mediaEntries,
 );
+const expectedMediaMetadataRevision = mediaMetadataRevision(mediaRowsFromSource);
+const expectedCredits = {
+  file: "skills/media-use/audio/assets/sfx/CREDITS.md",
+  sha256: sha256Hex(readFileSync("skills/media-use/audio/assets/sfx/CREDITS.md", "utf8")),
+};
 const mediaBin = readFileSync(MEDIA_ARTIFACT.replace(/\.json$/, ".bin"));
 const mediaRows = new Map(
   (mediaArtifact.rows ?? [])
@@ -123,6 +147,9 @@ const mediaArtifactValid =
   mediaArtifact.modelRevision === LOCAL_MODEL_REVISION &&
   mediaArtifact.dimensions === LOCAL_MODEL_DIMENSIONS &&
   mediaArtifact.revision === expectedMediaRevision &&
+  mediaArtifact.metadataRevision === expectedMediaMetadataRevision &&
+  mediaArtifact.credits?.file === expectedCredits.file &&
+  mediaArtifact.credits.sha256 === expectedCredits.sha256 &&
   mediaRowsMatchNames &&
   mediaBin.byteLength === mediaNames.length * LOCAL_MODEL_DIMENSIONS * 4;
 

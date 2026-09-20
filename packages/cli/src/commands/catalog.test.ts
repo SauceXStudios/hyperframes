@@ -88,6 +88,17 @@ describe("rankMediaRows", () => {
   });
 });
 
+describe("catalog --media", () => {
+  it("returns JSON media rows without entering the installable registry path", async () => {
+    const output = await runCatalog({ media: true, json: true, query: "click" });
+    expect(JSON.parse(output)).toMatchObject({
+      tier: "words",
+      total: 1,
+      results: [{ id: "click", file: "skills/media-use/audio/assets/sfx/click.mp3" }],
+    });
+  });
+});
+
 // ── The command envelope ────────────────────────────────────────────────────
 // The JSON envelope is the surface an agent reads, so under-coverage and the
 // score are pinned where they are actually published rather than only at the
@@ -110,6 +121,15 @@ const state = vi.hoisted(() => ({
   consentRecorded: [] as boolean[],
   downloads: 0,
   runtimeAvailable: true,
+  mediaRows: [] as Array<{
+    id: string;
+    kind: string;
+    title: string;
+    description: string;
+    tags: string[];
+    file: string;
+    duration?: number;
+  }>,
 }));
 
 vi.mock("../registry/resolver.js", () => ({
@@ -168,6 +188,9 @@ vi.mock("../registry/localEmbedder.js", () => ({
 }));
 
 vi.mock("../registry/localSemantic.js", () => ({
+  fetchMediaVectors: async () => true,
+  mediaVectorRows: () => state.mediaRows,
+  mediaSemanticRanking: async () => null,
   localSemanticRanking: async () => {
     if (state.rankingError) throw state.rankingError;
     return state.ranking;
@@ -277,6 +300,17 @@ beforeEach(() => {
   state.consentRecorded = [];
   state.downloads = 0;
   state.runtimeAvailable = true;
+  state.mediaRows = [
+    {
+      id: "click",
+      kind: "sfx",
+      title: "click",
+      description: "Crisp UI click",
+      tags: ["sfx"],
+      file: "skills/media-use/audio/assets/sfx/click.mp3",
+      duration: 0.37,
+    },
+  ];
   state.registry = [block("count-up"), block("fade-through"), component("whip-pan")];
   state.indexed = ["count-up", "fade-through", "whip-pan"];
   state.ranking = [

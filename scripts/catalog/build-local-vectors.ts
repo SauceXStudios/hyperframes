@@ -30,6 +30,8 @@ import {
   catalogFromRegistry,
   LOCAL_VECTOR_BATCH_SIZE,
   localVectorRevision,
+  mediaMetadataRevision,
+  sha256Hex,
 } from "./catalog-artifact.js";
 
 export interface MediaVectorRow {
@@ -72,8 +74,28 @@ function mediaRows(manifestPath: string): MediaVectorRow[] {
       }));
   if (rows.length === 0) throw new Error(`media manifest contains no rows: ${manifestPath}`);
   for (const row of rows) {
-    if (!row.id || !row.file || !row.title || !row.description) {
+    if (
+      !row.id ||
+      !row.kind ||
+      !row.file ||
+      !row.title ||
+      !row.description ||
+      !Array.isArray(row.tags) ||
+      !row.tags.every((tag) => typeof tag === "string")
+    ) {
       throw new Error(`media manifest row is missing id, title, description, or file`);
+    }
+    if (row.duration !== undefined && (!Number.isFinite(row.duration) || row.duration < 0)) {
+      throw new Error(`media manifest row ${row.id} has an invalid duration`);
+    }
+    if (
+      row.dimensions !== undefined &&
+      (!Number.isInteger(row.dimensions.width) ||
+        !Number.isInteger(row.dimensions.height) ||
+        row.dimensions.width <= 0 ||
+        row.dimensions.height <= 0)
+    ) {
+      throw new Error(`media manifest row ${row.id} has invalid dimensions`);
     }
   }
   return [...rows].sort((left, right) => left.id.localeCompare(right.id));
@@ -170,11 +192,18 @@ async function main(): Promise<void> {
 
   const vectors = await embedInBatches(names, catalog, embedder);
   const flat = packVectors(names, vectors);
+  const credits =
+    rows && manifestPath.endsWith("skills/media-use/audio/assets/sfx/manifest.json")
+      ? {
+          file: "skills/media-use/audio/assets/sfx/CREDITS.md",
+          sha256: sha256Hex(readFileSync("skills/media-use/audio/assets/sfx/CREDITS.md", "utf8")),
+        }
+      : undefined;
 
   writeFileSync(join(dir, `${basename}.bin`), Buffer.from(flat.buffer));
   writeFileSync(
     join(dir, `${basename}.json`),
-    `${JSON.stringify({ model: LOCAL_MODEL_ID, modelRevision: LOCAL_MODEL_REVISION, dimensions: LOCAL_MODEL_DIMENSIONS, revision, names, ...(rows ? { rows } : {}) }, null, 2)}\n`,
+    `${JSON.stringify({ model: LOCAL_MODEL_ID, modelRevision: LOCAL_MODEL_REVISION, dimensions: LOCAL_MODEL_DIMENSIONS, revision, names, ...(rows ? { rows, metadataRevision: mediaMetadataRevision(rows) } : {}), ...(credits ? { credits } : {}) }, null, 2)}\n`,
   );
   if (!rows) {
     const registryPath = join(registryDir, "registry.json");

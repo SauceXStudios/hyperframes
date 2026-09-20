@@ -234,5 +234,10 @@
       "file": "skills/media-use/audio/assets/sfx/whoosh-short.mp3",
       "duration": 0.57
     }
-  ]
+  ],
+  "metadataRevision": "3bce17533129b251a93cf1587ea18174bef06e0680611040ee82c24ed2bea03f",
+  "credits": {
+    "file": "skills/media-use/audio/assets/sfx/CREDITS.md",
+    "sha256": "79590c7738b0427b10f362f76b02cfd2643158a40e1d5fd787f9ac6b33bcf4ce"
+  }
 }
