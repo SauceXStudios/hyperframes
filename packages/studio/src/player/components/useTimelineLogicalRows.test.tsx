@@ -10,7 +10,9 @@ import { useTimelineLogicalRows } from "./useTimelineLogicalRows";
 
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 
-const tracks = Array.from(
+type TrackInput = readonly (readonly [number, readonly TimelineElement[]])[];
+
+const tracks: TrackInput = Array.from(
   { length: 1_000 },
   (_, track) =>
     [
@@ -33,7 +35,7 @@ function Harness({
   inputTracks = tracks,
 }: {
   snapshots: Array<readonly TimelineLogicalRow[]>;
-  inputTracks?: typeof tracks;
+  inputTracks?: TrackInput;
 }) {
   usePlayerStore((state) => state.currentTime);
   const logicalRows = useTimelineLogicalRows({
@@ -84,7 +86,7 @@ describe("useTimelineLogicalRows", () => {
           },
         ],
       ],
-    ] as const satisfies typeof tracks;
+    ] as const satisfies TrackInput;
     const host = document.createElement("div");
     const root = createRoot(host);
     const snapshots: Array<readonly TimelineLogicalRow[]> = [];
