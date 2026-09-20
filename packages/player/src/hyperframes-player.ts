@@ -1108,7 +1108,6 @@ class HyperframesPlayer extends HTMLElement {
     this.shaderLoader.hide();
     this.dispatchEvent(new Event("assetsready"));
     this.shaderLoader.whenHidden(() => {
-      if (generation !== this._assetsGeneration) return;
       this._painted = true;
       this.dispatchEvent(new Event("painted"));
     });
