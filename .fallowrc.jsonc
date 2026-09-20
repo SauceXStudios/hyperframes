@@ -71,7 +71,7 @@
     "packages/player/tests/**",
     "packages/engine/tests/**",
     "skills/**/test-corpus/**",
-    "skills/**/scripts/**",
+    "packages/cli/src/media-use/**",
     // Agent-invoked motion-graphics tools co-located with their docs (run via
     // `node <path>` per grounding/PROTOCOL.md / categories/maps/module.md
     // prose), not import-graph reachable.
@@ -845,9 +845,6 @@
       // adding branches. The line-shift fingerprint re-flags the inherited
       // complexity even though the logic is unchanged.
       "packages/cli/src/commands/info.ts",
-      // media-use was relocated from skills/ without changing its engine logic;
-      // preserve the inherited audit baseline while the compatibility move lands.
-      "packages/cli/src/media-use/**",
       // gsapParserAcorn.ts: the flagged `sameMemberAccess` (structural equality
       // of two member-access nodes) pre-dates this PR's motion-eval work
       // (added in #1760, unchanged since). The new const-folding / set-seeding /
