@@ -30,11 +30,72 @@ import {
 import { ensureLocalRuntime } from "../registry/localEmbedder.js";
 import {
   cachedLocalVectorRevision,
+  fetchMediaVectors,
   fetchLocalVectors,
   hasLocalVectors,
   localSemanticRanking,
   localVectorNames,
+  mediaSemanticRanking,
+  mediaVectorRows,
 } from "../registry/localSemantic.js";
+
+export interface MediaCatalogRow {
+  id: string;
+  kind: string;
+  title: string;
+  description: string;
+  tags: string[];
+  file: string;
+  duration?: number;
+  dimensions?: { width: number; height: number };
+}
+
+export function rankMediaRows(query: string, rows: MediaCatalogRow[]): MediaCatalogRow[] {
+  return searchByWords(query, rows, (row) => ({
+    strong: `${row.id} ${row.title}`,
+    weak: `${row.description} ${row.tags.join(" ")} ${row.kind}`,
+  }));
+}
+
+async function runMediaCatalog(
+  query: string,
+  registry: string,
+): Promise<void> {
+  const fetched = await fetchMediaVectors(registry);
+  const rows = mediaVectorRows() as MediaCatalogRow[];
+  const warnings: string[] = [];
+  if (!fetched && rows.length === 0) {
+    warnings.push("media search unavailable: the media index could not be fetched");
+  }
+
+  let matching = rankMediaRows(query, rows);
+  let tier: "words" | "on-device" = "words";
+  let tierDetail = "local word match";
+  if (matching.length === 0 && localModelStatus().status === "ready") {
+    const ranking = await mediaSemanticRanking(query);
+    if (ranking) {
+      matching = ranking.map(({ row }) => row as MediaCatalogRow);
+      tier = "on-device";
+      tierDetail = "on-device meaning search";
+    }
+  }
+
+  console.log(
+    JSON.stringify(
+      {
+        query,
+        tier,
+        tier_detail: tierDetail,
+        shown: matching.length,
+        total: rows.length,
+        ...(warnings.length ? { warnings } : {}),
+        results: matching,
+      },
+      null,
+      2,
+    ),
+  );
+}
 
 /**
  * Get the offline tier ready, and report every reason it could not be.
@@ -155,6 +216,10 @@ export default defineCommand({
       description:
         "Search by meaning when the on-device model is on, otherwise by name, title, description and tags",
     },
+    media: {
+      type: "boolean",
+      description: "Search the media-use asset corpus instead of installable registry items",
+    },
     yes: {
       type: "boolean",
       alias: "y",
@@ -176,6 +241,20 @@ export default defineCommand({
     const interactive = args["human-friendly"] === true;
     const dir = resolve(process.cwd());
     const config = loadProjectConfig(dir) ?? DEFAULT_PROJECT_CONFIG;
+
+    if (args.media === true) {
+      if (!json) {
+        console.error("--media requires --json because media rows are not installable registry items.");
+        finishCommand(1);
+      }
+      const query = typeof args.query === "string" ? args.query.trim() : "";
+      if (!query) {
+        console.error("--media requires --query.");
+        finishCommand(1);
+      }
+      await runMediaCatalog(query, config.registry);
+      return;
+    }
 
     let typeFilter: ItemType | undefined;
     if (args.type === "block") typeFilter = "hyperframes:block";

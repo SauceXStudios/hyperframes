@@ -29,11 +29,24 @@ interface LocalVectorMetadata {
   names: string[];
   dimensions: number;
   revision?: string;
+  rows?: MediaVectorRow[];
+}
+
+export interface MediaVectorRow {
+  id: string;
+  kind: string;
+  title: string;
+  description: string;
+  tags: string[];
+  file: string;
+  duration?: number;
+  dimensions?: { width: number; height: number };
 }
 
 export interface FetchLocalVectorOptions {
   directory?: string;
   expectedRevision?: string;
+  artifactBasename?: "local-vectors" | "media-vectors";
 }
 
 const CATALOG_ARTIFACT_TIMEOUT_MS = 30_000;
@@ -63,9 +76,12 @@ function localVectorDirectory(): string {
  * contract. A pair that fails it is a truncated download or a different
  * model, never something worth caching.
  */
-function vectorPairAgrees(fetched: Array<[string, Buffer]>): boolean {
-  const meta = fetched.find(([file]) => file === "local-vectors.json")?.[1];
-  const bin = fetched.find(([file]) => file === "local-vectors.bin")?.[1];
+function vectorPairAgrees(
+  fetched: Array<[string, Buffer]>,
+  artifactBasename: "local-vectors" | "media-vectors",
+): boolean {
+  const meta = fetched.find(([file]) => file === `${artifactBasename}.json`)?.[1];
+  const bin = fetched.find(([file]) => file === `${artifactBasename}.bin`)?.[1];
   if (!meta || !bin) return false;
   try {
     const parsed = JSON.parse(meta.toString("utf-8")) as {
@@ -83,9 +99,10 @@ function vectorPairAgrees(fetched: Array<[string, Buffer]>): boolean {
 function vectorRevisionAgrees(
   fetched: Array<[string, Buffer]>,
   expectedRevision?: string,
+  artifactBasename: "local-vectors" | "media-vectors" = "local-vectors",
 ): boolean {
   if (expectedRevision === undefined) return true;
-  const meta = fetched.find(([file]) => file === "local-vectors.json")?.[1];
+  const meta = fetched.find(([file]) => file === `${artifactBasename}.json`)?.[1];
   if (!meta) return false;
   try {
     const parsed = JSON.parse(meta.toString("utf-8")) as { revision?: unknown };
@@ -100,6 +117,7 @@ export async function fetchLocalVectors(
   options: FetchLocalVectorOptions = {},
 ): Promise<boolean> {
   const directory = options.directory ?? localVectorDirectory();
+  const artifactBasename = options.artifactBasename ?? "local-vectors";
   const base = registryBaseUrl.replace(/\/+$/, "");
   try {
     mkdirSync(directory, { recursive: true, mode: 0o700 });
@@ -108,7 +126,7 @@ export async function fetchLocalVectors(
     // must leave the previous pair intact rather than pairing a new name list
     // with an old matrix, which loads as an error instead of as stale data.
     const fetched: Array<[string, Buffer]> = [];
-    for (const file of ["local-vectors.json", "local-vectors.bin"] as const) {
+    for (const file of [`${artifactBasename}.json`, `${artifactBasename}.bin`] as const) {
       const response = await fetch(`${base}/catalog-artifact/${file}`, {
         signal: AbortSignal.timeout(CATALOG_ARTIFACT_TIMEOUT_MS),
       });
@@ -119,7 +137,10 @@ export async function fetchLocalVectors(
     // discovering the mismatch at load time leaves a cache that fails every
     // subsequent search until someone deletes it by hand, and it is the only
     // point where a truncated or wrong-model response can still be refused.
-    if (!vectorPairAgrees(fetched) || !vectorRevisionAgrees(fetched, options.expectedRevision)) {
+    if (
+      !vectorPairAgrees(fetched, artifactBasename) ||
+      !vectorRevisionAgrees(fetched, options.expectedRevision, artifactBasename)
+    ) {
       return false;
     }
     // 0o600: the cache is this user's, and the directory may be world-writable
@@ -127,10 +148,19 @@ export async function fetchLocalVectors(
     for (const [file, bytes] of fetched) {
       writeFileSync(join(directory, file), bytes, { mode: 0o600 });
     }
-    return hasLocalVectors(directory);
+    return artifactBasename === "media-vectors"
+      ? hasMediaVectors(directory)
+      : hasLocalVectors(directory);
   } catch {
     return false;
   }
+}
+
+export function fetchMediaVectors(
+  registryBaseUrl: string,
+  options: Omit<FetchLocalVectorOptions, "artifactBasename"> = {},
+): Promise<boolean> {
+  return fetchLocalVectors(registryBaseUrl, { ...options, artifactBasename: "media-vectors" });
 }
 
 export function hasLocalVectors(directory = localVectorDirectory()): boolean {
@@ -138,6 +168,25 @@ export function hasLocalVectors(directory = localVectorDirectory()): boolean {
     existsSync(join(directory, "local-vectors.bin")) &&
     existsSync(join(directory, "local-vectors.json"))
   );
+}
+
+export function hasMediaVectors(directory = localVectorDirectory()): boolean {
+  return (
+    existsSync(join(directory, "media-vectors.bin")) &&
+    existsSync(join(directory, "media-vectors.json"))
+  );
+}
+
+export function mediaVectorRows(directory = localVectorDirectory()): MediaVectorRow[] {
+  if (!hasMediaVectors(directory)) return [];
+  try {
+    const metadata = JSON.parse(
+      readFileSync(join(directory, "media-vectors.json"), "utf-8"),
+    ) as LocalVectorMetadata;
+    return metadata.rows ?? [];
+  } catch {
+    return [];
+  }
 }
 
 function loadLocalVectors(directory = localVectorDirectory()): LocalVectorSet {
@@ -159,6 +208,29 @@ function loadLocalVectors(directory = localVectorDirectory()): LocalVectorSet {
     );
   }
   return { names: meta.names, dimensions: meta.dimensions, vectors };
+}
+
+function loadMediaVectors(directory = localVectorDirectory()): LocalVectorSet & {
+  rows: MediaVectorRow[];
+} {
+  const meta = JSON.parse(
+    readFileSync(join(directory, "media-vectors.json"), "utf-8"),
+  ) as LocalVectorMetadata;
+  const buffer = readFileSync(join(directory, "media-vectors.bin"));
+  const vectors = new Float32Array(buffer.buffer, buffer.byteOffset, buffer.byteLength / 4);
+  const rows = meta.rows ?? [];
+  if (rows.length !== meta.names.length) {
+    throw new Error(`media vectors hold ${rows.length} rows, expected ${meta.names.length}`);
+  }
+  if (vectors.length !== rows.length * meta.dimensions) {
+    throw new Error(`media vectors hold ${vectors.length} floats, expected ${rows.length * meta.dimensions}`);
+  }
+  if (meta.dimensions !== LOCAL_MODEL_DIMENSIONS) {
+    throw new Error(
+      `media vectors are ${meta.dimensions}-dimension, model produces ${LOCAL_MODEL_DIMENSIONS}`,
+    );
+  }
+  return { names: meta.names, dimensions: meta.dimensions, vectors, rows };
 }
 
 /**
@@ -226,4 +298,24 @@ export async function localSemanticRanking(
   // Ties break on descending name, matching every other ranking in this system.
   scored.sort((a, b) => b.score - a.score || b.name.localeCompare(a.name));
   return scored;
+}
+
+export async function mediaSemanticRanking(
+  query: string,
+  directory = localVectorDirectory(),
+): Promise<Array<{ row: MediaVectorRow; score: number }> | null> {
+  if (!isLocalModelReady() || !hasMediaVectors(directory)) return null;
+  const set = loadMediaVectors(directory);
+  const embedder = await loadLocalEmbedder();
+  const [queryVector] = await embedder.embed([query], { isQuery: true });
+  if (!queryVector) return null;
+  return set.rows
+    .map((row, index) => ({
+      row,
+      score: cosine(
+        queryVector,
+        Array.from(set.vectors.subarray(index * set.dimensions, (index + 1) * set.dimensions)),
+      ),
+    }))
+    .sort((a, b) => b.score - a.score || b.row.id.localeCompare(a.row.id));
 }

@@ -23,9 +23,12 @@ import { catalogFromRegistry, localVectorRevision } from "./catalog-artifact.js"
 type RegistryItem = { name: string; type?: string };
 type Registry = { items: RegistryItem[]; catalogArtifact?: { revision?: string } };
 type Artifact = { model?: string; dimensions?: number; revision?: string; names?: string[] };
+type MediaArtifact = { rows?: Array<{ id?: string; file?: string }> };
 
 const REGISTRY = "registry/registry.json";
 const ARTIFACT = "registry/catalog-artifact/local-vectors.json";
+const MEDIA_MANIFEST = "skills/media-use/audio/assets/sfx/manifest.json";
+const MEDIA_ARTIFACT = "registry/catalog-artifact/media-vectors.json";
 
 function read<T>(path: string): T {
   try {
@@ -67,6 +70,23 @@ const expectedRevision = localVectorRevision(
 );
 const artifactRevisionMatches = artifact.revision === expectedRevision;
 const registryRevisionMatches = registry.catalogArtifact?.revision === expectedRevision;
+const mediaSource = read<Record<string, { file?: string }>>(MEDIA_MANIFEST);
+const mediaArtifact = read<MediaArtifact>(MEDIA_ARTIFACT);
+const mediaRows = new Map(
+  (mediaArtifact.rows ?? [])
+    .filter(
+      (row): row is { id: string; file: string } =>
+        typeof row.id === "string" && typeof row.file === "string",
+    )
+    .map((row) => [row.id, row.file]),
+);
+const missingMediaRows = Object.entries(mediaSource)
+  .filter(
+    ([id, source]) =>
+      mediaRows.get(id) !== `skills/media-use/audio/assets/sfx/${source.file ?? ""}`,
+  )
+  .map(([id]) => id)
+  .sort();
 
 const show = (names: string[]) =>
   names
@@ -76,6 +96,12 @@ const show = (names: string[]) =>
 
 console.log(`registry: ${registryNames.size} searchable items (blocks + components)`);
 console.log(`artifact: ${artifactNames.size} vectors (${artifact.model ?? "unknown model"})`);
+console.log(`media: ${mediaRows.size} rows for ${Object.keys(mediaSource).length} bundled SFX files`);
+
+if (missingMediaRows.length > 0) {
+  console.error(`\n${missingMediaRows.length} bundled SFX file(s) have no matching media row:`);
+  console.error(show(missingMediaRows));
+}
 
 if (dropped.length > 0) {
   // Not fatal: the CLI filters these before a user ever sees them.
@@ -96,7 +122,12 @@ if (!artifactRevisionMatches || !registryRevisionMatches) {
   console.error(`  registry: ${registry.catalogArtifact?.revision ?? "missing"}`);
 }
 
-if (unindexed.length > 0 || !artifactRevisionMatches || !registryRevisionMatches) {
+if (
+  unindexed.length > 0 ||
+  !artifactRevisionMatches ||
+  !registryRevisionMatches ||
+  missingMediaRows.length > 0
+) {
   console.error(
     "\nMeaning search is stale. Word search still uses the live registry.\n\n" +
       "If you have the embedding model, regenerate and commit the artifact:\n" +

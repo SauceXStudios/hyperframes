@@ -32,12 +32,53 @@ import {
   localVectorRevision,
 } from "./catalog-artifact.js";
 
+export interface MediaVectorRow {
+  id: string;
+  kind: string;
+  title: string;
+  description: string;
+  tags: string[];
+  file: string;
+  duration?: number;
+  dimensions?: { width: number; height: number };
+}
+
 /** Distinct from 1 so the pre-commit hook can tell "cannot" from "failed". */
 const EXIT_NO_MODEL = 3;
 
 function arg(name: string): string | undefined {
   const index = process.argv.indexOf(`--${name}`);
   return index === -1 ? undefined : process.argv[index + 1];
+}
+
+function mediaRows(manifestPath: string): MediaVectorRow[] {
+  const parsed = JSON.parse(readFileSync(manifestPath, "utf8")) as
+    | MediaVectorRow[]
+    | Record<string, Omit<MediaVectorRow, "id" | "kind" | "title" | "tags"> & { tags?: string[] }>;
+  const bundledSfx = manifestPath.endsWith("skills/media-use/audio/assets/sfx/manifest.json");
+  const rootRelativeFile = (file: string): string =>
+    bundledSfx && !file.startsWith("skills/")
+      ? `skills/media-use/audio/assets/sfx/${file}`
+      : file;
+  const rows = Array.isArray(parsed)
+    ? parsed.map((row) => ({ ...row, file: rootRelativeFile(row.file) }))
+    : Object.entries(parsed).map(([id, entry]) => ({
+        id,
+        kind: "sfx",
+        title: id,
+        description: entry.description,
+        tags: entry.tags ?? ["sfx"],
+        file: rootRelativeFile(entry.file),
+        ...(entry.duration === undefined ? {} : { duration: entry.duration }),
+        ...(entry.dimensions === undefined ? {} : { dimensions: entry.dimensions }),
+      }));
+  if (rows.length === 0) throw new Error(`media manifest contains no rows: ${manifestPath}`);
+  for (const row of rows) {
+    if (!row.id || !row.file || !row.title || !row.description) {
+      throw new Error(`media manifest row is missing id, title, description, or file`);
+    }
+  }
+  return [...rows].sort((left, right) => left.id.localeCompare(right.id));
 }
 
 /**
@@ -81,19 +122,24 @@ function packVectors(names: string[], vectors: number[][]): Float32Array {
 async function main(): Promise<void> {
   const dir = arg("artifact") ?? "registry/catalog-artifact";
   const registryDir = arg("registry") ?? "registry";
+  const manifestPath = arg("manifest");
+  const basename = arg("output") ?? (manifestPath ? "media-vectors" : "local-vectors");
 
   // Read the corpus straight from the registry rather than from a catalog.json
   // built by the hosted-tier script. That file is not in the repo, so the
   // documented regeneration command used to fail on a missing path, which is
   // the whole reason the index was allowed to drift.
-  const catalogMap = catalogFromRegistry(
-    registryDir,
-    (path) => readFileSync(path, "utf-8"),
-    (path) =>
-      readdirSync(path, { withFileTypes: true })
-        .filter((e) => e.isDirectory())
-        .map((e) => e.name),
-  );
+  const rows = manifestPath ? mediaRows(manifestPath) : undefined;
+  const catalogMap = rows
+    ? new Map(rows.map((row) => [row.id, `${row.title}\n${row.description}\n${row.tags.join(" ")}\n${row.kind}`]))
+    : catalogFromRegistry(
+        registryDir,
+        (path) => readFileSync(path, "utf-8"),
+        (path) =>
+          readdirSync(path, { withFileTypes: true })
+            .filter((e) => e.isDirectory())
+            .map((e) => e.name),
+      );
   const catalog = Object.fromEntries(catalogMap);
   const names = Object.keys(catalog).sort();
   if (names.length === 0) throw new Error(`no registry items found under ${registryDir}`);
@@ -122,25 +168,27 @@ async function main(): Promise<void> {
   const vectors = await embedInBatches(names, catalog, embedder);
   const flat = packVectors(names, vectors);
 
-  writeFileSync(join(dir, "local-vectors.bin"), Buffer.from(flat.buffer));
+  writeFileSync(join(dir, `${basename}.bin`), Buffer.from(flat.buffer));
   writeFileSync(
-    join(dir, "local-vectors.json"),
-    `${JSON.stringify({ model: LOCAL_MODEL_ID, modelRevision: LOCAL_MODEL_REVISION, dimensions: LOCAL_MODEL_DIMENSIONS, revision, names }, null, 2)}\n`,
+    join(dir, `${basename}.json`),
+    `${JSON.stringify({ model: LOCAL_MODEL_ID, modelRevision: LOCAL_MODEL_REVISION, dimensions: LOCAL_MODEL_DIMENSIONS, revision, names, ...(rows ? { rows } : {}) }, null, 2)}\n`,
   );
-  const registryPath = join(registryDir, "registry.json");
-  const registry = JSON.parse(readFileSync(registryPath, "utf-8")) as RegistryManifest;
-  writeFileSync(
-    registryPath,
-    `${JSON.stringify({ ...registry, catalogArtifact: { revision } }, null, 2)}\n`,
-  );
+  if (!rows) {
+    const registryPath = join(registryDir, "registry.json");
+    const registry = JSON.parse(readFileSync(registryPath, "utf-8")) as RegistryManifest;
+    writeFileSync(
+      registryPath,
+      `${JSON.stringify({ ...registry, catalogArtifact: { revision } }, null, 2)}\n`,
+    );
+  }
 
   const megabytes = (flat.byteLength / 1024 / 1024).toFixed(2);
-  console.log(`moves      ${names.length}`);
+  console.log(`${rows ? "media" : "moves"}      ${names.length}`);
   console.log(`model      ${LOCAL_MODEL_ID}`);
   console.log(`dimensions ${LOCAL_MODEL_DIMENSIONS}`);
   console.log(`revision   ${revision}`);
   console.log(`payload    ${megabytes} MB`);
-  console.log(`written    ${dir}`);
+  console.log(`written    ${dir}/${basename}.{json,bin}`);
 }
 
 await main();

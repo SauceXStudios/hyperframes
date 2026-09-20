@@ -57,6 +57,7 @@ jobs:
             catalog_index:
               - "registry/registry.json"
               - "registry/catalog-artifact/**"
+              - "skills/media-use/audio/assets/sfx/**"
               - "scripts/catalog/check-artifact-coverage.ts"
             docs_catalog:
               - "docs/**"
