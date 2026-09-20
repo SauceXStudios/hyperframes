@@ -16,7 +16,7 @@ Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
 const PROFILES: readonly TimelinePerformanceFixtureProfile[] = [
   "dense-short",
   "long-overlap",
-  "keyframe-heavy-expanded",
+  "keyframe-heavy",
   "composition-heavy",
   "remote-unsupported",
 ];
@@ -75,10 +75,9 @@ describe("timeline performance fixture", () => {
     expect(fixture.summary.elementCount).toBe(1_000);
     expect(fixture.summary.duration).toBeGreaterThan(0);
     expect(new Set(fixture.elements.map((element) => element.key)).size).toBe(1_000);
-    if (profile === "keyframe-heavy-expanded") {
+    if (profile === "keyframe-heavy") {
       expect(fixture.keyframeCache.size).toBe(1_000);
       expect(fixture.gsapAnimations.size).toBe(1_000);
-      expect(fixture.expandedClipIds.size).toBe(1_000);
     }
   });
 
@@ -104,7 +103,7 @@ describe("timeline performance fixture", () => {
 
     const summary = api.loadTimelinePerformanceFixture({
       elementCount: 1_000,
-      profile: "keyframe-heavy-expanded",
+      profile: "keyframe-heavy",
     });
 
     expect(summary.elementCount).toBe(1_000);
@@ -119,7 +118,6 @@ describe("timeline performance fixture", () => {
     });
     expect(usePlayerStore.getState().lintFindingsByElement.size).toBe(0);
     expect(usePlayerStore.getState().elements).toHaveLength(1_000);
-    expect(usePlayerStore.getState().expandedClipIds.size).toBe(1_000);
     expect(hasTimelinePerformanceFixtureLease()).toBe(true);
 
     api.resetTimelinePerformanceFixture();
