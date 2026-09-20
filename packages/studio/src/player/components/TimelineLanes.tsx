@@ -5,10 +5,7 @@ import { TimelineCompactDiamonds } from "./TimelineCompactDiamonds";
 import { TimelineTrackHeader } from "./TimelineTrackHeader";
 import { TimelineGroupRow } from "./TimelineGroupRow";
 import { useTimelineLaneRowIndexes, useTimelineGroupDisclosure } from "./useTimelineLaneRowIndexes";
-import {
-  resolveTrackKeyframeClip,
-  trackShowsBeatStrip,
-} from "./useTimelineTrackLayout";
+import { resolveTrackKeyframeClip, trackShowsBeatStrip } from "./useTimelineTrackLayout";
 import { trackDisplayNumber, trackDisplaySuffix } from "./timelineTrackDisplay";
 import { getTimelineEditCapabilities } from "./timelineEditing";
 import { CLIP_Y } from "./timelineLayout";

@@ -20,7 +20,6 @@ const tracks: TrackInput = Array.from(
       [{ id: `clip-${track}`, tag: "div", track, start: track, duration: 1 }],
     ] as const satisfies readonly [number, readonly TimelineElement[]],
 );
-const displayTrackOrder = tracks.map(([track]) => track);
 const laneCounts = new Map<string, number>();
 const selectedElementIds = new Set<string>();
 const expandedClipIds = new Set<string>();

@@ -1,15 +1,10 @@
 import type { GsapAnimation } from "@hyperframes/core/gsap-parser";
 import type { PropertyGroupName } from "@hyperframes/core/gsap-parser";
 import type { TimelineElement } from "../store/playerStore";
-import {
-  type TimelineKeyframeTarget,
-} from "./timelineKeyframeIdentity";
+import { type TimelineKeyframeTarget } from "./timelineKeyframeIdentity";
 import {
   timelineClipFocusId,
-  timelineEaseFocusId,
   timelineGroupRowId,
-  timelineKeyframeFocusId,
-  timelinePropertyRowId,
   timelineTrackRowId,
 } from "./timelineNavigationIdentity";
 import type { TimelineTrackGroupInfo } from "./useTimelineTrackDerivations";
