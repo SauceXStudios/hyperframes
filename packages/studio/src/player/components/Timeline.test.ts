@@ -26,7 +26,6 @@ import {
   FIT_ZOOM_HEADROOM,
   GUTTER,
   LABEL_COL_W,
-  LANE_H,
   MIN_TIMELINE_EXTENT_S,
   PLAYHEAD_HEAD_W,
   RULER_H,
@@ -34,10 +33,8 @@ import {
   TRACKS_LEFT_PAD,
   getTimelineDisplayContentWidth,
   getTimelineFitPps,
-  getTimelineLaneTop,
   createTimelineRowGeometry,
 } from "./timelineLayout";
-import { AUTOMATION_LANE_H } from "./automationLaneHeight";
 import { formatTime } from "../lib/time";
 import { usePlayerStore } from "../store/playerStore";
 import { TimelineEditProvider } from "../../contexts/TimelineEditContext";
@@ -110,15 +107,6 @@ function createSizedTimelineHost(width: number): HTMLDivElement {
   document.body.append(host);
   Object.defineProperty(host, "clientWidth", { configurable: true, value: width });
   return host;
-}
-
-function expectTrackExpansion(
-  row: HTMLElement | null | undefined,
-  expandedClipIds: string[],
-  height: number,
-) {
-  expect(usePlayerStore.getState().expandedClipIds).toEqual(new Set(expandedClipIds));
-  expect(row?.style.height).toBe(`${height}px`);
 }
 
 function renderBasicTimeline() {
