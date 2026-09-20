@@ -4183,6 +4183,85 @@ describe("initSandboxRuntimeModular", () => {
         expect(audio.muted).toBe(false);
       });
     });
+
+    it("buffers the clip at the playhead and not the one 500s away", () => {
+      const root = mountComposition(600);
+      const near = addMedia(root, { id: "near", src: "near.wav", start: 0, duration: 4 });
+      const far = addMedia(root, { id: "far", src: "far.wav", start: 500, duration: 4 });
+
+      initSandboxRuntimeModular();
+
+      expect(mediaLog).toEqual(["load:near"]);
+      expect(near.preload).toBe("auto");
+      expect(far.preload).not.toBe("auto");
+    });
+
+    it("promotes a distant clip as the playhead approaches, before it is in window", () => {
+      const root = mountComposition(600);
+      const upcoming = addMedia(root, { id: "upcoming", src: "up.wav", start: 20, duration: 4 });
+
+      initSandboxRuntimeModular();
+      expect(mediaLog).toEqual([]);
+
+      window.__player?.seek(5);
+      expect(mediaLog).toEqual([]);
+
+      // t=12 is still eight seconds before the clip opens at t=20.
+      window.__player?.seek(12);
+      expect(mediaLog).toEqual(["load:upcoming"]);
+      expect(upcoming.preload).toBe("auto");
+    });
+
+    it("buffers the destination of a far seek rather than waiting for playback", () => {
+      const root = mountComposition(600);
+      const destination = addMedia(root, { id: "dest", src: "dest.wav", start: 500, duration: 4 });
+
+      initSandboxRuntimeModular();
+      window.__player?.seek(495);
+
+      expect(mediaLog).toEqual(["load:dest"]);
+      expect(destination.preload).toBe("auto");
+    });
+
+    // The measured shape of the amplification: seven clips referencing one
+    // file each got their own element and each was told to fetch it.
+    it("fetches one source once however many clips reference it", () => {
+      const root = mountComposition(60);
+      const clips = Array.from({ length: 7 }, (_, index) =>
+        addMedia(root, {
+          id: `share-${index}`,
+          src: "track.wav",
+          start: index,
+          duration: 1,
+        }),
+      );
+
+      initSandboxRuntimeModular();
+
+      expect(mediaLog).toEqual(["load:share-0"]);
+      // Every one of them still buffers — the browser serves the siblings from
+      // its own cache — but only one fetch is issued for the file.
+      for (const clip of clips) expect(clip.preload).toBe("auto");
+    });
+
+    // A clip with no authored `data-duration` takes its window from the source,
+    // so it has to keep probing metadata however far away it is.
+    it("keeps probing metadata for a distant clip whose window is unauthored", () => {
+      const root = mountComposition(600);
+      const unauthored = addMedia(root, { id: "unauthored", src: "a.wav", start: 500 });
+      const authored = addMedia(root, {
+        id: "authored",
+        src: "b.wav",
+        start: 500,
+        duration: 4,
+      });
+
+      initSandboxRuntimeModular();
+
+      expect(mediaLog).toEqual([]);
+      expect(unauthored.preload).toBe("metadata");
+      expect(authored.preload).not.toBe("metadata");
+    });
   });
 });
 

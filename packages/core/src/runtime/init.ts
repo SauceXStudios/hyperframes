@@ -30,6 +30,7 @@ import {
   resolveNaturalMediaTimelineDuration,
   type RuntimeMediaClip,
   syncRuntimeMedia,
+  usesEagerMediaPreload,
 } from "./media";
 import { handleErrorForProxy, handleMetadataForProxy, maybeProxyProactively } from "./mediaProxy";
 import { probeAndCacheElementVolume, type VolumeKeyframe } from "./mediaVolumeEnvelope.js";
@@ -99,6 +100,13 @@ import {
 
 const AUTHORED_DURATION_ATTR = "data-hf-authored-duration";
 const AUTHORED_END_ATTR = "data-hf-authored-end";
+
+/** Keep roughly ten seconds of 1080p media around the playhead without letting
+ * a long composition's distant clips consume the browser's media budget. */
+const MEDIA_PRELOAD_BYTE_BUDGET = 64 * 1024 * 1024;
+const MEDIA_PRELOAD_LOOKAHEAD_SECONDS = 10;
+const MEDIA_PRELOAD_LOOKBEHIND_SECONDS = 2;
+const MEDIA_PRELOAD_BYTES_PER_SECOND = 1_000_000;
 
 /**
  * A `window.__timelines` entry is authored content and may be a PARTIAL
@@ -2770,6 +2778,64 @@ export function initSandboxRuntimeModular(): void {
     document.removeEventListener("play", onMediaPlayWakeTransport, true);
   });
 
+  const detachedMediaSources = new WeakMap<HTMLMediaElement, string>();
+  const promotedMedia = new WeakSet<HTMLMediaElement>();
+  const mediaLoadInFlight = new WeakSet<HTMLMediaElement>();
+
+  const estimatedMediaBytes = (clip: RuntimeMediaClip): number => {
+    const authored = Number.parseInt(clip.el.dataset.hfByteSize ?? "", 10);
+    if (Number.isFinite(authored) && authored > 0) return authored;
+    return Math.max(1, clip.duration) * MEDIA_PRELOAD_BYTES_PER_SECOND;
+  };
+
+  const applyMediaPreloadPolicy = (clips: RuntimeMediaClip[]): void => {
+    if (usesEagerMediaPreload()) return;
+    const candidates = clips
+      .map((clip) => ({ clip, distance: clip.start > state.currentTime
+        ? clip.start - state.currentTime
+        : state.currentTime - clip.end }))
+      .filter(({ clip, distance }) =>
+        distance <= (clip.start > state.currentTime
+          ? MEDIA_PRELOAD_LOOKAHEAD_SECONDS
+          : MEDIA_PRELOAD_LOOKBEHIND_SECONDS),
+      )
+      .sort((a, b) => a.distance - b.distance);
+    const allowed = new Set<HTMLMediaElement>();
+    let bytes = 0;
+    for (const { clip } of candidates) {
+      const source = clip.el.currentSrc || clip.el.src || detachedMediaSources.get(clip.el);
+      const estimate = estimatedMediaBytes(clip);
+      if (bytes + estimate > MEDIA_PRELOAD_BYTE_BUDGET && allowed.size > 0) continue;
+      bytes += estimate;
+      allowed.add(clip.el);
+      if (source) detachedMediaSources.set(clip.el, source);
+    }
+    for (const clip of clips) {
+      const el = clip.el;
+      if (allowed.has(el)) {
+        const source = detachedMediaSources.get(el);
+        if (source && !el.src) el.src = source;
+        if (el.preload !== "auto") el.preload = "auto";
+        if (el.networkState === HTMLMediaElement.NETWORK_EMPTY && !mediaLoadInFlight.has(el)) {
+          mediaLoadInFlight.add(el);
+          el.load();
+          queueMicrotask(() => mediaLoadInFlight.delete(el));
+        }
+        promotedMedia.add(el);
+        continue;
+      }
+      if (!promotedMedia.has(el)) {
+        el.preload = "none";
+        continue;
+      }
+      promotedMedia.delete(el);
+      if (el.src) detachedMediaSources.set(el, el.src);
+      el.removeAttribute("src");
+      el.preload = "none";
+      el.load();
+    }
+  };
+
   const syncMediaForCurrentState = (timingRevision?: number) => {
     // Scope 1 of 3 (see `withTimingResolver`). Closes before `syncRuntimeMedia`,
     // which may call `el.load()` and invalidate every cached duration.
@@ -2789,6 +2855,9 @@ export function initSandboxRuntimeModular(): void {
       return buildRuntimeMediaCache(collectMediaElementsToVisit(index, state.currentTime))
         .mediaClips;
     });
+    applyMediaPreloadPolicy(
+      indexed ? resolveMediaClipIndex().clips : buildRuntimeMediaCache().mediaClips,
+    );
     // Attach probed volume keyframes to clips so syncRuntimeMedia can use the
     // same envelope the renderer uses instead of tracking GSAP-change diffs.
     for (const clip of mediaClips) {
