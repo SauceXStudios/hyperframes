@@ -43,6 +43,29 @@ export interface MediaVectorRow {
   dimensions?: { width: number; height: number };
 }
 
+function isMediaVectorRow(value: unknown): value is MediaVectorRow {
+  if (!value || typeof value !== "object") return false;
+  const row = value as Partial<MediaVectorRow>;
+  return (
+    typeof row.id === "string" &&
+    typeof row.kind === "string" &&
+    typeof row.title === "string" &&
+    typeof row.description === "string" &&
+    Array.isArray(row.tags) &&
+    row.tags.every((tag) => typeof tag === "string") &&
+    typeof row.file === "string" &&
+    (row.duration === undefined ||
+      (typeof row.duration === "number" && Number.isFinite(row.duration) && row.duration >= 0)) &&
+    (row.dimensions === undefined ||
+      (typeof row.dimensions === "object" &&
+        row.dimensions !== null &&
+        Number.isInteger(row.dimensions.width) &&
+        Number.isInteger(row.dimensions.height) &&
+        row.dimensions.width > 0 &&
+        row.dimensions.height > 0))
+  );
+}
+
 export interface FetchLocalVectorOptions {
   directory?: string;
   expectedRevision?: string;
@@ -94,7 +117,9 @@ function vectorPairAgrees(
       artifactBasename === "media-vectors" &&
       (!parsed.rows ||
         parsed.rows.length !== (parsed.names?.length ?? -1) ||
-        parsed.rows.some((row, index) => row.id !== parsed.names?.[index]))
+        parsed.rows.some(
+          (row, index) => !isMediaVectorRow(row) || row.id !== parsed.names?.[index],
+        ))
     ) {
       return false;
     }
@@ -192,7 +217,7 @@ export function mediaVectorRows(directory = localVectorDirectory()): MediaVector
     const metadata = JSON.parse(
       readFileSync(join(directory, "media-vectors.json"), "utf-8"),
     ) as LocalVectorMetadata;
-    return metadata.rows ?? [];
+    return metadata.rows?.filter(isMediaVectorRow) ?? [];
   } catch {
     return [];
   }
@@ -231,7 +256,7 @@ function loadMediaVectors(directory = localVectorDirectory()): LocalVectorSet & 
   if (rows.length !== meta.names.length) {
     throw new Error(`media vectors hold ${rows.length} rows, expected ${meta.names.length}`);
   }
-  if (rows.some((row, index) => row.id !== meta.names[index])) {
+  if (rows.some((row, index) => !isMediaVectorRow(row) || row.id !== meta.names[index])) {
     throw new Error("media vector row order does not match media vector names");
   }
   if (vectors.length !== rows.length * meta.dimensions) {
