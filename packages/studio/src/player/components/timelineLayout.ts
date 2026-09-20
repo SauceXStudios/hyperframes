@@ -83,7 +83,7 @@ export const TRACKS_BOTTOM_PAD = Math.round(TRACK_H * 1.5);
  */
 export const TRACKS_LEFT_PAD = 48;
 
-interface TimelineTrackHeightClip {
+export interface TimelineTrackHeightClip {
   clipId: string;
   laneCount: number;
   /** Audio automation lanes shown when expanded, reserved at their own height. */

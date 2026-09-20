@@ -83,7 +83,7 @@ export interface BuildTimelineLogicalRowsInput {
   /** @deprecated Accepted for fixture compatibility; expansion no longer affects rows. */
   expandedLaneOwnerIds?: ReadonlySet<string>;
   /** Rows (clip id or group id) whose automation-lane rows the `∿` button opened. */
-  expandedLaneOwnerIds: ReadonlySet<string>;
+  expandedLaneOwnerIds?: ReadonlySet<string>;
   groups: readonly TimelineTrackGroupInfo[];
   trackGroupOf: ReadonlyMap<number, TimelineTrackGroupInfo>;
   gsapAnimations: ReadonlyMap<string, readonly GsapAnimation[]>;
@@ -249,7 +249,7 @@ export function buildTimelineLogicalRows({
   selectedElementId,
   selectedElementIds,
   collapsedGroupIds,
-  expandedLaneOwnerIds,
+  expandedLaneOwnerIds = new Set(),
   groups,
   trackGroupOf,
   gsapAnimations,

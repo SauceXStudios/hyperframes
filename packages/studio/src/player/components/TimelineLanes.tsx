@@ -122,6 +122,9 @@ export function TimelineLanes({
     focusedTargetId,
     rowGeometry,
     scrollRef,
+    onToggleRow: (row) => {
+      if (row.elementId) toggleLaneOwnerExpanded(row.elementId);
+    },
   });
   return (
     <div
@@ -285,8 +288,7 @@ export function TimelineLanes({
                 isGroupMember={groupMemberTracks.has(trackNum)}
                 theme={theme}
                 onToggleClipExpanded={() => {
-                  const keys = els.map(getTimelineElementIdentity);
-                  if (keys.length > 0) toggleRowExpandedTracked(keys);
+                  if (keyframeClipKey) toggleLaneOwnerExpanded(keyframeClipKey);
                 }}
                 onToggleTrackHidden={onToggleTrackHidden}
                 onTogglePropertyGroupKeyframe={onTogglePropertyGroupKeyframe}
