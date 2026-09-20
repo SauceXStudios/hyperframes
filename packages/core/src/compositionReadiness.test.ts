@@ -63,6 +63,25 @@ describe("scanPendingCompositionAssets", () => {
     const scan = scanPendingCompositionAssets(docWith('<img src="a.png">'));
     expect(scan.pendingImages).toHaveLength(1);
   });
+
+  it("scopes first-frame scans to assets active at t=0", () => {
+    const doc = docWith(
+      '<img id="first" data-start="0" data-duration="5" src="first.png">' +
+        '<video id="later" data-start="30" data-duration="5" src="later.mp4"></video>',
+    );
+    const scan = scanPendingCompositionAssets(doc, { scope: "first-frame" });
+
+    expect(scan.pendingImages.map((image) => image.id)).toEqual(["first"]);
+    expect(scan.pendingMedia.map((media) => media.id)).toEqual([]);
+  });
+
+  it("keeps untimed media in the first-frame scan", () => {
+    const doc = docWith('<video id="untimed" src="video.mp4"></video>');
+
+    const scan = scanPendingCompositionAssets(doc, { scope: "first-frame" });
+
+    expect(scan.pendingMedia.map((media) => media.id)).toEqual(["untimed"]);
+  });
 });
 
 describe("mediaReadinessInput", () => {
@@ -95,6 +114,46 @@ describe("mediaReadinessInput", () => {
     // synchronously via the el.error check.
     expect(result).toEqual({ timedOut: false });
     vi.useRealTimers();
+  });
+
+  it("does not wait for a later first-frame video", async () => {
+    const doc = docWith(
+      '<img id="first" data-start="0" data-duration="5" src="first.png">' +
+        '<video id="later" data-start="30" data-duration="5" src="later.mp4"></video>',
+    );
+    const image = doc.querySelector<HTMLImageElement>("#first")!;
+    Object.defineProperty(image, "complete", { value: false });
+    let resolveImage!: () => void;
+    image.decode = () => new Promise<void>((resolve) => (resolveImage = resolve));
+    const pending = mediaReadinessInput(doc, new AbortController().signal, {
+      scope: "first-frame",
+    });
+
+    expect(pending).not.toBeNull();
+    resolveImage();
+    await expect(pending).resolves.toBeUndefined();
+  });
+
+  it("waits for later media in the default full scan", async () => {
+    const doc = docWith(
+      '<img id="first" data-start="0" data-duration="5" src="first.png">' +
+        '<video id="later" data-start="30" data-duration="5" src="later.mp4"></video>',
+    );
+    const image = doc.querySelector<HTMLImageElement>("#first")!;
+    const video = doc.querySelector<HTMLVideoElement>("#later")!;
+    Object.defineProperty(image, "complete", { value: false });
+    image.decode = () => Promise.resolve();
+    Object.defineProperty(video, "readyState", { value: 0, configurable: true });
+    const pending = mediaReadinessInput(doc, new AbortController().signal, { scope: "all" });
+
+    let settled = false;
+    pending?.then(() => {
+      settled = true;
+    });
+    await flushMicrotasks();
+    expect(settled).toBe(false);
+    video.dispatchEvent(new Event("canplay"));
+    await expect(pending).resolves.toBeUndefined();
   });
 });
 

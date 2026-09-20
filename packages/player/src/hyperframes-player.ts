@@ -1063,7 +1063,7 @@ class HyperframesPlayer extends HTMLElement {
         if (timedOut) this._warnStuckAssets(doc);
         this._settleAssetsReady(generation);
       },
-      { timeoutMs: ASSETS_READY_TIMEOUT_MS },
+      { scope: "first-frame", timeoutMs: ASSETS_READY_TIMEOUT_MS },
     );
     if (!this._assetsReady) this._startAssetsLoadingOverlayTimer(generation);
   }
@@ -1082,7 +1082,9 @@ class HyperframesPlayer extends HTMLElement {
    *  document can starve paint-and-idle of frames for the full 8s — that's
    *  reported directly rather than inferred, since it can't be bounded. */
   private _warnStuckAssets(doc: Document): void {
-    const { pendingMedia, pendingImages, fontsLoading } = scanPendingCompositionAssets(doc);
+    const { pendingMedia, pendingImages, fontsLoading } = scanPendingCompositionAssets(doc, {
+      scope: "first-frame",
+    });
     const win = doc.defaultView as (Window & { __renderReady?: boolean }) | null;
     console.warn(
       `[hyperframes-player] assets-loading timed out after ${ASSETS_READY_TIMEOUT_MS}ms — playing anyway`,

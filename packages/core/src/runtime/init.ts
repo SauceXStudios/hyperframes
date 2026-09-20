@@ -2931,11 +2931,15 @@ export function initSandboxRuntimeModular(): void {
     postRuntimeMessage({ ...payload, assetsReady: assetsSettled });
     if (!assetsReadyStarted) {
       assetsReadyStarted = true;
-      settleCompositionReadiness(document, ({ timedOut }) => {
-        if (state.tornDown) return;
-        assetsSettled = true;
-        postRuntimeMessage({ source: "hf-preview", type: "assets-ready", timedOut });
-      });
+      settleCompositionReadiness(
+        document,
+        ({ timedOut }) => {
+          if (state.tornDown) return;
+          assetsSettled = true;
+          postRuntimeMessage({ source: "hf-preview", type: "assets-ready", timedOut });
+        },
+        { scope: "first-frame" },
+      );
     }
     scheduleRootStageLayoutDiagnostics();
   };

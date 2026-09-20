@@ -1,3 +1,5 @@
+import { createRuntimeStartTimeResolver } from "./runtime/startResolver.js";
+
 /** A composition is "ready" once every declared input settles, not just once
  * its duration is known. Each input returns null (nothing to wait on) or a
  * promise that resolves once it settles, and must stop its own pending work
@@ -12,6 +14,12 @@ export interface PendingCompositionAssets {
   pendingMedia: HTMLMediaElement[];
   pendingImages: HTMLImageElement[];
   fontsLoading: boolean;
+}
+
+export type CompositionReadinessScope = "all" | "first-frame";
+
+export interface CompositionReadinessOptions {
+  scope?: CompositionReadinessScope;
 }
 
 // HTMLMediaElement.HAVE_FUTURE_DATA per spec, used as a literal because not
@@ -37,12 +45,68 @@ export function isRealmHtmlMediaElement(node: Node): node is HTMLMediaElement {
   return node instanceof HTMLMediaElement;
 }
 
+function isTimedElement(element: Element): boolean {
+  return element.hasAttribute("data-start") || element.hasAttribute("data-track-index");
+}
+
+function isActiveAtFirstFrame(
+  element: Element,
+  resolver: ReturnType<typeof createRuntimeStartTimeResolver>,
+): boolean {
+  let current: Element | null = element;
+  while (current) {
+    if (isTimedElement(current)) {
+      const tag = current.tagName.toLowerCase();
+      const start =
+        tag === "video" || tag === "audio"
+          ? resolver.resolveMediaStartForElement(current)
+          : resolver.resolveStartForElement(current, 0);
+      const duration = resolver.resolveDurationForElement(current);
+      const end = duration != null && duration > 0 ? start + duration : Number.POSITIVE_INFINITY;
+      if (!(0 >= start && 0 < end)) return false;
+    }
+    current = current.parentElement;
+  }
+  return true;
+}
+
+function shouldIncludeAsset(
+  element: Element,
+  scope: CompositionReadinessScope,
+  resolver: ReturnType<typeof createRuntimeStartTimeResolver>,
+): boolean {
+  if (scope === "all") return true;
+  if (
+    !isTimedElement(element) &&
+    !element.parentElement?.closest("[data-start], [data-track-index]")
+  ) {
+    return true;
+  }
+  return isActiveAtFirstFrame(element, resolver);
+}
+
 /** One DOM pass for every declared-media asset not yet ready. */
-export function scanPendingCompositionAssets(doc: Document): PendingCompositionAssets {
+export function scanPendingCompositionAssets(
+  doc: Document,
+  { scope = "all" }: CompositionReadinessOptions = {},
+): PendingCompositionAssets {
+  const runtimeWindow = doc.defaultView as
+    | (Window & {
+        __timelines?: Record<string, import("./runtime/types").RuntimeTimelineLike | undefined>;
+      })
+    | null;
+  const resolver = createRuntimeStartTimeResolver({
+    documentRef: doc,
+    timelineRegistry: runtimeWindow?.__timelines,
+    includeAuthoredTimingAttrs: true,
+  });
   const pendingMedia = Array.from(doc.querySelectorAll("video, audio"))
     .filter(isRealmHtmlMediaElement)
+    .filter((el) => shouldIncludeAsset(el, scope, resolver))
     .filter((el) => el.readyState < HAVE_FUTURE_DATA);
-  const pendingImages = Array.from(doc.querySelectorAll("img")).filter((img) => !img.complete);
+  const pendingImages = Array.from(doc.querySelectorAll("img"))
+    .filter((img) => shouldIncludeAsset(img, scope, resolver))
+    .filter((img) => !img.complete);
   const fontsLoading = doc.fonts?.status === "loading";
   return { pendingMedia, pendingImages, fontsLoading };
 }
@@ -82,8 +146,12 @@ function collectPendingCompositionAssets(
 
 /** Declared-media readiness input: waits on the composition's own video,
  * audio, image and font-face loads. */
-export function mediaReadinessInput(doc: Document, signal: AbortSignal): Promise<void> | null {
-  const scan = scanPendingCompositionAssets(doc);
+export function mediaReadinessInput(
+  doc: Document,
+  signal: AbortSignal,
+  { scope = "all" }: CompositionReadinessOptions = {},
+): Promise<void> | null {
+  const scan = scanPendingCompositionAssets(doc, { scope });
   if (scan.pendingMedia.length === 0 && scan.pendingImages.length === 0 && !scan.fontsLoading) {
     return null;
   }
@@ -216,10 +284,13 @@ export interface CompositionReadinessResult {
 export function settleCompositionReadiness(
   doc: Document,
   onSettled: (result: CompositionReadinessResult) => void,
-  opts: { inputs?: CompositionReadinessInput[]; timeoutMs?: number } = {},
+  opts: CompositionReadinessOptions & {
+    inputs?: CompositionReadinessInput[];
+    timeoutMs?: number;
+  } = {},
 ): void {
   const inputs = opts.inputs ?? [
-    mediaReadinessInput,
+    (inputDoc, signal) => mediaReadinessInput(inputDoc, signal, { scope: opts.scope }),
     computeReadinessInput,
     paintAndIdleReadinessInput,
   ];
