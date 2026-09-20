@@ -382,8 +382,7 @@ async function run() {
     }
   }
 
-  // Offline guard: --local-only skips every remote provider (HeyGen catalog),
-  // leaving the project + global cache and any local provider.
+  // --local-only skips every remote provider.
   const localOnly = args["local-only"];
   const ctx = {
     entity,
@@ -410,7 +409,7 @@ async function run() {
     return resolveColor(type, intent, { projectDir });
   }
 
-  // 3. SFX is local-first: bundled library, committed local index, then HeyGen.
+  // SFX search is bundled, local-index, then HeyGen.
   let searchResult = null;
   let providerFailure = null;
   try {
@@ -507,8 +506,7 @@ async function run() {
     process.exit(1);
   }
 
-  // 5. freeze + register (atomic id+file reservation so concurrent resolves
-  // can't collide on an id during the download — MU-23)
+  // 5. freeze and register atomically.
   const ext = searchResult.ext || extFromUrl(searchResult.url || "") || defaultExt(type);
   const { id, localPath, fullPath } = await withReservedFile(
     projectDir,
@@ -533,7 +531,7 @@ async function run() {
     source: searchResult.source || "search",
     description: searchResult.metadata?.description || intent,
     ...(searchResult.metadata?.duration != null && {
-      duration: Math.round(searchResult.metadata.duration * 10) / 10, // round to 0.1s like probe (voice bypassed it)
+      duration: Math.round(searchResult.metadata.duration * 10) / 10,
     }),
     ...(searchResult.metadata?.width != null && { width: searchResult.metadata.width }),
     ...(searchResult.metadata?.height != null && { height: searchResult.metadata.height }),
@@ -1177,8 +1175,7 @@ async function reuseGlobal(shaArg) {
     console.error(`error: no reusable global asset matches sha "${shaArg}"`);
     process.exit(1);
   }
-  // Type guard: don't import a bgm asset as an image (audio under images/).
-  // icon<->image are interchangeable; everything else must match --type.
+  // Do not import an asset under the wrong type.
   if (!typesMatch(rec.type, type)) {
     console.error(`error: sha "${shaArg}" is a ${rec.type} asset, not ${type}`);
     process.exit(2);
