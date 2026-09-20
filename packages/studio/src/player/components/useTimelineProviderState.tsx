@@ -19,7 +19,6 @@ import { useTimelineOverlaysState } from "./useTimelineOverlaysState";
 import { useTimelineEditPinning } from "./useTimelineEditPinning";
 import { useTimelineStackingSync } from "./useTimelineStackingSync";
 import { useTimelineGeometry } from "./useTimelineGeometry";
-import { useAutoExpandKeyframedClips } from "./useAutoExpandKeyframedClips";
 import { GUTTER, LABEL_COL_W, TRACKS_LEFT_PAD } from "./timelineLayout";
 import { useTimelineScrollViewport } from "./useTimelineScrollViewport";
 import { useResolvedTimelineEditCallbacks } from "./useResolvedTimelineEditCallbacks";
@@ -136,7 +135,6 @@ export function useTimelineProviderState({
     [duration, timelineElements],
   );
   const keyframeCache = usePlayerStore((s) => s.keyframeCache);
-  useAutoExpandKeyframedClips(gsapAnimations);
   const {
     tracks,
     trackStyles,
