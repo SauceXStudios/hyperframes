@@ -142,6 +142,8 @@ const mediaNames = mediaArtifact.names ?? [];
 const mediaRowsMatchNames =
   (mediaArtifact.rows ?? []).length === mediaNames.length &&
   (mediaArtifact.rows ?? []).every((row, index) => row.id === mediaNames[index]);
+const mediaRowsMatchSource =
+  JSON.stringify(mediaArtifact.rows ?? []) === JSON.stringify(mediaRowsFromSource);
 const mediaArtifactValid =
   mediaArtifact.model === LOCAL_MODEL_ID &&
   mediaArtifact.modelRevision === LOCAL_MODEL_REVISION &&
@@ -150,6 +152,7 @@ const mediaArtifactValid =
   mediaArtifact.metadataRevision === expectedMediaMetadataRevision &&
   mediaArtifact.credits?.file === expectedCredits.file &&
   mediaArtifact.credits.sha256 === expectedCredits.sha256 &&
+  mediaRowsMatchSource &&
   mediaRowsMatchNames &&
   mediaBin.byteLength === mediaNames.length * LOCAL_MODEL_DIMENSIONS * 4;
 
