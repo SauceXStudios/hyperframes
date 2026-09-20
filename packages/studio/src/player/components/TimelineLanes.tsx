@@ -114,6 +114,7 @@ export function TimelineLanes({
     focusedTargetId,
     rowGeometry,
     scrollRef,
+    onToggleRow: () => undefined,
   });
   return (
     <div
@@ -400,7 +401,7 @@ export function TimelineLanes({
                       </TimelineClip>
                     );
                     const compactKeyframes = keyframeCache?.get(elementKey);
-                    const compactDiamonds = !showsLanes && compactKeyframes && (
+                    const compactDiamonds = compactKeyframes && (
                       <TimelineCompactDiamonds
                         key={`${clipKey}-diamonds`}
                         element={previewElement}

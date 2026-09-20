@@ -100,7 +100,7 @@ export function TimelineTrackHeader({
   isAudioTrack,
   isGroupMember = false,
   theme,
-  onToggleClipExpanded,
+  onToggleClipExpanded = () => undefined,
   onToggleTrackHidden,
   onTogglePropertyGroupKeyframe,
   onRemoveAutomationLane,
