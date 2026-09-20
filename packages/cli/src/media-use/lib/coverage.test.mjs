@@ -52,7 +52,10 @@ test("weakness: no media-ops → ops guidance reference exists", () => {
 
 test("weakness: no transcript-driven cutting → cut compiler entrypoints exist", async () => {
   assert.ok(existsSync(join(SKILL, "scripts", "transcript-cut.mjs")), "transcript-cut missing");
-  assert.ok(existsSync(join(SKILL, "scripts", "lib", "cutlist.mjs")), "cutlist lib missing");
+  assert.ok(
+    existsSync(join(dirname(fileURLToPath(import.meta.url)), "cutlist.mjs")),
+    "cutlist lib missing",
+  );
   const cutlist = await import("./cutlist.mjs");
   assert.equal(typeof cutlist.compileCutList, "function");
 });
@@ -69,7 +72,10 @@ test("weakness: whisper.cpp is weak → better local ASR (Parakeet) entrypoint e
 
 test("weakness: no auto-duck/loudness → duck compiler and recipes exist", async () => {
   assert.ok(existsSync(join(SKILL, "scripts", "audio-duck.mjs")), "audio-duck missing");
-  assert.ok(existsSync(join(SKILL, "scripts", "lib", "duck.mjs")), "duck lib missing");
+  assert.ok(
+    existsSync(join(dirname(fileURLToPath(import.meta.url)), "duck.mjs")),
+    "duck lib missing",
+  );
   assert.ok(existsSync(join(SKILL, "references", "operations.md")), "operations.md missing");
   const duck = await import("./duck.mjs");
   assert.equal(typeof duck.speechSpans, "function");
