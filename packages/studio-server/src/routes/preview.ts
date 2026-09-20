@@ -554,7 +554,7 @@ export function registerPreviewRoutes(api: Hono, adapter: PreviewApiAdapter): vo
     const cacheHeaders: Record<string, string> = isText
       ? { "Cache-Control": "no-store" }
       : {
-          "Cache-Control": "private, no-cache",
+          "Cache-Control": "private, max-age=3600",
           ETag: etag,
         };
 

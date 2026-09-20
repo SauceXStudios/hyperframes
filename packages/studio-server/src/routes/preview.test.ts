@@ -1282,6 +1282,19 @@ describe("hf-proxy negotiation and media codec map injection (U3)", () => {
 });
 
 describe("preview asset byte ranges", () => {
+  it("caches binary media privately while retaining its ETag validator", async () => {
+    const projectDir = createProjectDir();
+    writeFileSync(join(projectDir, "clip.mp4"), "video-bytes");
+    const app = new Hono();
+    registerPreviewRoutes(app, createAdapter(projectDir));
+
+    const response = await app.request("http://localhost/projects/demo/preview/clip.mp4");
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Cache-Control")).toBe("private, max-age=3600");
+    expect(response.headers.get("ETag")).toBeTruthy();
+  });
+
   it("streams a slice of a media file too large to read whole", async () => {
     // A sparse 3 GiB file costs no disk. readFileSync refuses anything over
     // 2 GiB (ERR_FS_FILE_TOO_LARGE), so a route that buffers the whole file
