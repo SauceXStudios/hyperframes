@@ -71,6 +71,7 @@
     "packages/player/tests/**",
     "packages/engine/tests/**",
     "skills/**/test-corpus/**",
+    "skills/**/scripts/**",
     "packages/cli/src/media-use/**",
     // Agent-invoked motion-graphics tools co-located with their docs (run via
     // `node <path>` per grounding/PROTOCOL.md / categories/maps/module.md
