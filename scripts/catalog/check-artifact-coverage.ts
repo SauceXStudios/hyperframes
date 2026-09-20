@@ -96,7 +96,9 @@ const show = (names: string[]) =>
 
 console.log(`registry: ${registryNames.size} searchable items (blocks + components)`);
 console.log(`artifact: ${artifactNames.size} vectors (${artifact.model ?? "unknown model"})`);
-console.log(`media: ${mediaRows.size} rows for ${Object.keys(mediaSource).length} bundled SFX files`);
+console.log(
+  `media: ${mediaRows.size} rows for ${Object.keys(mediaSource).length} bundled SFX files`,
+);
 
 if (missingMediaRows.length > 0) {
   console.error(`\n${missingMediaRows.length} bundled SFX file(s) have no matching media row:`);

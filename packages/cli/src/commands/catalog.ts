@@ -57,10 +57,7 @@ export function rankMediaRows(query: string, rows: MediaCatalogRow[]): MediaCata
   }));
 }
 
-async function runMediaCatalog(
-  query: string,
-  registry: string,
-): Promise<void> {
+async function runMediaCatalog(query: string, registry: string): Promise<void> {
   const fetched = await fetchMediaVectors(registry);
   const rows = mediaVectorRows() as MediaCatalogRow[];
   const warnings: string[] = [];
@@ -244,7 +241,9 @@ export default defineCommand({
 
     if (args.media === true) {
       if (!json) {
-        console.error("--media requires --json because media rows are not installable registry items.");
+        console.error(
+          "--media requires --json because media rows are not installable registry items.",
+        );
         finishCommand(1);
       }
       const query = typeof args.query === "string" ? args.query.trim() : "";

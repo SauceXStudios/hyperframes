@@ -57,9 +57,7 @@ function mediaRows(manifestPath: string): MediaVectorRow[] {
     | Record<string, Omit<MediaVectorRow, "id" | "kind" | "title" | "tags"> & { tags?: string[] }>;
   const bundledSfx = manifestPath.endsWith("skills/media-use/audio/assets/sfx/manifest.json");
   const rootRelativeFile = (file: string): string =>
-    bundledSfx && !file.startsWith("skills/")
-      ? `skills/media-use/audio/assets/sfx/${file}`
-      : file;
+    bundledSfx && !file.startsWith("skills/") ? `skills/media-use/audio/assets/sfx/${file}` : file;
   const rows = Array.isArray(parsed)
     ? parsed.map((row) => ({ ...row, file: rootRelativeFile(row.file) }))
     : Object.entries(parsed).map(([id, entry]) => ({
@@ -131,7 +129,12 @@ async function main(): Promise<void> {
   // the whole reason the index was allowed to drift.
   const rows = manifestPath ? mediaRows(manifestPath) : undefined;
   const catalogMap = rows
-    ? new Map(rows.map((row) => [row.id, `${row.title}\n${row.description}\n${row.tags.join(" ")}\n${row.kind}`]))
+    ? new Map(
+        rows.map((row) => [
+          row.id,
+          `${row.title}\n${row.description}\n${row.tags.join(" ")}\n${row.kind}`,
+        ]),
+      )
     : catalogFromRegistry(
         registryDir,
         (path) => readFileSync(path, "utf-8"),

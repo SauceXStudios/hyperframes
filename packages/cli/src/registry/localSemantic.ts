@@ -222,8 +222,13 @@ function loadMediaVectors(directory = localVectorDirectory()): LocalVectorSet & 
   if (rows.length !== meta.names.length) {
     throw new Error(`media vectors hold ${rows.length} rows, expected ${meta.names.length}`);
   }
+  if (rows.some((row, index) => row.id !== meta.names[index])) {
+    throw new Error("media vector row order does not match media vector names");
+  }
   if (vectors.length !== rows.length * meta.dimensions) {
-    throw new Error(`media vectors hold ${vectors.length} floats, expected ${rows.length * meta.dimensions}`);
+    throw new Error(
+      `media vectors hold ${vectors.length} floats, expected ${rows.length * meta.dimensions}`,
+    );
   }
   if (meta.dimensions !== LOCAL_MODEL_DIMENSIONS) {
     throw new Error(
