@@ -396,14 +396,14 @@ jobs:
         # would defeat the whole point of this job).
         run: |
           set -euo pipefail
-          mapfile -t SKILLS_TESTS < <(find skills packages/cli/src/media-use -type f -name "*.test.mjs" | sort)
+          mapfile -t SKILLS_TESTS < <(find skills -type f -name "*.test.mjs" | sort)
           if [ "${#SKILLS_TESTS[@]}" -eq 0 ]; then
             echo "::error::No skills/**/*.test.mjs files found. Did the layout change?"
             exit 1
           fi
           printf 'Running %d skills test file(s):\n' "${#SKILLS_TESTS[@]}"
           printf '  * %s\n' "${SKILLS_TESTS[@]}"
-          node --test "${SKILLS_TESTS[@]}"
+          bun run test:skills
 
   test-skill-bootstrap-windows:
     name: "Test: skill bootstrap (Windows, Node 24)"
