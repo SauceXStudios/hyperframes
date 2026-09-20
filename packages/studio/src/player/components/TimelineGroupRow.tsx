@@ -8,20 +8,11 @@ import type { TimelineTrackGroupInfo } from "./useTimelineTrackDerivations";
 import type { TimelineLogicalRow } from "./timelineKeyboardNavigation";
 import { TimelineTrackRow } from "./TimelineTrackRow";
 import { TimelineGroupHeader } from "./TimelineGroupHeader";
-import { groupAutomationLanes } from "./automationLaneData";
 import { groupAutomationElement } from "./groupAutomationElement";
-import { TimelineAutomationLaneSlot } from "./TimelineAutomationLaneSlot";
-import { TimelineGroupLaneLabels } from "./TimelineGroupLaneLabels";
-import { LABEL_COL_W, TRACK_H } from "./timelineLayout";
-import type { UseAutomationLanesResult } from "./useAutomationLanes";
-import { useDomEditSelectionContextOptional } from "../../contexts/DomEditContext";
+import { LABEL_COL_W } from "./timelineLayout";
 import { useTimelineEditContextOptional } from "../../contexts/TimelineEditContext";
 import { useDomEditActionsContextOptional } from "../../contexts/DomEditContext";
 import { usePlayerStore } from "../store/playerStore";
-
-/** Accent rail on a group-owned lane — the same green the member rail uses, so
- *  "this belongs to the group" reads the same in both places (groups doc §5). */
-const GROUP_LANE_ACCENT = "#3CE6AC";
 
 interface TimelineGroupRowProps {
   index: number;
@@ -35,17 +26,17 @@ interface TimelineGroupRowProps {
   theme: TimelineTheme;
   rovingTargetId?: string | null;
   collapsedGroupIds: ReadonlySet<string>;
-  expandedLaneOwnerIds: ReadonlySet<string>;
+  expandedLaneOwnerIds?: ReadonlySet<string>;
   toggleGroupExpanded: (id: string) => void;
-  toggleLaneOwnerExpanded: (id: string) => void;
-  lanes: UseAutomationLanesResult;
-  pps: number;
-  currentTime: number;
+  toggleLaneOwnerExpanded?: (id: string) => void;
+  lanes?: unknown;
+  pps?: number;
+  currentTime?: number;
+  beatTimes?: readonly number[];
+  trackContentWidth?: number;
+  contentGutter?: number;
   /** A group's lanes are in composition time (§1.3), so this is their span. */
   compositionDuration: number;
-  beatTimes?: readonly number[];
-  contentGutter: number;
-  trackContentWidth: number;
 }
 
 /** A group's own row: the accessible shell (shared with track rows) plus the group header. */
@@ -61,16 +52,10 @@ export function TimelineGroupRow({
   theme,
   rovingTargetId = null,
   collapsedGroupIds,
-  expandedLaneOwnerIds,
+  expandedLaneOwnerIds: _expandedLaneOwnerIds,
   toggleGroupExpanded,
-  toggleLaneOwnerExpanded,
-  lanes,
-  pps,
-  currentTime,
+  toggleLaneOwnerExpanded: _toggleLaneOwnerExpanded,
   compositionDuration,
-  beatTimes,
-  contentGutter,
-  trackContentWidth,
 }: TimelineGroupRowProps) {
   // From the group, NOT from `tracks`: a collapsed group emits no member rows
   // into the display list, and every one of these reads silently degraded to
@@ -83,9 +68,6 @@ export function TimelineGroupRow({
   // The binder writes through the dom-edit selection, so a group lane is
   // editable exactly when the group is the selected element — which clicking
   // its name in the header does.
-  const domSelection = useDomEditSelectionContextOptional()?.domEditSelection ?? null;
-  const isGroupSelected = domSelection?.id === group.id;
-  const isLaneOpen = expandedLaneOwnerIds.has(group.id);
   // Optional, like every sibling row: Timeline renders outside the edit
   // provider in read-only hosts (Timeline.test.ts asserts it), and the throwing
   // hook took the whole timeline down with it the moment a group existed —
@@ -148,13 +130,9 @@ export function TimelineGroupRow({
           memberCount={group.memberTracks.length}
           isExpanded={!collapsedGroupIds.has(group.id)}
           onToggleExpanded={() => toggleGroupExpanded(group.id)}
-          // The GROUP's own lanes, not its members'. `∿` is per-row (groups doc
-          // §5: "∿ is lit on vo-1 but not vo-2, the same control per row"), and
-          // counting the members' here made the group advertise curves it does
-          // not own and cannot show.
-          laneCount={groupAutomationLanes([groupElement]).length}
-          isLaneOpen={isLaneOpen}
-          onToggleLanes={() => toggleLaneOwnerExpanded(group.id)}
+          laneCount={0}
+          isLaneOpen={false}
+          onToggleLanes={() => undefined}
           fxChain={group.fxChain}
           onFxChainChange={(next) => writeGroupFxChain(next, false)}
           onFxChainPreview={(next) => writeGroupFxChain(next, true)}
@@ -168,48 +146,7 @@ export function TimelineGroupRow({
           columnWidth={contentOrigin >= LABEL_COL_W ? LABEL_COL_W : contentOrigin}
           theme={theme}
         />
-        {/* The group's OWN curves, under the strip. Selected-gated exactly like a
-          clip's: the binder writes through the dom-edit selection, so a lane is
-          editable once the group is selected — which clicking its name does. */}
-        {/* The label column for those lanes, on the accent rail — inside the
-            sticky column above, so they pin with the header. */}
-        {isLaneOpen && (
-          <TimelineGroupLaneLabels
-            groupElement={groupElement}
-            groupLabel={group.label}
-            top={TRACK_H}
-            columnWidth={contentOrigin >= LABEL_COL_W ? LABEL_COL_W : contentOrigin}
-            gutterBackground={theme.gutterBackground}
-            accentColor={GROUP_LANE_ACCENT}
-            onReveal={openGroupFxRack}
-          />
-        )}
       </div>
-      {isLaneOpen && (
-        // The same offset content cell a track row wraps its lanes in — the
-        // slot positions absolutely, so mounted straight on the row it resolved
-        // against the row instead and drew the envelope across the label gutter
-        // from x=0.
-        <div
-          role="gridcell"
-          aria-colindex={2}
-          style={{ width: trackContentWidth, marginLeft: contentGutter }}
-          className="relative"
-        >
-          <TimelineAutomationLaneSlot
-            elements={[groupElement]}
-            isSelected={() => isGroupSelected}
-            lanes={lanes}
-            pps={pps}
-            // Below the strip, which sits directly under the header row.
-            laneCount={0}
-            topOffset={TRACK_H}
-            accentColor={GROUP_LANE_ACCENT}
-            currentTime={currentTime}
-            beatTimes={beatTimes}
-          />
-        </div>
-      )}
     </TimelineTrackRow>
   );
 }

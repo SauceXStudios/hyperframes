@@ -74,7 +74,7 @@ interface TimelineTrackHeaderProps {
   isGroupMember?: boolean;
   rovingTargetId?: string | null;
   theme: TimelineTheme;
-  onToggleClipExpanded: () => void;
+  onToggleClipExpanded?: () => void;
   onToggleTrackHidden: TimelineEditCallbacks["onToggleTrackHidden"];
   onTogglePropertyGroupKeyframe?: TimelineEditCallbacks["onTogglePropertyGroupKeyframe"];
   /** Drop one envelope. Absent while the lanes are read-only, which is what
@@ -196,7 +196,7 @@ export function TimelineTrackHeader({
   );
   // Automation counts as something to disclose: gating the caret on tweens alone
   // left an audio clip's envelopes unreachable, since the track could not expand.
-  const disclosable = lanes.length > 0 || automationRows.length > 0;
+  const disclosable = false;
   // Which HEADER LAYOUT the row wears — not the same question as `disclosable`.
   // An audio track that automates something is still an audio track: it keeps
   // the music glyph and the group indent and gains the `∿`. Tying layout to

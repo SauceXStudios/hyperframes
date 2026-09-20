@@ -83,6 +83,13 @@ export function isFocusedEaseRequestCurrent(
 }
 
 export interface KeyframeSlice {
+  /** @deprecated Expansion state is retained only for fixture compatibility; no timeline renderer reads it. */
+  expandedClipIds: Set<string>;
+  toggleClipExpanded: (id: string) => void;
+  setClipExpanded: (id: string, expanded: boolean) => void;
+  expandClips: (ids: string[]) => void;
+  /** @deprecated Compatibility for old fixtures; no renderer reads this state. */
+  expandedLaneOwnerIds: Set<string>;
   /** Selected collapsed (`element:pct`) or expanded (`element:group:animation:clipPct`) diamonds. */
   selectedKeyframes: Set<string>;
   toggleSelectedKeyframe: (key: string) => void;
@@ -146,6 +153,23 @@ export function createKeyframeSlice(
   getTimelineSessionIdentity: () => TimelineSessionIdentity,
 ): KeyframeSlice {
   return {
+    expandedClipIds: new Set(),
+    toggleClipExpanded: (id) =>
+      set((state) => {
+        const next = new Set(state.expandedClipIds);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        return { expandedClipIds: next };
+      }),
+    setClipExpanded: (id, expanded) =>
+      set((state) => {
+        const next = new Set(state.expandedClipIds);
+        if (expanded) next.add(id);
+        else next.delete(id);
+        return { expandedClipIds: next };
+      }),
+    expandClips: (ids) => set({ expandedClipIds: new Set(ids) }),
+    expandedLaneOwnerIds: new Set(),
     selectedKeyframes: new Set(),
     toggleSelectedKeyframe: (key) =>
       set((state) => {
