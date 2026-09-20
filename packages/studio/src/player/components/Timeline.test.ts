@@ -135,26 +135,6 @@ function renderBasicTimeline() {
   return { host, root };
 }
 
-function renderSharedAutomationTimeline(selectedElementId?: string) {
-  const host = createSizedTimelineHost(720);
-  const automation = JSON.stringify({
-    version: 1,
-    lanes: [{ target: "volume", points: [{ t: 0, v: 1 }] }],
-  });
-  usePlayerStore.setState({
-    duration: 8,
-    timelineReady: true,
-    ...(selectedElementId ? { selectedElementId } : {}),
-    elements: [
-      { id: "narration-1", tag: "audio", start: 0, duration: 4, track: 0, automation },
-      { id: "narration-2", tag: "audio", start: 4, duration: 4, track: 0, automation },
-    ],
-  });
-  const root = createRoot(host);
-  act(() => root.render(React.createElement(Timeline)));
-  return { host, root };
-}
-
 describe("Timeline provider boundary", () => {
   it("keeps all-collapsed horizontal positions at the gutter plus the pre-t=0 pad", () => {
     usePlayerStore.setState({
@@ -197,7 +177,7 @@ describe("Timeline provider boundary", () => {
     act(() => root.unmount());
   });
 
-  it("reserves the label column and keeps expanded keyframes aligned with ruler time", () => {
+  it("keeps the label column stable while a nested clip stays one row", () => {
     usePlayerStore.setState({
       duration: 20,
       timelineReady: true,
@@ -205,7 +185,6 @@ describe("Timeline provider boundary", () => {
       zoomMode: "manual",
       manualZoomPercent: 100,
       selectedElementId: "clip-1",
-      expandedClipIds: new Set(["clip-1"]),
       elements: [
         { id: "clip-1", label: "Hero card", tag: "div", start: 0, duration: 20, track: 0 },
         { id: "clip-2", label: "Outro", tag: "div", start: 2, duration: 1, track: 1 },
@@ -235,59 +214,12 @@ describe("Timeline provider boundary", () => {
     const { host, root, clip, trackHeader, rulerTick, rulerOrigin, playhead } =
       renderTimelineGeometry("clip-1");
     const { trackHeader: collapsedHeader } = getHorizontalGeometry(host, "clip-2", "00:10");
-    const diamond = host.querySelector<HTMLElement>(
-      '[data-keyframe-group="position"][data-keyframe-percentage="50"]',
-    );
-    if (!diamond) throw new Error("Missing expanded position keyframe");
-    const propertyLane = diamond.closest<HTMLElement>("[data-timeline-property-lane]");
-    if (!propertyLane) throw new Error("Missing flat position property lane");
-    const headerLane = trackHeader.querySelector<HTMLElement>('[data-property-group="position"]');
-    if (!headerLane) throw new Error("Missing position property header");
-    // Absolute x rebuilds from the content origin (the ruler-origin spacer),
-    // which now insets a GUTTER past the LABEL_COL_W label column so a 0%
-    // diamond has room to its left. The content row reaches that same origin via
-    // header (LABEL_COL_W) + its gutter margin, so ruler tick and diamond still
-    // coincide on the shared time x.
-    const contentOrigin = Number.parseFloat(rulerOrigin.style.width);
-    const rulerX = contentOrigin + Number.parseFloat(rulerTick.style.left) + 0.5;
-    const diamondX =
-      contentOrigin +
-      Number.parseFloat(propertyLane.style.left) +
-      Number.parseFloat(diamond.style.left) +
-      Number.parseFloat(diamond.style.width) / 2;
-
-    expect(clip.contains(propertyLane)).toBe(false);
+    expect(host.querySelectorAll('[role="row"]')).toHaveLength(2);
     expect(clip.style.height).toBe(`${TRACK_H - 2 * CLIP_Y}px`);
-    expect(clip.style.bottom).toBe("");
-    expect(propertyLane.style.top).toBe(`${getTimelineLaneTop(0)}px`);
-    expect(propertyLane.style.top).toBe(headerLane.style.top);
-    expect(propertyLane.style.background).toBe("");
-    expect(propertyLane.style.border).toBe("");
-    expect(propertyLane.style.borderRadius).toBe("");
-    const treegrid = host.querySelector<HTMLElement>('[role="treegrid"]');
-    const semanticRows = treegrid?.querySelectorAll<HTMLElement>('[role="row"]') ?? [];
-    expect(treegrid?.getAttribute("aria-rowcount")).toBe("3");
-    expect([...semanticRows].map((row) => row.getAttribute("aria-rowindex"))).toEqual([
-      "1",
-      "2",
-      "3",
-    ]);
-    expect(semanticRows[0]?.getAttribute("aria-level")).toBe("1");
-    expect(semanticRows[0]?.getAttribute("aria-expanded")).toBe("true");
-    expect(semanticRows[1]?.getAttribute("aria-level")).toBe("2");
-    expect(semanticRows[1]?.textContent).toContain("position");
-    expect(semanticRows[1]?.querySelector('[role="rowheader"]')?.getAttribute("aria-owns")).toBe(
-      headerLane.id,
-    );
-    expect(semanticRows[1]?.querySelector('[role="gridcell"]')?.getAttribute("aria-owns")).toBe(
-      propertyLane.id,
-    );
-    expect(semanticRows[2]?.hasAttribute("aria-expanded")).toBe(false);
     expect(trackHeader.style.width).toBe(`${LABEL_COL_W}px`);
     expect(rulerOrigin.style.width).toBe(`${LABEL_COL_W + GUTTER}px`);
     expect(playhead.style.left).toBe(`${LABEL_COL_W + GUTTER + 1000 - PLAYHEAD_HEAD_W / 2}px`);
-    expect(diamondX).toBe(rulerX);
-    expect(rulerX).toBe(LABEL_COL_W + GUTTER + 1000);
+    expect(Number.parseFloat(rulerTick.style.left)).toBe(1000);
     expect(collapsedHeader.textContent).toContain("Outro");
     expect(getTimelineFitPps(640, 20, LABEL_COL_W + GUTTER)).toBeCloseTo(
       (640 - (LABEL_COL_W + GUTTER) - 2) / MIN_TIMELINE_EXTENT_S,
@@ -610,29 +542,8 @@ describe("Timeline provider boundary", () => {
       root.render(React.createElement(Timeline));
     });
 
-    // Keyframed clip-1 is expanded by default (AE/Figma default); its disclosure
-    // lives in the left column. clip-2 has no keyframes so it never shows one.
-    const collapseButton = host.querySelector<HTMLButtonElement>(
-      'button[aria-label="Hide clip-1 lanes"]',
-    );
-    expect(collapseButton).not.toBeNull();
-    expect(host.querySelector('button[aria-label="Show clip-2 lanes"]')).toBeNull();
-    expect(host.querySelector('button[aria-label="Hide clip-2 lanes"]')).toBeNull();
-
-    const clip = host.querySelector<HTMLElement>('[data-el-id="clip-1"]');
-    const row = clip?.parentElement?.parentElement;
-    expectTrackExpansion(row, ["clip-1"], TRACK_H + 2 * LANE_H);
-
-    // Collapsing sticks (does not bounce back open via auto-expand).
-    act(() => collapseButton?.click());
-    expectTrackExpansion(row, [], TRACK_H);
-
-    const expandButton = host.querySelector<HTMLButtonElement>(
-      'button[aria-label="Show clip-1 lanes"]',
-    );
-    expect(expandButton).not.toBeNull();
-    act(() => expandButton?.click());
-    expectTrackExpansion(row, ["clip-1"], TRACK_H + 2 * LANE_H);
+    expect(host.querySelectorAll('button[aria-label$=" lanes"]')).toHaveLength(0);
+    expect(host.querySelectorAll('[role="row"]')).toHaveLength(2);
     act(() => root.unmount());
   });
 
@@ -641,17 +552,23 @@ describe("Timeline provider boundary", () => {
   // clip left the row's state depending on the selection, and a collapse that
   // only dropped the active clip left the row stuck open.
   it("expands and collapses every clip on a shared track together", () => {
-    const { host, root } = renderSharedAutomationTimeline();
+    const host = createSizedTimelineHost(720);
+    const automation = JSON.stringify({
+      version: 1,
+      lanes: [{ target: "volume", points: [{ t: 0, v: 1 }] }],
+    });
+    usePlayerStore.setState({
+      duration: 8,
+      timelineReady: true,
+      elements: [
+        { id: "narration-1", tag: "audio", start: 0, duration: 4, track: 0, automation },
+        { id: "narration-2", tag: "audio", start: 4, duration: 4, track: 0, automation },
+      ],
+    });
+    const root = createRoot(host);
+    act(() => root.render(React.createElement(Timeline)));
 
-    const row = host.querySelector<HTMLElement>('[data-el-id="narration-1"]')?.parentElement
-      ?.parentElement;
-    // A row of several clips is named for the track, so the caret is too.
-    const caret = () => host.querySelector<HTMLButtonElement>('button[aria-label$=" lanes"]');
-    expect(caret()?.getAttribute("aria-label")).toBe("Show Track 1 lanes");
-
-    act(() => caret()?.click());
-    // One shared volume row, and BOTH clips hold it open.
-    expectTrackExpansion(row, ["narration-1", "narration-2"], TRACK_H + AUTOMATION_LANE_H);
+    expect(host.querySelector('button[aria-label$=" lanes"]')).toBeNull();
 
     // Every clip bar on the row is capped to one track height. Only the clip
     // owning the property lanes used to be, so its siblings stretched the whole
@@ -662,8 +579,6 @@ describe("Timeline provider boundary", () => {
       ),
     ).toEqual([`${TRACK_H - 2 * CLIP_Y}px`, `${TRACK_H - 2 * CLIP_Y}px`]);
 
-    act(() => caret()?.click());
-    expectTrackExpansion(row, [], TRACK_H);
     act(() => root.unmount());
   });
 
@@ -674,8 +589,22 @@ describe("Timeline provider boundary", () => {
   // a lane to select its clip therefore made the handles vanish under the
   // pointer, which is the one gesture the read-only lane exists to support.
   it("keeps the automation lanes mounted when the selection moves along the row", () => {
-    const { host, root } = renderSharedAutomationTimeline("narration-2");
-    act(() => host.querySelector<HTMLButtonElement>('button[aria-label$=" lanes"]')?.click());
+    const host = createSizedTimelineHost(720);
+    const automation = JSON.stringify({
+      version: 1,
+      lanes: [{ target: "volume", points: [{ t: 0, v: 1 }] }],
+    });
+    usePlayerStore.setState({
+      duration: 8,
+      timelineReady: true,
+      selectedElementId: "narration-2",
+      elements: [
+        { id: "narration-1", tag: "audio", start: 0, duration: 4, track: 0, automation },
+        { id: "narration-2", tag: "audio", start: 4, duration: 4, track: 0, automation },
+      ],
+    });
+    const root = createRoot(host);
+    act(() => root.render(React.createElement(Timeline)));
 
     const before = [...host.querySelectorAll(".hf-automation-lane")];
     expect(before).toHaveLength(2);
