@@ -3137,6 +3137,95 @@
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/macos-tahoe-liquid-glass.png"
   },
   {
+    "name": "map-campaign-arrows",
+    "type": "block",
+    "title": "Map Campaign Arrows",
+    "description": "Newsreel wartime aesthetic with sequential schematic campaign arrows along a path — abstract educational cartography, not glorifying. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection — not affiliated; footage not included).",
+    "tags": [
+      "map",
+      "geography",
+      "animation",
+      "arrows",
+      "campaign",
+      "newsreel",
+      "schematic",
+      "svg"
+    ],
+    "href": "/catalog/blocks/map-campaign-arrows",
+    "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-campaign-arrows.png"
+  },
+  {
+    "name": "map-city-pins",
+    "type": "block",
+    "title": "Map City Pins",
+    "description": "Newsreel-style labeled city pins that pop and stagger onto a stylized landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection — not affiliated; footage not included).",
+    "tags": [
+      "map",
+      "geography",
+      "animation",
+      "pins",
+      "cities",
+      "newsreel",
+      "labels",
+      "svg"
+    ],
+    "href": "/catalog/blocks/map-city-pins",
+    "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-city-pins.png"
+  },
+  {
+    "name": "map-region-zoom",
+    "type": "block",
+    "title": "Map Region Zoom",
+    "description": "Newsreel-style grid overlay and camera zoom into a framed region on a stylized landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection — not affiliated; footage not included).",
+    "tags": [
+      "map",
+      "geography",
+      "animation",
+      "zoom",
+      "grid",
+      "newsreel",
+      "camera",
+      "svg"
+    ],
+    "href": "/catalog/blocks/map-region-zoom",
+    "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-region-zoom.png"
+  },
+  {
+    "name": "map-route-draw",
+    "type": "block",
+    "title": "Map Route Draw",
+    "description": "Newsreel-style stylized landmass with a route line that stroke-draws on across the map. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection — not affiliated; footage not included).",
+    "tags": [
+      "map",
+      "geography",
+      "animation",
+      "route",
+      "newsreel",
+      "draw-on",
+      "svg"
+    ],
+    "href": "/catalog/blocks/map-route-draw",
+    "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-route-draw.png"
+  },
+  {
+    "name": "map-territory-wipe",
+    "type": "block",
+    "title": "Map Territory Wipe",
+    "description": "Newsreel-style territory fill that wipes on via clip-path reveal over a stylized landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection — not affiliated; footage not included).",
+    "tags": [
+      "map",
+      "geography",
+      "animation",
+      "territory",
+      "wipe",
+      "newsreel",
+      "reveal",
+      "svg"
+    ],
+    "href": "/catalog/blocks/map-territory-wipe",
+    "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-territory-wipe.png"
+  },
+  {
     "name": "marker-checklist-card",
     "type": "component",
     "title": "Marker Checklist Card",

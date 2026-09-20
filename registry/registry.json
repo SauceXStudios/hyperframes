@@ -476,6 +476,26 @@
       "type": "hyperframes:block"
     },
     {
+      "name": "map-campaign-arrows",
+      "type": "hyperframes:block"
+    },
+    {
+      "name": "map-city-pins",
+      "type": "hyperframes:block"
+    },
+    {
+      "name": "map-region-zoom",
+      "type": "hyperframes:block"
+    },
+    {
+      "name": "map-route-draw",
+      "type": "hyperframes:block"
+    },
+    {
+      "name": "map-territory-wipe",
+      "type": "hyperframes:block"
+    },
+    {
       "name": "message-thread-reveal",
       "type": "hyperframes:block"
     },
