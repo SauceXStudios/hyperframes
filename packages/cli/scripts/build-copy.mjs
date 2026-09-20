@@ -94,7 +94,6 @@ async function main() {
   const mediaEngine = join(CLI_ROOT, "src", "media-use");
   const publishedMediaLib = join(DIST, "skills", "media-use", "scripts", "lib");
   rmSync(publishedMediaLib, { recursive: true, force: true });
-  mkdirSync(publishedMediaLib, { recursive: true });
   copyDir(join(mediaEngine, "lib"), publishedMediaLib);
   cpSync(
     join(mediaEngine, "resolve.mjs"),
