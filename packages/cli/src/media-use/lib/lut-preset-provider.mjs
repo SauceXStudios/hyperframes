@@ -8,6 +8,7 @@ import { validateCube, validateCubeFile } from "./cube-validate.mjs";
 
 const SKILL_DIR = [
   join(import.meta.dirname, ".."),
+  join(import.meta.dirname, "..", "..", "..", "..", "skills", "media-use"),
   join(import.meta.dirname, "..", "..", "..", "..", "..", "skills", "media-use"),
 ].find((candidate) => existsSync(join(candidate, "luts", "index.json")));
 const LUT_DIR = join(SKILL_DIR, "luts");
