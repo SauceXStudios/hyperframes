@@ -102,6 +102,8 @@ async function main() {
     join(mediaEngine, "resolve.mjs"),
     join(DIST, "skills", "media-use", "scripts", "resolve.mjs"),
   );
+  mkdirSync(join(DIST, "skills", "registry"), { recursive: true });
+  copyDirContents(join(DIST, "registry"), join(DIST, "skills", "registry"));
 
   const dockerfile = join(CLI_ROOT, "src", "docker", "Dockerfile.render");
   if (existsSync(dockerfile)) {

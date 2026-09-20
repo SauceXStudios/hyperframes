@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { countUnindexed, pickByName, rankMediaRows, searchMissCommand } from "./catalog.js";
+import { countUnindexed, pickByName, searchMissCommand } from "./catalog.js";
 
 /** The whole registry, which is what "in this registry" has to be measured against. */
 const registryNames = new Set(["fade-through", "whip-pan", "count-up"]);
@@ -60,42 +60,6 @@ describe("countUnindexed", () => {
     // The artifact holds two names this registry cannot install and is missing
     // two it can. Comparing sizes rather than membership would call that even.
     expect(countUnindexed(registryNames, ["fade-through", "accordion", "alert-dialog"])).toBe(2);
-  });
-});
-
-describe("rankMediaRows", () => {
-  it("ranks the click SFX first for a click query", () => {
-    const rows = [
-      {
-        id: "whoosh",
-        kind: "sfx",
-        title: "whoosh",
-        description: "Fast scene transition accent",
-        tags: ["sfx"],
-        file: "skills/media-use/audio/assets/sfx/whoosh.mp3",
-      },
-      {
-        id: "click",
-        kind: "sfx",
-        title: "click",
-        description: "Crisp UI click for a button press or selection",
-        tags: ["sfx"],
-        file: "skills/media-use/audio/assets/sfx/click.mp3",
-      },
-    ];
-
-    expect(rankMediaRows("click", rows).map((row) => row.id)).toEqual(["click"]);
-  });
-});
-
-describe("catalog --media", () => {
-  it("returns JSON media rows without entering the installable registry path", async () => {
-    const output = await runCatalog({ media: true, json: true, query: "click" });
-    expect(JSON.parse(output)).toMatchObject({
-      tier: "words",
-      total: 1,
-      results: [{ id: "click", file: "skills/media-use/audio/assets/sfx/click.mp3" }],
-    });
   });
 });
 

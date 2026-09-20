@@ -49,6 +49,8 @@ import {
   versionLessThan,
 } from "./lib/heygen-cli.mjs";
 import { BundledSfxAssetsError, inspectBundledSfxAssets } from "./lib/bundled-sfx-provider.mjs";
+import { rankMediaRowsWithVectors } from "../registry/mediaSearch.js";
+import { fetchMediaVectors, mediaVectorRows } from "../registry/localSemantic.js";
 
 const INGEST_TYPES = listTypes();
 const DEFAULT_EXT = {
@@ -408,11 +410,47 @@ async function run() {
     return resolveColor(type, intent, { projectDir });
   }
 
-  // 3. provider search — registry tries providers in order (heygen-CLI first)
+  // 3. SFX is local-first: bundled library, committed local index, then HeyGen.
   let searchResult = null;
   let providerFailure = null;
   try {
-    searchResult = await runCapability(type, "search", intent, ctx);
+    if (type === "sfx" && !args.provider) {
+      searchResult = await runCapability(type, "search", intent, {
+        ...ctx,
+        provider: "bundled.sfx",
+      });
+      if (!searchResult) {
+        const registry =
+          process.env.HYPERFRAMES_REGISTRY ||
+          "https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry";
+        await fetchMediaVectors(registry);
+        const ranked = await rankMediaRowsWithVectors(
+          intent,
+          mediaVectorRows().filter((row) => row.kind === "sfx"),
+        );
+        const row = ranked.rows[0];
+        const candidates = row
+          ? [resolve(row.file), join(import.meta.dirname, "..", "..", "..", row.file)]
+          : [];
+        const localPath = candidates.find((candidate) => existsSync(candidate));
+        if (row && localPath) {
+          searchResult = {
+            localPath,
+            ext: extname(localPath),
+            source: "local-index",
+            metadata: {
+              description: row.description,
+              duration: row.duration ?? null,
+              provider: "catalog.local",
+              provenance: { library_key: row.id, tier: ranked.tier },
+            },
+          };
+        }
+      }
+      if (!searchResult) searchResult = await runCapability(type, "search", intent, ctx);
+    } else {
+      searchResult = await runCapability(type, "search", intent, ctx);
+    }
   } catch (error) {
     providerFailure = error;
     // search failed, try generate

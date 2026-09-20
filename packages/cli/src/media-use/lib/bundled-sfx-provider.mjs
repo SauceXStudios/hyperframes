@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { extname, join } from "node:path";
+import { rankMediaRows } from "../../registry/mediaSearch.js";
 
 const LIB_DIR =
   process.env.HYPERFRAMES_MEDIA_USE_SFX_DIR ||
@@ -101,11 +102,20 @@ export const bundledSfxProvider = {
     if (!health.ok) throw new BundledSfxAssetsError(health);
     const manifest = JSON.parse(readFileSync(join(libraryDir, "manifest.json"), "utf8"));
 
-    const ranked = Object.entries(manifest)
-      .map(([key, entry]) => ({ key, entry, score: score(intent, key, entry) }))
-      .filter(({ entry, score }) => entry?.file && score > 0)
-      .sort((a, b) => b.score - a.score || a.key.localeCompare(b.key));
-    const best = ranked[0];
+    const rows = Object.entries(manifest).map(([key, entry]) => ({
+      id: key,
+      kind: "sfx",
+      title: key,
+      description: entry?.description || key,
+      tags: ["sfx"],
+      file: entry?.file || "",
+      duration: entry?.duration,
+    }));
+    const bestRow = rankMediaRows(intent, rows)[0];
+    const best =
+      bestRow && manifest[bestRow.id]?.file
+        ? { key: bestRow.id, entry: manifest[bestRow.id] }
+        : null;
     if (!best) return null;
 
     const localPath = join(libraryDir, best.entry.file);
