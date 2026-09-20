@@ -80,7 +80,7 @@ async function main() {
   // Skills bundled into the published CLI. Branches don't all carry the same
   // skills/ tree (it gets restructured), so each entry is existsSync-guarded:
   // a missing skill dir warns + skips instead of crashing the build.
-  for (const skill of ["hyperframes", "hyperframes-cli", "gsap"]) {
+  for (const skill of ["hyperframes", "hyperframes-cli", "gsap", "media-use"]) {
     const src = join(REPO_ROOT, "skills", skill);
     if (!existsSync(src)) {
       console.warn(`[build-copy] skill not found, skipping: skills/${skill}`);
@@ -88,6 +88,15 @@ async function main() {
     }
     copyDir(src, join(DIST, "skills", skill));
   }
+
+  // The media-use engine lives with the CLI source, but keeps its published
+  // skill-relative layout so the moved .mjs tree can run without a rewrite.
+  const mediaEngine = join(CLI_ROOT, "src", "media-use");
+  copyDir(join(mediaEngine, "lib"), join(DIST, "skills", "media-use", "scripts", "lib"));
+  cpSync(
+    join(mediaEngine, "resolve.mjs"),
+    join(DIST, "skills", "media-use", "scripts", "resolve.mjs"),
+  );
 
   const dockerfile = join(CLI_ROOT, "src", "docker", "Dockerfile.render");
   if (existsSync(dockerfile)) {
