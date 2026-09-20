@@ -1,10 +1,23 @@
 import { existsSync, readFileSync } from "node:fs";
 import { extname, join } from "node:path";
 
-const LIB_DIR = process.env.HYPERFRAMES_MEDIA_USE_SFX_DIR ||
+const LIB_DIR =
+  process.env.HYPERFRAMES_MEDIA_USE_SFX_DIR ||
   [
     join(import.meta.dirname, "..", "..", "audio", "assets", "sfx"),
-    join(import.meta.dirname, "..", "..", "..", "..", "..", "skills", "media-use", "audio", "assets", "sfx"),
+    join(
+      import.meta.dirname,
+      "..",
+      "..",
+      "..",
+      "..",
+      "..",
+      "skills",
+      "media-use",
+      "audio",
+      "assets",
+      "sfx",
+    ),
   ].find((candidate) => existsSync(candidate)) ||
   join(import.meta.dirname, "..", "..", "audio", "assets", "sfx");
 
