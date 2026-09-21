@@ -7,8 +7,6 @@ import {
   settleCompositionReadiness,
   settleFirstFrameCompositionReadiness,
 } from "./compositionReadiness.js";
-import { createRuntimeStartTimeResolver } from "./runtime/startResolver.js";
-import { isRuntimeElementVisibleAt } from "./runtime/timeline.js";
 
 function docWith(bodyHtml: string): Document {
   const doc = document.implementation.createHTMLDocument("");
@@ -86,24 +84,11 @@ describe("scanPendingCompositionAssets", () => {
     expect(scan.pendingMedia.map((media) => media.id)).toEqual(["untimed"]);
   });
 
-  it("keeps nested timing decisions aligned with the runtime visibility owner", () => {
+  it("keeps assets with unresolved timing expressions in the first-frame scan", () => {
     const doc = docWith(
-      '<section data-start="30" data-duration="5"><video id="nested" src="later.mp4"></video></section>',
+      '<section data-start="intro + 30"><video id="nested" src="later.mp4"></video></section>',
     );
-    const nested = doc.querySelector<HTMLElement>("#nested")!;
-    const resolver = createRuntimeStartTimeResolver({ documentRef: doc });
-    const runtimeDecision = isRuntimeElementVisibleAt(doc.querySelector("section")!, {
-      currentTime: 0,
-      compositionDuration: Number.POSITIVE_INFINITY,
-      canonicalFps: 30,
-      exportRenderSeek: false,
-      timelineRegistry: {},
-      resolver,
-    });
-
-    expect(scanPendingCompositionAssets(doc, { scope: "first-frame" }).pendingMedia).toEqual([]);
-    expect(runtimeDecision).toBe(false);
-    expect(nested.closest("[data-start]")).not.toBeNull();
+    expect(scanPendingCompositionAssets(doc, { scope: "first-frame" }).pendingMedia).toHaveLength(1);
   });
 });
 

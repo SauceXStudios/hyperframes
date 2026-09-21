@@ -1,6 +1,7 @@
-import { createRuntimeStartTimeResolver } from "./runtime/startResolver.js";
-import { isRuntimeElementVisibleAt } from "./runtime/timeline.js";
-import type { RuntimeTimelineLike } from "./runtime/types.js";
+import {
+  AUTHORED_DURATION_ATTR,
+  AUTHORED_END_ATTR,
+} from "./runtime/authoredTiming.js";
 
 /** A composition is "ready" once every declared input settles, not just once
  * its duration is known. Each input returns null (nothing to wait on) or a
@@ -53,25 +54,28 @@ function isTimedElement(element: Element): boolean {
   return element.hasAttribute("data-start") || element.hasAttribute("data-track-index");
 }
 
-function isActiveAtFirstFrame(
-  element: Element,
-  resolver: ReturnType<typeof createRuntimeStartTimeResolver>,
-  timelineRegistry: Record<string, RuntimeTimelineLike | undefined>,
-): boolean {
+function parseTimingNumber(value: string | null): number | null {
+  if (value == null || value.trim() === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function isActiveAtFirstFrame(element: Element): boolean {
   let current: Element | null = element;
   while (current) {
     if (isTimedElement(current)) {
-      if (
-        !isRuntimeElementVisibleAt(current as HTMLElement, {
-          currentTime: 0,
-          compositionDuration: Number.POSITIVE_INFINITY,
-          canonicalFps: 30,
-          exportRenderSeek: false,
-          timelineRegistry,
-          resolver,
-        })
-      )
-        return false;
+      const start = parseTimingNumber(current.getAttribute("data-start"));
+      // The player bundle must not pull the full runtime timing resolver into
+      // every embed. Unknown expressions stay included, conservatively.
+      if (start != null && start > 0) return false;
+
+      const duration =
+        parseTimingNumber(current.getAttribute("data-duration")) ??
+        parseTimingNumber(current.getAttribute(AUTHORED_DURATION_ATTR));
+      const end =
+        parseTimingNumber(current.getAttribute("data-end")) ??
+        parseTimingNumber(current.getAttribute(AUTHORED_END_ATTR));
+      if ((duration != null && duration <= 0) || (end != null && end <= 0)) return false;
     }
     current = current.parentElement;
   }
@@ -81,11 +85,9 @@ function isActiveAtFirstFrame(
 function shouldIncludeAsset(
   element: Element,
   scope: CompositionReadinessScope,
-  resolver: ReturnType<typeof createRuntimeStartTimeResolver>,
-  timelineRegistry: Record<string, RuntimeTimelineLike | undefined>,
 ): boolean {
   if (scope === "all") return true;
-  return isActiveAtFirstFrame(element, resolver, timelineRegistry);
+  return isActiveAtFirstFrame(element);
 }
 
 /** One DOM pass for every declared-media asset not yet ready. */
@@ -93,22 +95,12 @@ export function scanPendingCompositionAssets(
   doc: Document,
   { scope = "all" }: CompositionReadinessOptions = {},
 ): PendingCompositionAssets {
-  const runtimeWindow = doc.defaultView as
-    | (Window & {
-        __timelines?: Record<string, import("./runtime/types").RuntimeTimelineLike | undefined>;
-      })
-    | null;
-  const resolver = createRuntimeStartTimeResolver({
-    documentRef: doc,
-    timelineRegistry: runtimeWindow?.__timelines,
-    includeAuthoredTimingAttrs: true,
-  });
   const pendingMedia = Array.from(doc.querySelectorAll("video, audio"))
     .filter(isRealmHtmlMediaElement)
-    .filter((el) => shouldIncludeAsset(el, scope, resolver, runtimeWindow?.__timelines ?? {}))
+    .filter((el) => shouldIncludeAsset(el, scope))
     .filter((el) => el.readyState < HAVE_FUTURE_DATA);
   const pendingImages = Array.from(doc.querySelectorAll("img"))
-    .filter((img) => shouldIncludeAsset(img, scope, resolver, runtimeWindow?.__timelines ?? {}))
+    .filter((img) => shouldIncludeAsset(img, scope))
     .filter((img) => !img.complete);
   const fontsLoading = doc.fonts?.status === "loading";
   return { pendingMedia, pendingImages, fontsLoading };
