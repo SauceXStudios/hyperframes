@@ -1,6 +1,6 @@
 ---
-title: "Archival Map - Radar Rings"
-description: "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Arteries of New York City, 1941. Acquired via /api/clips/8a33520f-770b-5ce0-9e7b-56f1d80f4bb5/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
+title: "Arteries of New York City (1941)"
+description: "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Arteries of New York City, 1941. Self-hosted seek-safe video via /api/clips/8a33520f-770b-5ce0-9e7b-56f1d80f4bb5/download. Not affiliated with Moving Image Archive. Footage-only video block."
 mode: "frame"
 ---
 
@@ -11,11 +11,11 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   previewSrc="/public/catalog/blocks/map-radar-rings.json"
   compositionId="map-radar-rings"
   compositionSrc="compositions/map-radar-rings.html"
-  title="Archival Map - Radar Rings"
-  description="Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Arteries of New York City, 1941. Acquired via /api/clips/8a33520f-770b-5ce0-9e7b-56f1d80f4bb5/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Radar Rings"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, Arteries of New York City, 1941"}]}
-  meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":143}}
-  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-radar-rings","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
+  title="Arteries of New York City (1941)"
+  description="Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Arteries of New York City, 1941. Self-hosted seek-safe video via /api/clips/8a33520f-770b-5ce0-9e7b-56f1d80f4bb5/download. Not affiliated with Moving Image Archive. Footage-only video block."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Arteries of New York City (1941)"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, Arteries of New York City, 1941"}]}
+  meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":141}}
+  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-radar-rings","tags":["map","geography","archival","footage","mia","video","public-domain"]}}
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-radar-rings/map-radar-rings.html"
 >
@@ -67,11 +67,11 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         position: absolute;
         left: 72px;
         top: 56px;
-        max-width: 1400px;
+        max-width: 1600px;
         color: rgba(245, 236, 214, 0.95);
-        font-size: 36px;
+        font-size: 34px;
         font-weight: 700;
-        letter-spacing: 0.14em;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
         text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);
       }
@@ -81,17 +81,15 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         right: 72px;
         bottom: 56px;
         color: rgba(232, 220, 196, 0.88);
-        font-size: 18px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        font-size: 16px;
+        letter-spacing: 0.06em;
         text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
       }
       #rr-credit-url {
         display: block;
         margin-top: 8px;
-        font-size: 14px;
-        letter-spacing: 0.04em;
-        text-transform: none;
+        font-size: 13px;
+        letter-spacing: 0.03em;
         color: rgba(196, 181, 154, 0.7);
       }
     </style>
@@ -116,13 +114,12 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         data-media-start="0"
       ></video>
       <div id="rr-frame" aria-hidden="true"></div>
-      <div id="rr-title" data-var-text="title">Archival Map - Radar Rings</div>
+      <div id="rr-title" data-var-text="title">Arteries of New York City (1941)</div>
       <div id="rr-credit">
-        <span data-var-text="credit"
-          >Footage: Moving Image Archive | Arteries of New York City</span
-        >
+        <span data-var-text="credit">Moving Image Archive, Arteries of New York City, 1941</span>
         <span id="rr-credit-url"
-          >movingimagearchive.com/collection/animated-maps - public domain / free to reuse</span
+          >https://www.movingimagearchive.com/sources/arteries-of-new-york-city?clip=8a33520f-770b-5ce0-9e7b-56f1d80f4bb5
+          - Rights: public_domain / free to reuse</span
         >
       </div>
     </div>
@@ -136,7 +133,9 @@ import { InstallCommand } from "/snippets/install-command.jsx";
             : {};
 
         var title =
-          typeof vars.title === "string" && vars.title ? vars.title : "Archival Map - Radar Rings";
+          typeof vars.title === "string" && vars.title
+            ? vars.title
+            : "Arteries of New York City (1941)";
         var credit =
           typeof vars.credit === "string" && vars.credit
             ? vars.credit
@@ -146,7 +145,6 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         document.querySelector('#rr-credit [data-var-text="credit"]').textContent = credit;
 
         var tl = gsap.timeline({ paused: true });
-        // Credit/title hold - HyperFrames media runtime seeks the video via data-start
         tl.fromTo(
           "#rr-title",
           { opacity: 0 },
@@ -203,7 +201,7 @@ Move it in time with `data-start`. Put it on a different timeline row with
 
 Set these CSS variables on the block:
 
-- `title` - Title. Defaults to `Archival Map - Radar Rings`.
+- `title` - Title. Defaults to `Arteries of New York City (1941)`.
 - `credit` - Credit line. Defaults to `Moving Image Archive, Arteries of New York City, 1941`.
 
 ## Variables
@@ -213,7 +211,7 @@ want to change on the element:
 
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
-| `title` | `Archival Map - Radar Rings` | string |  |
+| `title` | `Arteries of New York City (1941)` | string |  |
 | `credit` | `Moving Image Archive, Arteries of New York City, 1941` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
@@ -223,13 +221,13 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-radar-rings"
   data-composition-src="compositions/map-radar-rings.html"
-  data-variable-values='{"title":"Archival Map - Radar Rings","credit":"Moving Image Archive, Arteries of New York City, 1941"}'
+  data-variable-values='{"title":"Arteries of New York City (1941)","credit":"Moving Image Archive, Arteries of New York City, 1941"}'
 ></div>
 ```
 
 {/* hf:generated-footer */}
 
-Tagged `map` `geography` `animation` `archival` `footage` `mia` `newsreel` `video`.
+Tagged `map` `geography` `archival` `footage` `mia` `video` `public-domain`.
 
 Created by [HeyGen](https://hyperframes.heygen.com).
 

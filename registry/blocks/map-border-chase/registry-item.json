@@ -2,9 +2,9 @@
   "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
   "name": "map-border-chase",
   "type": "hyperframes:block",
-  "title": "Archival Map - Border Chase",
-  "description": "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Alaska: A Modern Frontier (Revised edition), 1948. Acquired via /api/clips/32ac28fb-c318-5fe7-9641-1a0549fd8f07/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive.",
-  "tags": ["map", "geography", "animation", "archival", "footage", "mia", "newsreel", "video"],
+  "title": "Alaska: A Modern Frontier (Revised edition) (1948)",
+  "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Alaska: A Modern Frontier (Revised edition), 1948. Self-hosted seek-safe video via /api/clips/32ac28fb-c318-5fe7-9641-1a0549fd8f07/download. Not affiliated with Moving Image Archive. Footage-only video block.",
+  "tags": ["map", "geography", "archival", "footage", "mia", "video", "public-domain"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
   "license": "Footage: public domain / free to reuse (Moving Image Archive). Composition: project license.",
@@ -18,7 +18,7 @@
       "id": "title",
       "type": "string",
       "label": "Title",
-      "default": "Archival Map - Border Chase"
+      "default": "Alaska: A Modern Frontier (Revised edition) (1948)"
     },
     {
       "id": "credit",
@@ -48,7 +48,7 @@
     {
       "type": "text",
       "label": "Title",
-      "default": "Archival Map - Border Chase",
+      "default": "Alaska: A Modern Frontier (Revised edition) (1948)",
       "key": "title"
     },
     {

@@ -1,6 +1,6 @@
 ---
-title: "Archival Map - Grid Crosshair"
-description: "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Scatter radar: Space research from the ground, 1963. Acquired via /api/clips/ef35ba39-a4c7-5ca1-b648-4ce7e21a987e/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
+title: "Scatter radar: Space research from the ground (1963)"
+description: "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Scatter radar: Space research from the ground, 1963. Self-hosted seek-safe video via /api/clips/ef35ba39-a4c7-5ca1-b648-4ce7e21a987e/download. Not affiliated with Moving Image Archive. Footage-only video block."
 mode: "frame"
 ---
 
@@ -11,11 +11,11 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   previewSrc="/public/catalog/blocks/map-grid-crosshair.json"
   compositionId="map-grid-crosshair"
   compositionSrc="compositions/map-grid-crosshair.html"
-  title="Archival Map - Grid Crosshair"
-  description="Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Scatter radar: Space research from the ground, 1963. Acquired via /api/clips/ef35ba39-a4c7-5ca1-b648-4ce7e21a987e/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Grid Crosshair"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, Scatter radar: Space research from the ground, 1963"}]}
+  title="Scatter radar: Space research from the ground (1963)"
+  description="Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Scatter radar: Space research from the ground, 1963. Self-hosted seek-safe video via /api/clips/ef35ba39-a4c7-5ca1-b648-4ce7e21a987e/download. Not affiliated with Moving Image Archive. Footage-only video block."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Scatter radar: Space research from the ground (1963)"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, Scatter radar: Space research from the ground, 1963"}]}
   meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":145}}
-  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-grid-crosshair","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
+  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-grid-crosshair","tags":["map","geography","archival","footage","mia","video","public-domain"]}}
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-grid-crosshair/map-grid-crosshair.html"
 >
@@ -67,11 +67,11 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         position: absolute;
         left: 72px;
         top: 56px;
-        max-width: 1400px;
+        max-width: 1600px;
         color: rgba(245, 236, 214, 0.95);
-        font-size: 36px;
+        font-size: 34px;
         font-weight: 700;
-        letter-spacing: 0.14em;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
         text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);
       }
@@ -81,17 +81,15 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         right: 72px;
         bottom: 56px;
         color: rgba(232, 220, 196, 0.88);
-        font-size: 18px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        font-size: 16px;
+        letter-spacing: 0.06em;
         text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
       }
       #gc-credit-url {
         display: block;
         margin-top: 8px;
-        font-size: 14px;
-        letter-spacing: 0.04em;
-        text-transform: none;
+        font-size: 13px;
+        letter-spacing: 0.03em;
         color: rgba(196, 181, 154, 0.7);
       }
     </style>
@@ -116,13 +114,16 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         data-media-start="0"
       ></video>
       <div id="gc-frame" aria-hidden="true"></div>
-      <div id="gc-title" data-var-text="title">Archival Map - Grid Crosshair</div>
+      <div id="gc-title" data-var-text="title">
+        Scatter radar: Space research from the ground (1963)
+      </div>
       <div id="gc-credit">
         <span data-var-text="credit"
-          >Footage: Moving Image Archive | Scatter radar: Space research from the ground</span
+          >Moving Image Archive, Scatter radar: Space research from the ground, 1963</span
         >
         <span id="gc-credit-url"
-          >movingimagearchive.com/collection/animated-maps - public domain / free to reuse</span
+          >https://www.movingimagearchive.com/sources/scatter-radar-space-research-from-the-ground-e8ccef6d?clip=ef35ba39-a4c7-5ca1-b648-4ce7e21a987e
+          - Rights: public_domain / free to reuse</span
         >
       </div>
     </div>
@@ -138,7 +139,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         var title =
           typeof vars.title === "string" && vars.title
             ? vars.title
-            : "Archival Map - Grid Crosshair";
+            : "Scatter radar: Space research from the ground (1963)";
         var credit =
           typeof vars.credit === "string" && vars.credit
             ? vars.credit
@@ -148,7 +149,6 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         document.querySelector('#gc-credit [data-var-text="credit"]').textContent = credit;
 
         var tl = gsap.timeline({ paused: true });
-        // Credit/title hold - HyperFrames media runtime seeks the video via data-start
         tl.fromTo(
           "#gc-title",
           { opacity: 0 },
@@ -205,7 +205,7 @@ Move it in time with `data-start`. Put it on a different timeline row with
 
 Set these CSS variables on the block:
 
-- `title` - Title. Defaults to `Archival Map - Grid Crosshair`.
+- `title` - Title. Defaults to `Scatter radar: Space research from the ground (1963)`.
 - `credit` - Credit line. Defaults to `Moving Image Archive, Scatter radar: Space research from the ground, 1963`.
 
 ## Variables
@@ -215,7 +215,7 @@ want to change on the element:
 
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
-| `title` | `Archival Map - Grid Crosshair` | string |  |
+| `title` | `Scatter radar: Space research from the ground (1963)` | string |  |
 | `credit` | `Moving Image Archive, Scatter radar: Space research from the ground, 1963` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
@@ -225,13 +225,13 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-grid-crosshair"
   data-composition-src="compositions/map-grid-crosshair.html"
-  data-variable-values='{"title":"Archival Map - Grid Crosshair","credit":"Moving Image Archive, Scatter radar: Space research from the ground, 1963"}'
+  data-variable-values='{"title":"Scatter radar: Space research from the ground (1963)","credit":"Moving Image Archive, Scatter radar: Space research from the ground, 1963"}'
 ></div>
 ```
 
 {/* hf:generated-footer */}
 
-Tagged `map` `geography` `animation` `archival` `footage` `mia` `newsreel` `video`.
+Tagged `map` `geography` `archival` `footage` `mia` `video` `public-domain`.
 
 Created by [HeyGen](https://hyperframes.heygen.com).
 

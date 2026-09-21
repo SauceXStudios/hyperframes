@@ -2,9 +2,9 @@
   "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
   "name": "map-radar-rings",
   "type": "hyperframes:block",
-  "title": "Archival Map - Radar Rings",
-  "description": "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Arteries of New York City, 1941. Acquired via /api/clips/8a33520f-770b-5ce0-9e7b-56f1d80f4bb5/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive.",
-  "tags": ["map", "geography", "animation", "archival", "footage", "mia", "newsreel", "video"],
+  "title": "Arteries of New York City (1941)",
+  "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Arteries of New York City, 1941. Self-hosted seek-safe video via /api/clips/8a33520f-770b-5ce0-9e7b-56f1d80f4bb5/download. Not affiliated with Moving Image Archive. Footage-only video block.",
+  "tags": ["map", "geography", "archival", "footage", "mia", "video", "public-domain"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
   "license": "Footage: public domain / free to reuse (Moving Image Archive). Composition: project license.",
@@ -18,7 +18,7 @@
       "id": "title",
       "type": "string",
       "label": "Title",
-      "default": "Archival Map - Radar Rings"
+      "default": "Arteries of New York City (1941)"
     },
     {
       "id": "credit",
@@ -48,7 +48,7 @@
     {
       "type": "text",
       "label": "Title",
-      "default": "Archival Map - Radar Rings",
+      "default": "Arteries of New York City (1941)",
       "key": "title"
     },
     {

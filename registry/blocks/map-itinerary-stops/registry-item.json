@@ -2,9 +2,9 @@
   "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
   "name": "map-itinerary-stops",
   "type": "hyperframes:block",
-  "title": "Archival Map - Itinerary Stops",
-  "description": "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Network Broadcasting, 1934. Acquired via /api/clips/5f7f8e14-1e02-5460-99f0-4762a314904d/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive.",
-  "tags": ["map", "geography", "animation", "archival", "footage", "mia", "newsreel", "video"],
+  "title": "Network Broadcasting (1934)",
+  "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Network Broadcasting, 1934. Self-hosted seek-safe video via /api/clips/5f7f8e14-1e02-5460-99f0-4762a314904d/download. Not affiliated with Moving Image Archive. Footage-only video block.",
+  "tags": ["map", "geography", "archival", "footage", "mia", "video", "public-domain"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
   "license": "Footage: public domain / free to reuse (Moving Image Archive). Composition: project license.",
@@ -18,7 +18,7 @@
       "id": "title",
       "type": "string",
       "label": "Title",
-      "default": "Archival Map - Itinerary Stops"
+      "default": "Network Broadcasting (1934)"
     },
     {
       "id": "credit",
@@ -48,7 +48,7 @@
     {
       "type": "text",
       "label": "Title",
-      "default": "Archival Map - Itinerary Stops",
+      "default": "Network Broadcasting (1934)",
       "key": "title"
     },
     {

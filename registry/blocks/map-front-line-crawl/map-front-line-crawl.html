@@ -42,11 +42,11 @@
         position: absolute;
         left: 72px;
         top: 56px;
-        max-width: 1400px;
+        max-width: 1600px;
         color: rgba(245, 236, 214, 0.95);
-        font-size: 36px;
+        font-size: 34px;
         font-weight: 700;
-        letter-spacing: 0.14em;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
         text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);
       }
@@ -56,17 +56,15 @@
         right: 72px;
         bottom: 56px;
         color: rgba(232, 220, 196, 0.88);
-        font-size: 18px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        font-size: 16px;
+        letter-spacing: 0.06em;
         text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
       }
       #flc-credit-url {
         display: block;
         margin-top: 8px;
-        font-size: 14px;
-        letter-spacing: 0.04em;
-        text-transform: none;
+        font-size: 13px;
+        letter-spacing: 0.03em;
         color: rgba(196, 181, 154, 0.7);
       }
     </style>
@@ -91,13 +89,16 @@
         data-media-start="0"
       ></video>
       <div id="flc-frame" aria-hidden="true"></div>
-      <div id="flc-title" data-var-text="title">Archival Map - Front Line</div>
+      <div id="flc-title" data-var-text="title">
+        Earth Resources Technology Satellite (ERTS) (1973)
+      </div>
       <div id="flc-credit">
         <span data-var-text="credit"
-          >Footage: Moving Image Archive | Earth Resources Technology Satellite (ERTS)</span
+          >Moving Image Archive, Earth Resources Technology Satellite (ERTS), 1973</span
         >
         <span id="flc-credit-url"
-          >movingimagearchive.com/collection/animated-maps - public domain / free to reuse</span
+          >https://www.movingimagearchive.com/sources/earth-resources-technology-satellite-erts-55bb460a?clip=513f038f-a4ab-5c90-a213-a8a46b7d341e
+          - Rights: public_domain / free to reuse</span
         >
       </div>
     </div>
@@ -111,7 +112,9 @@
             : {};
 
         var title =
-          typeof vars.title === "string" && vars.title ? vars.title : "Archival Map - Front Line";
+          typeof vars.title === "string" && vars.title
+            ? vars.title
+            : "Earth Resources Technology Satellite (ERTS) (1973)";
         var credit =
           typeof vars.credit === "string" && vars.credit
             ? vars.credit
@@ -121,7 +124,6 @@
         document.querySelector('#flc-credit [data-var-text="credit"]').textContent = credit;
 
         var tl = gsap.timeline({ paused: true });
-        // Credit/title hold - HyperFrames media runtime seeks the video via data-start
         tl.fromTo(
           "#flc-title",
           { opacity: 0 },

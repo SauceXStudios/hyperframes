@@ -2,9 +2,9 @@
   "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
   "name": "map-isoline-reveal",
   "type": "hyperframes:block",
-  "title": "Archival Map - Isoline Reveal",
-  "description": "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Climate Factor, 1984. Acquired via /api/clips/37f8ebaf-2a5c-587c-9740-cb92cd79bb56/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive.",
-  "tags": ["map", "geography", "animation", "archival", "footage", "mia", "newsreel", "video"],
+  "title": "Climate Factor (1984)",
+  "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Climate Factor, 1984. Self-hosted seek-safe video via /api/clips/37f8ebaf-2a5c-587c-9740-cb92cd79bb56/download. Not affiliated with Moving Image Archive. Footage-only video block.",
+  "tags": ["map", "geography", "archival", "footage", "mia", "video", "public-domain"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
   "license": "Footage: public domain / free to reuse (Moving Image Archive). Composition: project license.",
@@ -18,7 +18,7 @@
       "id": "title",
       "type": "string",
       "label": "Title",
-      "default": "Archival Map - Isoline Reveal"
+      "default": "Climate Factor (1984)"
     },
     {
       "id": "credit",
@@ -48,7 +48,7 @@
     {
       "type": "text",
       "label": "Title",
-      "default": "Archival Map - Isoline Reveal",
+      "default": "Climate Factor (1984)",
       "key": "title"
     },
     {

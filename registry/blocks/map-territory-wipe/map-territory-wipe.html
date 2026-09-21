@@ -42,11 +42,11 @@
         position: absolute;
         left: 72px;
         top: 56px;
-        max-width: 1400px;
+        max-width: 1600px;
         color: rgba(245, 236, 214, 0.95);
-        font-size: 36px;
+        font-size: 34px;
         font-weight: 700;
-        letter-spacing: 0.14em;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
         text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);
       }
@@ -56,17 +56,15 @@
         right: 72px;
         bottom: 56px;
         color: rgba(232, 220, 196, 0.88);
-        font-size: 18px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        font-size: 16px;
+        letter-spacing: 0.06em;
         text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
       }
       #tw-credit-url {
         display: block;
         margin-top: 8px;
-        font-size: 14px;
-        letter-spacing: 0.04em;
-        text-transform: none;
+        font-size: 13px;
+        letter-spacing: 0.03em;
         color: rgba(196, 181, 154, 0.7);
       }
     </style>
@@ -91,14 +89,17 @@
         data-media-start="0"
       ></video>
       <div id="tw-frame" aria-hidden="true"></div>
-      <div id="tw-title" data-var-text="title">Archival Map - Territory Wipe</div>
+      <div id="tw-title" data-var-text="title">
+        Frontiers of the Future (A Screen Editorial With Lowell Thomas) (1937)
+      </div>
       <div id="tw-credit">
         <span data-var-text="credit"
-          >Footage: Moving Image Archive | Frontiers of the Future (A Screen Editorial With Lowell
-          Thomas)</span
+          >Moving Image Archive, Frontiers of the Future (A Screen Editorial With Lowell Thomas),
+          1937</span
         >
         <span id="tw-credit-url"
-          >movingimagearchive.com/collection/animated-maps - public domain / free to reuse</span
+          >https://www.movingimagearchive.com/sources/frontiers-of-the-future-a-screen-editorial-with-lowell-thomas?clip=4c5888b5-ca56-59cc-a62d-91ae5bcf3174
+          - Rights: public_domain / free to reuse</span
         >
       </div>
     </div>
@@ -114,7 +115,7 @@
         var title =
           typeof vars.title === "string" && vars.title
             ? vars.title
-            : "Archival Map - Territory Wipe";
+            : "Frontiers of the Future (A Screen Editorial With Lowell Thomas) (1937)";
         var credit =
           typeof vars.credit === "string" && vars.credit
             ? vars.credit
@@ -124,7 +125,6 @@
         document.querySelector('#tw-credit [data-var-text="credit"]').textContent = credit;
 
         var tl = gsap.timeline({ paused: true });
-        // Credit/title hold - HyperFrames media runtime seeks the video via data-start
         tl.fromTo(
           "#tw-title",
           { opacity: 0 },

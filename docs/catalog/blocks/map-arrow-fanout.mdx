@@ -1,6 +1,6 @@
 ---
-title: "Archival Map - Arrow Fanout"
-description: "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Germany, 1957. Acquired via /api/clips/6a1958ac-3075-5e27-bc04-6bf472f362ff/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
+title: "Germany (1957)"
+description: "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Germany, 1957. Self-hosted seek-safe video via /api/clips/6a1958ac-3075-5e27-bc04-6bf472f362ff/download. Not affiliated with Moving Image Archive. Footage-only video block."
 mode: "frame"
 ---
 
@@ -11,11 +11,11 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   previewSrc="/public/catalog/blocks/map-arrow-fanout.json"
   compositionId="map-arrow-fanout"
   compositionSrc="compositions/map-arrow-fanout.html"
-  title="Archival Map - Arrow Fanout"
-  description="Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Germany, 1957. Acquired via /api/clips/6a1958ac-3075-5e27-bc04-6bf472f362ff/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Arrow Fanout"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, Germany, 1957"}]}
-  meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":141}}
-  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-arrow-fanout","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
+  title="Germany (1957)"
+  description="Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Germany, 1957. Self-hosted seek-safe video via /api/clips/6a1958ac-3075-5e27-bc04-6bf472f362ff/download. Not affiliated with Moving Image Archive. Footage-only video block."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Germany (1957)"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, Germany, 1957"}]}
+  meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":138}}
+  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-arrow-fanout","tags":["map","geography","archival","footage","mia","video","public-domain"]}}
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-arrow-fanout/map-arrow-fanout.html"
 >
@@ -67,11 +67,11 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         position: absolute;
         left: 72px;
         top: 56px;
-        max-width: 1400px;
+        max-width: 1600px;
         color: rgba(245, 236, 214, 0.95);
-        font-size: 36px;
+        font-size: 34px;
         font-weight: 700;
-        letter-spacing: 0.14em;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
         text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);
       }
@@ -81,17 +81,15 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         right: 72px;
         bottom: 56px;
         color: rgba(232, 220, 196, 0.88);
-        font-size: 18px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        font-size: 16px;
+        letter-spacing: 0.06em;
         text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
       }
       #af-credit-url {
         display: block;
         margin-top: 8px;
-        font-size: 14px;
-        letter-spacing: 0.04em;
-        text-transform: none;
+        font-size: 13px;
+        letter-spacing: 0.03em;
         color: rgba(196, 181, 154, 0.7);
       }
     </style>
@@ -116,11 +114,12 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         data-media-start="0"
       ></video>
       <div id="af-frame" aria-hidden="true"></div>
-      <div id="af-title" data-var-text="title">Archival Map - Arrow Fanout</div>
+      <div id="af-title" data-var-text="title">Germany (1957)</div>
       <div id="af-credit">
         <span data-var-text="credit">Moving Image Archive, Germany, 1957</span>
         <span id="af-credit-url"
-          >movingimagearchive.com/collection/animated-maps - public domain / free to reuse</span
+          >https://www.movingimagearchive.com/sources/germany-c8c7bb27?clip=6a1958ac-3075-5e27-bc04-6bf472f362ff
+          - Rights: public_domain / free to reuse</span
         >
       </div>
     </div>
@@ -133,8 +132,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
             ? window.__hyperframes.getVariables()
             : {};
 
-        var title =
-          typeof vars.title === "string" && vars.title ? vars.title : "Archival Map - Arrow Fanout";
+        var title = typeof vars.title === "string" && vars.title ? vars.title : "Germany (1957)";
         var credit =
           typeof vars.credit === "string" && vars.credit
             ? vars.credit
@@ -144,7 +142,6 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         document.querySelector('#af-credit [data-var-text="credit"]').textContent = credit;
 
         var tl = gsap.timeline({ paused: true });
-        // Credit/title hold - HyperFrames media runtime seeks the video via data-start
         tl.fromTo(
           "#af-title",
           { opacity: 0 },
@@ -201,7 +198,7 @@ Move it in time with `data-start`. Put it on a different timeline row with
 
 Set these CSS variables on the block:
 
-- `title` - Title. Defaults to `Archival Map - Arrow Fanout`.
+- `title` - Title. Defaults to `Germany (1957)`.
 - `credit` - Credit line. Defaults to `Moving Image Archive, Germany, 1957`.
 
 ## Variables
@@ -211,7 +208,7 @@ want to change on the element:
 
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
-| `title` | `Archival Map - Arrow Fanout` | string |  |
+| `title` | `Germany (1957)` | string |  |
 | `credit` | `Moving Image Archive, Germany, 1957` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
@@ -221,13 +218,13 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-arrow-fanout"
   data-composition-src="compositions/map-arrow-fanout.html"
-  data-variable-values='{"title":"Archival Map - Arrow Fanout","credit":"Moving Image Archive, Germany, 1957"}'
+  data-variable-values='{"title":"Germany (1957)","credit":"Moving Image Archive, Germany, 1957"}'
 ></div>
 ```
 
 {/* hf:generated-footer */}
 
-Tagged `map` `geography` `animation` `archival` `footage` `mia` `newsreel` `video`.
+Tagged `map` `geography` `archival` `footage` `mia` `video` `public-domain`.
 
 Created by [HeyGen](https://hyperframes.heygen.com).
 

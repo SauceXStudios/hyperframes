@@ -1,6 +1,6 @@
 ---
-title: "Archival Map - Route Draw"
-description: "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Cities How They Grow, 1952. Acquired via /api/clips/0e8dc9a8-6afd-5038-b377-415016526b9c/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
+title: "Cities How They Grow (1952)"
+description: "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Cities How They Grow, 1952. Self-hosted seek-safe video via /api/clips/0e8dc9a8-6afd-5038-b377-415016526b9c/download. Not affiliated with Moving Image Archive. Footage-only video block."
 mode: "frame"
 ---
 
@@ -11,11 +11,11 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   previewSrc="/public/catalog/blocks/map-route-draw.json"
   compositionId="map-route-draw"
   compositionSrc="compositions/map-route-draw.html"
-  title="Archival Map - Route Draw"
-  description="Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Cities How They Grow, 1952. Acquired via /api/clips/0e8dc9a8-6afd-5038-b377-415016526b9c/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Route Draw"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, Cities How They Grow, 1952"}]}
-  meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":141}}
-  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-route-draw","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
+  title="Cities How They Grow (1952)"
+  description="Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Cities How They Grow, 1952. Self-hosted seek-safe video via /api/clips/0e8dc9a8-6afd-5038-b377-415016526b9c/download. Not affiliated with Moving Image Archive. Footage-only video block."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Cities How They Grow (1952)"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, Cities How They Grow, 1952"}]}
+  meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":139}}
+  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-route-draw","tags":["map","geography","archival","footage","mia","video","public-domain"]}}
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-route-draw/map-route-draw.html"
 >
@@ -67,11 +67,11 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         position: absolute;
         left: 72px;
         top: 56px;
-        max-width: 1400px;
+        max-width: 1600px;
         color: rgba(245, 236, 214, 0.95);
-        font-size: 36px;
+        font-size: 34px;
         font-weight: 700;
-        letter-spacing: 0.14em;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
         text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);
       }
@@ -81,17 +81,15 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         right: 72px;
         bottom: 56px;
         color: rgba(232, 220, 196, 0.88);
-        font-size: 18px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        font-size: 16px;
+        letter-spacing: 0.06em;
         text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
       }
       #rd-credit-url {
         display: block;
         margin-top: 8px;
-        font-size: 14px;
-        letter-spacing: 0.04em;
-        text-transform: none;
+        font-size: 13px;
+        letter-spacing: 0.03em;
         color: rgba(196, 181, 154, 0.7);
       }
     </style>
@@ -116,11 +114,12 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         data-media-start="0"
       ></video>
       <div id="rd-frame" aria-hidden="true"></div>
-      <div id="rd-title" data-var-text="title">Archival Map - Route Draw</div>
+      <div id="rd-title" data-var-text="title">Cities How They Grow (1952)</div>
       <div id="rd-credit">
         <span data-var-text="credit">Moving Image Archive, Cities How They Grow, 1952</span>
         <span id="rd-credit-url"
-          >movingimagearchive.com/collection/animated-maps - public domain / free to reuse</span
+          >https://www.movingimagearchive.com/sources/cities-how-they-grow-383dc482?clip=0e8dc9a8-6afd-5038-b377-415016526b9c
+          - Rights: public_domain / free to reuse</span
         >
       </div>
     </div>
@@ -134,7 +133,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
             : {};
 
         var title =
-          typeof vars.title === "string" && vars.title ? vars.title : "Archival Map - Route Draw";
+          typeof vars.title === "string" && vars.title ? vars.title : "Cities How They Grow (1952)";
         var credit =
           typeof vars.credit === "string" && vars.credit
             ? vars.credit
@@ -144,7 +143,6 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         document.querySelector('#rd-credit [data-var-text="credit"]').textContent = credit;
 
         var tl = gsap.timeline({ paused: true });
-        // Credit/title hold - HyperFrames media runtime seeks the video via data-start
         tl.fromTo(
           "#rd-title",
           { opacity: 0 },
@@ -201,7 +199,7 @@ Move it in time with `data-start`. Put it on a different timeline row with
 
 Set these CSS variables on the block:
 
-- `title` - Title. Defaults to `Archival Map - Route Draw`.
+- `title` - Title. Defaults to `Cities How They Grow (1952)`.
 - `credit` - Credit line. Defaults to `Moving Image Archive, Cities How They Grow, 1952`.
 
 ## Variables
@@ -211,7 +209,7 @@ want to change on the element:
 
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
-| `title` | `Archival Map - Route Draw` | string |  |
+| `title` | `Cities How They Grow (1952)` | string |  |
 | `credit` | `Moving Image Archive, Cities How They Grow, 1952` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
@@ -221,13 +219,13 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-route-draw"
   data-composition-src="compositions/map-route-draw.html"
-  data-variable-values='{"title":"Archival Map - Route Draw","credit":"Moving Image Archive, Cities How They Grow, 1952"}'
+  data-variable-values='{"title":"Cities How They Grow (1952)","credit":"Moving Image Archive, Cities How They Grow, 1952"}'
 ></div>
 ```
 
 {/* hf:generated-footer */}
 
-Tagged `map` `geography` `animation` `archival` `footage` `mia` `newsreel` `video`.
+Tagged `map` `geography` `archival` `footage` `mia` `video` `public-domain`.
 
 Created by [HeyGen](https://hyperframes.heygen.com).
 

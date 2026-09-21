@@ -42,11 +42,11 @@
         position: absolute;
         left: 72px;
         top: 56px;
-        max-width: 1400px;
+        max-width: 1600px;
         color: rgba(245, 236, 214, 0.95);
-        font-size: 36px;
+        font-size: 34px;
         font-weight: 700;
-        letter-spacing: 0.14em;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
         text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);
       }
@@ -56,17 +56,15 @@
         right: 72px;
         bottom: 56px;
         color: rgba(232, 220, 196, 0.88);
-        font-size: 18px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        font-size: 16px;
+        letter-spacing: 0.06em;
         text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
       }
       #gi-credit-url {
         display: block;
         margin-top: 8px;
-        font-size: 14px;
-        letter-spacing: 0.04em;
-        text-transform: none;
+        font-size: 13px;
+        letter-spacing: 0.03em;
         color: rgba(196, 181, 154, 0.7);
       }
     </style>
@@ -91,13 +89,16 @@
         data-media-start="0"
       ></video>
       <div id="gi-frame" aria-hidden="true"></div>
-      <div id="gi-title" data-var-text="title">Archival Map - Globe Inset</div>
+      <div id="gi-title" data-var-text="title">
+        Space Flight: Application of Orbital Mechanics (1994)
+      </div>
       <div id="gi-credit">
         <span data-var-text="credit"
-          >Footage: Moving Image Archive | Space Flight: Application of Orbital Mechanics</span
+          >Moving Image Archive, Space Flight: Application of Orbital Mechanics, 1994</span
         >
         <span id="gi-credit-url"
-          >movingimagearchive.com/collection/animated-maps - public domain / free to reuse</span
+          >https://www.movingimagearchive.com/sources/space-flight-application-of-orbital-mechanics-1d4ef756?clip=ec91c430-808a-57a5-a63e-f238d596f11c
+          - Rights: public_domain / free to reuse</span
         >
       </div>
     </div>
@@ -111,7 +112,9 @@
             : {};
 
         var title =
-          typeof vars.title === "string" && vars.title ? vars.title : "Archival Map - Globe Inset";
+          typeof vars.title === "string" && vars.title
+            ? vars.title
+            : "Space Flight: Application of Orbital Mechanics (1994)";
         var credit =
           typeof vars.credit === "string" && vars.credit
             ? vars.credit
@@ -121,7 +124,6 @@
         document.querySelector('#gi-credit [data-var-text="credit"]').textContent = credit;
 
         var tl = gsap.timeline({ paused: true });
-        // Credit/title hold - HyperFrames media runtime seeks the video via data-start
         tl.fromTo(
           "#gi-title",
           { opacity: 0 },

@@ -2,9 +2,9 @@
   "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
   "name": "map-arrow-fanout",
   "type": "hyperframes:block",
-  "title": "Archival Map - Arrow Fanout",
-  "description": "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Germany, 1957. Acquired via /api/clips/6a1958ac-3075-5e27-bc04-6bf472f362ff/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive.",
-  "tags": ["map", "geography", "animation", "archival", "footage", "mia", "newsreel", "video"],
+  "title": "Germany (1957)",
+  "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Germany, 1957. Self-hosted seek-safe video via /api/clips/6a1958ac-3075-5e27-bc04-6bf472f362ff/download. Not affiliated with Moving Image Archive. Footage-only video block.",
+  "tags": ["map", "geography", "archival", "footage", "mia", "video", "public-domain"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
   "license": "Footage: public domain / free to reuse (Moving Image Archive). Composition: project license.",
@@ -18,7 +18,7 @@
       "id": "title",
       "type": "string",
       "label": "Title",
-      "default": "Archival Map - Arrow Fanout"
+      "default": "Germany (1957)"
     },
     {
       "id": "credit",
@@ -48,7 +48,7 @@
     {
       "type": "text",
       "label": "Title",
-      "default": "Archival Map - Arrow Fanout",
+      "default": "Germany (1957)",
       "key": "title"
     },
     {

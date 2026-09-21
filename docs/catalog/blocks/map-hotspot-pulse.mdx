@@ -1,6 +1,6 @@
 ---
-title: "Archival Map - Hotspot Pulse"
-description: "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, EVOLUTION OF THE OIL INDUSTRY, THE, 1934; National Archives and Records Administration / NARA ARC mirror / FedFlix; https://archive.org/details/gov.archives.arc.12477. Acquired via /api/clips/a36b3d33-8c6b-5748-b606-e7841020121f/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
+title: "EVOLUTION OF THE OIL INDUSTRY, THE (1934)"
+description: "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, EVOLUTION OF THE OIL INDUSTRY, THE, 1934; National Archives and Records Administration / NARA ARC mirror / FedFlix; https://archive.org/details/gov.archives.arc.12477. Self-hosted seek-safe video via /api/clips/a36b3d33-8c6b-5748-b606-e7841020121f/download. Not affiliated with Moving Image Archive. Footage-only video block."
 mode: "frame"
 ---
 
@@ -11,11 +11,11 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   previewSrc="/public/catalog/blocks/map-hotspot-pulse.json"
   compositionId="map-hotspot-pulse"
   compositionSrc="compositions/map-hotspot-pulse.html"
-  title="Archival Map - Hotspot Pulse"
-  description="Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, EVOLUTION OF THE OIL INDUSTRY, THE, 1934; National Archives and Records Administration / NARA ARC mirror / FedFlix; https://archive.org/details/gov.archives.arc.12477. Acquired via /api/clips/a36b3d33-8c6b-5748-b606-e7841020121f/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Hotspot Pulse"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, EVOLUTION OF THE OIL INDUSTRY, THE, 1934"}]}
+  title="EVOLUTION OF THE OIL INDUSTRY, THE (1934)"
+  description="Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, EVOLUTION OF THE OIL INDUSTRY, THE, 1934; National Archives and Records Administration / NARA ARC mirror / FedFlix; https://archive.org/details/gov.archives.arc.12477. Self-hosted seek-safe video via /api/clips/a36b3d33-8c6b-5748-b606-e7841020121f/download. Not affiliated with Moving Image Archive. Footage-only video block."
+  variables={[{"id":"title","type":"string","label":"Title","default":"EVOLUTION OF THE OIL INDUSTRY, THE (1934)"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, EVOLUTION OF THE OIL INDUSTRY, THE, 1934; National Archives and Records Administration / NARA ARC mirror / FedFlix; https://archive.org/details/gov.archives.arc.12477"}]}
   meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":145}}
-  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-hotspot-pulse","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
+  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-hotspot-pulse","tags":["map","geography","archival","footage","mia","video","public-domain"]}}
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-hotspot-pulse/map-hotspot-pulse.html"
 >
@@ -67,11 +67,11 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         position: absolute;
         left: 72px;
         top: 56px;
-        max-width: 1400px;
+        max-width: 1600px;
         color: rgba(245, 236, 214, 0.95);
-        font-size: 36px;
+        font-size: 34px;
         font-weight: 700;
-        letter-spacing: 0.14em;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
         text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);
       }
@@ -81,17 +81,15 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         right: 72px;
         bottom: 56px;
         color: rgba(232, 220, 196, 0.88);
-        font-size: 18px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        font-size: 16px;
+        letter-spacing: 0.06em;
         text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
       }
       #hp-credit-url {
         display: block;
         margin-top: 8px;
-        font-size: 14px;
-        letter-spacing: 0.04em;
-        text-transform: none;
+        font-size: 13px;
+        letter-spacing: 0.03em;
         color: rgba(196, 181, 154, 0.7);
       }
     </style>
@@ -116,13 +114,16 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         data-media-start="0"
       ></video>
       <div id="hp-frame" aria-hidden="true"></div>
-      <div id="hp-title" data-var-text="title">Archival Map - Hotspot Pulse</div>
+      <div id="hp-title" data-var-text="title">EVOLUTION OF THE OIL INDUSTRY, THE (1934)</div>
       <div id="hp-credit">
         <span data-var-text="credit"
-          >Footage: Moving Image Archive | EVOLUTION OF THE OIL INDUSTRY, THE</span
+          >Moving Image Archive, EVOLUTION OF THE OIL INDUSTRY, THE, 1934; National Archives and
+          Records Administration / NARA ARC mirror / FedFlix;
+          https://archive.org/details/gov.archives.arc.12477</span
         >
         <span id="hp-credit-url"
-          >movingimagearchive.com/collection/animated-maps - public domain / free to reuse</span
+          >https://www.movingimagearchive.com/sources/evolution-of-the-oil-industry-the?clip=a36b3d33-8c6b-5748-b606-e7841020121f
+          - Rights: public_domain / free to reuse</span
         >
       </div>
     </div>
@@ -138,17 +139,16 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         var title =
           typeof vars.title === "string" && vars.title
             ? vars.title
-            : "Archival Map - Hotspot Pulse";
+            : "EVOLUTION OF THE OIL INDUSTRY, THE (1934)";
         var credit =
           typeof vars.credit === "string" && vars.credit
             ? vars.credit
-            : "Moving Image Archive, EVOLUTION OF THE OIL INDUSTRY, THE, 1934";
+            : "Moving Image Archive, EVOLUTION OF THE OIL INDUSTRY, THE, 1934; National Archives and Records Administration / NARA ARC mirror / FedFlix; https://archive.org/details/gov.archives.arc.12477";
 
         document.getElementById("hp-title").textContent = title;
         document.querySelector('#hp-credit [data-var-text="credit"]').textContent = credit;
 
         var tl = gsap.timeline({ paused: true });
-        // Credit/title hold - HyperFrames media runtime seeks the video via data-start
         tl.fromTo(
           "#hp-title",
           { opacity: 0 },
@@ -205,8 +205,8 @@ Move it in time with `data-start`. Put it on a different timeline row with
 
 Set these CSS variables on the block:
 
-- `title` - Title. Defaults to `Archival Map - Hotspot Pulse`.
-- `credit` - Credit line. Defaults to `Moving Image Archive, EVOLUTION OF THE OIL INDUSTRY, THE, 1934`.
+- `title` - Title. Defaults to `EVOLUTION OF THE OIL INDUSTRY, THE (1934)`.
+- `credit` - Credit line. Defaults to `Moving Image Archive, EVOLUTION OF THE OIL INDUSTRY, THE, 1934; National Archives and Records Administration / NARA ARC mirror / FedFlix; https://archive.org/details/gov.archives.arc.12477`.
 
 ## Variables
 
@@ -215,8 +215,8 @@ want to change on the element:
 
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
-| `title` | `Archival Map - Hotspot Pulse` | string |  |
-| `credit` | `Moving Image Archive, EVOLUTION OF THE OIL INDUSTRY, THE, 1934` | string |  |
+| `title` | `EVOLUTION OF THE OIL INDUSTRY, THE (1934)` | string |  |
+| `credit` | `Moving Image Archive, EVOLUTION OF THE OIL INDUSTRY, THE, 1934; National Archives and Records Administration / NARA ARC mirror / FedFlix; https://archive.org/details/gov.archives.arc.12477` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -225,13 +225,13 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-hotspot-pulse"
   data-composition-src="compositions/map-hotspot-pulse.html"
-  data-variable-values='{"title":"Archival Map - Hotspot Pulse","credit":"Moving Image Archive, EVOLUTION OF THE OIL INDUSTRY, THE, 1934"}'
+  data-variable-values='{"title":"EVOLUTION OF THE OIL INDUSTRY, THE (1934)","credit":"Moving Image Archive, EVOLUTION OF THE OIL INDUSTRY, THE, 1934; National Archives and Records Administration / NARA ARC mirror / FedFlix; https://archive.org/details/gov.archives.arc.12477"}'
 ></div>
 ```
 
 {/* hf:generated-footer */}
 
-Tagged `map` `geography` `animation` `archival` `footage` `mia` `newsreel` `video`.
+Tagged `map` `geography` `archival` `footage` `mia` `video` `public-domain`.
 
 Created by [HeyGen](https://hyperframes.heygen.com).
 

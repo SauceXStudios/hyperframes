@@ -42,11 +42,11 @@
         position: absolute;
         left: 72px;
         top: 56px;
-        max-width: 1400px;
+        max-width: 1600px;
         color: rgba(245, 236, 214, 0.95);
-        font-size: 36px;
+        font-size: 34px;
         font-weight: 700;
-        letter-spacing: 0.14em;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
         text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);
       }
@@ -56,17 +56,15 @@
         right: 72px;
         bottom: 56px;
         color: rgba(232, 220, 196, 0.88);
-        font-size: 18px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        font-size: 16px;
+        letter-spacing: 0.06em;
         text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
       }
       #cp-credit-url {
         display: block;
         margin-top: 8px;
-        font-size: 14px;
-        letter-spacing: 0.04em;
-        text-transform: none;
+        font-size: 13px;
+        letter-spacing: 0.03em;
         color: rgba(196, 181, 154, 0.7);
       }
     </style>
@@ -91,11 +89,16 @@
         data-media-start="0"
       ></video>
       <div id="cp-frame" aria-hidden="true"></div>
-      <div id="cp-title" data-var-text="title">Archival Map - City Pins</div>
+      <div id="cp-title" data-var-text="title">New York Water Supply (1927)</div>
       <div id="cp-credit">
-        <span data-var-text="credit">Moving Image Archive, New York Water Supply, 1927</span>
+        <span data-var-text="credit"
+          >Moving Image Archive, New York Water Supply, 1927; National Archives and Records
+          Administration / U.S. Government Films (Internet Archive collection);
+          https://archive.org/details/gov.archives.arc.95622</span
+        >
         <span id="cp-credit-url"
-          >movingimagearchive.com/collection/animated-maps - public domain / free to reuse</span
+          >https://www.movingimagearchive.com/sources/new-york-water-supply-0dcea171?clip=5791dad1-539e-5947-863e-f19cbac765ba
+          - Rights: public_domain / free to reuse</span
         >
       </div>
     </div>
@@ -109,17 +112,18 @@
             : {};
 
         var title =
-          typeof vars.title === "string" && vars.title ? vars.title : "Archival Map - City Pins";
+          typeof vars.title === "string" && vars.title
+            ? vars.title
+            : "New York Water Supply (1927)";
         var credit =
           typeof vars.credit === "string" && vars.credit
             ? vars.credit
-            : "Moving Image Archive, New York Water Supply, 1927";
+            : "Moving Image Archive, New York Water Supply, 1927; National Archives and Records Administration / U.S. Government Films (Internet Archive collection); https://archive.org/details/gov.archives.arc.95622";
 
         document.getElementById("cp-title").textContent = title;
         document.querySelector('#cp-credit [data-var-text="credit"]').textContent = credit;
 
         var tl = gsap.timeline({ paused: true });
-        // Credit/title hold - HyperFrames media runtime seeks the video via data-start
         tl.fromTo(
           "#cp-title",
           { opacity: 0 },
