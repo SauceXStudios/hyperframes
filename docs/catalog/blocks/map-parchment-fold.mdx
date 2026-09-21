@@ -1,6 +1,6 @@
 ---
 title: "Map Parchment Fold"
-description: "Parchment aesthetic with a paper-map unfold and route reveal. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection \u2014 not affiliated; footage not included)."
+description: "Parchment aesthetic with a paper-map unfold and route reveal. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
 mode: "frame"
 ---
 
@@ -11,10 +11,10 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   compositionId="map-parchment-fold"
   compositionSrc="compositions/map-parchment-fold.html"
   title="Map Parchment Fold"
-  description="Parchment aesthetic with a paper-map unfold and route reveal. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection \u2014 not affiliated; footage not included)."
+  description="Parchment aesthetic with a paper-map unfold and route reveal. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
   variables={[]}
-  meta={{"duration": 8, "width": 1920, "height": 1080, "category": "Blocks", "badge": "Stable", "codeLines": 96}}
-  attribution={{"author": "HeyGen", "authorUrl": "https://hyperframes.heygen.com", "path": "registry/blocks/map-parchment-fold", "tags": ["map", "geography", "animation", "parchment", "fold", "paper", "newsreel", "svg"]}}
+  meta={{"duration":8,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":178}}
+  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-parchment-fold","tags":["map","geography","animation","parchment","fold","paper","newsreel","svg"]}}
   video="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-parchment-fold.mp4"
   poster="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-parchment-fold.png"
   hasCode
@@ -31,55 +31,130 @@ import { InstallCommand } from "/snippets/install-command.jsx";
     <meta name="viewport" content="width=1920, height=1080" />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
     <style>
-
-      *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-      body { background: #1a1714; overflow: hidden; }
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: #1a1714;
+        overflow: hidden;
+      }
       #root-map-parchment-fold {
-        position: relative; width: 1920px; height: 1080px; overflow: hidden;
-        background: #1a1714; font-family: Georgia, "Times New Roman", serif;
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #1a1714;
+        font-family: Georgia, "Times New Roman", serif;
       }
       #mpf-frame {
-        position: absolute; inset: 48px;
-        border: 1px solid rgba(196, 181, 154, 0.14); background: #221e19;
+        position: absolute;
+        inset: 48px;
+        border: 1px solid rgba(196, 181, 154, 0.14);
+        background: #221e19;
       }
-      #mpf-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+      #mpf-svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
       #mpf-title {
-        position: absolute; top: 72px; left: 96px;
-        color: rgba(232, 220, 196, 0.92); font-size: 42px;
-        letter-spacing: 0.08em; text-transform: uppercase; font-weight: 400;
+        position: absolute;
+        top: 72px;
+        left: 96px;
+        color: rgba(232, 220, 196, 0.92);
+        font-size: 42px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-weight: 400;
       }
       #mpf-subtitle {
-        position: absolute; top: 128px; left: 96px;
-        color: rgba(196, 181, 154, 0.55); font-size: 22px;
-        letter-spacing: 0.18em; text-transform: uppercase;
+        position: absolute;
+        top: 128px;
+        left: 96px;
+        color: rgba(196, 181, 154, 0.55);
+        font-size: 22px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
       }
       #mpf-note {
-        position: absolute; bottom: 88px; left: 96px;
-        color: rgba(196, 181, 154, 0.55); font-size: 16px;
-        letter-spacing: 0.1em; text-transform: uppercase; max-width: 900px;
+        position: absolute;
+        bottom: 88px;
+        left: 96px;
+        color: rgba(196, 181, 154, 0.55);
+        font-size: 16px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        max-width: 900px;
       }
-
     </style>
   </head>
   <body>
-    <div id="root-map-parchment-fold" data-composition-id="map-parchment-fold"
-      data-start="0" data-duration="8" data-width="1920" data-height="1080">
+    <div
+      id="root-map-parchment-fold"
+      data-composition-id="map-parchment-fold"
+      data-start="0"
+      data-duration="8"
+      data-width="1920"
+      data-height="1080"
+    >
       <div id="mpf-frame">
-        <svg id="mpf-svg" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <svg
+          id="mpf-svg"
+          viewBox="0 0 1920 1080"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
           <defs>
-            <pattern id="mpf-hatch" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+            <pattern
+              id="mpf-hatch"
+              width="12"
+              height="12"
+              patternUnits="userSpaceOnUse"
+              patternTransform="rotate(35)"
+            >
               <line x1="0" y1="0" x2="0" y2="12" stroke="rgba(196,181,154,0.08)" stroke-width="1" />
             </pattern>
           </defs>
 
           <rect width="1920" height="1080" fill="#c4b59a" />
           <rect width="1920" height="1080" fill="url(#mpf-hatch)" opacity="0.5" />
-          <path id="mpf-land" d="M 280 320 C 340 220 480 180 620 210 C 760 240 820 300 900 280 C 980 260 1080 300 1180 340 C 1280 380 1360 460 1380 560 C 1400 660 1340 760 1240 820 C 1140 880 980 900 860 860 C 740 820 700 780 620 800 C 540 820 420 780 360 700 C 300 620 240 500 280 320 Z" fill="rgba(90,70,40,0.28)" stroke="rgba(90,70,40,0.55)" stroke-width="2" />
-          <path id="mpf-island" d="M 1480 420 C 1540 400 1600 430 1610 480 C 1620 530 1580 570 1520 560 C 1460 550 1450 450 1480 420 Z" fill="rgba(90,70,40,0.2)" stroke="rgba(90,70,40,0.4)" stroke-width="1.5" />
-          <path id="mpf-route" d="M 480 560 C 680 500 900 480 1120 520 C 1280 548 1400 500 1520 470"
-            fill="none" stroke="#c45c26" stroke-width="3" stroke-linecap="round" />
-          <line id="mpf-crease" x1="960" y1="80" x2="960" y2="1000" stroke="rgba(90,70,40,0.25)" stroke-width="2" stroke-dasharray="6 8" />
-
+          <path
+            id="mpf-land"
+            d="M 280 320 C 340 220 480 180 620 210 C 760 240 820 300 900 280 C 980 260 1080 300 1180 340 C 1280 380 1360 460 1380 560 C 1400 660 1340 760 1240 820 C 1140 880 980 900 860 860 C 740 820 700 780 620 800 C 540 820 420 780 360 700 C 300 620 240 500 280 320 Z"
+            fill="rgba(90,70,40,0.28)"
+            stroke="rgba(90,70,40,0.55)"
+            stroke-width="2"
+          />
+          <path
+            id="mpf-island"
+            d="M 1480 420 C 1540 400 1600 430 1610 480 C 1620 530 1580 570 1520 560 C 1460 550 1450 450 1480 420 Z"
+            fill="rgba(90,70,40,0.2)"
+            stroke="rgba(90,70,40,0.4)"
+            stroke-width="1.5"
+          />
+          <path
+            id="mpf-route"
+            d="M 480 560 C 680 500 900 480 1120 520 C 1280 548 1400 500 1520 470"
+            fill="none"
+            stroke="#c45c26"
+            stroke-width="3"
+            stroke-linecap="round"
+          />
+          <line
+            id="mpf-crease"
+            x1="960"
+            y1="80"
+            x2="960"
+            y2="1000"
+            stroke="rgba(90,70,40,0.25)"
+            stroke-width="2"
+            stroke-dasharray="6 8"
+          />
         </svg>
       </div>
       <div id="mpf-title" data-var-text="title">Parchment Chart</div>
@@ -89,12 +164,18 @@ import { InstallCommand } from "/snippets/install-command.jsx";
     <script>
       (function () {
         window.__timelines = window.__timelines || {};
-        var vars = window.__hyperframes && window.__hyperframes.getVariables
-          ? window.__hyperframes.getVariables() : {};
+        var vars =
+          window.__hyperframes && window.__hyperframes.getVariables
+            ? window.__hyperframes.getVariables()
+            : {};
         var accent = /^#[0-9a-fA-F]{6}$/.test(String(vars.accent || ""))
-          ? String(vars.accent) : "#c45c26";
+          ? String(vars.accent)
+          : "#c45c26";
         var title = typeof vars.title === "string" && vars.title ? vars.title : "Parchment Chart";
-        var subtitle = typeof vars.subtitle === "string" && vars.subtitle ? vars.subtitle : "Educational cartography \u00b7 paper fold";
+        var subtitle =
+          typeof vars.subtitle === "string" && vars.subtitle
+            ? vars.subtitle
+            : "Educational cartography \u00b7 paper fold";
 
         document.getElementById("mpf-title").textContent = title;
         document.getElementById("mpf-subtitle").textContent = subtitle;
@@ -102,7 +183,10 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         var route = document.getElementById("mpf-route");
         var len = route.getTotalLength();
         gsap.set(route, { strokeDasharray: len, strokeDashoffset: len });
-        gsap.set(["#mpf-land","#mpf-island","#mpf-title","#mpf-subtitle","#mpf-note","#mpf-crease"], { opacity: 0 });
+        gsap.set(
+          ["#mpf-land", "#mpf-island", "#mpf-title", "#mpf-subtitle", "#mpf-note", "#mpf-crease"],
+          { opacity: 0 },
+        );
         gsap.set("#mpf-frame", { scaleX: 0.08, transformOrigin: "50% 50%" });
         var tl = gsap.timeline({ paused: true });
         tl.to("#mpf-frame", { scaleX: 1, duration: 1.4, ease: "power2.out" }, 0);
@@ -114,7 +198,6 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         tl.to(route, { strokeDashoffset: 0, duration: 2.8, ease: "power1.inOut" }, 2.0);
         tl.to("#mpf-note", { opacity: 1, duration: 0.4 }, 5.2);
         window.__timelines["map-parchment-fold"] = tl;
-
       })();
     </script>
   </body>
@@ -156,9 +239,9 @@ Move it in time with `data-start`. Put it on a different timeline row with
 
 Set these CSS variables on the block:
 
-- `undefined` — Title. Defaults to `Parchment Chart`.
-- `undefined` — Subtitle. Defaults to `Educational cartography · paper fold`.
-- `undefined` — Accent. Defaults to `#c45c26`.
+- `title` - Title. Defaults to `Parchment Chart`.
+- `subtitle` - Subtitle. Defaults to `Educational cartography · paper fold`.
+- `accent` - Accent. Defaults to `#c45c26`.
 
 ## Variables
 
@@ -178,7 +261,7 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-parchment-fold"
   data-composition-src="compositions/map-parchment-fold.html"
-  data-variable-values='{"title": "Parchment Chart", "subtitle": "Educational cartography · paper fold", "accent": "#c45c26"}'
+  data-variable-values='{"title":"Parchment Chart","subtitle":"Educational cartography · paper fold","accent":"#c45c26"}'
 ></div>
 ```
 

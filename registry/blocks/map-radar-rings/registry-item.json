@@ -3,7 +3,7 @@
   "name": "map-radar-rings",
   "type": "hyperframes:block",
   "title": "Map Radar Rings",
-  "description": "Concentric radar and range rings that expand from a focal point with a seek-safe sweep. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection — not affiliated; footage not included).",
+  "description": "Concentric radar and range rings that expand from a focal point with a seek-safe sweep. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
   "tags": ["map", "geography", "animation", "radar", "rings", "range", "newsreel", "svg"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
@@ -23,7 +23,7 @@
       "id": "subtitle",
       "type": "string",
       "label": "Subtitle",
-      "default": "Educational cartography · radar rings"
+      "default": "Educational cartography \u00b7 radar rings"
     },
     {
       "id": "accent",
@@ -41,22 +41,22 @@
   ],
   "params": [
     {
-      "id": "title",
-      "type": "string",
+      "type": "text",
       "label": "Title",
-      "default": "Range Rings"
+      "default": "Range Rings",
+      "key": "title"
     },
     {
-      "id": "subtitle",
-      "type": "string",
+      "type": "text",
       "label": "Subtitle",
-      "default": "Educational cartography · radar rings"
+      "default": "Educational cartography \u00b7 radar rings",
+      "key": "subtitle"
     },
     {
-      "id": "accent",
       "type": "color",
       "label": "Accent",
-      "default": "#c45c26"
+      "default": "#c45c26",
+      "key": "accent"
     }
   ]
 }

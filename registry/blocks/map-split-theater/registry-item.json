@@ -3,7 +3,7 @@
   "name": "map-split-theater",
   "type": "hyperframes:block",
   "title": "Map Split Theater",
-  "description": "Split-screen two-theater maps with parallel schematic advances. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection — not affiliated; footage not included).",
+  "description": "Split-screen two-theater maps with parallel schematic advances. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
   "tags": ["map", "geography", "animation", "split", "theater", "dual", "newsreel", "svg"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
@@ -23,7 +23,7 @@
       "id": "subtitle",
       "type": "string",
       "label": "Subtitle",
-      "default": "Educational cartography · split screen"
+      "default": "Educational cartography \u00b7 split screen"
     },
     {
       "id": "leftTitle",
@@ -53,34 +53,34 @@
   ],
   "params": [
     {
-      "id": "title",
-      "type": "string",
+      "type": "text",
       "label": "Title",
-      "default": "Two Theaters"
+      "default": "Two Theaters",
+      "key": "title"
     },
     {
-      "id": "subtitle",
-      "type": "string",
+      "type": "text",
       "label": "Subtitle",
-      "default": "Educational cartography · split screen"
+      "default": "Educational cartography \u00b7 split screen",
+      "key": "subtitle"
     },
     {
-      "id": "leftTitle",
-      "type": "string",
+      "type": "text",
       "label": "Left title",
-      "default": "WEST"
+      "default": "WEST",
+      "key": "leftTitle"
     },
     {
-      "id": "rightTitle",
-      "type": "string",
+      "type": "text",
       "label": "Right title",
-      "default": "EAST"
+      "default": "EAST",
+      "key": "rightTitle"
     },
     {
-      "id": "accent",
       "type": "color",
       "label": "Accent",
-      "default": "#c45c26"
+      "default": "#c45c26",
+      "key": "accent"
     }
   ]
 }

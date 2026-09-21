@@ -3,7 +3,7 @@
   "name": "map-compass-scale",
   "type": "hyperframes:block",
   "title": "Map Compass Scale",
-  "description": "Compass rose and scale bar reveal over a stylized newsreel landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection — not affiliated; footage not included).",
+  "description": "Compass rose and scale bar reveal over a stylized newsreel landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
   "tags": ["map", "geography", "animation", "compass", "scale", "newsreel", "svg"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
@@ -23,7 +23,7 @@
       "id": "subtitle",
       "type": "string",
       "label": "Subtitle",
-      "default": "Educational cartography · compass rose"
+      "default": "Educational cartography \u00b7 compass rose"
     },
     {
       "id": "scaleLabel",
@@ -47,28 +47,28 @@
   ],
   "params": [
     {
-      "id": "title",
-      "type": "string",
+      "type": "text",
       "label": "Title",
-      "default": "Compass & Scale"
+      "default": "Compass & Scale",
+      "key": "title"
     },
     {
-      "id": "subtitle",
-      "type": "string",
+      "type": "text",
       "label": "Subtitle",
-      "default": "Educational cartography · compass rose"
+      "default": "Educational cartography \u00b7 compass rose",
+      "key": "subtitle"
     },
     {
-      "id": "scaleLabel",
-      "type": "string",
+      "type": "text",
       "label": "Scale label",
-      "default": "100 mi"
+      "default": "100 mi",
+      "key": "scaleLabel"
     },
     {
-      "id": "accent",
       "type": "color",
       "label": "Accent",
-      "default": "#c45c26"
+      "default": "#c45c26",
+      "key": "accent"
     }
   ]
 }

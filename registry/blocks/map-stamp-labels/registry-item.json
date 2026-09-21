@@ -3,7 +3,7 @@
   "name": "map-stamp-labels",
   "type": "hyperframes:block",
   "title": "Map Stamp Labels",
-  "description": "Stamp and typewriter-style location labels that slam onto the map. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection — not affiliated; footage not included).",
+  "description": "Stamp and typewriter-style location labels that slam onto the map. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
   "tags": ["map", "geography", "animation", "stamp", "typewriter", "labels", "newsreel", "svg"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
@@ -23,7 +23,7 @@
       "id": "subtitle",
       "type": "string",
       "label": "Subtitle",
-      "default": "Educational cartography · stamp labels"
+      "default": "Educational cartography \u00b7 stamp labels"
     },
     {
       "id": "labelA",
@@ -59,40 +59,40 @@
   ],
   "params": [
     {
-      "id": "title",
-      "type": "string",
+      "type": "text",
       "label": "Title",
-      "default": "Stamped Places"
+      "default": "Stamped Places",
+      "key": "title"
     },
     {
-      "id": "subtitle",
-      "type": "string",
+      "type": "text",
       "label": "Subtitle",
-      "default": "Educational cartography · stamp labels"
+      "default": "Educational cartography \u00b7 stamp labels",
+      "key": "subtitle"
     },
     {
-      "id": "labelA",
-      "type": "string",
+      "type": "text",
       "label": "Label A",
-      "default": "HAVEN"
+      "default": "HAVEN",
+      "key": "labelA"
     },
     {
-      "id": "labelB",
-      "type": "string",
+      "type": "text",
       "label": "Label B",
-      "default": "RIDGE"
+      "default": "RIDGE",
+      "key": "labelB"
     },
     {
-      "id": "labelC",
-      "type": "string",
+      "type": "text",
       "label": "Label C",
-      "default": "FORD"
+      "default": "FORD",
+      "key": "labelC"
     },
     {
-      "id": "accent",
       "type": "color",
       "label": "Accent",
-      "default": "#c45c26"
+      "default": "#c45c26",
+      "key": "accent"
     }
   ]
 }

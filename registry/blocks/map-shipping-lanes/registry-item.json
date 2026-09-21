@@ -3,7 +3,7 @@
   "name": "map-shipping-lanes",
   "type": "hyperframes:block",
   "title": "Map Shipping Lanes",
-  "description": "Dotted sea shipping lanes that draw on across open water between ports. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection — not affiliated; footage not included).",
+  "description": "Dotted sea shipping lanes that draw on across open water between ports. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
   "tags": ["map", "geography", "animation", "shipping", "lanes", "sea", "newsreel", "svg"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
@@ -23,7 +23,7 @@
       "id": "subtitle",
       "type": "string",
       "label": "Subtitle",
-      "default": "Educational cartography · shipping lanes"
+      "default": "Educational cartography \u00b7 shipping lanes"
     },
     {
       "id": "fromLabel",
@@ -53,34 +53,34 @@
   ],
   "params": [
     {
-      "id": "title",
-      "type": "string",
+      "type": "text",
       "label": "Title",
-      "default": "Sea Lanes"
+      "default": "Sea Lanes",
+      "key": "title"
     },
     {
-      "id": "subtitle",
-      "type": "string",
+      "type": "text",
       "label": "Subtitle",
-      "default": "Educational cartography · shipping lanes"
+      "default": "Educational cartography \u00b7 shipping lanes",
+      "key": "subtitle"
     },
     {
-      "id": "fromLabel",
-      "type": "string",
+      "type": "text",
       "label": "Origin label",
-      "default": "PORT A"
+      "default": "PORT A",
+      "key": "fromLabel"
     },
     {
-      "id": "toLabel",
-      "type": "string",
+      "type": "text",
       "label": "Destination label",
-      "default": "PORT B"
+      "default": "PORT B",
+      "key": "toLabel"
     },
     {
-      "id": "accent",
       "type": "color",
       "label": "Accent",
-      "default": "#c45c26"
+      "default": "#c45c26",
+      "key": "accent"
     }
   ]
 }

@@ -3,7 +3,7 @@
   "name": "map-region-zoom",
   "type": "hyperframes:block",
   "title": "Map Region Zoom",
-  "description": "Newsreel-style grid overlay and camera zoom into a framed region on a stylized landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection \u2014 not affiliated; footage not included).",
+  "description": "Newsreel-style grid overlay and camera zoom into a framed region on a stylized landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
   "tags": ["map", "geography", "animation", "zoom", "grid", "newsreel", "camera", "svg"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
@@ -47,28 +47,28 @@
   ],
   "params": [
     {
-      "id": "title",
-      "type": "string",
+      "type": "text",
       "label": "Title",
-      "default": "Sector Focus"
+      "default": "Sector Focus",
+      "key": "title"
     },
     {
-      "id": "subtitle",
-      "type": "string",
+      "type": "text",
       "label": "Subtitle",
-      "default": "Grid overlay \u00b7 camera zoom"
+      "default": "Grid overlay \u00b7 camera zoom",
+      "key": "subtitle"
     },
     {
-      "id": "regionLabel",
-      "type": "string",
+      "type": "text",
       "label": "Region label",
-      "default": "Sector 7"
+      "default": "Sector 7",
+      "key": "regionLabel"
     },
     {
-      "id": "accent",
       "type": "color",
       "label": "Accent",
-      "default": "#c45c26"
+      "default": "#c45c26",
+      "key": "accent"
     }
   ]
 }

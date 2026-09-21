@@ -3,7 +3,7 @@
   "name": "map-ink-blot-soak",
   "type": "hyperframes:block",
   "title": "Map Ink Blot Soak",
-  "description": "Ink-blot territory soak filling a region with a spreading blot wash. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection — not affiliated; footage not included).",
+  "description": "Ink-blot territory soak filling a region with a spreading blot wash. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
   "tags": ["map", "geography", "animation", "ink", "blot", "territory", "newsreel", "svg"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
@@ -23,7 +23,7 @@
       "id": "subtitle",
       "type": "string",
       "label": "Subtitle",
-      "default": "Educational cartography · ink blot soak"
+      "default": "Educational cartography \u00b7 ink blot soak"
     },
     {
       "id": "accent",
@@ -41,22 +41,22 @@
   ],
   "params": [
     {
-      "id": "title",
-      "type": "string",
+      "type": "text",
       "label": "Title",
-      "default": "Ink Across the Province"
+      "default": "Ink Across the Province",
+      "key": "title"
     },
     {
-      "id": "subtitle",
-      "type": "string",
+      "type": "text",
       "label": "Subtitle",
-      "default": "Educational cartography · ink blot soak"
+      "default": "Educational cartography \u00b7 ink blot soak",
+      "key": "subtitle"
     },
     {
-      "id": "accent",
       "type": "color",
       "label": "Accent",
-      "default": "#c45c26"
+      "default": "#c45c26",
+      "key": "accent"
     }
   ]
 }

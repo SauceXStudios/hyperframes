@@ -3,7 +3,7 @@
   "name": "map-itinerary-stops",
   "type": "hyperframes:block",
   "title": "Map Itinerary Stops",
-  "description": "Multi-stop itinerary path with numbered markers that appear in sequence. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection — not affiliated; footage not included).",
+  "description": "Multi-stop itinerary path with numbered markers that appear in sequence. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
   "tags": ["map", "geography", "animation", "itinerary", "stops", "markers", "newsreel", "svg"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
@@ -23,7 +23,7 @@
       "id": "subtitle",
       "type": "string",
       "label": "Subtitle",
-      "default": "Educational cartography · multi-stop route"
+      "default": "Educational cartography \u00b7 multi-stop route"
     },
     {
       "id": "labelA",
@@ -65,46 +65,46 @@
   ],
   "params": [
     {
-      "id": "title",
-      "type": "string",
+      "type": "text",
       "label": "Title",
-      "default": "The Itinerary"
+      "default": "The Itinerary",
+      "key": "title"
     },
     {
-      "id": "subtitle",
-      "type": "string",
+      "type": "text",
       "label": "Subtitle",
-      "default": "Educational cartography · multi-stop route"
+      "default": "Educational cartography \u00b7 multi-stop route",
+      "key": "subtitle"
     },
     {
-      "id": "labelA",
-      "type": "string",
+      "type": "text",
       "label": "Label A",
-      "default": "1"
+      "default": "1",
+      "key": "labelA"
     },
     {
-      "id": "labelB",
-      "type": "string",
+      "type": "text",
       "label": "Label B",
-      "default": "2"
+      "default": "2",
+      "key": "labelB"
     },
     {
-      "id": "labelC",
-      "type": "string",
+      "type": "text",
       "label": "Label C",
-      "default": "3"
+      "default": "3",
+      "key": "labelC"
     },
     {
-      "id": "labelD",
-      "type": "string",
+      "type": "text",
       "label": "Label D",
-      "default": "4"
+      "default": "4",
+      "key": "labelD"
     },
     {
-      "id": "accent",
       "type": "color",
       "label": "Accent",
-      "default": "#c45c26"
+      "default": "#c45c26",
+      "key": "accent"
     }
   ]
 }

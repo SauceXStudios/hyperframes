@@ -5,71 +5,147 @@
     <meta name="viewport" content="width=1920, height=1080" />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
     <style>
-
-      *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-      body { background: #1a1714; overflow: hidden; }
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: #1a1714;
+        overflow: hidden;
+      }
       #root-map-front-line-crawl {
-        position: relative; width: 1920px; height: 1080px; overflow: hidden;
-        background: #1a1714; font-family: Georgia, "Times New Roman", serif;
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #1a1714;
+        font-family: Georgia, "Times New Roman", serif;
       }
       #mfl-frame {
-        position: absolute; inset: 48px;
-        border: 1px solid rgba(196, 181, 154, 0.14); background: #221e19;
+        position: absolute;
+        inset: 48px;
+        border: 1px solid rgba(196, 181, 154, 0.14);
+        background: #221e19;
       }
-      #mfl-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+      #mfl-svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
       #mfl-title {
-        position: absolute; top: 72px; left: 96px;
-        color: rgba(232, 220, 196, 0.92); font-size: 42px;
-        letter-spacing: 0.08em; text-transform: uppercase; font-weight: 400;
+        position: absolute;
+        top: 72px;
+        left: 96px;
+        color: rgba(232, 220, 196, 0.92);
+        font-size: 42px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-weight: 400;
       }
       #mfl-subtitle {
-        position: absolute; top: 128px; left: 96px;
-        color: rgba(196, 181, 154, 0.55); font-size: 22px;
-        letter-spacing: 0.18em; text-transform: uppercase;
+        position: absolute;
+        top: 128px;
+        left: 96px;
+        color: rgba(196, 181, 154, 0.55);
+        font-size: 22px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
       }
       #mfl-note {
-        position: absolute; bottom: 88px; left: 96px;
-        color: rgba(196, 181, 154, 0.55); font-size: 16px;
-        letter-spacing: 0.1em; text-transform: uppercase; max-width: 900px;
+        position: absolute;
+        bottom: 88px;
+        left: 96px;
+        color: rgba(196, 181, 154, 0.55);
+        font-size: 16px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        max-width: 900px;
       }
-
     </style>
   </head>
   <body>
-    <div id="root-map-front-line-crawl" data-composition-id="map-front-line-crawl"
-      data-start="0" data-duration="8" data-width="1920" data-height="1080">
+    <div
+      id="root-map-front-line-crawl"
+      data-composition-id="map-front-line-crawl"
+      data-start="0"
+      data-duration="8"
+      data-width="1920"
+      data-height="1080"
+    >
       <div id="mfl-frame">
-        <svg id="mfl-svg" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <svg
+          id="mfl-svg"
+          viewBox="0 0 1920 1080"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
           <defs>
-            <pattern id="mfl-hatch" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+            <pattern
+              id="mfl-hatch"
+              width="12"
+              height="12"
+              patternUnits="userSpaceOnUse"
+              patternTransform="rotate(35)"
+            >
               <line x1="0" y1="0" x2="0" y2="12" stroke="rgba(196,181,154,0.08)" stroke-width="1" />
             </pattern>
           </defs>
 
           <rect width="1920" height="1080" fill="#1f1b17" />
           <rect width="1920" height="1080" fill="url(#mfl-hatch)" />
-          <path id="mfl-land" d="M 280 320 C 340 220 480 180 620 210 C 760 240 820 300 900 280 C 980 260 1080 300 1180 340 C 1280 380 1360 460 1380 560 C 1400 660 1340 760 1240 820 C 1140 880 980 900 860 860 C 740 820 700 780 620 800 C 540 820 420 780 360 700 C 300 620 240 500 280 320 Z" fill="rgba(196,181,154,0.16)" stroke="rgba(196,181,154,0.4)" stroke-width="2" />
-          <path id="mfl-island" d="M 1480 420 C 1540 400 1600 430 1610 480 C 1620 530 1580 570 1520 560 C 1460 550 1450 450 1480 420 Z" fill="rgba(196,181,154,0.12)" stroke="rgba(196,181,154,0.3)" stroke-width="1.5" />
+          <path
+            id="mfl-land"
+            d="M 280 320 C 340 220 480 180 620 210 C 760 240 820 300 900 280 C 980 260 1080 300 1180 340 C 1280 380 1360 460 1380 560 C 1400 660 1340 760 1240 820 C 1140 880 980 900 860 860 C 740 820 700 780 620 800 C 540 820 420 780 360 700 C 300 620 240 500 280 320 Z"
+            fill="rgba(196,181,154,0.16)"
+            stroke="rgba(196,181,154,0.4)"
+            stroke-width="2"
+          />
+          <path
+            id="mfl-island"
+            d="M 1480 420 C 1540 400 1600 430 1610 480 C 1620 530 1580 570 1520 560 C 1460 550 1450 450 1480 420 Z"
+            fill="rgba(196,181,154,0.12)"
+            stroke="rgba(196,181,154,0.3)"
+            stroke-width="1.5"
+          />
 
-          <path id="mfl-front" d="M 360 700 C 480 640 600 580 740 560 C 880 540 1000 520 1140 540 C 1260 556 1360 600 1460 660"
-            fill="none" stroke="#c45c26" stroke-width="4" stroke-dasharray="14 10" stroke-linecap="round" />
+          <path
+            id="mfl-front"
+            d="M 360 700 C 480 640 600 580 740 560 C 880 540 1000 520 1140 540 C 1260 556 1360 600 1460 660"
+            fill="none"
+            stroke="#c45c26"
+            stroke-width="4"
+            stroke-dasharray="14 10"
+            stroke-linecap="round"
+          />
           <circle id="mfl-head" cx="360" cy="700" r="9" fill="#c45c26" />
-
         </svg>
       </div>
       <div id="mfl-title" data-var-text="title">The Shifting Front</div>
-      <div id="mfl-subtitle" data-var-text="subtitle">Educational cartography · front-line crawl</div>
-      <div id="mfl-note">Abstract schematic — not a depiction of any real conflict</div>
+      <div id="mfl-subtitle" data-var-text="subtitle">
+        Educational cartography · front-line crawl
+      </div>
+      <div id="mfl-note">Abstract schematic - not a depiction of any real conflict</div>
     </div>
     <script>
       (function () {
         window.__timelines = window.__timelines || {};
-        var vars = window.__hyperframes && window.__hyperframes.getVariables
-          ? window.__hyperframes.getVariables() : {};
+        var vars =
+          window.__hyperframes && window.__hyperframes.getVariables
+            ? window.__hyperframes.getVariables()
+            : {};
         var accent = /^#[0-9a-fA-F]{6}$/.test(String(vars.accent || ""))
-          ? String(vars.accent) : "#c45c26";
-        var title = typeof vars.title === "string" && vars.title ? vars.title : "The Shifting Front";
-        var subtitle = typeof vars.subtitle === "string" && vars.subtitle ? vars.subtitle : "Educational cartography \u00b7 front-line crawl";
+          ? String(vars.accent)
+          : "#c45c26";
+        var title =
+          typeof vars.title === "string" && vars.title ? vars.title : "The Shifting Front";
+        var subtitle =
+          typeof vars.subtitle === "string" && vars.subtitle
+            ? vars.subtitle
+            : "Educational cartography \u00b7 front-line crawl";
 
         document.getElementById("mfl-title").textContent = title;
         document.getElementById("mfl-subtitle").textContent = subtitle;
@@ -79,7 +155,9 @@
         head.setAttribute("fill", accent);
         var len = front.getTotalLength();
         gsap.set(front, { strokeDasharray: "14 10", strokeDashoffset: len });
-        gsap.set(["#mfl-land", "#mfl-island", "#mfl-title", "#mfl-subtitle", "#mfl-note", head], { opacity: 0 });
+        gsap.set(["#mfl-land", "#mfl-island", "#mfl-title", "#mfl-subtitle", "#mfl-note", head], {
+          opacity: 0,
+        });
         var tl = gsap.timeline({ paused: true });
         tl.to("#mfl-land", { opacity: 1, duration: 0.5 }, 0);
         tl.to("#mfl-island", { opacity: 1, duration: 0.4 }, 0.1);
@@ -90,7 +168,6 @@
         tl.to(front, { strokeDashoffset: -56, duration: 2.4, ease: "none" }, 4.9);
         tl.to("#mfl-note", { opacity: 1, duration: 0.4 }, 5.2);
         window.__timelines["map-front-line-crawl"] = tl;
-
       })();
     </script>
   </body>

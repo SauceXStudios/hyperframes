@@ -3,7 +3,7 @@
   "name": "map-legend-build",
   "type": "hyperframes:block",
   "title": "Map Legend Build",
-  "description": "Legend panel that builds row-by-row while map symbols appear. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection — not affiliated; footage not included).",
+  "description": "Legend panel that builds row-by-row while map symbols appear. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
   "tags": ["map", "geography", "animation", "legend", "key", "newsreel", "svg"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
@@ -23,7 +23,7 @@
       "id": "subtitle",
       "type": "string",
       "label": "Subtitle",
-      "default": "Educational cartography · legend assemble"
+      "default": "Educational cartography \u00b7 legend assemble"
     },
     {
       "id": "accent",
@@ -41,22 +41,22 @@
   ],
   "params": [
     {
-      "id": "title",
-      "type": "string",
+      "type": "text",
       "label": "Title",
-      "default": "Legend Build"
+      "default": "Legend Build",
+      "key": "title"
     },
     {
-      "id": "subtitle",
-      "type": "string",
+      "type": "text",
       "label": "Subtitle",
-      "default": "Educational cartography · legend assemble"
+      "default": "Educational cartography \u00b7 legend assemble",
+      "key": "subtitle"
     },
     {
-      "id": "accent",
       "type": "color",
       "label": "Accent",
-      "default": "#c45c26"
+      "default": "#c45c26",
+      "key": "accent"
     }
   ]
 }

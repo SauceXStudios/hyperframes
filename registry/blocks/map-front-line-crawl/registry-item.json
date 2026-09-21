@@ -3,7 +3,7 @@
   "name": "map-front-line-crawl",
   "type": "hyperframes:block",
   "title": "Map Front Line Crawl",
-  "description": "Dashed front-line crawl across a stylized landmass — abstract educational cartography. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection — not affiliated; footage not included).",
+  "description": "Dashed front-line crawl across a stylized landmass - abstract educational cartography. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
   "tags": [
     "map",
     "geography",
@@ -32,7 +32,7 @@
       "id": "subtitle",
       "type": "string",
       "label": "Subtitle",
-      "default": "Educational cartography · front-line crawl"
+      "default": "Educational cartography \u00b7 front-line crawl"
     },
     {
       "id": "accent",
@@ -50,22 +50,22 @@
   ],
   "params": [
     {
-      "id": "title",
-      "type": "string",
+      "type": "text",
       "label": "Title",
-      "default": "The Shifting Front"
+      "default": "The Shifting Front",
+      "key": "title"
     },
     {
-      "id": "subtitle",
-      "type": "string",
+      "type": "text",
       "label": "Subtitle",
-      "default": "Educational cartography · front-line crawl"
+      "default": "Educational cartography \u00b7 front-line crawl",
+      "key": "subtitle"
     },
     {
-      "id": "accent",
       "type": "color",
       "label": "Accent",
-      "default": "#c45c26"
+      "default": "#c45c26",
+      "key": "accent"
     }
   ]
 }

@@ -3,7 +3,7 @@
   "name": "map-campaign-arrows",
   "type": "hyperframes:block",
   "title": "Map Campaign Arrows",
-  "description": "Newsreel wartime aesthetic with sequential schematic campaign arrows along a path \u2014 abstract educational cartography, not glorifying. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection \u2014 not affiliated; footage not included).",
+  "description": "Newsreel wartime aesthetic with sequential schematic campaign arrows along a path - abstract educational cartography, not glorifying. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
   "tags": ["map", "geography", "animation", "arrows", "campaign", "newsreel", "schematic", "svg"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
@@ -41,22 +41,22 @@
   ],
   "params": [
     {
-      "id": "title",
-      "type": "string",
+      "type": "text",
       "label": "Title",
-      "default": "Schematic Advances"
+      "default": "Schematic Advances",
+      "key": "title"
     },
     {
-      "id": "subtitle",
-      "type": "string",
+      "type": "text",
       "label": "Subtitle",
-      "default": "Sequential path arrows \u00b7 abstract cartography"
+      "default": "Sequential path arrows \u00b7 abstract cartography",
+      "key": "subtitle"
     },
     {
-      "id": "accent",
       "type": "color",
       "label": "Accent",
-      "default": "#c45c26"
+      "default": "#c45c26",
+      "key": "accent"
     }
   ]
 }

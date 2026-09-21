@@ -3,7 +3,7 @@
   "name": "map-territory-wipe",
   "type": "hyperframes:block",
   "title": "Map Territory Wipe",
-  "description": "Newsreel-style territory fill that wipes on via clip-path reveal over a stylized landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection \u2014 not affiliated; footage not included).",
+  "description": "Newsreel-style territory fill that wipes on via clip-path reveal over a stylized landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
   "tags": ["map", "geography", "animation", "territory", "wipe", "newsreel", "reveal", "svg"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
@@ -47,28 +47,28 @@
   ],
   "params": [
     {
-      "id": "title",
-      "type": "string",
+      "type": "text",
       "label": "Title",
-      "default": "Territory Revealed"
+      "default": "Territory Revealed",
+      "key": "title"
     },
     {
-      "id": "subtitle",
-      "type": "string",
+      "type": "text",
       "label": "Subtitle",
-      "default": "Wipe fill \u00b7 educational cartography"
+      "default": "Wipe fill \u00b7 educational cartography",
+      "key": "subtitle"
     },
     {
-      "id": "regionLabel",
-      "type": "string",
+      "type": "text",
       "label": "Region label",
-      "default": "Region A"
+      "default": "Region A",
+      "key": "regionLabel"
     },
     {
-      "id": "accent",
       "type": "color",
       "label": "Accent",
-      "default": "#c45c26"
+      "default": "#c45c26",
+      "key": "accent"
     }
   ]
 }

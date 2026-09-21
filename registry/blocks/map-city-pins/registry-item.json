@@ -3,7 +3,7 @@
   "name": "map-city-pins",
   "type": "hyperframes:block",
   "title": "Map City Pins",
-  "description": "Newsreel-style labeled city pins that pop and stagger onto a stylized landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection \u2014 not affiliated; footage not included).",
+  "description": "Newsreel-style labeled city pins that pop and stagger onto a stylized landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
   "tags": ["map", "geography", "animation", "pins", "cities", "newsreel", "labels", "svg"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
@@ -71,52 +71,52 @@
   ],
   "params": [
     {
-      "id": "title",
-      "type": "string",
+      "type": "text",
       "label": "Title",
-      "default": "Cities of Note"
+      "default": "Cities of Note",
+      "key": "title"
     },
     {
-      "id": "subtitle",
-      "type": "string",
+      "type": "text",
       "label": "Subtitle",
-      "default": "Staggered pin drops \u00b7 educational map"
+      "default": "Staggered pin drops \u00b7 educational map",
+      "key": "subtitle"
     },
     {
-      "id": "city1",
-      "type": "string",
+      "type": "text",
       "label": "City 1",
-      "default": "NORTH"
+      "default": "NORTH",
+      "key": "city1"
     },
     {
-      "id": "city2",
-      "type": "string",
+      "type": "text",
       "label": "City 2",
-      "default": "CENTRAL"
+      "default": "CENTRAL",
+      "key": "city2"
     },
     {
-      "id": "city3",
-      "type": "string",
+      "type": "text",
       "label": "City 3",
-      "default": "EAST"
+      "default": "EAST",
+      "key": "city3"
     },
     {
-      "id": "city4",
-      "type": "string",
+      "type": "text",
       "label": "City 4",
-      "default": "SOUTH"
+      "default": "SOUTH",
+      "key": "city4"
     },
     {
-      "id": "city5",
-      "type": "string",
+      "type": "text",
       "label": "City 5",
-      "default": "ISLE"
+      "default": "ISLE",
+      "key": "city5"
     },
     {
-      "id": "accent",
       "type": "color",
       "label": "Accent",
-      "default": "#c45c26"
+      "default": "#c45c26",
+      "key": "accent"
     }
   ]
 }

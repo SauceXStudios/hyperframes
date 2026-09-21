@@ -3,7 +3,7 @@
   "name": "map-arrow-fanout",
   "type": "hyperframes:block",
   "title": "Map Arrow Fanout",
-  "description": "Arrow swarm fan-out from an origin — abstract schematic advances. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection — not affiliated; footage not included).",
+  "description": "Arrow swarm fan-out from an origin - abstract schematic advances. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
   "tags": ["map", "geography", "animation", "arrows", "fanout", "swarm", "newsreel", "svg"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
@@ -23,7 +23,7 @@
       "id": "subtitle",
       "type": "string",
       "label": "Subtitle",
-      "default": "Educational cartography · arrow swarm"
+      "default": "Educational cartography \u00b7 arrow swarm"
     },
     {
       "id": "accent",
@@ -41,22 +41,22 @@
   ],
   "params": [
     {
-      "id": "title",
-      "type": "string",
+      "type": "text",
       "label": "Title",
-      "default": "Advance Fan-Out"
+      "default": "Advance Fan-Out",
+      "key": "title"
     },
     {
-      "id": "subtitle",
-      "type": "string",
+      "type": "text",
       "label": "Subtitle",
-      "default": "Educational cartography · arrow swarm"
+      "default": "Educational cartography \u00b7 arrow swarm",
+      "key": "subtitle"
     },
     {
-      "id": "accent",
       "type": "color",
       "label": "Accent",
-      "default": "#c45c26"
+      "default": "#c45c26",
+      "key": "accent"
     }
   ]
 }

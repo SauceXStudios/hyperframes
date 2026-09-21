@@ -3,7 +3,7 @@
   "name": "map-route-draw",
   "type": "hyperframes:block",
   "title": "Map Route Draw",
-  "description": "Newsreel-style stylized landmass with a route line that stroke-draws on across the map. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection \u2014 not affiliated; footage not included).",
+  "description": "Newsreel-style stylized landmass with a route line that stroke-draws on across the map. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
   "tags": ["map", "geography", "animation", "route", "newsreel", "draw-on", "svg"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
@@ -53,34 +53,34 @@
   ],
   "params": [
     {
-      "id": "title",
-      "type": "string",
+      "type": "text",
       "label": "Title",
-      "default": "The Overland Route"
+      "default": "The Overland Route",
+      "key": "title"
     },
     {
-      "id": "subtitle",
-      "type": "string",
+      "type": "text",
       "label": "Subtitle",
-      "default": "Educational cartography \u00b7 route draw-on"
+      "default": "Educational cartography \u00b7 route draw-on",
+      "key": "subtitle"
     },
     {
-      "id": "fromLabel",
-      "type": "string",
+      "type": "text",
       "label": "Origin label",
-      "default": "ORIGIN"
+      "default": "ORIGIN",
+      "key": "fromLabel"
     },
     {
-      "id": "toLabel",
-      "type": "string",
+      "type": "text",
       "label": "Destination label",
-      "default": "DESTINATION"
+      "default": "DESTINATION",
+      "key": "toLabel"
     },
     {
-      "id": "accent",
       "type": "color",
       "label": "Accent",
-      "default": "#c45c26"
+      "default": "#c45c26",
+      "key": "accent"
     }
   ]
 }
