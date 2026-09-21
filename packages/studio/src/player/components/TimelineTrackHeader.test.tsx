@@ -47,7 +47,6 @@ function renderHeader(
         trackElements={options.elements ?? [clip]}
         clipCount={options.elements?.length ?? 1}
         isExpanded={options.expanded !== false}
-        currentTime={0}
         isTrackHidden={options.hidden ?? false}
         isAudioTrack={options.audio ?? false}
         isGroupMember={false}
