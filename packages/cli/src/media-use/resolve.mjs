@@ -49,8 +49,6 @@ import {
   versionLessThan,
 } from "./lib/heygen-cli.mjs";
 import { BundledSfxAssetsError, inspectBundledSfxAssets } from "./lib/bundled-sfx-provider.mjs";
-import { rankMediaRowsWithVectors } from "../registry/mediaSearch.js";
-import { fetchMediaVectors, mediaVectorRows } from "../registry/localSemantic.js";
 
 const INGEST_TYPES = listTypes();
 const DEFAULT_EXT = {
@@ -422,6 +420,8 @@ async function run() {
         const registry =
           process.env.HYPERFRAMES_REGISTRY ||
           "https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry";
+        const { fetchMediaVectors, mediaVectorRows } = await import("../registry/localSemantic.js");
+        const { rankMediaRowsWithVectors } = await import("../registry/mediaSearch.js");
         await fetchMediaVectors(registry);
         const ranked = await rankMediaRowsWithVectors(
           intent,

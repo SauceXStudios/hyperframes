@@ -1,13 +1,10 @@
-import { searchByWords } from "./localSearch.js";
 import { mediaSemanticRanking, type MediaVectorRow } from "./localSemantic.js";
+import { rankMediaRows as rankMediaRowsRuntime } from "./mediaSearch.mjs";
 
 export type MediaSearchRow = MediaVectorRow;
 
 export function rankMediaRows(query: string, rows: MediaSearchRow[]): MediaSearchRow[] {
-  return searchByWords(query, rows, (row) => ({
-    strong: `${row.id} ${row.title}`,
-    weak: `${row.description} ${row.tags.join(" ")} ${row.kind}`,
-  }));
+  return rankMediaRowsRuntime(query, rows) as MediaSearchRow[];
 }
 
 export async function rankMediaRowsWithVectors(

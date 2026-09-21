@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { extname, join } from "node:path";
-import { rankMediaRows } from "../../registry/mediaSearch.js";
+import { rankMediaRows } from "../../registry/mediaSearch.mjs";
 
 const LIB_DIR =
   process.env.HYPERFRAMES_MEDIA_USE_SFX_DIR ||
@@ -76,23 +76,8 @@ export function inspectBundledSfxAssets(libraryDir = LIB_DIR) {
   };
 }
 
-const normalize = (value) =>
-  String(value)
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-
 export function extensionForBundledSfxFile(filename) {
   return extname(filename) || ".mp3";
-}
-
-function score(intent, key, entry) {
-  const query = normalize(intent);
-  const name = normalize(key);
-  if (query === name) return 100;
-  if (query.includes(name) || name.includes(query)) return 50;
-  const haystack = new Set(normalize(`${key} ${entry.description || ""}`).split(/\s+/));
-  return query.split(/\s+/).filter((token) => token && haystack.has(token)).length;
 }
 
 export const bundledSfxProvider = {
