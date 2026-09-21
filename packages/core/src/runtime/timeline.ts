@@ -5,7 +5,11 @@ import type {
   RuntimeTimelineLike,
 } from "./types";
 import { stableClipId } from "./clipTree";
-import { resolveAuthoredTimingWindow } from "./authoredTiming";
+import {
+  AUTHORED_DURATION_ATTR,
+  AUTHORED_END_ATTR,
+  resolveAuthoredTimingWindow,
+} from "./authoredTiming";
 import { swallow } from "./diagnostics";
 import { readElementPlaybackRate, readElementPlaybackStart } from "./media";
 import {
@@ -54,8 +58,8 @@ export function isRuntimeElementVisibleAt(
     const hasAuthoredTiming =
       rawNode.hasAttribute("data-duration") ||
       rawNode.hasAttribute("data-end") ||
-      rawNode.hasAttribute("data-hf-authored-duration") ||
-      rawNode.hasAttribute("data-hf-authored-end");
+      rawNode.hasAttribute(AUTHORED_DURATION_ATTR) ||
+      rawNode.hasAttribute(AUTHORED_END_ATTR);
     if (
       !hasAuthoredTiming &&
       (duration == null || duration <= 0) &&
@@ -90,7 +94,7 @@ function parseNum(value: string | null | undefined): number | null {
 
 function parseElementDurationAttr(element: Element): number | null {
   const publicDuration = element.getAttribute("data-duration");
-  const authoredDuration = element.getAttribute("data-hf-authored-duration");
+  const authoredDuration = element.getAttribute(AUTHORED_DURATION_ATTR);
   const resolved = resolveAuthoredTimingWindow({
     start: 0,
     duration: publicDuration,
@@ -108,7 +112,7 @@ function parseElementEndAttr(element: Element): number | null {
     resolveAuthoredTimingWindow({
       start: 0,
       end: element.getAttribute("data-end"),
-      authoredEnd: element.getAttribute("data-hf-authored-end"),
+      authoredEnd: element.getAttribute(AUTHORED_END_ATTR),
     })?.end ?? null
   );
 }

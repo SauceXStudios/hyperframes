@@ -78,6 +78,7 @@ import { installStudioCustomEase } from "./customEase";
 import { parseStrictFiniteTimingNumber, resolveMediaElementDurationSeconds } from "./playbackRate";
 import { MEDIA_START_BASIS_ATTR } from "../mediaTiming";
 import { settleFirstFrameCompositionReadiness } from "../compositionReadiness";
+import { AUTHORED_DURATION_ATTR, AUTHORED_END_ATTR } from "./authoredTiming";
 import {
   clearRuntimeData,
   setRuntimeData,
@@ -92,9 +93,6 @@ import {
   isMediaElement,
   isVideoElement,
 } from "./domRealm";
-
-const AUTHORED_DURATION_ATTR = "data-hf-authored-duration";
-const AUTHORED_END_ATTR = "data-hf-authored-end";
 
 /**
  * A `window.__timelines` entry is authored content and may be a PARTIAL

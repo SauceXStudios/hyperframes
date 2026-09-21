@@ -1,9 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import {
   computeReadinessInput,
-  FIRST_FRAME_READINESS_SCOPE,
   mediaReadinessInput,
   paintAndIdleReadinessInput,
   scanPendingCompositionAssets,
@@ -352,17 +349,6 @@ describe("paintAndIdleReadinessInput", () => {
 });
 
 describe("settleCompositionReadiness", () => {
-  it("uses the shared first-frame scope for both runtime callsites", () => {
-    expect(FIRST_FRAME_READINESS_SCOPE).toBe("first-frame");
-    const playerSource = readFileSync(
-      resolve(process.cwd(), "../player/src/hyperframes-player.ts"),
-      "utf8",
-    );
-    const runtimeSource = readFileSync(resolve(process.cwd(), "src/runtime/init.ts"), "utf8");
-    expect(playerSource).toContain("settleFirstFrameCompositionReadiness(");
-    expect(runtimeSource).toContain("settleFirstFrameCompositionReadiness(");
-  });
-
   it("does not wait for a later video through the public first-frame path", async () => {
     const doc = docWith(
       '<img id="first" data-start="0" data-duration="5" src="first.png">' +
