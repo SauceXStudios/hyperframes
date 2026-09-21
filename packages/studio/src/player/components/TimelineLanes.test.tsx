@@ -208,7 +208,9 @@ describe("TimelineLanes track numbering", () => {
     const onToggleTrackHidden = vi.fn();
     const view = renderLanes({
       elements: [element("clip-a", TRACK_A), element("clip-b", TRACK_B)],
-      onToggleTrackHidden,
+      onToggleTrackHidden: (track, hidden, displayNumber) => {
+        onToggleTrackHidden(track, hidden, displayNumber);
+      },
     });
 
     const second = view.host.querySelector<HTMLButtonElement>('button[aria-label="Hide track 2"]');

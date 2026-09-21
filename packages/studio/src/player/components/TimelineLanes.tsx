@@ -156,6 +156,7 @@ export function TimelineLanes({
                 toggleLaneOwnerExpanded={toggleLaneOwnerExpanded}
                 lanes={automationLanes}
                 pps={pps}
+                currentTime={currentTime}
                 compositionDuration={compositionDuration}
                 beatTimes={beatAnalysis?.beatTimes}
                 contentGutter={contentGutter}
@@ -272,7 +273,6 @@ export function TimelineLanes({
                 trackElements={els}
                 clipCount={els.length}
                 isExpanded={rowExpanded}
-                currentTime={currentTime}
                 isTrackHidden={isTrackHidden}
                 isAudioTrack={isAudioTrack}
                 isGroupMember={groupMemberTracks.has(trackNum)}
