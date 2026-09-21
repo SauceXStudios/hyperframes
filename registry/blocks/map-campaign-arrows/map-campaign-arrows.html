@@ -5,64 +5,47 @@
     <meta name="viewport" content="width=1920, height=1080" />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
     <style>
-      *,
-      *::before,
-      *::after {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      body {
-        background: #1a1714;
-        overflow: hidden;
-      }
+      *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+      body { background: #2a2a2a; overflow: hidden; }
       #root-map-campaign-arrows {
+        --bg: #6e6e6e;
+        --land: #1a1a1a;
+        --lake: #d8d8d8;
+        --route: #ffffff;
+        --ink: #ececec;
         position: relative;
         width: 1920px;
         height: 1080px;
         overflow: hidden;
-        background: #1a1714;
+        background: var(--bg);
         font-family: Georgia, "Times New Roman", serif;
       }
       #mca-frame {
         position: absolute;
-        inset: 48px;
-        border: 1px solid rgba(196, 181, 154, 0.14);
-        background: #221e19;
+        inset: 40px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: var(--bg);
       }
-      #mca-svg {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-      }
+      #mca-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
       #mca-title {
-        position: absolute;
-        top: 72px;
-        left: 96px;
-        color: rgba(232, 220, 196, 0.92);
-        font-size: 42px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        position: absolute; top: 64px; left: 88px;
+        color: var(--ink); font-size: 40px; letter-spacing: 0.1em;
+        text-transform: uppercase; opacity: 0.92;
       }
       #mca-subtitle {
-        position: absolute;
-        top: 128px;
-        left: 96px;
-        color: rgba(196, 181, 154, 0.55);
-        font-size: 22px;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
+        position: absolute; top: 118px; left: 88px;
+        color: rgba(236, 236, 236, 0.55); font-size: 20px;
+        letter-spacing: 0.16em; text-transform: uppercase;
       }
-      #mca-note {
-        position: absolute;
-        bottom: 88px;
-        left: 96px;
-        color: rgba(196, 181, 154, 0.55);
-        font-size: 16px;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        max-width: 720px;
+      #mca-credit {
+        position: absolute; bottom: 72px; left: 88px; right: 88px;
+        color: rgba(236, 236, 236, 0.45); font-size: 14px;
+        letter-spacing: 0.08em; text-transform: uppercase; max-width: 1400px;
+      }
+      #mca-grain {
+        position: absolute; inset: 0; pointer-events: none; opacity: 0.22;
+        mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
       }
     </style>
   </head>
@@ -71,145 +54,43 @@
       id="root-map-campaign-arrows"
       data-composition-id="map-campaign-arrows"
       data-start="0"
-      data-duration="9"
+      data-duration="10"
       data-width="1920"
       data-height="1080"
     >
       <div id="mca-frame">
-        <svg
-          id="mca-svg"
-          viewBox="0 0 1920 1080"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <defs>
-            <marker
-              id="mca-head"
-              markerWidth="12"
-              markerHeight="12"
-              refX="10"
-              refY="6"
-              orient="auto"
-              markerUnits="strokeWidth"
-            >
-              <path d="M 0 0 L 12 6 L 0 12 Z" fill="#c45c26" />
-            </marker>
-            <pattern
-              id="mca-hatch"
-              width="11"
-              height="11"
-              patternUnits="userSpaceOnUse"
-              patternTransform="rotate(45)"
-            >
-              <line x1="0" y1="0" x2="0" y2="11" stroke="rgba(196,181,154,0.07)" stroke-width="1" />
-            </pattern>
-          </defs>
-          <rect width="1920" height="1080" fill="#1f1b17" />
-          <rect width="1920" height="1080" fill="url(#mca-hatch)" />
-          <path
-            id="mca-land"
-            d="M 280 320 C 340 220 480 180 620 210 C 760 240 820 300 900 280 C 980 260 1080 300 1180 340 C 1280 380 1360 460 1380 560 C 1400 660 1340 760 1240 820 C 1140 880 980 900 860 860 C 740 820 700 780 620 800 C 540 820 420 780 360 700 C 300 620 240 500 280 320 Z"
-            fill="rgba(196,181,154,0.16)"
-            stroke="rgba(196,181,154,0.4)"
-            stroke-width="2"
-          />
-          <path
-            id="mca-island"
-            d="M 1480 420 C 1540 400 1600 430 1610 480 C 1620 530 1580 570 1520 560 C 1460 550 1450 450 1480 420 Z"
-            fill="rgba(196,181,154,0.12)"
-            stroke="rgba(196,181,154,0.3)"
-            stroke-width="1.5"
-          />
-          <!-- abstract campaign arrows (educational / schematic) -->
-          <path
-            id="mca-a1"
-            d="M 420 600 C 520 560 620 500 740 480"
-            fill="none"
-            stroke="#c45c26"
-            stroke-width="5"
-            stroke-linecap="round"
-            marker-end="url(#mca-head)"
-          />
-          <path
-            id="mca-a2"
-            d="M 760 470 C 860 430 960 420 1080 450"
-            fill="none"
-            stroke="#c45c26"
-            stroke-width="5"
-            stroke-linecap="round"
-            marker-end="url(#mca-head)"
-          />
-          <path
-            id="mca-a3"
-            d="M 1100 455 C 1200 480 1300 540 1380 620"
-            fill="none"
-            stroke="#c45c26"
-            stroke-width="5"
-            stroke-linecap="round"
-            marker-end="url(#mca-head)"
-          />
-          <path
-            id="mca-a4"
-            d="M 900 640 C 1000 600 1120 580 1240 560"
-            fill="none"
-            stroke="#c45c26"
-            stroke-width="4"
-            stroke-linecap="round"
-            marker-end="url(#mca-head)"
-            opacity="0.75"
-          />
-          <circle id="mca-origin" cx="420" cy="600" r="11" fill="#c45c26" />
-          <text
-            id="mca-step1"
-            x="580"
-            y="520"
-            fill="rgba(232,220,196,0.85)"
-            font-size="18"
-            font-family="Georgia, serif"
-            opacity="0"
-          >
-            I
-          </text>
-          <text
-            id="mca-step2"
-            x="920"
-            y="400"
-            fill="rgba(232,220,196,0.85)"
-            font-size="18"
-            font-family="Georgia, serif"
-            opacity="0"
-          >
-            II
-          </text>
-          <text
-            id="mca-step3"
-            x="1280"
-            y="560"
-            fill="rgba(232,220,196,0.85)"
-            font-size="18"
-            font-family="Georgia, serif"
-            opacity="0"
-          >
-            III
-          </text>
-          <text
-            id="mca-step4"
-            x="1080"
-            y="620"
-            fill="rgba(232,220,196,0.7)"
-            font-size="16"
-            font-family="Georgia, serif"
-            opacity="0"
-          >
-            IV
-          </text>
+        <svg id="mca-svg" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect width="1920" height="1080" fill="var(--bg)" />
+          <path id="mca-land" d="M 160.0 179.7 L 162.0 174.4 L 169.2 175.8 L 177.4 178.1 L 180.8 179.9 L 186.4 180.2 L 191.5 180.8 L 197.0 181.5 L 204.3 179.5 L 206.8 182.6 L 211.3 183.7 L 214.6 180.6 L 217.1 184.7 L 218.8 188.9 L 214.9 191.8 L 212.6 195.2 L 208.7 197.8 L 204.9 203.0 L 207.1 206.4 L 210.7 204.1 L 206.3 205.9 L 208.8 198.8 L 211.9 196.7 L 215.1 193.9 L 219.8 189.9 L 222.5 193.5 L 222.0 198.7 L 220.4 205.0 L 219.0 210.8 L 217.1 205.9 L 214.9 208.9 L 217.9 211.2 L 212.3 209.5 L 214.2 213.9 L 218.0 212.5 L 221.1 208.4 L 226.6 206.5 L 225.6 202.2 L 223.7 196.4 L 224.7 191.5 L 227.1 186.9 L 225.5 181.2 L 223.1 177.6 L 225.1 182.4 L 221.5 180.9 L 222.8 176.4 L 220.3 172.0 L 217.2 169.6 L 222.7 169.8 L 223.8 165.7 L 221.3 161.9 L 217.8 159.7 L 213.7 156.1 L 232.9 152.5 L 242.5 152.7 L 257.0 152.5 L 271.2 152.6 L 290.1 152.6 L 306.9 152.6 L 323.3 152.5 L 341.0 152.5 L 373.3 152.6 L 390.3 152.6 L 423.8 152.6 L 446.9 152.5 L 465.8 152.7 L 484.7 152.6 L 519.3 152.7 L 540.3 152.7 L 563.4 152.6 L 596.0 152.6 L 610.0 152.6 L 639.0 152.6 L 661.6 152.6 L 675.8 152.6 L 705.1 152.6 L 716.4 152.6 L 733.0 152.6 L 751.7 152.6 L 783.7 152.6 L 804.8 152.6 L 814.0 152.6 L 833.2 152.6 L 849.1 152.6 L 862.5 152.6 L 876.5 152.6 L 902.0 152.5 L 930.2 152.6 L 956.7 152.6 L 979.4 152.6 L 979.4 140.0 L 984.9 140.5 L 988.6 142.9 L 990.0 148.6 L 992.5 156.4 L 993.7 161.0 L 998.9 162.6 L 1004.1 162.4 L 1011.3 164.2 L 1016.0 164.8 L 1021.3 168.3 L 1026.3 167.4 L 1029.5 164.8 L 1039.5 164.9 L 1046.7 167.6 L 1048.7 171.0 L 1054.2 172.1 L 1056.6 178.0 L 1059.6 173.7 L 1065.3 173.5 L 1068.3 177.7 L 1074.7 178.7 L 1076.8 182.1 L 1081.0 183.0 L 1087.6 182.5 L 1092.2 179.3 L 1097.7 177.2 L 1100.8 179.9 L 1106.2 181.3 L 1111.9 182.2 L 1118.6 181.6 L 1122.3 184.2 L 1127.2 184.7 L 1132.8 184.9 L 1128.0 188.8 L 1122.9 190.8 L 1117.8 192.0 L 1113.0 193.5 L 1107.3 195.0 L 1101.9 197.5 L 1098.2 199.7 L 1091.0 204.9 L 1083.9 211.8 L 1078.7 215.0 L 1076.1 217.4 L 1072.2 220.1 L 1065.2 224.1 L 1068.4 228.3 L 1076.7 226.6 L 1085.2 223.9 L 1089.9 223.0 L 1095.3 219.8 L 1101.5 221.6 L 1097.7 225.9 L 1095.9 231.1 L 1101.4 229.5 L 1106.0 231.0 L 1110.1 232.2 L 1113.8 230.9 L 1117.7 229.5 L 1124.5 226.4 L 1128.0 223.8 L 1135.7 223.1 L 1143.0 221.1 L 1146.0 218.4 L 1151.1 217.6 L 1155.1 213.3 L 1159.4 210.5 L 1163.8 208.3 L 1166.9 205.3 L 1172.7 203.0 L 1178.2 202.2 L 1183.2 202.4 L 1178.8 205.3 L 1176.1 208.2 L 1173.2 210.8 L 1170.8 213.5 L 1167.5 217.3 L 1164.2 223.4 L 1170.9 220.2 L 1176.7 220.9 L 1181.9 221.7 L 1185.2 223.6 L 1188.9 225.0 L 1190.9 228.1 L 1194.7 231.2 L 1198.2 234.6 L 1204.9 233.1 L 1208.6 236.2 L 1212.8 235.2 L 1215.0 232.3 L 1219.4 233.4 L 1223.4 231.7 L 1229.3 228.6 L 1236.4 228.0 L 1241.0 228.5 L 1247.5 228.3 L 1253.6 226.0 L 1259.0 225.8 L 1259.8 231.6 L 1261.7 235.0 L 1266.3 236.0 L 1271.0 234.7 L 1275.2 236.4 L 1278.1 233.9 L 1284.9 233.3 L 1285.1 240.3 L 1282.4 243.0 L 1285.8 245.7 L 1288.8 249.5 L 1294.2 250.7 L 1298.9 247.2 L 1301.5 250.2 L 1298.0 252.3 L 1291.8 251.6 L 1285.3 251.3 L 1279.4 252.0 L 1274.4 250.9 L 1270.3 248.9 L 1268.0 252.3 L 1263.1 252.9 L 1260.4 250.2 L 1256.6 248.9 L 1252.0 247.7 L 1246.6 247.5 L 1242.4 251.6 L 1236.0 251.6 L 1231.0 251.7 L 1225.4 252.5 L 1223.0 257.4 L 1218.7 258.8 L 1215.6 261.7 L 1216.9 257.8 L 1211.4 255.3 L 1209.9 259.6 L 1206.4 261.3 L 1205.7 256.8 L 1203.4 259.8 L 1198.0 265.3 L 1196.3 269.4 L 1192.5 274.3 L 1188.4 279.2 L 1187.9 284.0 L 1182.1 285.5 L 1180.4 288.9 L 1178.1 292.4 L 1176.4 297.4 L 1182.9 295.1 L 1185.4 292.3 L 1188.5 288.5 L 1193.3 286.8 L 1195.3 283.6 L 1198.0 280.6 L 1202.0 277.0 L 1203.8 273.7 L 1204.0 280.3 L 1200.1 284.3 L 1197.9 288.2 L 1195.8 292.4 L 1193.3 296.2 L 1190.3 305.4 L 1191.0 310.0 L 1187.5 312.5 L 1185.0 319.8 L 1185.8 326.4 L 1183.7 329.7 L 1181.0 336.5 L 1180.1 340.9 L 1181.2 346.5 L 1181.9 352.2 L 1184.1 355.6 L 1182.6 361.1 L 1183.0 368.7 L 1183.2 374.5 L 1185.3 377.7 L 1188.1 384.2 L 1189.9 388.9 L 1192.4 391.9 L 1196.3 393.6 L 1202.0 392.8 L 1207.2 390.7 L 1213.2 387.2 L 1215.9 384.7 L 1219.6 377.4 L 1223.0 373.3 L 1224.9 369.5 L 1226.9 361.8 L 1227.3 353.2 L 1226.7 348.1 L 1222.1 338.3 L 1219.8 331.7 L 1218.1 328.4 L 1220.3 324.2 L 1220.2 316.9 L 1221.2 312.0 L 1223.6 307.8 L 1225.7 304.6 L 1227.0 297.4 L 1226.0 293.3 L 1230.6 291.7 L 1231.0 287.0 L 1234.9 284.3 L 1240.1 281.6 L 1242.6 278.5 L 1245.8 276.4 L 1243.9 279.5 L 1242.8 284.1 L 1243.4 290.9 L 1246.1 286.8 L 1244.8 291.1 L 1249.8 285.5 L 1250.6 279.4 L 1250.5 274.4 L 1255.0 271.6 L 1261.9 271.0 L 1258.3 267.7 L 1259.1 262.4 L 1262.4 260.0 L 1266.3 258.8 L 1273.1 260.3 L 1278.1 261.8 L 1282.6 262.5 L 1285.2 266.5 L 1290.2 267.1 L 1293.9 269.5 L 1299.6 271.7 L 1304.5 273.8 L 1306.2 277.9 L 1308.7 282.5 L 1305.1 280.9 L 1304.0 285.2 L 1307.3 287.1 L 1307.9 291.6 L 1307.4 296.5 L 1307.1 301.4 L 1305.8 305.2 L 1302.0 307.0 L 1300.5 310.8 L 1298.2 314.2 L 1293.2 316.3 L 1291.0 319.4 L 1289.7 324.1 L 1292.6 327.5 L 1297.3 329.3 L 1301.1 325.5 L 1303.3 322.1 L 1306.5 320.2 L 1308.9 316.8 L 1314.6 315.7 L 1318.6 313.6 L 1323.4 316.2 L 1325.1 319.7 L 1326.8 323.5 L 1327.3 329.3 L 1329.0 334.3 L 1329.4 341.2 L 1330.4 345.2 L 1332.4 349.7 L 1330.6 355.0 L 1329.8 359.5 L 1327.6 363.3 L 1324.1 361.7 L 1319.6 364.2 L 1319.1 368.7 L 1314.4 370.9 L 1312.8 377.2 L 1310.9 381.1 L 1307.4 383.4 L 1303.9 387.5 L 1305.8 391.5 L 1310.8 393.3 L 1316.2 396.3 L 1320.0 395.1 L 1324.0 396.2 L 1326.8 399.9 L 1330.6 401.5 L 1334.7 399.9 L 1343.6 397.1 L 1349.2 397.7 L 1354.1 396.3 L 1356.9 393.9 L 1363.7 389.1 L 1371.4 386.0 L 1376.7 384.6 L 1383.2 382.7 L 1389.7 380.3 L 1394.1 378.2 L 1397.3 375.7 L 1401.2 374.5 L 1407.2 372.0 L 1414.4 367.8 L 1417.3 365.3 L 1422.9 363.2 L 1425.3 360.2 L 1429.2 357.2 L 1430.7 353.4 L 1428.9 350.0 L 1426.8 346.5 L 1425.4 340.4 L 1431.6 338.2 L 1437.2 336.9 L 1444.5 336.3 L 1451.8 336.3 L 1460.4 337.5 L 1464.1 339.3 L 1467.6 340.9 L 1471.6 339.5 L 1479.4 339.2 L 1485.1 339.0 L 1489.9 337.4 L 1492.7 335.1 L 1496.7 333.1 L 1501.9 331.8 L 1504.7 327.4 L 1503.8 322.3 L 1506.6 319.3 L 1502.2 317.1 L 1499.8 312.6 L 1503.3 309.3 L 1507.4 306.1 L 1512.6 303.9 L 1515.5 300.5 L 1520.7 295.7 L 1523.8 292.9 L 1529.4 288.9 L 1536.0 285.5 L 1540.4 283.8 L 1545.3 283.6 L 1556.2 283.5 L 1561.5 283.5 L 1572.1 283.1 L 1590.8 282.7 L 1602.3 282.7 L 1612.4 283.1 L 1618.1 283.1 L 1634.8 282.8 L 1636.9 279.1 L 1638.2 275.3 L 1645.0 275.2 L 1648.4 272.8 L 1651.5 275.3 L 1654.1 271.0 L 1658.9 269.6 L 1656.4 266.4 L 1658.6 263.4 L 1661.8 261.5 L 1665.7 259.2 L 1666.9 255.4 L 1669.7 252.6 L 1667.8 248.5 L 1669.9 241.3 L 1673.7 237.2 L 1676.5 227.9 L 1697.8 202.9 L 1701.8 204.0 L 1702.7 209.5 L 1706.8 212.1 L 1711.9 210.0 L 1715.7 208.5 L 1721.2 208.5 L 1725.3 206.3 L 1731.3 210.1 L 1734.8 213.8 L 1737.6 231.0 L 1737.9 250.4 L 1738.6 256.3 L 1737.2 261.1 L 1740.8 262.6 L 1745.7 264.1 L 1748.0 266.9 L 1747.0 273.0 L 1748.3 277.4 L 1753.2 277.9 L 1757.0 281.0 L 1758.4 285.0 L 1760.0 289.4 L 1754.2 294.8 L 1750.8 296.4 L 1748.3 293.7 L 1745.9 297.8 L 1743.2 301.3 L 1740.0 298.7 L 1735.8 302.2 L 1730.5 305.1 L 1726.8 303.3 L 1725.4 307.2 L 1720.7 307.7 L 1721.9 303.1 L 1716.1 303.3 L 1717.4 307.4 L 1714.9 310.8 L 1713.6 315.8 L 1711.9 310.5 L 1711.1 306.1 L 1709.0 302.6 L 1704.1 302.0 L 1703.0 308.3 L 1701.3 312.5 L 1699.2 316.7 L 1696.3 320.3 L 1694.0 317.1 L 1690.7 319.8 L 1687.3 322.0 L 1683.2 324.3 L 1678.4 323.1 L 1674.4 325.3 L 1670.7 327.9 L 1666.6 331.1 L 1665.5 335.4 L 1662.0 337.4 L 1660.0 340.8 L 1657.8 346.3 L 1655.1 349.8 L 1653.7 353.5 L 1654.8 358.6 L 1659.9 359.7 L 1656.0 362.4 L 1651.6 366.2 L 1650.0 370.0 L 1652.8 372.5 L 1656.4 374.5 L 1658.7 378.4 L 1657.0 381.7 L 1661.1 383.6 L 1662.6 388.6 L 1668.3 389.9 L 1673.0 389.1 L 1676.2 385.3 L 1674.3 381.7 L 1671.4 379.4 L 1675.5 380.7 L 1677.3 384.1 L 1678.4 391.3 L 1676.9 394.9 L 1673.9 392.3 L 1669.6 393.4 L 1664.2 394.2 L 1659.5 396.2 L 1656.1 398.0 L 1652.4 400.1 L 1655.8 397.6 L 1658.7 395.1 L 1656.5 389.9 L 1654.0 392.5 L 1650.4 395.1 L 1647.5 397.8 L 1643.3 399.0 L 1643.0 394.3 L 1640.5 398.1 L 1641.6 393.1 L 1638.7 389.4 L 1637.5 394.7 L 1636.1 399.7 L 1631.4 402.1 L 1625.0 403.9 L 1618.6 403.5 L 1610.2 405.4 L 1605.2 405.2 L 1600.1 405.2 L 1595.8 404.3 L 1593.0 407.1 L 1589.6 409.1 L 1583.0 410.5 L 1579.6 412.3 L 1575.4 413.9 L 1572.2 416.8 L 1577.6 416.7 L 1582.2 415.4 L 1586.9 417.0 L 1591.0 414.8 L 1599.5 415.1 L 1604.8 414.0 L 1608.6 411.1 L 1613.2 408.8 L 1615.4 412.9 L 1619.6 413.7 L 1623.8 411.3 L 1617.8 414.8 L 1610.0 418.3 L 1605.1 420.0 L 1597.0 422.6 L 1591.7 424.8 L 1587.5 426.0 L 1577.8 427.6 L 1571.7 427.3 L 1567.2 428.8 L 1564.4 426.0 L 1561.5 429.1 L 1558.3 431.4 L 1564.2 432.9 L 1566.1 437.5 L 1564.7 442.6 L 1563.4 449.5 L 1562.9 454.4 L 1558.9 461.1 L 1556.2 465.2 L 1551.1 469.0 L 1547.9 472.0 L 1545.8 475.4 L 1543.6 479.5 L 1539.7 481.6 L 1540.7 476.0 L 1537.1 472.9 L 1533.0 471.3 L 1528.4 467.9 L 1524.9 464.9 L 1523.6 460.3 L 1521.5 464.2 L 1523.6 467.3 L 1526.7 470.9 L 1526.7 477.1 L 1529.2 481.7 L 1532.6 485.6 L 1536.0 490.3 L 1536.4 496.0 L 1535.4 501.3 L 1533.0 507.7 L 1529.6 513.3 L 1527.3 516.8 L 1523.4 518.6 L 1521.1 524.1 L 1518.9 529.5 L 1516.7 534.6 L 1514.8 538.9 L 1511.4 540.7 L 1509.4 536.2 L 1510.8 530.1 L 1512.2 525.0 L 1515.6 519.7 L 1518.7 516.4 L 1516.2 512.8 L 1513.7 510.0 L 1511.8 505.8 L 1514.0 500.2 L 1511.8 503.9 L 1510.1 499.7 L 1508.5 504.5 L 1503.9 501.7 L 1500.8 495.9 L 1502.4 492.0 L 1507.7 492.6 L 1505.3 489.9 L 1501.3 488.1 L 1502.6 484.1 L 1500.1 481.2 L 1504.5 480.2 L 1506.1 476.2 L 1502.4 474.5 L 1504.0 470.7 L 1507.1 467.1 L 1510.8 464.6 L 1507.5 461.7 L 1503.9 467.7 L 1500.2 466.4 L 1498.6 472.1 L 1494.2 470.6 L 1498.3 475.0 L 1497.0 480.2 L 1496.4 485.2 L 1495.4 489.8 L 1496.5 496.1 L 1499.4 500.1 L 1501.2 507.4 L 1497.0 508.5 L 1493.8 504.9 L 1488.0 504.2 L 1486.4 500.2 L 1481.9 497.4 L 1476.7 500.2 L 1474.8 496.2 L 1477.4 492.3 L 1473.8 495.8 L 1475.1 501.1 L 1480.1 499.9 L 1483.4 503.6 L 1486.9 506.6 L 1493.1 507.1 L 1495.9 511.1 L 1500.6 513.7 L 1503.1 517.4 L 1501.4 521.1 L 1497.1 522.9 L 1494.0 519.5 L 1490.1 517.3 L 1486.9 514.1 L 1489.8 518.5 L 1494.0 523.0 L 1498.1 524.6 L 1501.8 526.3 L 1503.3 532.0 L 1498.7 531.5 L 1500.4 535.7 L 1497.1 537.5 L 1500.8 539.9 L 1501.7 544.6 L 1497.3 543.7 L 1493.0 540.7 L 1489.9 537.6 L 1485.9 536.1 L 1489.4 539.7 L 1492.0 543.3 L 1496.7 546.2 L 1500.4 548.0 L 1504.0 546.6 L 1509.2 546.8 L 1511.1 550.7 L 1512.3 554.7 L 1514.1 560.9 L 1515.8 567.8 L 1517.3 572.2 L 1519.6 576.6 L 1523.1 584.2 L 1520.4 579.7 L 1517.7 577.2 L 1516.9 572.3 L 1515.3 567.9 L 1514.3 563.7 L 1510.4 561.1 L 1512.3 565.2 L 1513.8 569.0 L 1515.7 573.6 L 1512.6 570.4 L 1506.5 567.9 L 1508.5 572.2 L 1503.1 571.3 L 1497.5 571.3 L 1501.8 574.0 L 1497.5 576.5 L 1491.4 575.9 L 1490.2 570.7 L 1491.2 577.3 L 1495.5 579.1 L 1501.3 579.0 L 1505.2 577.5 L 1509.8 578.7 L 1508.7 583.6 L 1509.8 588.1 L 1510.8 580.6 L 1515.5 578.6 L 1517.7 583.1 L 1517.3 588.0 L 1514.7 591.3 L 1511.2 593.8 L 1508.5 596.5 L 1503.6 598.5 L 1498.2 598.1 L 1493.9 593.3 L 1490.5 596.0 L 1484.0 594.5 L 1491.7 598.6 L 1496.3 599.4 L 1495.2 604.5 L 1492.9 608.0 L 1487.9 611.1 L 1482.9 608.0 L 1485.4 611.3 L 1492.6 610.3 L 1497.0 607.7 L 1499.2 610.8 L 1498.8 615.4 L 1496.3 618.3 L 1491.5 619.5 L 1495.7 621.3 L 1498.0 617.8 L 1501.2 614.5 L 1508.3 607.4 L 1503.7 613.0 L 1499.4 617.0 L 1495.6 622.5 L 1491.4 620.0 L 1481.5 621.0 L 1476.7 622.8 L 1473.5 625.1 L 1469.6 627.2 L 1463.4 632.2 L 1459.5 637.3 L 1457.1 643.5 L 1455.8 647.4 L 1452.1 645.7 L 1447.0 645.5 L 1438.5 647.7 L 1434.9 649.1 L 1428.7 654.4 L 1426.3 657.9 L 1423.3 662.1 L 1422.0 667.0 L 1420.2 671.2 L 1417.0 675.1 L 1412.5 674.1 L 1409.9 676.8 L 1407.8 680.2 L 1403.5 683.3 L 1400.0 687.0 L 1395.9 688.6 L 1390.1 692.3 L 1387.4 695.2 L 1383.5 699.0 L 1379.5 697.3 L 1379.3 702.7 L 1375.9 704.4 L 1375.4 709.0 L 1371.9 712.6 L 1369.7 715.5 L 1366.0 717.1 L 1367.9 720.2 L 1364.4 722.7 L 1363.8 730.0 L 1362.2 734.5 L 1360.5 738.2 L 1357.9 741.4 L 1358.8 748.1 L 1359.3 753.6 L 1360.6 760.2 L 1363.0 774.3 L 1364.3 779.4 L 1367.1 787.8 L 1370.3 795.9 L 1373.2 802.3 L 1379.6 813.9 L 1383.4 819.5 L 1384.8 823.6 L 1382.6 826.7 L 1383.0 832.8 L 1385.2 839.6 L 1388.7 847.1 L 1390.2 851.8 L 1392.2 858.9 L 1393.9 863.2 L 1395.4 867.6 L 1398.4 877.9 L 1398.3 884.5 L 1397.6 889.5 L 1397.1 895.3 L 1396.0 904.4 L 1395.7 911.4 L 1391.6 915.8 L 1390.0 921.4 L 1389.3 925.9 L 1393.7 920.8 L 1390.3 929.3 L 1386.9 934.2 L 1383.5 938.1 L 1385.6 935.1 L 1387.1 930.5 L 1380.9 930.5 L 1375.0 930.9 L 1371.7 932.6 L 1367.7 931.3 L 1367.7 925.5 L 1365.8 920.2 L 1364.1 916.6 L 1361.0 911.3 L 1356.4 908.9 L 1350.9 905.3 L 1349.4 901.1 L 1348.9 896.2 L 1347.5 891.6 L 1344.7 888.4 L 1340.8 886.3 L 1338.8 881.7 L 1342.4 877.8 L 1341.8 872.7 L 1339.8 878.2 L 1336.5 880.4 L 1334.2 874.3 L 1331.6 869.3 L 1328.8 862.8 L 1326.1 858.6 L 1323.3 853.7 L 1326.9 852.2 L 1329.4 848.6 L 1333.0 844.0 L 1330.3 841.3 L 1324.8 837.7 L 1326.5 841.5 L 1326.6 847.6 L 1323.6 851.3 L 1322.0 845.4 L 1320.9 838.0 L 1320.0 831.5 L 1321.3 836.6 L 1322.7 831.5 L 1324.3 826.6 L 1325.3 821.6 L 1325.4 815.9 L 1323.6 810.8 L 1322.7 806.0 L 1321.6 801.2 L 1316.3 800.2 L 1312.7 796.7 L 1310.6 793.1 L 1307.5 790.4 L 1305.1 785.9 L 1302.5 782.8 L 1300.0 779.4 L 1297.2 775.8 L 1290.4 772.0 L 1286.7 770.0 L 1281.1 770.1 L 1278.4 773.0 L 1276.5 776.4 L 1270.5 778.3 L 1264.1 782.0 L 1257.4 782.6 L 1260.5 785.6 L 1266.3 783.0 L 1269.0 780.7 L 1264.2 784.5 L 1260.7 786.4 L 1254.6 783.8 L 1249.7 781.8 L 1250.7 776.6 L 1247.3 774.6 L 1244.2 771.4 L 1239.3 768.2 L 1235.2 765.5 L 1230.5 763.4 L 1224.8 761.4 L 1215.5 760.4 L 1207.6 761.2 L 1201.1 762.6 L 1193.7 763.6 L 1187.2 765.1 L 1177.6 765.9 L 1184.1 764.7 L 1182.2 761.2 L 1179.5 757.4 L 1179.4 751.8 L 1175.3 754.9 L 1174.7 761.0 L 1169.0 761.3 L 1164.6 762.8 L 1159.2 761.4 L 1152.9 760.4 L 1147.6 761.3 L 1141.8 763.4 L 1138.4 765.0 L 1132.9 768.2 L 1129.8 771.2 L 1126.2 773.2 L 1129.8 774.6 L 1131.7 777.8 L 1134.1 773.8 L 1136.6 770.7 L 1139.5 774.5 L 1143.5 775.7 L 1139.8 778.3 L 1138.1 781.7 L 1135.2 784.1 L 1131.0 785.6 L 1132.2 789.5 L 1135.2 792.1 L 1139.5 793.2 L 1143.3 795.8 L 1146.8 797.7 L 1149.9 800.1 L 1147.0 802.3 L 1143.9 805.2 L 1139.8 807.1 L 1141.3 802.1 L 1136.6 798.9 L 1132.2 796.5 L 1126.6 795.5 L 1120.7 800.0 L 1116.1 803.2 L 1113.8 797.3 L 1110.3 794.6 L 1106.9 796.6 L 1104.3 800.5 L 1100.4 802.5 L 1095.6 800.1 L 1090.9 798.9 L 1086.8 797.9 L 1089.8 795.4 L 1087.4 791.6 L 1084.7 789.2 L 1079.8 788.6 L 1076.6 785.2 L 1074.1 781.5 L 1071.5 778.9 L 1067.5 779.8 L 1063.7 781.8 L 1065.9 785.3 L 1062.5 787.0 L 1057.9 788.6 L 1049.8 786.8 L 1040.6 782.8 L 1034.2 780.8 L 1026.0 780.8 L 1020.2 781.5 L 1016.4 782.9 L 1011.4 783.7 L 995.0 790.7 L 991.2 793.9 L 992.8 790.4 L 996.6 789.0 L 990.9 788.8 L 992.2 783.3 L 988.8 781.2 L 985.9 784.5 L 983.2 787.7 L 986.2 789.7 L 986.7 795.9 L 983.1 798.5 L 979.3 799.8 L 987.1 796.6 L 991.2 795.1 L 983.0 801.1 L 980.2 803.8 L 977.1 806.3 L 973.1 810.3 L 964.7 814.7 L 961.2 816.9 L 956.0 819.4 L 949.9 822.5 L 946.5 825.0 L 943.7 828.2 L 938.5 831.4 L 931.4 837.6 L 928.2 841.6 L 925.7 845.6 L 922.5 851.8 L 920.1 857.3 L 918.0 866.3 L 917.9 872.2 L 918.7 878.0 L 920.1 883.8 L 922.9 894.0 L 924.0 901.3 L 922.8 895.8 L 921.6 890.5 L 920.5 886.3 L 919.0 882.7 L 917.5 877.8 L 917.3 871.0 L 918.3 859.8 L 919.9 854.7 L 921.8 850.6 L 924.1 846.2 L 926.0 841.5 L 928.7 839.1 L 930.5 835.6 L 934.1 832.5 L 939.2 829.5 L 943.8 827.4 L 938.8 828.2 L 934.7 825.2 L 933.6 829.1 L 931.8 832.9 L 927.5 833.8 L 922.4 836.2 L 926.8 835.2 L 923.2 844.2 L 919.3 843.0 L 914.6 842.4 L 917.4 845.7 L 921.3 848.5 L 919.4 852.6 L 918.1 857.8 L 914.9 861.6 L 910.5 862.5 L 915.8 862.7 L 916.0 871.7 L 915.4 877.5 L 916.0 884.1 L 916.9 888.2 L 920.1 894.3 L 920.8 901.2 L 924.2 905.5 L 918.6 906.4 L 916.0 908.9 L 913.2 906.1 L 910.3 903.3 L 906.1 902.0 L 901.1 901.8 L 895.7 901.5 L 891.6 900.0 L 887.8 896.7 L 882.5 896.3 L 879.7 893.4 L 873.8 891.0 L 869.8 889.8 L 868.0 883.7 L 866.3 879.6 L 863.8 875.2 L 861.4 870.7 L 860.7 866.4 L 859.1 862.4 L 859.1 857.0 L 857.5 851.2 L 853.3 849.9 L 850.7 847.1 L 848.6 843.8 L 847.1 839.2 L 844.7 836.5 L 839.4 832.4 L 837.0 829.3 L 835.5 825.5 L 833.8 820.6 L 831.4 817.0 L 830.0 811.7 L 827.1 807.8 L 826.5 802.7 L 823.7 800.3 L 820.8 796.8 L 817.1 793.9 L 813.3 790.4 L 810.7 787.4 L 807.3 784.3 L 805.2 781.3 L 797.9 781.0 L 793.9 779.8 L 788.8 779.7 L 784.7 778.3 L 780.1 777.8 L 775.7 780.4 L 771.9 782.0 L 769.3 785.0 L 767.3 788.9 L 766.4 794.3 L 765.1 799.1 L 761.7 801.9 L 758.9 806.4 L 752.9 805.3 L 747.5 801.5 L 742.0 799.7 L 738.9 796.9 L 733.3 795.5 L 730.3 793.4 L 727.0 789.2 L 723.3 787.3 L 720.3 785.1 L 718.7 780.8 L 716.8 777.5 L 714.8 772.5 L 715.3 767.4 L 713.2 763.4 L 710.5 760.6 L 709.4 754.7 L 706.5 750.9 L 702.4 748.7 L 698.7 746.4 L 695.6 744.2 L 691.2 740.9 L 688.8 736.9 L 685.2 735.2 L 682.6 731.2 L 678.8 727.8 L 673.2 725.4 L 671.2 722.3 L 669.3 717.9 L 666.5 715.6 L 651.5 715.0 L 627.7 715.0 L 617.8 715.0 L 617.8 729.7 L 594.5 729.8 L 588.1 729.7 L 568.1 729.7 L 555.4 729.8 L 538.3 729.8 L 502.6 716.4 L 481.5 708.9 L 471.4 705.0 L 434.8 691.8 L 435.7 687.4 L 396.0 688.0 L 370.7 690.5 L 369.5 686.0 L 367.1 682.2 L 366.4 674.9 L 364.2 669.8 L 360.2 664.4 L 356.7 661.2 L 352.4 657.6 L 348.5 655.5 L 344.0 651.4 L 339.3 652.3 L 335.0 651.0 L 334.2 644.6 L 331.4 641.4 L 325.8 641.6 L 320.0 641.0 L 316.3 639.4 L 312.8 637.8 L 311.1 633.9 L 306.0 630.4 L 300.1 629.0 L 294.6 629.3 L 290.9 627.6 L 282.7 627.4 L 277.9 628.0 L 275.0 624.4 L 274.5 619.6 L 274.2 614.6 L 273.4 609.8 L 271.7 604.3 L 267.3 603.2 L 267.2 598.2 L 263.2 594.9 L 260.5 592.0 L 256.4 588.5 L 254.2 584.4 L 250.5 581.0 L 247.4 576.4 L 243.4 570.9 L 240.2 569.1 L 238.3 565.6 L 237.3 561.6 L 237.4 556.5 L 241.5 551.0 L 239.5 546.8 L 232.7 546.0 L 227.7 541.3 L 224.4 538.2 L 224.5 532.9 L 223.1 528.9 L 221.3 525.8 L 221.4 519.1 L 225.6 521.2 L 228.3 525.9 L 231.8 528.0 L 230.9 522.5 L 228.6 519.7 L 226.6 515.0 L 228.3 510.5 L 224.7 507.3 L 221.8 510.9 L 223.5 515.8 L 217.5 515.1 L 213.9 513.5 L 211.2 511.1 L 209.0 508.2 L 207.2 501.8 L 204.4 497.2 L 201.0 495.2 L 195.1 488.5 L 189.8 484.0 L 187.4 480.8 L 187.3 473.9 L 185.8 470.4 L 185.4 464.7 L 186.2 459.5 L 184.8 455.1 L 182.8 451.1 L 178.7 445.8 L 175.0 442.3 L 170.1 438.1 L 168.9 432.3 L 171.1 426.5 L 175.3 419.0 L 177.1 413.0 L 175.8 409.3 L 178.5 399.6 L 176.5 392.4 L 173.1 388.3 L 174.6 383.2 L 172.2 379.8 L 170.0 376.3 L 169.0 372.2 L 168.2 366.9 L 169.4 362.8 L 167.1 357.3 L 164.9 353.8 L 167.6 348.6 L 169.0 342.5 L 170.7 337.1 L 173.1 332.2 L 174.6 326.8 L 176.1 318.8 L 176.8 312.5 L 177.2 307.2 L 178.0 301.5 L 178.6 294.4 L 178.9 288.2 L 180.1 281.8 L 181.3 274.1 L 180.9 267.2 L 181.9 261.6 L 181.3 255.9 L 182.0 251.3 L 180.2 242.8 L 184.3 245.4 L 189.2 243.5 L 192.7 241.9 L 187.8 240.7 L 183.7 242.7 L 180.7 240.5 L 178.7 234.5 L 178.3 229.8 L 179.4 234.4 L 181.5 238.2 L 183.2 233.0 L 181.3 229.8 L 184.9 227.1 L 179.6 227.4 L 176.4 221.0 L 184.1 219.6 L 179.7 218.2 L 175.2 220.3 L 175.1 213.5 L 173.7 208.5 L 170.4 200.5 L 168.5 193.8 L 165.3 190.6 L 161.7 185.8 L 161.0 181.5 L 160.0 179.7 Z" fill="var(--land)" stroke="rgba(0,0,0,0.35)" stroke-width="1.2" />
+          <path class="mca-lake" d="M 1120 250 C 1200 220 1320 235 1380 280 C 1410 310 1385 355 1310 365 C 1220 380 1135 340 1110 295 C 1095 270 1095 260 1120 250 Z" fill="var(--lake)" />
+          <path class="mca-lake" d="M 1115 375 C 1150 355 1195 375 1205 430 C 1215 490 1190 545 1155 555 C 1125 565 1105 520 1100 460 C 1095 410 1095 385 1115 375 Z" fill="var(--lake)" />
+          <path class="mca-lake" d="M 1225 335 C 1285 315 1360 340 1375 390 C 1385 430 1345 465 1285 460 C 1235 455 1205 410 1205 370 C 1205 345 1210 340 1225 335 Z" fill="var(--lake)" />
+          <path class="mca-lake" d="M 1285 480 C 1355 465 1435 480 1455 505 C 1465 520 1430 540 1360 538 C 1300 536 1265 515 1265 495 C 1265 485 1275 482 1285 480 Z" fill="var(--lake)" />
+          <path class="mca-lake" d="M 1420 455 C 1470 445 1520 460 1535 480 C 1545 495 1515 512 1470 510 C 1430 508 1405 485 1405 470 C 1405 460 1410 457 1420 455 Z" fill="var(--lake)" />
+          <path id="mca-east-0" class="mca-rail mca-east" d="M 1180 420 L 1180 520 L 1180 620 L 1200 720" fill="none" stroke="var(--route)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+          <path id="mca-east-1" class="mca-rail mca-east" d="M 1180 450 L 1280 450 L 1380 470 L 1450 500" fill="none" stroke="var(--route)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+          <path id="mca-east-2" class="mca-rail mca-east" d="M 1180 500 L 1300 520 L 1400 560 L 1460 620" fill="none" stroke="var(--route)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+          <path id="mca-east-3" class="mca-rail mca-east" d="M 1180 560 L 1260 600 L 1320 680 L 1340 760" fill="none" stroke="var(--route)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+          <path id="mca-east-4" class="mca-rail mca-east" d="M 1220 420 L 1220 700" fill="none" stroke="var(--route)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+          <path id="mca-east-5" class="mca-rail mca-east" d="M 1260 430 L 1260 650" fill="none" stroke="var(--route)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+          <path id="mca-east-6" class="mca-rail mca-east" d="M 1140 480 L 1100 560 L 1080 660" fill="none" stroke="var(--route)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+          <path id="mca-east-7" class="mca-rail mca-east" d="M 1140 440 L 1080 440 L 1020 480" fill="none" stroke="var(--route)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+          <path id="mca-east-8" class="mca-rail mca-east" d="M 1320 480 L 1360 420 L 1420 400" fill="none" stroke="var(--route)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+          <path id="mca-east-9" class="mca-rail mca-east" d="M 1200 620 L 1280 700 L 1300 780" fill="none" stroke="var(--route)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+          <path id="mca-trans-0" class="mca-rail mca-trans" d="M 280 520 L 400 500 L 560 490 L 720 485 L 880 490 L 1020 500 L 1120 510 L 1180 520" fill="none" stroke="var(--route)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+          <path id="mca-west-0" class="mca-rail mca-west" d="M 400 500 L 400 560" fill="none" stroke="var(--route)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+          <path id="mca-west-1" class="mca-rail mca-west" d="M 560 490 L 560 560" fill="none" stroke="var(--route)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+          <path id="mca-west-2" class="mca-rail mca-west" d="M 720 485 L 720 545" fill="none" stroke="var(--route)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+          <path id="mca-west-3" class="mca-rail mca-west" d="M 880 490 L 880 555" fill="none" stroke="var(--route)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+          <path id="mca-west-4" class="mca-rail mca-west" d="M 320 510 L 280 560" fill="none" stroke="var(--route)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
+        <div id="mca-grain"></div>
       </div>
-      <div id="mca-title" data-var-text="title">Schematic Advances</div>
-      <div id="mca-subtitle" data-var-text="subtitle">
-        Sequential path arrows · abstract cartography
+      <div id="mca-title" data-var-text="title">How Our Country Grew</div>
+      <div id="mca-subtitle" data-var-text="subtitle">Rail web | east densify | transcontinental | west spurs</div>
+      <div id="mca-credit" data-var-text="credit">
+        Inspired by Moving Image Archive, How Our Country Grew, 1950 (Animated Maps) - not affiliated; recreation in code, footage not included.
       </div>
-      <div id="mca-note">Abstract educational diagram - not a depiction of any real campaign</div>
     </div>
     <script>
       (function () {
@@ -218,63 +99,75 @@
           window.__hyperframes && window.__hyperframes.getVariables
             ? window.__hyperframes.getVariables()
             : {};
-        var accent = /^#[0-9a-fA-F]{6}$/.test(String(vars.accent || ""))
-          ? String(vars.accent)
-          : "#c45c26";
+        var root = document.getElementById("root-map-campaign-arrows");
+        function hex(v, fallback) {
+          return /^#[0-9a-fA-F]{6}$/.test(String(v || "")) ? String(v) : fallback;
+        }
+        function num(v, fallback) {
+          var n = Number(v);
+          return Number.isFinite(n) && n > 0 ? n : fallback;
+        }
+        root.style.setProperty("--bg", hex(vars.bg, "#6e6e6e"));
+        root.style.setProperty("--land", hex(vars.land, "#1a1a1a"));
+        root.style.setProperty("--lake", hex(vars.lake, "#d8d8d8"));
+        root.style.setProperty("--route", hex(vars.route, "#ffffff"));
+        root.style.setProperty("--ink", hex(vars.ink, "#ececec"));
+
         var title =
-          typeof vars.title === "string" && vars.title ? vars.title : "Schematic Advances";
+          typeof vars.title === "string" && vars.title ? vars.title : "How Our Country Grew";
         var subtitle =
           typeof vars.subtitle === "string" && vars.subtitle
             ? vars.subtitle
-            : "Sequential path arrows · abstract cartography";
-
+            : "Rail web | east densify | transcontinental | west spurs";
+        var credit =
+          typeof vars.credit === "string" && vars.credit
+            ? vars.credit
+            : "Inspired by Moving Image Archive, How Our Country Grew, 1950 (Animated Maps) - not affiliated; recreation in code, footage not included.";
         document.getElementById("mca-title").textContent = title;
         document.getElementById("mca-subtitle").textContent = subtitle;
+        document.getElementById("mca-credit").textContent = credit;
 
-        var head = document.querySelector("#mca-head path");
-        if (head) head.setAttribute("fill", accent);
-        document.getElementById("mca-origin").setAttribute("fill", accent);
+        var eastSpeed = num(vars.eastSpeed, 0.18);
+        var transSpeed = num(vars.transSpeed, 2.4);
+        var westSpeed = num(vars.westSpeed, 0.35);
 
-        var arrows = ["mca-a1", "mca-a2", "mca-a3", "mca-a4"];
-        var steps = ["mca-step1", "mca-step2", "mca-step3", "mca-step4"];
-        var lens = [];
-        for (var i = 0; i < arrows.length; i++) {
-          var el = document.getElementById(arrows[i]);
-          el.setAttribute("stroke", accent);
+        var rails = Array.prototype.slice.call(document.querySelectorAll(".mca-rail"));
+        rails.forEach(function (el) {
           var len = el.getTotalLength();
-          lens.push(len);
+          el.setAttribute("stroke", "var(--route)");
           gsap.set(el, { strokeDasharray: len, strokeDashoffset: len });
-        }
+        });
 
-        gsap.set("#mca-title", { opacity: 0, y: -10 });
+        gsap.set("#mca-title", { opacity: 0, y: -8 });
         gsap.set("#mca-subtitle", { opacity: 0 });
-        gsap.set("#mca-note", { opacity: 0 });
+        gsap.set("#mca-credit", { opacity: 0 });
         gsap.set("#mca-land", { opacity: 0 });
-        gsap.set("#mca-island", { opacity: 0 });
-        gsap.set("#mca-origin", { scale: 0, transformOrigin: "50% 50%" });
-        gsap.set(
-          steps.map(function (id) {
-            return "#" + id;
-          }),
-          { opacity: 0 },
-        );
+        gsap.set(".mca-lake", { opacity: 0 });
 
         var tl = gsap.timeline({ paused: true });
-        tl.to("#mca-land", { opacity: 1, duration: 0.5, ease: "power2.out" }, 0);
-        tl.to("#mca-island", { opacity: 1, duration: 0.4, ease: "power2.out" }, 0.12);
-        tl.to("#mca-title", { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 0.08);
+        tl.to("#mca-land", { opacity: 1, duration: 0.55, ease: "power2.out" }, 0);
+        tl.to(".mca-lake", { opacity: 1, duration: 0.45, ease: "power2.out" }, 0.2);
+        tl.to("#mca-title", { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 0.1);
         tl.to("#mca-subtitle", { opacity: 1, duration: 0.35, ease: "power1.out" }, 0.28);
-        tl.to("#mca-origin", { scale: 1, duration: 0.35, ease: "back.out(1.8)" }, 0.7);
-        tl.to("#mca-note", { opacity: 1, duration: 0.4, ease: "power1.out" }, 0.9);
+        tl.to("#mca-credit", { opacity: 1, duration: 0.4, ease: "power1.out" }, 0.55);
 
-        var t = 1.2;
-        for (i = 0; i < arrows.length; i++) {
-          var a = document.getElementById(arrows[i]);
-          var dur = i === 3 ? 1.0 : 1.15;
-          tl.to(a, { strokeDashoffset: 0, duration: dur, ease: "power1.inOut" }, t);
-          tl.to("#" + steps[i], { opacity: 1, duration: 0.25, ease: "power1.out" }, t + dur * 0.7);
-          t += dur + 0.18;
-        }
+        var east = Array.prototype.slice.call(document.querySelectorAll(".mca-east"));
+        var t = 0.9;
+        east.forEach(function (el, i) {
+          tl.to(el, { strokeDashoffset: 0, duration: eastSpeed + (i % 3) * 0.05, ease: "none" }, t + i * 0.07);
+        });
+        t = 0.9 + east.length * 0.07 + 0.35;
+
+        var trans = Array.prototype.slice.call(document.querySelectorAll(".mca-trans"));
+        trans.forEach(function (el) {
+          tl.to(el, { strokeDashoffset: 0, duration: transSpeed, ease: "power1.inOut" }, t);
+        });
+        t += transSpeed + 0.15;
+
+        var west = Array.prototype.slice.call(document.querySelectorAll(".mca-west"));
+        west.forEach(function (el, i) {
+          tl.to(el, { strokeDashoffset: 0, duration: westSpeed, ease: "power1.out" }, t + i * 0.08);
+        });
 
         window.__timelines["map-campaign-arrows"] = tl;
       })();
