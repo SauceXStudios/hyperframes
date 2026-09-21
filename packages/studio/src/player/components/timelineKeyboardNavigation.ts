@@ -6,7 +6,7 @@ import {
   timelineGroupRowId,
   timelineTrackRowId,
 } from "./timelineNavigationIdentity";
-import { resolveTrackKeyframeClip } from "./useTimelineTrackLayout";
+import { isTimelineRowExpanded, resolveTrackKeyframeClip } from "./useTimelineTrackLayout";
 import type { TimelineTrackGroupInfo } from "./useTimelineTrackDerivations";
 
 export type TimelineNavigationKey =
@@ -70,7 +70,7 @@ export interface BuildTimelineLogicalRowsInput {
   /** Groups the caret has COLLAPSED — absent means expanded, the default. */
   collapsedGroupIds: ReadonlySet<string>;
   /** Rows (clip id or group id) whose automation-lane rows the `∿` button opened. */
-  expandedLaneOwnerIds?: ReadonlySet<string>;
+  expandedLaneOwnerIds: ReadonlySet<string>;
   groups: readonly TimelineTrackGroupInfo[];
   trackGroupOf: ReadonlyMap<number, TimelineTrackGroupInfo>;
 }
@@ -134,7 +134,7 @@ export function buildTimelineLogicalRows({
   selectedElementId,
   selectedElementIds,
   collapsedGroupIds,
-  expandedLaneOwnerIds = new Set(),
+  expandedLaneOwnerIds,
   groups,
   trackGroupOf,
 }: BuildTimelineLogicalRowsInput): TimelineLogicalRow[] {
@@ -154,7 +154,7 @@ export function buildTimelineLogicalRows({
       selectedElementIds,
     );
     const disclosable = groupAutomationLanes(elements).length > 0;
-    const expanded = activeId !== null && expandedLaneOwnerIds.has(activeId) && disclosable;
+    const expanded = isTimelineRowExpanded(elements, expandedLaneOwnerIds);
     rows.push({
       id: trackId,
       kind: "row",

@@ -552,7 +552,7 @@ describe("Timeline provider boundary", () => {
       duration: 8,
       timelineReady: true,
       selectedElementId: "narration-2",
-      expandedLaneOwnerIds: new Set(["narration-2"]),
+      expandedLaneOwnerIds: new Set(["narration-1", "narration-2"]),
       elements: [
         { id: "narration-1", tag: "audio", start: 0, duration: 4, track: 0, automation },
         { id: "narration-2", tag: "audio", start: 4, duration: 4, track: 0, automation },

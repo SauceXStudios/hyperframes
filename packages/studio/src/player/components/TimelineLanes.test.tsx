@@ -278,6 +278,42 @@ describe("TimelineLanes audio disclosure", () => {
     expect(view.host.querySelectorAll("[data-automation-lane-label]")).toHaveLength(1);
     act(() => view.root.unmount());
   });
+
+  it("renders an expanded envelope on a video track", () => {
+    const video = element("video-clip", TRACK_A);
+    video.tag = "video";
+    video.automation = JSON.stringify({
+      version: 1,
+      lanes: [{ target: "volume", points: [{ t: 0, v: 1 }] }],
+    });
+    usePlayerStore.setState({ expandedLaneOwnerIds: new Set([video.id]) });
+    const view = renderLanes({ elements: [video] });
+
+    expect(
+      view.host.querySelector('button[aria-label^="Hide "][aria-label$=" lanes"]'),
+    ).not.toBeNull();
+    expect(view.host.querySelectorAll("[data-automation-lane-label]")).toHaveLength(1);
+    act(() => view.root.unmount());
+  });
+
+  it("toggles every clip owner on a shared audio row", () => {
+    const automation = JSON.stringify({
+      version: 1,
+      lanes: [{ target: "volume", points: [{ t: 0, v: 1 }] }],
+    });
+    const first = { ...element("audio-1", TRACK_A), tag: "audio", automation };
+    const second = { ...element("audio-2", TRACK_A), tag: "audio", automation };
+    const view = renderLanes({ elements: [first, second] });
+
+    act(() =>
+      view.host
+        .querySelector<HTMLButtonElement>('button[aria-label="Show Track 1 lanes"]')
+        ?.click(),
+    );
+
+    expect(usePlayerStore.getState().expandedLaneOwnerIds).toEqual(new Set(["audio-1", "audio-2"]));
+    act(() => view.root.unmount());
+  });
 });
 
 describe("TimelineLanes selection", () => {

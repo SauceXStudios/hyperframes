@@ -180,10 +180,6 @@ export function TimelinePane({
       operation?: TimelineMoveOperation,
       coalesceMs?: number,
     ) => {
-      // Match the sibling handlers: report the telemetry when the batch touches at
-      // least one expanded sub-comp child (the clips being rebased to local coords).
-      if (edits.some(({ element }) => element.expandedParentStart !== undefined)) {
-      }
       if (!onMoveElements) return;
       return forwardRebasedTimelineMoveElements(
         edits,
@@ -222,8 +218,6 @@ export function TimelinePane({
       options?: { coalesceKey?: string },
     ) => {
       if (!onResizeElements) return;
-      if (changes.some(({ element }) => element.expandedParentStart !== undefined)) {
-      }
       return forwardRebasedTimelineResizeElements(changes, options, onResizeElements);
     },
     [onResizeElements],

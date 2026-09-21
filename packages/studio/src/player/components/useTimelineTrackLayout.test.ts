@@ -34,7 +34,7 @@ describe("collapsed audio groups", () => {
     const elements = [member("voice-1", 0), member("voice-2", 1)];
     let layout: ReturnType<typeof useTimelineTrackLayout> | undefined;
     function Probe() {
-      layout = useTimelineTrackLayout(elements, new Map(), null, new Set());
+      layout = useTimelineTrackLayout(elements, new Map());
       return null;
     }
     const root = createRoot(document.createElement("div"));
@@ -66,7 +66,7 @@ describe("collapsed audio groups", () => {
     ];
     let layout: ReturnType<typeof useTimelineTrackLayout> | undefined;
     function Probe() {
-      layout = useTimelineTrackLayout(elements, new Map(), null, new Set());
+      layout = useTimelineTrackLayout(elements, new Map());
       return null;
     }
     const root = createRoot(document.createElement("div"));
@@ -181,5 +181,36 @@ describe("resolveTrackKeyframeClip", () => {
       (e) => (e.id === "b" ? 3 : 0),
     );
     expect(picked).toBe(b);
+  });
+});
+
+describe("audio lane row height", () => {
+  it("stays open when selection moves to a sibling on the same track", () => {
+    const automation = JSON.stringify({
+      version: 1,
+      lanes: [{ target: "volume", points: [{ t: 0, v: 1 }] }],
+    });
+    const elements = [
+      audioClip("narration-1", { track: 0, automation }),
+      audioClip("narration-2", { track: 0, automation }),
+    ];
+    usePlayerStore.setState({ expandedLaneOwnerIds: new Set(["narration-1", "narration-2"]) });
+    let layout: ReturnType<typeof useTimelineTrackLayout> | undefined;
+    function Probe() {
+      layout = useTimelineTrackLayout(elements, new Map());
+      return null;
+    }
+    const root = createRoot(document.createElement("div"));
+    act(() => root.render(React.createElement(Probe)));
+    const firstHeight = layout!.rowHeights[0];
+
+    act(() => {
+      usePlayerStore.setState({ selectedElementId: "narration-2" });
+      root.render(React.createElement(Probe));
+    });
+
+    expect(firstHeight).toBe(TRACK_H + AUTOMATION_LANE_H);
+    expect(layout!.rowHeights[0]).toBe(firstHeight);
+    act(() => root.unmount());
   });
 });

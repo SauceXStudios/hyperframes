@@ -41,10 +41,6 @@ const STORYBOARD_VIEW_REASON =
 
 export const ALLOWED_DELETIONS = new Map([
   [
-    "packages/studio/src/player/components/timelineKeyboardNavigation.test.ts",
-    "the inline expansion row navigation feature is removed, so its dedicated tests are removed",
-  ],
-  [
     "packages/studio/src/player/components/useAutoExpandKeyframedClips.test.tsx",
     "the inline expansion auto-expand feature is removed, so its dedicated tests are removed",
   ],
@@ -55,10 +51,6 @@ export const ALLOWED_DELETIONS = new Map([
   [
     "packages/studio/src/player/components/useTimelineClipDisclosure.ts",
     "the timeline no longer exposes inline clip disclosure controls",
-  ],
-  [
-    "packages/studio/src/player/components/useTimelineTrackLayout.test.ts",
-    "the inline expansion row layout feature is removed, so its dedicated tests are removed",
   ],
   [
     "packages/studio/src/player/hooks/useTimelineRowElements.ts",

@@ -8,7 +8,11 @@ import { useAutomationSelectionKeyboard } from "../../hooks/useAutomationSelecti
 import { TimelineTrackHeader } from "./TimelineTrackHeader";
 import { TimelineGroupRow } from "./TimelineGroupRow";
 import { useTimelineLaneRowIndexes, useTimelineGroupDisclosure } from "./useTimelineLaneRowIndexes";
-import { resolveTrackKeyframeClip, trackShowsBeatStrip } from "./useTimelineTrackLayout";
+import {
+  isTimelineRowExpanded,
+  resolveTrackKeyframeClip,
+  trackShowsBeatStrip,
+} from "./useTimelineTrackLayout";
 import { trackDisplayNumber, trackDisplaySuffix } from "./timelineTrackDisplay";
 import { getTimelineEditCapabilities } from "./timelineEditing";
 import { CLIP_Y, TRACK_H } from "./timelineLayout";
@@ -115,7 +119,10 @@ export function TimelineLanes({
     rowGeometry,
     scrollRef,
     onToggleRow: (row) => {
-      if (row.elementId) toggleLaneOwnerExpanded(row.elementId);
+      const ownerIds = row.groupId
+        ? [row.groupId]
+        : row.items.filter((item) => item.kind === "clip").map((item) => item.elementId);
+      if (ownerIds.length > 0) toggleLaneOwnerExpanded(ownerIds);
     },
   });
   return (
@@ -201,14 +208,7 @@ export function TimelineLanes({
             selectedElementIds,
           );
           const keyframeClipKey = keyframeClip?.key ?? keyframeClip?.id;
-          const expandedAudioOwner = els.find((element) =>
-            expandedLaneOwnerIds.has(getTimelineElementIdentity(element)),
-          );
-          const laneOwnerKey = expandedAudioOwner
-            ? getTimelineElementIdentity(expandedAudioOwner)
-            : keyframeClipKey;
-          const rowExpanded =
-            isAudioTrack && laneOwnerKey !== undefined && expandedLaneOwnerIds.has(laneOwnerKey);
+          const rowExpanded = isTimelineRowExpanded(els, expandedLaneOwnerIds);
           // How tall a clip BAR is drawn. An expanded row is mostly lanes, and a
           // clip left to fill it painted its waveform straight over them — so the
           // bar is capped for every clip on the row, not just the one whose
@@ -223,9 +223,7 @@ export function TimelineLanes({
           // on the canvas. Keyed by display row, not by `trackNum`, which is a
           // fractional sort key and would mint ids like `...-0.16666666666666666`.
           const lanesId = `${lanesIdPrefix}-track-${row}`;
-          // The caret reveals two canvas regions now: the active clip's keyframe
-          // lanes and the track's automation lanes. They cannot be one element —
-          // one belongs to a clip, the other to the row — so the caret names both.
+          // The caret reveals the track's automation lanes in the row-owned region.
           const automationLanesId = `${lanesId}-automation`;
           // The header's remove buttons write through the same binding the lanes
           // themselves edit through, so a deletion persists exactly like dragging
@@ -282,8 +280,7 @@ export function TimelineLanes({
                 isGroupMember={groupMemberTracks.has(trackNum)}
                 theme={theme}
                 onToggleClipExpanded={() => {
-                  const owner = laneOwnerKey ?? keyframeClipKey;
-                  if (owner) toggleLaneOwnerExpanded(owner);
+                  toggleLaneOwnerExpanded(els.map(getTimelineElementIdentity));
                 }}
                 onToggleTrackHidden={onToggleTrackHidden}
                 onRemoveAutomationLane={removeAutomationLane}
@@ -513,7 +510,6 @@ export function TimelineLanes({
                       }}
                       lanes={automationLanes}
                       pps={pps}
-                      laneCount={0}
                       accentColor={getTrackStyle(keyframeClip?.tag ?? "").accent}
                       currentTime={currentTime}
                       beatTimes={beatAnalysis?.beatTimes}

@@ -59,15 +59,6 @@ function trackAutomationLaneCount(elements: readonly TimelineElement[]): number 
 }
 
 /**
- * Is this row disclosed? Expansion is stored per clip, but it reads as a property
- * of the ROW: the active clip changes with the selection, so asking only about it
- * collapsed the row the moment you clicked a sibling. Any expanded clip on the
- * track holds the row open — and the caret expands and collapses all of them
- * together (see TimelineLanes), so the two can only disagree on state predating
- * this rule or written by the keyframe auto-expand.
- */
-
-/**
  * The single keyframed element whose property lanes a track shows when expanded.
  * A track can hold several elements (same z-index is common), but keyframes are
  * per-element, so we scope to ONE active element — the selected one if it's on
@@ -99,6 +90,17 @@ export function resolveTrackKeyframeClip(
   // reduce over the already non-empty list so there's no index to assert on.
   return keyframed.reduce((best, element) =>
     disclosable(element) > disclosable(best) ? element : best,
+  );
+}
+
+/** One row owns one disclosure state, even when several clips share its track. */
+export function isTimelineRowExpanded(
+  elements: readonly TimelineElement[],
+  expandedLaneOwnerIds: ReadonlySet<string>,
+): boolean {
+  return (
+    groupAutomationLanes(elements).length > 0 &&
+    elements.some((element) => expandedLaneOwnerIds.has(element.key ?? element.id))
   );
 }
 
@@ -145,8 +147,6 @@ function applyGroupStripHeights(
 function useTimelineRowHeights(
   tracks: [number, TimelineElement[]][],
   gsapAnimations: Map<string, GsapAnimation[]>,
-  selectedElementId: string | null,
-  selectedElementIds: ReadonlySet<string>,
   groups: readonly TimelineTrackGroupInfo[],
 ) {
   const expandedLaneOwnerIds = usePlayerStore((s) => s.expandedLaneOwnerIds);
@@ -155,14 +155,7 @@ function useTimelineRowHeights(
     const rowHeights = applyGroupStripHeights(
       tracks,
       tracks.map(([, elements]) => {
-        const active = resolveTrackKeyframeClip(
-          elements,
-          laneCounts,
-          selectedElementId,
-          selectedElementIds,
-        );
-        const activeId = active ? (active.key ?? active.id) : null;
-        return activeId !== null && expandedLaneOwnerIds.has(activeId)
+        return isTimelineRowExpanded(elements, expandedLaneOwnerIds)
           ? TRACK_H + trackAutomationLaneCount(elements) * AUTOMATION_LANE_H
           : TRACK_H;
       }),
@@ -176,7 +169,7 @@ function useTimelineRowHeights(
         rowHeights,
       ),
     };
-  }, [expandedLaneOwnerIds, gsapAnimations, groups, tracks, selectedElementId, selectedElementIds]);
+  }, [expandedLaneOwnerIds, gsapAnimations, groups, tracks]);
   const rowGeometryRef = useRef<TimelineRowGeometry>(rowGeometry);
   rowGeometryRef.current = rowGeometry;
   return {
@@ -190,8 +183,6 @@ function useTimelineRowHeights(
 export function useTimelineTrackLayout(
   expandedElements: TimelineElement[],
   gsapAnimations: Map<string, GsapAnimation[]>,
-  selectedElementId: string | null,
-  selectedElementIds: ReadonlySet<string>,
 ) {
   const { tracks, trackStyles, trackOrder, groups, trackGroupOf } =
     useTimelineTrackDerivations(expandedElements);
@@ -200,8 +191,6 @@ export function useTimelineTrackLayout(
   const { laneCounts, rowGeometry, rowGeometryRef, rowHeights } = useTimelineRowHeights(
     tracks,
     gsapAnimations,
-    selectedElementId,
-    selectedElementIds,
     groups,
   );
 

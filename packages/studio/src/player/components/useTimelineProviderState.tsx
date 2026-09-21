@@ -145,12 +145,7 @@ export function useTimelineProviderState({
     rowGeometryRef,
     groups,
     trackGroupOf,
-  } = useTimelineTrackLayout(
-    timelineElements,
-    gsapAnimations,
-    selectedElementId,
-    selectedElementIds,
-  );
+  } = useTimelineTrackLayout(timelineElements, gsapAnimations);
   const timelineElementsRef = useRef(timelineElements);
   timelineElementsRef.current = timelineElements; // oxlint-disable-line react/refs -- event handlers read the latest elements
   const ppsRef = useRef(100);
