@@ -25,16 +25,29 @@ function validateRule(rule, files) {
   }
 }
 
-function scanRule(rule, files, read) {
+function compileRule(rule, files, read) {
   validateRule(rule, files);
   const pattern = new RegExp(rule.pattern, "g");
   if (!read(rule.owner).match(pattern))
     throw new Error(`${rule.id}: pattern does not match its owner`);
-  const exempt = new Set([rule.owner, ...rule.allowlist.map((entry) => entry.file)]);
-  return files
-    .filter((file) => !exempt.has(file))
-    .flatMap((file) => {
-      const count = [...read(file).matchAll(pattern)].length;
+  return {
+    id: rule.id,
+    pattern,
+    exempt: new Set([rule.owner, ...rule.allowlist.map((entry) => entry.file)]),
+  };
+}
+
+function countMatches(text, pattern) {
+  let count = 0;
+  for (const _match of text.matchAll(pattern)) count++;
+  return count;
+}
+
+function fileViolations(file, text, rules) {
+  return rules
+    .filter((rule) => !rule.exempt.has(file))
+    .flatMap((rule) => {
+      const count = countMatches(text, rule.pattern);
       return count ? [[`${rule.id}:${file}`, count]] : [];
     });
 }
@@ -42,8 +55,9 @@ function scanRule(rule, files, read) {
 export function ownerViolations(files, read, manifest) {
   const ids = manifest.rules.map((rule) => rule.id);
   if (new Set(ids).size !== ids.length) throw new Error("Duplicate owner rule id");
-  const sourceFiles = files.filter((file) => /\.(?:[cm]?js|tsx?)$/.test(file));
-  return Object.fromEntries(manifest.rules.flatMap((rule) => scanRule(rule, sourceFiles, read)));
+  const rules = manifest.rules.map((rule) => compileRule(rule, files, read));
+  const sourceFiles = files.filter((file) => /\.(?:[cm]?[jt]s|[jt]sx|html)$/.test(file));
+  return Object.fromEntries(sourceFiles.flatMap((file) => fileViolations(file, read(file), rules)));
 }
 
 function budgetIssue(key, count, current, previous) {

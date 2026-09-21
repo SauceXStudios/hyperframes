@@ -1,6 +1,7 @@
 // guards: **
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFileSync } from "node:fs";
 import { ownerViolations, ratchet } from "./check-single-owners.mjs";
 
 const empty = { total: 0, files: {} };
@@ -63,4 +64,24 @@ test("an old file budget cannot pay for a different file", () => {
     ratchet({ "gain:new.ts": 1 }, { total: 1, files: { "gain:old.ts": 1 } }).join("\n"),
     /new.ts/,
   );
+});
+
+test("JSX, typed modules and inline HTML scripts are scanned", () => {
+  for (const suffix of ["jsx", "mts", "cts", "html"]) {
+    const tree = {
+      "owner.ts": "20 * Math.log10(gain)",
+      [`copy.${suffix}`]: "20 * Math.log10(value)",
+    };
+    assert.equal(scan(tree)[`gain:copy.${suffix}`], 1);
+  }
+});
+
+test("the declared gain pattern covers multiline exponent expressions", () => {
+  const manifest = JSON.parse(
+    readFileSync(new URL("./single-owners.json", import.meta.url), "utf8"),
+  );
+  const declared = manifest.rules.find((entry) => entry.id === "db-to-gain");
+  const expression = ["10 ** (", "db / 20", ")"].join("\n");
+  const tree = { [declared.owner]: expression, "copy.ts": expression };
+  assert.equal(scan(tree, [{ ...declared, allowlist: [] }])["db-to-gain:copy.ts"], 1);
 });
