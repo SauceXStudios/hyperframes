@@ -47,7 +47,11 @@ interface RenderLanesOptions {
   selectedElementIds?: Set<string>;
   multiDragPreview?: MultiDragPreviewInput | null;
   draggedClip?: DraggedClipState | null;
-  onToggleTrackHidden?: TimelineEditCallbacks["onToggleTrackHidden"];
+  onToggleTrackHidden?: (
+    track: number,
+    hidden: boolean,
+    displayNumber?: number | null,
+  ) => void | Promise<void>;
   onContextMenuLane?: (e: React.MouseEvent, track: number, time: number) => void;
   hoveredClip?: string | null;
   renderClipContent?: React.ComponentProps<typeof TimelineLanes>["renderClipContent"];
@@ -137,7 +141,6 @@ function renderLanes(options: RenderLanesOptions = {}): {
           currentTime={0}
           onContextMenuLane={next.onContextMenuLane}
           onToggleTrackHidden={next.onToggleTrackHidden}
-          onTogglePropertyGroupKeyframe={vi.fn()}
           onResizeElement={vi.fn()}
           onMoveElement={vi.fn()}
           onSelectElement={onSelectElement}
