@@ -113,7 +113,7 @@ describe("TimelineTrackHeader", () => {
     const first = { ...ELEMENT, id: "first", tag: "audio", automation };
     const second = { ...ELEMENT, id: "second", tag: "audio", automation };
     const { host, root } = renderHeader({ clip: second, elements: [first, second], audio: true });
-    expect(host.textContent).toContain("Track 1");
+    expect(host.querySelector('button[aria-label="Hide Track 1 lanes"]')).not.toBeNull();
     expect(host.textContent).not.toContain("second");
     act(() => root.unmount());
   });
