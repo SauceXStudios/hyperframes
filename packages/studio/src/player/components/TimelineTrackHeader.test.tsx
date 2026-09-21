@@ -27,7 +27,7 @@ function renderHeader(
     expanded?: boolean;
     audio?: boolean;
     hidden?: boolean;
-    onHidden?: (track: number, hidden: boolean, display: number) => void;
+    onHidden?: (track: number, hidden: boolean, displayNumber?: number | null) => void;
     onRemove?: (target: string) => void;
   } = {},
 ) {
