@@ -142,8 +142,8 @@ export function buildTimelineLogicalRows({
   const groupByAnchor = new Map(groups.map((group) => [group.anchorKey, group]));
   const rows: TimelineLogicalRow[] = [];
 
-  // A real track's own row (level 1 ungrouped, level 2 under a group) plus,
-  // when its clip's lanes are open, the lane rows one level deeper.
+  // A real track's own row (level 1 ungrouped, level 2 under a group) plus
+  // its audio automation disclosure state.
   function emitTrack(track: number, level: 1 | 2, parentId: string | null): void {
     const elements = trackMap.get(track) ?? [];
     const trackId = timelineTrackRowId(track);
@@ -154,7 +154,8 @@ export function buildTimelineLogicalRows({
       selectedElementIds,
     );
     const disclosable = groupAutomationLanes(elements).length > 0;
-    const expanded = isRowOpen(activeId, expandedLaneOwnerIds) && disclosable;
+    const expanded =
+      activeId !== null && expandedLaneOwnerIds.has(activeId) && disclosable;
     rows.push({
       id: trackId,
       kind: "row",
