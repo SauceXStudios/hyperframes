@@ -12,6 +12,8 @@
  * being compared against.
  */
 
+// Vector metadata validation is intentionally defensive at this file boundary.
+// fallow-ignore-file complexity
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";

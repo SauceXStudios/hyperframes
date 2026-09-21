@@ -1,3 +1,5 @@
+// The vector builder validates two input formats and their artifact invariants.
+// fallow-ignore-file complexity
 /**
  * Embed the catalog with the on-device model so local search can rank by meaning.
  *
