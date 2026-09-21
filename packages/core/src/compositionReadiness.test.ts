@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import {
   computeReadinessInput,
   FIRST_FRAME_READINESS_SCOPE,
@@ -8,6 +10,8 @@ import {
   settleCompositionReadiness,
   settleFirstFrameCompositionReadiness,
 } from "./compositionReadiness.js";
+import { createRuntimeStartTimeResolver } from "./runtime/startResolver.js";
+import { isRuntimeElementVisibleAt } from "./runtime/timeline.js";
 
 function docWith(bodyHtml: string): Document {
   const doc = document.implementation.createHTMLDocument("");
@@ -83,6 +87,26 @@ describe("scanPendingCompositionAssets", () => {
     const scan = scanPendingCompositionAssets(doc, { scope: "first-frame" });
 
     expect(scan.pendingMedia.map((media) => media.id)).toEqual(["untimed"]);
+  });
+
+  it("keeps nested timing decisions aligned with the runtime visibility owner", () => {
+    const doc = docWith(
+      '<section data-start="30" data-duration="5"><video id="nested" src="later.mp4"></video></section>',
+    );
+    const nested = doc.querySelector<HTMLElement>("#nested")!;
+    const resolver = createRuntimeStartTimeResolver({ documentRef: doc });
+    const runtimeDecision = isRuntimeElementVisibleAt(doc.querySelector("section")!, {
+      currentTime: 0,
+      compositionDuration: Number.POSITIVE_INFINITY,
+      canonicalFps: 30,
+      exportRenderSeek: false,
+      timelineRegistry: {},
+      resolver,
+    });
+
+    expect(scanPendingCompositionAssets(doc, { scope: "first-frame" }).pendingMedia).toEqual([]);
+    expect(runtimeDecision).toBe(false);
+    expect(nested.closest("[data-start]")).not.toBeNull();
   });
 });
 
@@ -330,6 +354,13 @@ describe("paintAndIdleReadinessInput", () => {
 describe("settleCompositionReadiness", () => {
   it("uses the shared first-frame scope for both runtime callsites", () => {
     expect(FIRST_FRAME_READINESS_SCOPE).toBe("first-frame");
+    const playerSource = readFileSync(
+      resolve(process.cwd(), "../player/src/hyperframes-player.ts"),
+      "utf8",
+    );
+    const runtimeSource = readFileSync(resolve(process.cwd(), "src/runtime/init.ts"), "utf8");
+    expect(playerSource).toContain("settleFirstFrameCompositionReadiness(");
+    expect(runtimeSource).toContain("settleFirstFrameCompositionReadiness(");
   });
 
   it("does not wait for a later video through the public first-frame path", async () => {
@@ -340,7 +371,8 @@ describe("settleCompositionReadiness", () => {
     const image = doc.querySelector<HTMLImageElement>("#first")!;
     const video = doc.querySelector<HTMLVideoElement>("#later")!;
     Object.defineProperty(image, "complete", { value: false });
-    image.decode = () => Promise.resolve();
+    let resolveImage!: () => void;
+    image.decode = () => new Promise<void>((resolve) => (resolveImage = resolve));
     Object.defineProperty(video, "readyState", { value: 0, configurable: true });
 
     let result: { timedOut: boolean } | undefined;
@@ -349,11 +381,14 @@ describe("settleCompositionReadiness", () => {
       (settled) => {
         result = settled;
       },
-      { timeoutMs: 1 },
+      { timeoutMs: 50 },
     );
 
     await flushMicrotasks();
     await new Promise((resolve) => setTimeout(resolve, 5));
+    expect(result).toBeUndefined();
+    resolveImage();
+    await flushMicrotasks();
     expect(result).toEqual({ timedOut: false });
   });
 
