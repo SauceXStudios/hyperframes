@@ -201,10 +201,13 @@ export function TimelineLanes({
             selectedElementIds,
           );
           const keyframeClipKey = keyframeClip?.key ?? keyframeClip?.id;
-          const rowExpanded =
-            isAudioTrack &&
-            keyframeClipKey !== undefined &&
-            expandedLaneOwnerIds.has(keyframeClipKey);
+          const expandedAudioOwner = els.find((element) =>
+            expandedLaneOwnerIds.has(getTimelineElementIdentity(element)),
+          );
+          const laneOwnerKey = expandedAudioOwner
+            ? getTimelineElementIdentity(expandedAudioOwner)
+            : keyframeClipKey;
+          const rowExpanded = isAudioTrack && laneOwnerKey !== undefined;
           // How tall a clip BAR is drawn. An expanded row is mostly lanes, and a
           // clip left to fill it painted its waveform straight over them — so the
           // bar is capped for every clip on the row, not just the one whose
@@ -278,7 +281,8 @@ export function TimelineLanes({
                 isGroupMember={groupMemberTracks.has(trackNum)}
                 theme={theme}
                 onToggleClipExpanded={() => {
-                  if (keyframeClipKey) toggleLaneOwnerExpanded(keyframeClipKey);
+                  const owner = laneOwnerKey ?? keyframeClipKey;
+                  if (owner) toggleLaneOwnerExpanded(owner);
                 }}
                 onToggleTrackHidden={onToggleTrackHidden}
                 onRemoveAutomationLane={removeAutomationLane}

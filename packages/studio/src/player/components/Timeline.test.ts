@@ -203,7 +203,8 @@ describe("Timeline provider boundary", () => {
       renderTimelineGeometry("clip-1");
     const { trackHeader: collapsedHeader } = getHorizontalGeometry(host, "clip-2", "00:10");
     expect(host.querySelectorAll('[role="row"]')).toHaveLength(2);
-    expect(clip.style.height).toBe(`${TRACK_H}px`);
+    const row = clip.parentElement?.parentElement;
+    expect(row?.style.height).toBe(`${TRACK_H}px`);
     expect(trackHeader.style.width).toBe(`${LABEL_COL_W}px`);
     expect(rulerOrigin.style.width).toBe(`${LABEL_COL_W + GUTTER}px`);
     expect(playhead.style.left).toBe(`${LABEL_COL_W + GUTTER + 1000 - PLAYHEAD_HEAD_W / 2}px`);

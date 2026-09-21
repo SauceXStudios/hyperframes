@@ -71,8 +71,6 @@ function model(overrides: Partial<Parameters<typeof buildTimelineLogicalRows>[0]
   });
 }
 
-describe("buildTimelineLogicalRows", () => {});
-
 describe("resolveTimelineNavigationTarget", () => {
   it("navigates horizontal items plus row Home and End", () => {
     const rows = model();
