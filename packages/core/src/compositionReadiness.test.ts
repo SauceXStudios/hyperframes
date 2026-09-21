@@ -6,6 +6,7 @@ import {
   paintAndIdleReadinessInput,
   scanPendingCompositionAssets,
   settleCompositionReadiness,
+  settleFirstFrameCompositionReadiness,
 } from "./compositionReadiness.js";
 
 function docWith(bodyHtml: string): Document {
@@ -343,12 +344,12 @@ describe("settleCompositionReadiness", () => {
     Object.defineProperty(video, "readyState", { value: 0, configurable: true });
 
     let result: { timedOut: boolean } | undefined;
-    settleCompositionReadiness(
+    settleFirstFrameCompositionReadiness(
       doc,
       (settled) => {
         result = settled;
       },
-      { scope: FIRST_FRAME_READINESS_SCOPE, timeoutMs: 1 },
+      { timeoutMs: 1 },
     );
 
     await flushMicrotasks();

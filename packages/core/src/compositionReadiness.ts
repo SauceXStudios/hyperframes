@@ -1,4 +1,6 @@
 import { createRuntimeStartTimeResolver } from "./runtime/startResolver.js";
+import { isRuntimeElementVisibleAt } from "./runtime/timeline.js";
+import type { RuntimeTimelineLike } from "./runtime/types.js";
 
 /** A composition is "ready" once every declared input settles, not just once
  * its duration is known. Each input returns null (nothing to wait on) or a
@@ -54,18 +56,22 @@ function isTimedElement(element: Element): boolean {
 function isActiveAtFirstFrame(
   element: Element,
   resolver: ReturnType<typeof createRuntimeStartTimeResolver>,
+  timelineRegistry: Record<string, RuntimeTimelineLike | undefined>,
 ): boolean {
   let current: Element | null = element;
   while (current) {
     if (isTimedElement(current)) {
-      const tag = current.tagName.toLowerCase();
-      const start =
-        tag === "video" || tag === "audio"
-          ? resolver.resolveMediaStartForElement(current)
-          : resolver.resolveStartForElement(current, 0);
-      const duration = resolver.resolveDurationForElement(current);
-      const end = duration != null && duration > 0 ? start + duration : Number.POSITIVE_INFINITY;
-      if (!(0 >= start && 0 < end)) return false;
+      if (
+        !isRuntimeElementVisibleAt(current as HTMLElement, {
+          currentTime: 0,
+          compositionDuration: Number.POSITIVE_INFINITY,
+          canonicalFps: 30,
+          exportRenderSeek: false,
+          timelineRegistry,
+          resolver,
+        })
+      )
+        return false;
     }
     current = current.parentElement;
   }
@@ -76,9 +82,10 @@ function shouldIncludeAsset(
   element: Element,
   scope: CompositionReadinessScope,
   resolver: ReturnType<typeof createRuntimeStartTimeResolver>,
+  timelineRegistry: Record<string, RuntimeTimelineLike | undefined>,
 ): boolean {
   if (scope === "all") return true;
-  return isActiveAtFirstFrame(element, resolver);
+  return isActiveAtFirstFrame(element, resolver, timelineRegistry);
 }
 
 /** One DOM pass for every declared-media asset not yet ready. */
@@ -98,10 +105,10 @@ export function scanPendingCompositionAssets(
   });
   const pendingMedia = Array.from(doc.querySelectorAll("video, audio"))
     .filter(isRealmHtmlMediaElement)
-    .filter((el) => shouldIncludeAsset(el, scope, resolver))
+    .filter((el) => shouldIncludeAsset(el, scope, resolver, runtimeWindow?.__timelines ?? {}))
     .filter((el) => el.readyState < HAVE_FUTURE_DATA);
   const pendingImages = Array.from(doc.querySelectorAll("img"))
-    .filter((img) => shouldIncludeAsset(img, scope, resolver))
+    .filter((img) => shouldIncludeAsset(img, scope, resolver, runtimeWindow?.__timelines ?? {}))
     .filter((img) => !img.complete);
   const fontsLoading = doc.fonts?.status === "loading";
   return { pendingMedia, pendingImages, fontsLoading };
@@ -312,5 +319,22 @@ export function settleCompositionReadiness(
     clearTimeout(timeoutId);
     controller.abort();
     onSettled({ timedOut: result === "timed-out" });
+  });
+}
+
+export function settleFirstFrameCompositionReadiness(
+  doc: Document,
+  onSettled: (result: CompositionReadinessResult) => void,
+  opts: Omit<
+    CompositionReadinessOptions & {
+      inputs?: CompositionReadinessInput[];
+      timeoutMs?: number;
+    },
+    "scope"
+  > = {},
+): void {
+  settleCompositionReadiness(doc, onSettled, {
+    ...opts,
+    scope: FIRST_FRAME_READINESS_SCOPE,
   });
 }

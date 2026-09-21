@@ -77,7 +77,7 @@ import {
 import { installStudioCustomEase } from "./customEase";
 import { parseStrictFiniteTimingNumber, resolveMediaElementDurationSeconds } from "./playbackRate";
 import { MEDIA_START_BASIS_ATTR } from "../mediaTiming";
-import { FIRST_FRAME_READINESS_SCOPE, settleCompositionReadiness } from "../compositionReadiness";
+import { settleFirstFrameCompositionReadiness } from "../compositionReadiness";
 import {
   clearRuntimeData,
   setRuntimeData,
@@ -2895,15 +2895,11 @@ export function initSandboxRuntimeModular(): void {
     postRuntimeMessage({ ...payload, assetsReady: assetsSettled });
     if (!assetsReadyStarted) {
       assetsReadyStarted = true;
-      settleCompositionReadiness(
-        document,
-        ({ timedOut }) => {
-          if (state.tornDown) return;
-          assetsSettled = true;
-          postRuntimeMessage({ source: "hf-preview", type: "assets-ready", timedOut });
-        },
-        { scope: FIRST_FRAME_READINESS_SCOPE },
-      );
+      settleFirstFrameCompositionReadiness(document, ({ timedOut }) => {
+        if (state.tornDown) return;
+        assetsSettled = true;
+        postRuntimeMessage({ source: "hf-preview", type: "assets-ready", timedOut });
+      });
     }
     scheduleRootStageLayoutDiagnostics();
   };

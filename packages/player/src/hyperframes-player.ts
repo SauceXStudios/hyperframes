@@ -23,7 +23,7 @@ import { runtimeProtocolMetadata } from "@hyperframes/core/runtime/protocol";
 import {
   FIRST_FRAME_READINESS_SCOPE,
   scanPendingCompositionAssets,
-  settleCompositionReadiness,
+  settleFirstFrameCompositionReadiness,
 } from "@hyperframes/core/composition-readiness";
 
 // Playback-rate bounds mirror the runtime clamp in
@@ -1057,14 +1057,14 @@ class HyperframesPlayer extends HTMLElement {
       }
       return;
     }
-    settleCompositionReadiness(
+    settleFirstFrameCompositionReadiness(
       doc,
       ({ timedOut }) => {
         if (generation !== this._assetsGeneration) return;
         if (timedOut) this._warnStuckAssets(doc);
         this._settleAssetsReady(generation);
       },
-      { scope: FIRST_FRAME_READINESS_SCOPE, timeoutMs: ASSETS_READY_TIMEOUT_MS },
+      { timeoutMs: ASSETS_READY_TIMEOUT_MS },
     );
     if (!this._assetsReady) this._startAssetsLoadingOverlayTimer(generation);
   }
