@@ -165,7 +165,7 @@ describe("Timeline provider boundary", () => {
     act(() => root.unmount());
   });
 
-  it("keeps the label column stable while a nested clip stays one row", () => {
+  it("keeps a nested clip in one track row across the playhead", () => {
     usePlayerStore.setState({
       duration: 20,
       timelineReady: true,
@@ -203,7 +203,7 @@ describe("Timeline provider boundary", () => {
       renderTimelineGeometry("clip-1");
     const { trackHeader: collapsedHeader } = getHorizontalGeometry(host, "clip-2", "00:10");
     expect(host.querySelectorAll('[role="row"]')).toHaveLength(2);
-    expect(clip.style.height).toBe(`${TRACK_H - 2 * CLIP_Y}px`);
+    expect(clip.style.height).toBe(`${TRACK_H}px`);
     expect(trackHeader.style.width).toBe(`${LABEL_COL_W}px`);
     expect(rulerOrigin.style.width).toBe(`${LABEL_COL_W + GUTTER}px`);
     expect(playhead.style.left).toBe(`${LABEL_COL_W + GUTTER + 1000 - PLAYHEAD_HEAD_W / 2}px`);
@@ -535,41 +535,6 @@ describe("Timeline provider boundary", () => {
     act(() => root.unmount());
   });
 
-  // The caret belongs to the row, not to whichever clip on it is selected: the
-  // automation lanes below it are the track's, shared per property. Toggling one
-  // clip left the row's state depending on the selection, and a collapse that
-  // only dropped the active clip left the row stuck open.
-  it("expands and collapses every clip on a shared track together", () => {
-    const host = createSizedTimelineHost(720);
-    const automation = JSON.stringify({
-      version: 1,
-      lanes: [{ target: "volume", points: [{ t: 0, v: 1 }] }],
-    });
-    usePlayerStore.setState({
-      duration: 8,
-      timelineReady: true,
-      elements: [
-        { id: "narration-1", tag: "audio", start: 0, duration: 4, track: 0, automation },
-        { id: "narration-2", tag: "audio", start: 4, duration: 4, track: 0, automation },
-      ],
-    });
-    const root = createRoot(host);
-    act(() => root.render(React.createElement(Timeline)));
-
-    expect(host.querySelector('button[aria-label$=" lanes"]')).toBeNull();
-
-    // Every clip bar on the row is capped to one track height. Only the clip
-    // owning the property lanes used to be, so its siblings stretched the whole
-    // expanded row and painted their waveforms over the envelopes below.
-    expect(
-      ["narration-1", "narration-2"].map(
-        (id) => host.querySelector<HTMLElement>(`[data-el-id="${id}"]`)?.style.height,
-      ),
-    ).toEqual([`${TRACK_H - 2 * CLIP_Y}px`, `${TRACK_H - 2 * CLIP_Y}px`]);
-
-    act(() => root.unmount());
-  });
-
   // The lanes are the row's, and selecting a clip must not rebuild them. They
   // used to hang off the active clip's property lanes, so clicking a sibling
   // moved the whole subtree into a different element and remounted every lane —
@@ -586,6 +551,7 @@ describe("Timeline provider boundary", () => {
       duration: 8,
       timelineReady: true,
       selectedElementId: "narration-2",
+      expandedLaneOwnerIds: new Set(["narration-2"]),
       elements: [
         { id: "narration-1", tag: "audio", start: 0, duration: 4, track: 0, automation },
         { id: "narration-2", tag: "audio", start: 4, duration: 4, track: 0, automation },

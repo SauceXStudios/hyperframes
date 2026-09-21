@@ -15,27 +15,6 @@ afterEach(() => {
   usePlayerStore.getState().reset();
 });
 
-function renderTrackLayout(
-  elements: TimelineElement[],
-  animations: Map<string, GsapAnimation[]>,
-): {
-  layout: ReturnType<typeof useTimelineTrackLayout>;
-  unmount: () => void;
-} {
-
-  let layout: ReturnType<typeof useTimelineTrackLayout> | undefined;
-  function Probe() {
-    layout = useTimelineTrackLayout(elements, animations, null, new Set());
-    return null;
-  }
-
-  const root = createRoot(document.createElement("div"));
-  act(() => root.render(React.createElement(Probe)));
-  if (!layout) throw new Error("Timeline track layout did not render");
-
-  return { layout, unmount: () => act(() => root.unmount()) };
-}
-
 describe("collapsed audio groups", () => {
   const member = (id: string, track: number): TimelineElement => ({
     id,
@@ -164,7 +143,6 @@ const audioClip = (id: string, over: Partial<TimelineElement> = {}): TimelineEle
   track: 10,
   ...over,
 });
-
 
 describe("resolveTrackKeyframeClip", () => {
   const none = new Map<string, number>();

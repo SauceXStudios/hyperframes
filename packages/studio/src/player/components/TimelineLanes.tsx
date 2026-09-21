@@ -8,10 +8,7 @@ import { useAutomationSelectionKeyboard } from "../../hooks/useAutomationSelecti
 import { TimelineTrackHeader } from "./TimelineTrackHeader";
 import { TimelineGroupRow } from "./TimelineGroupRow";
 import { useTimelineLaneRowIndexes, useTimelineGroupDisclosure } from "./useTimelineLaneRowIndexes";
-import {
-  resolveTrackKeyframeClip,
-  trackShowsBeatStrip,
-} from "./useTimelineTrackLayout";
+import { resolveTrackKeyframeClip, trackShowsBeatStrip } from "./useTimelineTrackLayout";
 import { trackDisplayNumber, trackDisplaySuffix } from "./timelineTrackDisplay";
 import { getTimelineEditCapabilities } from "./timelineEditing";
 import { CLIP_Y, TRACK_H } from "./timelineLayout";
@@ -76,7 +73,6 @@ export function TimelineLanes({
   keyframeCache,
   selectedKeyframes,
   currentTime,
-  onSeek,
   onSelectSegment,
   onClickKeyframe,
   onShiftClickKeyframe,
@@ -160,7 +156,6 @@ export function TimelineLanes({
                 toggleLaneOwnerExpanded={toggleLaneOwnerExpanded}
                 lanes={automationLanes}
                 pps={pps}
-                currentTime={currentTime}
                 compositionDuration={compositionDuration}
                 beatTimes={beatAnalysis?.beatTimes}
                 contentGutter={contentGutter}
@@ -206,7 +201,9 @@ export function TimelineLanes({
           );
           const keyframeClipKey = keyframeClip?.key ?? keyframeClip?.id;
           const rowExpanded =
-            isAudioTrack && keyframeClipKey !== undefined && expandedLaneOwnerIds.has(keyframeClipKey);
+            isAudioTrack &&
+            keyframeClipKey !== undefined &&
+            expandedLaneOwnerIds.has(keyframeClipKey);
           // How tall a clip BAR is drawn. An expanded row is mostly lanes, and a
           // clip left to fill it painted its waveform straight over them — so the
           // bar is capped for every clip on the row, not just the one whose
@@ -285,8 +282,6 @@ export function TimelineLanes({
                 }}
                 onToggleTrackHidden={onToggleTrackHidden}
                 onRemoveAutomationLane={removeAutomationLane}
-                onSeek={onSeek}
-                rovingTargetId={keyboard.rovingTargetId}
               />
               <div
                 role="gridcell"

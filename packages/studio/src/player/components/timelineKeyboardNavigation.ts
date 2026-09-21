@@ -154,8 +154,7 @@ export function buildTimelineLogicalRows({
       selectedElementIds,
     );
     const disclosable = groupAutomationLanes(elements).length > 0;
-    const expanded =
-      activeId !== null && expandedLaneOwnerIds.has(activeId) && disclosable;
+    const expanded = activeId !== null && expandedLaneOwnerIds.has(activeId) && disclosable;
     rows.push({
       id: trackId,
       kind: "row",
@@ -329,18 +328,4 @@ export function resolveTimelineFocusFallback(
     if (parent) return parent.target;
   }
   return nextRows[previous.rowIndex] ?? nextRows[previous.rowIndex - 1] ?? null;
-}
-
-/**
- * Does a track have anything to open — the header's own `disclosable`.
- *
- * `TimelineTrackHeader` is `lanes.length > 0 || automationRows.length > 0`, and
- * keyed on tweens alone here an audio track whose only disclosable content is
- * AUTOMATION drew the `∿` while reporting itself unexpandable to the treegrid,
- * so ArrowRight could not open it. Automation rows are counted per shared
- * PROPERTY across the track's clips, the way the header counts them, not per
- * clip.
- */
-function isTrackDisclosable(elements: readonly TimelineElement[], laneCount: number): boolean {
-  return laneCount > 0 || groupAutomationLanes(elements).length > 0;
 }

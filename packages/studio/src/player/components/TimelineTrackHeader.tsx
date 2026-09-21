@@ -53,8 +53,6 @@ interface TimelineTrackHeaderProps {
    *  clip and one by the row. Minted by TimelineLanes, the one place that sees
    *  every subtree. */
   lanesId: string;
-  /** @deprecated Keyframe property lanes were removed; retained only for stale callers during migration. */
-  animations?: readonly unknown[];
   contentOrigin: number;
   /** The track's active keyframe clip (selected, else primary) — the one whose
    *  disclosure + property rows this header shows, whether expanded or not. */
@@ -65,21 +63,16 @@ interface TimelineTrackHeaderProps {
   /** Clips on this track, so the header can say how many the row holds. */
   clipCount: number;
   isExpanded: boolean;
-  currentTime: number;
   isTrackHidden: boolean;
   isAudioTrack: boolean;
   /** This track is a member of an audio group — indents the row under its header. */
   isGroupMember?: boolean;
-  rovingTargetId?: string | null;
   theme: TimelineTheme;
   onToggleClipExpanded: () => void;
-  /** @deprecated Keyframe property controls were removed. */
-  onTogglePropertyGroupKeyframe?: TimelineEditCallbacks["onTogglePropertyGroupKeyframe"];
   onToggleTrackHidden: TimelineEditCallbacks["onToggleTrackHidden"];
   /** Drop one envelope. Absent while the lanes are read-only, which is what
    *  hides the control rather than offering a button that cannot act. */
   onRemoveAutomationLane?: (target: string) => void;
-  onSeek?: (time: number) => void;
 }
 
 // fallow-ignore-next-line complexity
@@ -93,7 +86,6 @@ export function TimelineTrackHeader({
   trackElements,
   clipCount,
   isExpanded,
-  currentTime,
   isTrackHidden,
   isAudioTrack,
   isGroupMember = false,
@@ -101,12 +93,7 @@ export function TimelineTrackHeader({
   onToggleClipExpanded,
   onToggleTrackHidden,
   onRemoveAutomationLane,
-  onSeek,
-  rovingTargetId = null,
 }: TimelineTrackHeaderProps) {
-  const clipPercentage = keyframeClip
-    ? ((currentTime - keyframeClip.start) / keyframeClip.duration) * 100
-    : 0;
   // Label mode = keyframe view; the label column stays LABEL_COL_W (Timeline.tsx
   // owns the gutter past it, so a 0% diamond isn't clipped by this panel).
   const showTrackLabel = contentOrigin >= LABEL_COL_W;
@@ -270,85 +257,81 @@ export function TimelineTrackHeader({
       }}
     >
       <>
-          {/* The two lines own exactly TRACK_H, not the whole header.
+        {/* The two lines own exactly TRACK_H, not the whole header.
               `justify-center` on the header itself centred them in its FULL
               height — which grows by AUTOMATION_LANE_H per open lane — so
               opening one pushed the name and its controls down THROUGH the lane
               rows below, which are absolutely positioned from the top. */}
-          <div
-            className={
-              showTrackLabel
-                ? "flex flex-col justify-center gap-0.5 px-1.5 text-white/55"
-                : "flex flex-col items-center justify-center gap-0.5"
-            }
-            style={{ height: TRACK_H }}
-          >
-            <PlainTrackHeader
-              trackNumber={trackNumber}
-              trackDisplayNumber={trackDisplayNumber}
-              trackLabel={trackLabel}
-              clipCount={clipCount}
-              showTrackLabel={showTrackLabel}
-              isTrackHidden={isTrackHidden}
-              isAudioTrack={isAudioTrack}
-              onToggleTrackHidden={onToggleTrackHidden}
-              // On the control line rather than a third row of its own.
-              trailing={
-                <>
-                  {singleAudioClip && (
+        <div
+          className={
+            showTrackLabel
+              ? "flex flex-col justify-center gap-0.5 px-1.5 text-white/55"
+              : "flex flex-col items-center justify-center gap-0.5"
+          }
+          style={{ height: TRACK_H }}
+        >
+          <PlainTrackHeader
+            trackNumber={trackNumber}
+            trackDisplayNumber={trackDisplayNumber}
+            trackLabel={trackLabel}
+            clipCount={clipCount}
+            showTrackLabel={showTrackLabel}
+            isTrackHidden={isTrackHidden}
+            isAudioTrack={isAudioTrack}
+            onToggleTrackHidden={onToggleTrackHidden}
+            // On the control line rather than a third row of its own.
+            trailing={
+              <>
+                {singleAudioClip && (
+                  <TimelineFxButton
+                    variant="chain"
+                    fxChainRaw={singleAudioClip.fxChain}
+                    trackKind={classifyAudioName(singleAudioClip.id, singleAudioClip.src)}
+                    onChainChange={(next) => writeClipFxChain(singleAudioClip, next, false)}
+                    onChainPreview={(next) => writeClipFxChain(singleAudioClip, next, true)}
+                    // Muted, an audition is silent — so the hover lifts the mute on
+                    // the running graph and puts it back on the way out, the same
+                    // borrow-and-return it already does with the playhead.
+                    auditionSpans={[singleAudioClip]}
+                    isMuted={isTrackHidden}
+                    onSetMutedLive={(muted) =>
+                      onSetElementAttributeLive?.(singleAudioClip, "data-hidden", muted ? "" : null)
+                    }
+                    onOpenRack={() => openClipFxRack(singleAudioClip)}
+                  />
+                )}
+                {clipCount > 1 &&
+                  !isTrackGrouped &&
+                  (isAudioTrack ? canGroupWholeTrack : isVideoWithAudioTrack) && (
                     <TimelineFxButton
-                      variant="chain"
-                      fxChainRaw={singleAudioClip.fxChain}
-                      trackKind={classifyAudioName(singleAudioClip.id, singleAudioClip.src)}
-                      onChainChange={(next) => writeClipFxChain(singleAudioClip, next, false)}
-                      onChainPreview={(next) => writeClipFxChain(singleAudioClip, next, true)}
-                      // Muted, an audition is silent — so the hover lifts the mute on
-                      // the running graph and puts it back on the way out, the same
-                      // borrow-and-return it already does with the playhead.
-                      auditionSpans={[singleAudioClip]}
-                      isMuted={isTrackHidden}
-                      onSetMutedLive={(muted) =>
-                        onSetElementAttributeLive?.(
-                          singleAudioClip,
-                          "data-hidden",
-                          muted ? "" : null,
-                        )
+                      variant="group-pointer"
+                      clipCount={trackElements.length}
+                      defaultLabel={trackLabel}
+                      // Groups are audio-only in v1 (§1.4). A video track showing no
+                      // button at all is the silent limit §5 forbids, so it gets the
+                      // button and a reason instead.
+                      refusal={
+                        isAudioTrack
+                          ? undefined
+                          : "Video audio can't be grouped yet — only audio clips can join a group."
                       }
-                      onOpenRack={() => openClipFxRack(singleAudioClip)}
+                      onGroupClips={groupUngroupedClips}
                     />
                   )}
-                  {clipCount > 1 &&
-                    !isTrackGrouped &&
-                    (isAudioTrack ? canGroupWholeTrack : isVideoWithAudioTrack) && (
-                      <TimelineFxButton
-                        variant="group-pointer"
-                        clipCount={trackElements.length}
-                        defaultLabel={trackLabel}
-                        // Groups are audio-only in v1 (§1.4). A video track showing no
-                        // button at all is the silent limit §5 forbids, so it gets the
-                        // button and a reason instead.
-                        refusal={
-                          isAudioTrack
-                            ? undefined
-                            : "Video audio can't be grouped yet — only audio clips can join a group."
-                        }
-                        onGroupClips={groupUngroupedClips}
-                      />
-                    )}
-                  {/* The lane disclosure, on the row's own layout rather than by
+                {/* The lane disclosure, on the row's own layout rather than by
                     swapping it for a keyframe-layer row. */}
-                  {disclosable && (
-                    <LaneToggleButton
-                      name={laneOwnerName}
-                      isExpanded={isExpanded}
-                      lanesId={lanesId}
-                      onToggle={onToggleClipExpanded}
-                    />
-                  )}
-                </>
-              }
-            />
-          </div>
+                {disclosable && (
+                  <LaneToggleButton
+                    name={laneOwnerName}
+                    isExpanded={isExpanded}
+                    lanesId={lanesId}
+                    onToggle={onToggleClipExpanded}
+                  />
+                )}
+              </>
+            }
+          />
+        </div>
       </>
       {/* Below the keyframe rows and stepping by its own height, which is how
             TimelineAutomationLaneSlot lays the envelopes out on the canvas. The

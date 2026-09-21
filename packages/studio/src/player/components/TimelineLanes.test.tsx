@@ -41,25 +41,6 @@ function element(id: string, track: number): TimelineElement {
   return { id, label: id, tag: "div", start: 0, duration: 2, track };
 }
 
-function positionTween(id: string): GsapAnimation {
-  return {
-    id: `${id}-tween`,
-    targetSelector: `#${id}`,
-    method: "to",
-    position: 0,
-    duration: 2,
-    properties: {},
-    propertyGroup: "position",
-    keyframes: {
-      format: "percentage",
-      keyframes: [
-        { percentage: 0, properties: { x: 0 } },
-        { percentage: 100, properties: { x: 100 } },
-      ],
-    },
-  };
-}
-
 interface RenderLanesOptions {
   elements?: TimelineElement[];
   animations?: Map<string, GsapAnimation[]>;

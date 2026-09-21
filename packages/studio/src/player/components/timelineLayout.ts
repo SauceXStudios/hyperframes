@@ -188,11 +188,6 @@ export function getTimelineRowGeometry(rowHeights: readonly number[]): TimelineR
   return geometry;
 }
 
-/** Cumulative top offsets, including the final bottom boundary. */
-export function getTimelineRowOffsets(rowHeights: readonly number[]): number[] {
-  return [...getTimelineRowGeometry(rowHeights).rowOffsets];
-}
-
 export function getTimelineRowHeight(
   row: number,
   rowHeights: readonly number[] = EMPTY_ROW_HEIGHTS,

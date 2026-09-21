@@ -13,7 +13,6 @@ import {
   getTimelineRowTop,
   getTimelineScrubTime,
   getTimelineRowFromY,
-  getTimelineRowOffsets,
   getTimelineCanvasHeight,
   createTimelineRowGeometry,
   getTimelineRowGeometry,
@@ -22,6 +21,10 @@ import {
 } from "./timelineLayout";
 import { generateTicks, getTimelineMajorTickInterval } from "./timelineRulerGeometry";
 import { getTimelineRenderTimeRange } from "./timelineViewportGeometry";
+
+function baseRows(count: number): number[] {
+  return Array.from({ length: count }, () => TRACK_H);
+}
 
 describe("horizontal timeline window", () => {
   it("adds the shared quarter-viewport overscan on each side and clamps to duration", () => {
