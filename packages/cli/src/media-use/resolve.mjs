@@ -191,10 +191,7 @@ if (args.stats) {
   process.exit(0);
 }
 
-// Reuse: import a specific global-cache asset (by content sha/prefix, taken
-// from --candidates) into this project. `!== undefined` so an empty --reuse ""
-// still routes here (and gets a clear empty-sha error) instead of falling
-// through to the misleading "--type and --intent are required".
+// Reuse a global-cache asset selected by content sha or prefix.
 if (args.reuse !== undefined) {
   await reuseGlobal(args.reuse);
   process.exit(0);
@@ -226,10 +223,7 @@ if (args.analyze) {
   process.exit(0);
 }
 
-// Recipes: folder-based named bundles resolved by entity name — no providers,
-// no content hashing (an evolving versioned bundle, not an immutable file).
-// Delegates to lib/recipe-store.mjs the way grade/lut delegate to resolveColor;
-// freeze/list live in scripts/recipe.mjs.
+// Resolve named recipe bundles without a provider.
 if (type === "recipe") {
   const { useRecipe } = await import("./lib/recipe-store.mjs");
   const name = (entity || intent || "").trim();
@@ -315,10 +309,7 @@ function localizeImportedRecord(record, localPath) {
 }
 
 async function run() {
-  // A forced --provider means "(re)generate with THIS provider" — it bypasses
-  // every reuse rung (project/entity/assets/global cache) so it can't silently
-  // hand back an asset from a different provider. The floor only applies to the
-  // default (unforced) cascade.
+  // A forced provider bypasses reuse and pins the provider cascade.
   const forced = !!args.provider;
 
   // 1. project manifest — exact-prompt match
@@ -401,11 +392,7 @@ async function run() {
     voiceId: args["voice-id"],
   };
 
-  // Adherence nudge (offline, no auto-reuse): the exact-cache floor missed and
-  // we're about to fetch/generate. If lexically-similar assets already exist,
-  // point the agent at --candidates so it can reuse instead of fetching. Only a
-  // fuzzy match ever reaches the agent this way — never auto-applied. Goes to
-  // stderr so it reaches --json callers without corrupting stdout. Best-effort.
+  // Suggest candidates before a new fetch.
   try {
     const { similar } = listCandidates({ projectDir, type, intent, cap: CANDIDATE_CAP });
     if (similar > 0) {
@@ -441,12 +428,7 @@ async function run() {
     }
   }
 
-  // A search/generate attempt against heygen may have fired a fire-and-forget
-  // media_use_provider_error track (reportHeygenFailure — heygen-search.mjs /
-  // voice-provider.mjs are sync call sites several layers below here and can't
-  // await it themselves). Join it now, before any process.exit() below can
-  // race it: both it and the miss/success telemetry below are separate,
-  // non-keepalive HTTP connections with no ordering guarantee otherwise.
+  // Flush provider failure telemetry before the process can exit.
   await flushHeygenFailureTracking();
 
   if (!searchResult) {
@@ -524,10 +506,7 @@ async function run() {
     provenance: {
       provider: searchResult.metadata?.provider || "unknown",
       prompt: intent,
-      // heygenAuthMethodFor spreads first so an explicit authMethod on a
-      // future provider's own metadata.provenance can still override it below
-      // -- safe today (no provider sets authMethod itself), but keep this
-      // ordering if that ever changes.
+      // Keep auth method sparse for non-HeyGen providers.
       ...heygenAuthMethodFor(searchResult.metadata?.provider),
       ...searchResult.metadata?.provenance,
     },
@@ -545,11 +524,7 @@ async function run() {
 
   appendRecord(projectDir, record);
   regenerateIndex(projectDir);
-  // Auto-promote: surface every fetched asset in the global cache so it's
-  // reusable across all hyperframes projects (B3). Non-fatal; dedup by sha.
-  // ponytail: promotes search/generate/ingest assets (the ones media-use
-  // fetched), not bulk --adopt imports — add those if cross-project reuse of
-  // pre-existing project assets is wanted.
+  // Promote fetched assets into the global cache for reuse.
   try {
     cachePut(fullPath, record);
   } catch {
@@ -933,12 +908,7 @@ function latestHeygenStable() {
 }
 
 function heygenAuthCheck() {
-  // `heygen auth status` already emits JSON by default (only `--human` opts out
-  // to a table) — there is no `--json`/`--output` flag; passing one errors with
-  // "unknown flag". emailFromAuthStatus parses that default JSON.
-  // NOTE: JSON-by-default is a v0.3.0 behavior — this probe assumes it, which
-  // HEYGEN_MIN_VERSION >= 0.3.0 (+ the version gate above) guarantees. If that
-  // floor is ever lowered, auth detection on an older CLI would silently break.
+  // heygen auth status emits JSON by default; parse that output directly.
   const authProbe = runCommand("heygen", ["auth", "status"]);
   // spawnSync sets .error/.signal on a timeout or spawn failure (status then
   // null). A stalled auth endpoint (transient network/DNS) must not be reported
@@ -1009,10 +979,7 @@ function runDoctor() {
       fix: versionOk ? (behind ? HEYGEN_UPDATE_COMMAND : "") : HEYGEN_UPDATE_COMMAND,
     });
 
-    // Below the OAuth-capable floor the auth probe fails for the SAME root cause
-    // (an old CLI can't OAuth and doesn't emit JSON auth status), which would
-    // read as a confusing second "not authenticated" error. Skip it — one root
-    // cause, one fix.
+    // Older CLI versions cannot provide the auth status used here.
     checks.push(
       versionOk
         ? heygenAuthCheck()
@@ -1205,17 +1172,11 @@ async function result(record, source) {
     // parametric), or "params" (offline). Surfaces silent CDN→params downgrades
     // in prod, which --doctor can't (it only answers "reachable now?").
     via: record.provenance?.via,
-    // Free (OAuth) vs. paid (API-key) heygen path — sparse: absent for every
-    // non-heygen provider (see heygenAuthMethodFor at construction time). On a
-    // cache/reuse hit this reports how the asset was ORIGINALLY fetched, not
-    // this resolve's own credential state — intentional: it's a conversion
+    // OAuth vs. API-key HeyGen paths are sparse for non-HeyGen providers.
     // signal about the fetch that actually consumed a heygen credit, not
     // about the (free, no-credential) act of copying a cached file.
     auth_method: record.provenance?.authMethod,
-    // "local" / "network_free" / "network_paid", straight from the registry's own
-    // A/N/P declaration — so a dashboard can separate free lookups from calls that
-    // spend credit without hardcoding provider names. Sparse: absent when the
-    // record carries no provider (cache and reuse hits) or the name is unknown.
+    // Provider tiers stay sparse and follow the registry's A/N/P declaration.
     provider_tier: providerTierFor(record.provenance?.provider),
     local_only: !!args["local-only"],
     provider_override: !!args.provider,
