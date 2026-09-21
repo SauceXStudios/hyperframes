@@ -82,3 +82,23 @@ test("duplicate additions cannot hide a second wrong replacement", () => {
     '--- a/packages/a.ts\n+++ b/packages/a.ts\n@@ -1,2 +1,2 @@\n-color: "#fff"\n-color: "#000"\n+color: "var(--x)"\n+color: "var(--x)"';
   assert.equal(findTokenParityIssues(change, "--x: #f00;").length, 2);
 });
+
+test("arbitrary Tailwind literals are colour migrations", () => {
+  assert.equal(
+    findTokenParityIssues(diff('className="bg-[#fff]"', 'className="bg-[var(--x)]"'), "--x: #000;")
+      .length,
+    1,
+  );
+});
+
+test("class utilities do not hide inline colour slots", () => {
+  const old = '<div className="bg-black" style={{color: "#fff"}} />';
+  const next = '<div className="bg-black" style={{color: "var(--x)"}} />';
+  assert.equal(findTokenParityIssues(diff(old, next), "--x: #000;").length, 1);
+});
+
+test("swapping opposite token values between declarations fails", () => {
+  const change =
+    "--- a/packages/a.css\n+++ b/packages/a.css\n@@ -1,2 +1,2 @@\n-.a { color: #fff; }\n-.b { color: #000; }\n+.a { color: var(--black); }\n+.b { color: var(--white); }";
+  assert.equal(findTokenParityIssues(change, "--black: #000; --white: #fff;").length, 2);
+});

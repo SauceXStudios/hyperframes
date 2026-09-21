@@ -125,7 +125,7 @@ function classSlots(line) {
   const result = [];
   const classes = [
     ...line.matchAll(
-      /([\w:-]+)-(white|black)(?:\/(\d+(?:\.\d+)?))?\b|([\w:-]+)-\[(var\([^)]*\))\]/g,
+      /([\w:-]+)-(white|black)(?:\/(\d+(?:\.\d+)?))?\b|([\w:-]+)-\[((?:var|rgba?|hsla?)\([^)]*\)|#[\da-f]{3,8})\]/g,
     ),
   ];
   for (const match of classes) {
@@ -135,10 +135,11 @@ function classSlots(line) {
   return result;
 }
 function slots(line) {
-  const classes = classSlots(line);
-  if (classes.length) return classes;
-  const properties = propertySlots(line);
-  return properties.length ? properties : [{ key: "line", value: line }];
+  const properties = propertySlots(line).filter(
+    (slot) => !["class", "className"].includes(slot.key),
+  );
+  const result = [...properties, ...classSlots(line)];
+  return result.length ? result : [{ key: "line", value: line }];
 }
 
 function matchReplacement(slot, oldSlots, values) {
@@ -151,8 +152,8 @@ function matchReplacement(slot, oldSlots, values) {
   );
   if (!candidates.length) return undefined;
   const expanded = canonical(expandTokens(slot.value, values));
-  const exact = candidates.find((old) => canonical(old.value) === expanded);
-  return { before: exact ?? candidates[0], equal: Boolean(exact), names };
+  const before = candidates[0];
+  return { before, equal: canonical(before.value) === expanded, names };
 }
 function compareSlot(file, line, slot, oldSlots, values, allowlist) {
   const match = matchReplacement(slot, oldSlots, values);
