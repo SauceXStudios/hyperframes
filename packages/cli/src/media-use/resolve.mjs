@@ -448,7 +448,11 @@ async function run() {
       }
       if (!searchResult) searchResult = await runCapability(type, "search", intent, ctx);
       // Keep HeyGen remediation diagnostics while bundled remains authoritative.
-      else if (!localOnly) await runCapability(type, "search", intent, ctx);
+      else if (!localOnly)
+        await runCapability(type, "search", intent, {
+          ...ctx,
+          provider: "heygen.audio.sounds",
+        });
     } else {
       searchResult = await runCapability(type, "search", intent, ctx);
     }
