@@ -13,7 +13,6 @@ import { mintGroupId } from "../../components/editor/useFxCarveGrouping";
 import { runtimeAudioId } from "../lib/timelineElementHelpers";
 import { TimelineFxButton } from "./TimelineFxButton";
 import { elementFxChain, groupAutomationLanes, isCarveLane } from "./automationLaneData";
-import { AUTOMATION_LANE_H } from "./automationLaneHeight";
 import { LaneToggleButton } from "./LayerDisclosureRow";
 import { getTimelineLaneTop, LABEL_COL_W, TRACK_H } from "./timelineLayout";
 import type { TimelineTheme } from "./timelineTheme";
