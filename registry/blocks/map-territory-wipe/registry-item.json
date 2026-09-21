@@ -3,19 +3,8 @@
   "name": "map-territory-wipe",
   "type": "hyperframes:block",
   "title": "Map Territory Wipe",
-  "description": "US silhouette with NE pin, soft westward territory wipe, and cascade trunk-to-fork arrows. Seek-safe SVG/GSAP; no MP4 wrapper. Inspired by Moving Image Archive, Evolution of the Oil Industry (1934) shot 49 (clip a36b3d33-8c6b-5748-b606-e7841020121f); NARA/FedFlix public domain - not affiliated; code recreation. Fidelity ceilings: painterly topo/grain, soft film ink vs vector outline, diamond flare tips, 8s compress vs longer ref, live-action open/close OOS.",
-  "tags": [
-    "map",
-    "geography",
-    "animation",
-    "territory",
-    "wipe",
-    "arrows",
-    "newsreel",
-    "svg",
-    "mia",
-    "ceiling-only"
-  ],
+  "description": "Newsreel-style territory fill that wipes on via clip-path reveal over a stylized landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection \u2014 not affiliated; footage not included).",
+  "tags": ["map", "geography", "animation", "territory", "wipe", "newsreel", "reveal", "svg"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
   "dimensions": {
@@ -25,10 +14,28 @@
   "duration": 8,
   "variables": [
     {
-      "id": "credit",
+      "id": "title",
       "type": "string",
-      "label": "Credit",
-      "default": "Moving Image Archive, Evolution of the Oil Industry (1934) shot 49 - NARA/FedFlix PD - code recreation - not affiliated"
+      "label": "Title",
+      "default": "Territory Revealed"
+    },
+    {
+      "id": "subtitle",
+      "type": "string",
+      "label": "Subtitle",
+      "default": "Wipe fill \u00b7 educational cartography"
+    },
+    {
+      "id": "regionLabel",
+      "type": "string",
+      "label": "Region label",
+      "default": "Region A"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "label": "Accent",
+      "default": "#c45c26"
     }
   ],
   "files": [
@@ -40,10 +47,28 @@
   ],
   "params": [
     {
-      "id": "credit",
+      "id": "title",
       "type": "string",
-      "label": "Credit",
-      "default": "Moving Image Archive, Evolution of the Oil Industry (1934) shot 49 - NARA/FedFlix PD - code recreation - not affiliated"
+      "label": "Title",
+      "default": "Territory Revealed"
+    },
+    {
+      "id": "subtitle",
+      "type": "string",
+      "label": "Subtitle",
+      "default": "Wipe fill \u00b7 educational cartography"
+    },
+    {
+      "id": "regionLabel",
+      "type": "string",
+      "label": "Region label",
+      "default": "Region A"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "label": "Accent",
+      "default": "#c45c26"
     }
   ]
 }
