@@ -8,15 +8,14 @@ import { CatalogDetail, CatalogSlot } from "/snippets/catalog-detail.jsx";
 import { InstallCommand } from "/snippets/install-command.jsx";
 
 <CatalogDetail
+  previewSrc="/public/catalog/blocks/map-isoline-reveal.json"
   compositionId="map-isoline-reveal"
   compositionSrc="compositions/map-isoline-reveal.html"
   title="Map Isoline Reveal"
   description="Isoline contour rings that reveal outward like topographic bands. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
-  variables={[]}
+  variables={[{"id":"title","type":"string","label":"Title","default":"Isolines"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · contour reveal"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
   meta={{"duration":8,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":221}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-isoline-reveal","tags":["map","geography","animation","isoline","contour","newsreel","svg"]}}
-  video="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-isoline-reveal.mp4"
-  poster="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-isoline-reveal.png"
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-isoline-reveal/map-isoline-reveal.html"
 >

@@ -8,15 +8,14 @@ import { CatalogDetail, CatalogSlot } from "/snippets/catalog-detail.jsx";
 import { InstallCommand } from "/snippets/install-command.jsx";
 
 <CatalogDetail
+  previewSrc="/public/catalog/blocks/map-hotspot-pulse.json"
   compositionId="map-hotspot-pulse"
   compositionSrc="compositions/map-hotspot-pulse.html"
   title="Map Hotspot Pulse"
   description="Heat-pulse hotspots that appear and blink on a stylized landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
-  variables={[]}
+  variables={[{"id":"title","type":"string","label":"Title","default":"Hotspots"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · heat pulse"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
   meta={{"duration":8,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":190}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-hotspot-pulse","tags":["map","geography","animation","hotspot","pulse","heat","newsreel","svg"]}}
-  video="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-hotspot-pulse.mp4"
-  poster="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-hotspot-pulse.png"
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-hotspot-pulse/map-hotspot-pulse.html"
 >

@@ -8,15 +8,14 @@ import { CatalogDetail, CatalogSlot } from "/snippets/catalog-detail.jsx";
 import { InstallCommand } from "/snippets/install-command.jsx";
 
 <CatalogDetail
+  previewSrc="/public/catalog/blocks/map-compass-scale.json"
   compositionId="map-compass-scale"
   compositionSrc="compositions/map-compass-scale.html"
   title="Map Compass Scale"
   description="Compass rose and scale bar reveal over a stylized newsreel landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
-  variables={[]}
+  variables={[{"id":"title","type":"string","label":"Title","default":"Compass & Scale"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · compass rose"},{"id":"scaleLabel","type":"string","label":"Scale label","default":"100 mi"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
   meta={{"duration":7,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":212}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-compass-scale","tags":["map","geography","animation","compass","scale","newsreel","svg"]}}
-  video="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-compass-scale.mp4"
-  poster="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-compass-scale.png"
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-compass-scale/map-compass-scale.html"
 >

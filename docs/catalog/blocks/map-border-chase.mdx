@@ -8,15 +8,14 @@ import { CatalogDetail, CatalogSlot } from "/snippets/catalog-detail.jsx";
 import { InstallCommand } from "/snippets/install-command.jsx";
 
 <CatalogDetail
+  previewSrc="/public/catalog/blocks/map-border-chase.json"
   compositionId="map-border-chase"
   compositionSrc="compositions/map-border-chase.html"
   title="Map Border Chase"
   description="Border highlight chase that races along a coastline or frontier stroke. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
-  variables={[]}
+  variables={[{"id":"title","type":"string","label":"Title","default":"Frontier Trace"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · border chase"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
   meta={{"duration":8,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":177}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-border-chase","tags":["map","geography","animation","border","chase","highlight","newsreel","svg"]}}
-  video="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-border-chase.mp4"
-  poster="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-border-chase.png"
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-border-chase/map-border-chase.html"
 >

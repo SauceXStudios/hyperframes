@@ -8,15 +8,14 @@ import { CatalogDetail, CatalogSlot } from "/snippets/catalog-detail.jsx";
 import { InstallCommand } from "/snippets/install-command.jsx";
 
 <CatalogDetail
+  previewSrc="/public/catalog/blocks/map-radar-rings.json"
   compositionId="map-radar-rings"
   compositionSrc="compositions/map-radar-rings.html"
   title="Map Radar Rings"
   description="Concentric radar and range rings that expand from a focal point with a seek-safe sweep. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
-  variables={[]}
+  variables={[{"id":"title","type":"string","label":"Title","default":"Range Rings"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · radar rings"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
   meta={{"duration":9,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":231}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-radar-rings","tags":["map","geography","animation","radar","rings","range","newsreel","svg"]}}
-  video="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-radar-rings.mp4"
-  poster="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-radar-rings.png"
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-radar-rings/map-radar-rings.html"
 >

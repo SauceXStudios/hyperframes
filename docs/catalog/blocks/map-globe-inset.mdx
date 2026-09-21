@@ -8,15 +8,14 @@ import { CatalogDetail, CatalogSlot } from "/snippets/catalog-detail.jsx";
 import { InstallCommand } from "/snippets/install-command.jsx";
 
 <CatalogDetail
+  previewSrc="/public/catalog/blocks/map-globe-inset.json"
   compositionId="map-globe-inset"
   compositionSrc="compositions/map-globe-inset.html"
   title="Map Globe Inset"
   description="Inset globe that rotates via seek-safe GSAP transform beside a main stylized map. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
-  variables={[]}
+  variables={[{"id":"title","type":"string","label":"Title","default":"World Inset"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · globe inset"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
   meta={{"duration":9,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":230}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-globe-inset","tags":["map","geography","animation","globe","inset","newsreel","svg"]}}
-  video="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-globe-inset.mp4"
-  poster="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-globe-inset.png"
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-globe-inset/map-globe-inset.html"
 >

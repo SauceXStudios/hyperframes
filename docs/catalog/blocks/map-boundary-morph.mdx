@@ -8,15 +8,14 @@ import { CatalogDetail, CatalogSlot } from "/snippets/catalog-detail.jsx";
 import { InstallCommand } from "/snippets/install-command.jsx";
 
 <CatalogDetail
+  previewSrc="/public/catalog/blocks/map-boundary-morph.json"
   compositionId="map-boundary-morph"
   compositionSrc="compositions/map-boundary-morph.html"
   title="Map Boundary Morph"
   description="Crossfade morph between two simplified historical boundary silhouettes. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
-  variables={[]}
+  variables={[{"id":"title","type":"string","label":"Title","default":"Shifting Borders"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · boundary morph"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
   meta={{"duration":8,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":203}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-boundary-morph","tags":["map","geography","animation","boundary","morph","historical","newsreel","svg"]}}
-  video="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-boundary-morph.mp4"
-  poster="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-boundary-morph.png"
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-boundary-morph/map-boundary-morph.html"
 >

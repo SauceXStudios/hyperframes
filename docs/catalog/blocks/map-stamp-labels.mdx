@@ -8,15 +8,14 @@ import { CatalogDetail, CatalogSlot } from "/snippets/catalog-detail.jsx";
 import { InstallCommand } from "/snippets/install-command.jsx";
 
 <CatalogDetail
+  previewSrc="/public/catalog/blocks/map-stamp-labels.json"
   compositionId="map-stamp-labels"
   compositionSrc="compositions/map-stamp-labels.html"
   title="Map Stamp Labels"
   description="Stamp and typewriter-style location labels that slam onto the map. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
-  variables={[]}
+  variables={[{"id":"title","type":"string","label":"Title","default":"Stamped Places"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · stamp labels"},{"id":"labelA","type":"string","label":"Label A","default":"HAVEN"},{"id":"labelB","type":"string","label":"Label B","default":"RIDGE"},{"id":"labelC","type":"string","label":"Label C","default":"FORD"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
   meta={{"duration":8,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":256}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-stamp-labels","tags":["map","geography","animation","stamp","typewriter","labels","newsreel","svg"]}}
-  video="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-stamp-labels.mp4"
-  poster="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-stamp-labels.png"
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-stamp-labels/map-stamp-labels.html"
 >

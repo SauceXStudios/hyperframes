@@ -8,15 +8,14 @@ import { CatalogDetail, CatalogSlot } from "/snippets/catalog-detail.jsx";
 import { InstallCommand } from "/snippets/install-command.jsx";
 
 <CatalogDetail
+  previewSrc="/public/catalog/blocks/map-campaign-arrows.json"
   compositionId="map-campaign-arrows"
   compositionSrc="compositions/map-campaign-arrows.html"
   title="Map Campaign Arrows"
   description="Newsreel wartime aesthetic with sequential schematic campaign arrows along a path - abstract educational cartography, not glorifying. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
-  variables={[]}
+  variables={[{"id":"title","type":"string","label":"Title","default":"Schematic Advances"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Sequential path arrows · abstract cartography"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
   meta={{"duration":9,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":283}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-campaign-arrows","tags":["map","geography","animation","arrows","campaign","newsreel","schematic","svg"]}}
-  video="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-campaign-arrows.mp4"
-  poster="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-campaign-arrows.png"
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-campaign-arrows/map-campaign-arrows.html"
 >

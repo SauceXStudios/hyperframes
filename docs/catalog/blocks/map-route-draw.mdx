@@ -8,15 +8,14 @@ import { CatalogDetail, CatalogSlot } from "/snippets/catalog-detail.jsx";
 import { InstallCommand } from "/snippets/install-command.jsx";
 
 <CatalogDetail
+  previewSrc="/public/catalog/blocks/map-route-draw.json"
   compositionId="map-route-draw"
   compositionSrc="compositions/map-route-draw.html"
   title="Map Route Draw"
   description="Newsreel-style stylized landmass with a route line that stroke-draws on across the map. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
-  variables={[]}
+  variables={[{"id":"title","type":"string","label":"Title","default":"The Overland Route"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · route draw-on"},{"id":"fromLabel","type":"string","label":"Origin label","default":"ORIGIN"},{"id":"toLabel","type":"string","label":"Destination label","default":"DESTINATION"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
   meta={{"duration":8,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":244}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-route-draw","tags":["map","geography","animation","route","newsreel","draw-on","svg"]}}
-  video="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-route-draw.mp4"
-  poster="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-route-draw.png"
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-route-draw/map-route-draw.html"
 >

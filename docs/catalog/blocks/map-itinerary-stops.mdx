@@ -8,15 +8,14 @@ import { CatalogDetail, CatalogSlot } from "/snippets/catalog-detail.jsx";
 import { InstallCommand } from "/snippets/install-command.jsx";
 
 <CatalogDetail
+  previewSrc="/public/catalog/blocks/map-itinerary-stops.json"
   compositionId="map-itinerary-stops"
   compositionSrc="compositions/map-itinerary-stops.html"
   title="Map Itinerary Stops"
   description="Multi-stop itinerary path with numbered markers that appear in sequence. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
-  variables={[]}
+  variables={[{"id":"title","type":"string","label":"Title","default":"The Itinerary"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · multi-stop route"},{"id":"labelA","type":"string","label":"Label A","default":"1"},{"id":"labelB","type":"string","label":"Label B","default":"2"},{"id":"labelC","type":"string","label":"Label C","default":"3"},{"id":"labelD","type":"string","label":"Label D","default":"4"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
   meta={{"duration":8,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":249}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-itinerary-stops","tags":["map","geography","animation","itinerary","stops","markers","newsreel","svg"]}}
-  video="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-itinerary-stops.mp4"
-  poster="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-itinerary-stops.png"
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-itinerary-stops/map-itinerary-stops.html"
 >

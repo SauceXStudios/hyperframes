@@ -8,15 +8,14 @@ import { CatalogDetail, CatalogSlot } from "/snippets/catalog-detail.jsx";
 import { InstallCommand } from "/snippets/install-command.jsx";
 
 <CatalogDetail
+  previewSrc="/public/catalog/blocks/map-split-theater.json"
   compositionId="map-split-theater"
   compositionSrc="compositions/map-split-theater.html"
   title="Map Split Theater"
   description="Split-screen two-theater maps with parallel schematic advances. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
-  variables={[]}
+  variables={[{"id":"title","type":"string","label":"Title","default":"Two Theaters"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · split screen"},{"id":"leftTitle","type":"string","label":"Left title","default":"WEST"},{"id":"rightTitle","type":"string","label":"Right title","default":"EAST"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
   meta={{"duration":8,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":237}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-split-theater","tags":["map","geography","animation","split","theater","dual","newsreel","svg"]}}
-  video="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-split-theater.mp4"
-  poster="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-split-theater.png"
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-split-theater/map-split-theater.html"
 >

@@ -8,15 +8,14 @@ import { CatalogDetail, CatalogSlot } from "/snippets/catalog-detail.jsx";
 import { InstallCommand } from "/snippets/install-command.jsx";
 
 <CatalogDetail
+  previewSrc="/public/catalog/blocks/map-grid-crosshair.json"
   compositionId="map-grid-crosshair"
   compositionSrc="compositions/map-grid-crosshair.html"
   title="Map Grid Crosshair"
   description="Lat-long grid draw-on with a crosshair lock on a target point. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
-  variables={[]}
+  variables={[{"id":"title","type":"string","label":"Title","default":"Grid Lock"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · lat-long lock"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
   meta={{"duration":7,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":383}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-grid-crosshair","tags":["map","geography","animation","grid","crosshair","latlong","newsreel","svg"]}}
-  video="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-grid-crosshair.mp4"
-  poster="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-grid-crosshair.png"
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-grid-crosshair/map-grid-crosshair.html"
 >

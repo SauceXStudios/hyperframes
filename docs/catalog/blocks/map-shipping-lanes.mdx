@@ -8,15 +8,14 @@ import { CatalogDetail, CatalogSlot } from "/snippets/catalog-detail.jsx";
 import { InstallCommand } from "/snippets/install-command.jsx";
 
 <CatalogDetail
+  previewSrc="/public/catalog/blocks/map-shipping-lanes.json"
   compositionId="map-shipping-lanes"
   compositionSrc="compositions/map-shipping-lanes.html"
   title="Map Shipping Lanes"
   description="Dotted sea shipping lanes that draw on across open water between ports. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
-  variables={[]}
+  variables={[{"id":"title","type":"string","label":"Title","default":"Sea Lanes"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · shipping lanes"},{"id":"fromLabel","type":"string","label":"Origin label","default":"PORT A"},{"id":"toLabel","type":"string","label":"Destination label","default":"PORT B"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
   meta={{"duration":9,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":224}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-shipping-lanes","tags":["map","geography","animation","shipping","lanes","sea","newsreel","svg"]}}
-  video="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-shipping-lanes.mp4"
-  poster="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-shipping-lanes.png"
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-shipping-lanes/map-shipping-lanes.html"
 >

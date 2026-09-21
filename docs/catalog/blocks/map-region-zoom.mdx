@@ -8,15 +8,14 @@ import { CatalogDetail, CatalogSlot } from "/snippets/catalog-detail.jsx";
 import { InstallCommand } from "/snippets/install-command.jsx";
 
 <CatalogDetail
+  previewSrc="/public/catalog/blocks/map-region-zoom.json"
   compositionId="map-region-zoom"
   compositionSrc="compositions/map-region-zoom.html"
   title="Map Region Zoom"
   description="Newsreel-style grid overlay and camera zoom into a framed region on a stylized landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
-  variables={[]}
+  variables={[{"id":"title","type":"string","label":"Title","default":"Sector Focus"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Grid overlay · camera zoom"},{"id":"regionLabel","type":"string","label":"Region label","default":"Sector 7"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
   meta={{"duration":9,"width":1920,"height":1080,"category":"Camera & 3D","badge":"Stable","codeLines":226}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-region-zoom","tags":["map","geography","animation","zoom","grid","newsreel","camera","svg"]}}
-  video="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-region-zoom.mp4"
-  poster="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-region-zoom.png"
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-region-zoom/map-region-zoom.html"
 >

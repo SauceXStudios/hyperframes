@@ -8,15 +8,14 @@ import { CatalogDetail, CatalogSlot } from "/snippets/catalog-detail.jsx";
 import { InstallCommand } from "/snippets/install-command.jsx";
 
 <CatalogDetail
+  previewSrc="/public/catalog/blocks/map-legend-build.json"
   compositionId="map-legend-build"
   compositionSrc="compositions/map-legend-build.html"
   title="Map Legend Build"
   description="Legend panel that builds row-by-row while map symbols appear. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
-  variables={[]}
+  variables={[{"id":"title","type":"string","label":"Title","default":"Legend Build"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · legend assemble"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
   meta={{"duration":7,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":260}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-legend-build","tags":["map","geography","animation","legend","key","newsreel","svg"]}}
-  video="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-legend-build.mp4"
-  poster="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-legend-build.png"
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-legend-build/map-legend-build.html"
 >

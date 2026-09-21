@@ -8,15 +8,14 @@ import { CatalogDetail, CatalogSlot } from "/snippets/catalog-detail.jsx";
 import { InstallCommand } from "/snippets/install-command.jsx";
 
 <CatalogDetail
+  previewSrc="/public/catalog/blocks/map-ink-blot-soak.json"
   compositionId="map-ink-blot-soak"
   compositionSrc="compositions/map-ink-blot-soak.html"
   title="Map Ink Blot Soak"
   description="Ink-blot territory soak filling a region with a spreading blot wash. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
-  variables={[]}
+  variables={[{"id":"title","type":"string","label":"Title","default":"Ink Across the Province"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · ink blot soak"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
   meta={{"duration":8,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":179}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-ink-blot-soak","tags":["map","geography","animation","ink","blot","territory","newsreel","svg"]}}
-  video="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-ink-blot-soak.mp4"
-  poster="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-ink-blot-soak.png"
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-ink-blot-soak/map-ink-blot-soak.html"
 >

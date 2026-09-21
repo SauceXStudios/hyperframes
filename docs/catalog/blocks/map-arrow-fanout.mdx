@@ -8,15 +8,14 @@ import { CatalogDetail, CatalogSlot } from "/snippets/catalog-detail.jsx";
 import { InstallCommand } from "/snippets/install-command.jsx";
 
 <CatalogDetail
+  previewSrc="/public/catalog/blocks/map-arrow-fanout.json"
   compositionId="map-arrow-fanout"
   compositionSrc="compositions/map-arrow-fanout.html"
   title="Map Arrow Fanout"
   description="Arrow swarm fan-out from an origin - abstract schematic advances. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
-  variables={[]}
+  variables={[{"id":"title","type":"string","label":"Title","default":"Advance Fan-Out"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · arrow swarm"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
   meta={{"duration":8,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":282}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-arrow-fanout","tags":["map","geography","animation","arrows","fanout","swarm","newsreel","svg"]}}
-  video="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-arrow-fanout.mp4"
-  poster="https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-arrow-fanout.png"
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-arrow-fanout/map-arrow-fanout.html"
 >
