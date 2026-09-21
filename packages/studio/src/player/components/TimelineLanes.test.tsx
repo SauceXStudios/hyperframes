@@ -158,7 +158,6 @@ function renderLanes(options: RenderLanesOptions = {}): {
           getTrackStyle={getTrackStyle}
           gsapAnimations={gsapAnimations}
           selectedKeyframes={new Set()}
-          currentTime={0}
           onContextMenuLane={next.onContextMenuLane}
           onToggleTrackHidden={next.onToggleTrackHidden}
           onTogglePropertyGroupKeyframe={vi.fn()}

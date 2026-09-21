@@ -15,6 +15,7 @@ import {
   TimelineRuler,
   TimelineShortcutHint,
 } from "./TimelineParts";
+import { countTimelineRender } from "./timelineRenderCounter";
 
 export * from "./TimelineProvider";
 export {
@@ -36,6 +37,7 @@ export {
 } from "./timelineViewportGeometry";
 
 function TimelineView() {
+  countTimelineRender("TimelineView");
   const { state, meta } = useTimelineContext();
   const { timelineReady, elements } = state;
   if (!timelineReady || elements.length === 0) {

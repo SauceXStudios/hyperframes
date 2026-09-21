@@ -1,5 +1,5 @@
 import { useCallback, useLayoutEffect, useRef } from "react";
-import { liveTime, type TimelineElement } from "../store/playerStore";
+import { liveTime, usePlayerStore, type TimelineElement } from "../store/playerStore";
 import { useMountEffect } from "../../hooks/useMountEffect";
 
 interface ActiveClipRecord {
@@ -12,7 +12,6 @@ interface ActiveClipRecord {
 
 interface UseTimelineActiveClipsInput {
   scrollRef: React.RefObject<HTMLDivElement | null>;
-  currentTime: number;
   clipStateVersion: unknown;
   elementStateVersion: unknown;
 }
@@ -99,7 +98,6 @@ export function updateTimelineActiveClipClasses(
 /** Keeps the currently mounted clip window synchronized with the RAF playback clock. */
 export function useTimelineActiveClips({
   scrollRef,
-  currentTime,
   clipStateVersion,
   elementStateVersion,
 }: UseTimelineActiveClipsInput): void {
@@ -120,8 +118,8 @@ export function useTimelineActiveClips({
   );
 
   useLayoutEffect(() => {
-    refreshRecords(currentTime);
-  }, [clipStateVersion, currentTime, elementStateVersion, refreshRecords]);
+    refreshRecords(usePlayerStore.getState().currentTime);
+  }, [clipStateVersion, elementStateVersion, refreshRecords]);
   useMountEffect(() =>
     liveTime.subscribe((time) => {
       applyActiveClipDiff(recordsRef.current, previousActiveIdsRef.current, time);

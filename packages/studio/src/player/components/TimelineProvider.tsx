@@ -98,7 +98,6 @@ export interface TimelineOverlaysState {
   onMoveKeyframeToPlayhead: TimelineEditCallbacks["onMoveKeyframeToPlayhead"];
   clipContextMenu: ClipContextMenuState | null;
   setClipContextMenu: (value: ClipContextMenuState | null) => void;
-  currentTime: number;
   onSplitElement: TimelineEditCallbacks["onSplitElement"];
   pinZoomBeforeEdit: () => void;
   onDeleteElement?: (element: TimelineElement) => Promise<void> | void;

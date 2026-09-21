@@ -60,7 +60,6 @@ describe("Timeline parts composition", () => {
           onMoveKeyframeToPlayhead: vi.fn(),
           clipContextMenu: { x: 10, y: 10, element, sessionEpoch: 1 },
           setClipContextMenu: vi.fn(),
-          currentTime: 1,
           onSplitElement,
           pinZoomBeforeEdit: vi.fn(),
           gapContextMenu: null,

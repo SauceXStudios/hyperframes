@@ -75,7 +75,6 @@ export interface TimelineLaneBaseProps {
   keyframeCache?: Map<string, KeyframeCacheEntry>;
   gsapAnimations: Map<string, GsapAnimation[]>;
   selectedKeyframes: Set<string>;
-  currentTime: number;
   onSeek?: (time: number) => void;
   onSelectSegment?: (elementId: string, target: TimelineKeyframeTarget) => void;
   onClickKeyframe?: (element: TimelineElement, target: TimelineKeyframeTarget) => void;

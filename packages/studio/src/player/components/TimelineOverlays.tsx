@@ -8,6 +8,7 @@ import { TimelineShortcutHint as TimelineShortcutHintImpl } from "./TimelineShor
 import { copyTextToClipboard } from "../../utils/clipboard";
 import { trackStudioSegmentEaseEdit } from "../../telemetry/events";
 import { useTimelineContext } from "./TimelineProvider";
+import { countTimelineRender } from "./timelineRenderCounter";
 
 interface TimelineContextTargetInput {
   capturedElement: TimelineElement;
@@ -167,7 +168,6 @@ export function TimelineClipMenuOverlay() {
       x={menu.x}
       y={menu.y}
       element={element}
-      currentTime={overlay.currentTime}
       onClose={() => setClipContextMenu(null)}
       onSplit={(_element, time) => {
         const current = readCurrentElement();
@@ -209,6 +209,7 @@ export function TimelineGapMenuOverlay() {
 }
 
 export function TimelineOverlays() {
+  countTimelineRender("TimelineOverlays");
   return (
     <>
       <TimelineShortcutHintOverlay />

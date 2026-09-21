@@ -1,7 +1,9 @@
 import { TimelineRuler as TimelineRulerImpl } from "./TimelineRuler";
 import { useTimelineContext } from "./TimelineProvider";
+import { countTimelineRender } from "./timelineRenderCounter";
 
 export function TimelineRulerPart() {
+  countTimelineRender("TimelineRuler");
   const { state } = useTimelineContext();
   const props = state.canvas;
   return (
