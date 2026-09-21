@@ -104,8 +104,9 @@ describe("TimelineTrackHeader", () => {
   });
 
   it("names a shared audio track rather than the selected clip", () => {
-    const first = { ...ELEMENT, id: "first", tag: "audio" };
-    const second = { ...ELEMENT, id: "second", tag: "audio" };
+    const automation = JSON.stringify({ version: 1, lanes: [{ target: "volume", points: [] }] });
+    const first = { ...ELEMENT, id: "first", tag: "audio", automation };
+    const second = { ...ELEMENT, id: "second", tag: "audio", automation };
     const { host, root } = renderHeader({ clip: second, elements: [first, second], audio: true });
     expect(host.textContent).toContain("Track 1");
     expect(host.textContent).not.toContain("second");
