@@ -3,33 +3,21 @@
   "name": "map-radar-rings",
   "type": "hyperframes:block",
   "title": "Map Radar Rings",
-  "description": "Concentric radar and range rings that expand from a focal point with a seek-safe sweep. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
-  "tags": ["map", "geography", "animation", "radar", "rings", "range", "newsreel", "svg"],
+  "description": "Measured film hold-plate with soft-ink multi-hub concentric rings (pass8j-closer: 6 hubs incl NYC, sigma 0.62, stroke 1.48, expand 3.15s, pre-iris 3.5s). Seek-safe SVG/GSAP; PNG plate only (no MP4 wrapper). Inspired by Moving Image Archive, Network Broadcasting, 1934 - not affiliated; code recreation. QC_PASS (Lead + independent judge) 2026-09-21.",
+  "tags": ["map", "geography", "animation", "radar", "rings", "newsreel", "svg", "mia"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
   "dimensions": {
     "width": 1920,
     "height": 1080
   },
-  "duration": 9,
+  "duration": 3.5,
   "variables": [
     {
-      "id": "title",
+      "id": "credit",
       "type": "string",
-      "label": "Title",
-      "default": "Range Rings"
-    },
-    {
-      "id": "subtitle",
-      "type": "string",
-      "label": "Subtitle",
-      "default": "Educational cartography · radar rings"
-    },
-    {
-      "id": "accent",
-      "type": "color",
-      "label": "Accent",
-      "default": "#c45c26"
+      "label": "Credit",
+      "default": "Moving Image Archive, Network Broadcasting, 1934 (clip bbdd60a1-a3f6-5d22-8953-3419f5a17afd; IA 0809_Network_Broadcasting_02_01_12_00) - code recreation - not affiliated"
     }
   ],
   "files": [
@@ -37,26 +25,24 @@
       "path": "map-radar-rings.html",
       "target": "compositions/map-radar-rings.html",
       "type": "hyperframes:composition"
+    },
+    {
+      "path": "assets/hold-plate.png",
+      "target": "assets/hold-plate.png",
+      "type": "hyperframes:asset"
+    },
+    {
+      "path": "assets/measured-data.json",
+      "target": "assets/measured-data.json",
+      "type": "hyperframes:asset"
     }
   ],
   "params": [
     {
-      "id": "title",
+      "id": "credit",
       "type": "string",
-      "label": "Title",
-      "default": "Range Rings"
-    },
-    {
-      "id": "subtitle",
-      "type": "string",
-      "label": "Subtitle",
-      "default": "Educational cartography · radar rings"
-    },
-    {
-      "id": "accent",
-      "type": "color",
-      "label": "Accent",
-      "default": "#c45c26"
+      "label": "Credit",
+      "default": "Moving Image Archive, Network Broadcasting, 1934 (clip bbdd60a1-a3f6-5d22-8953-3419f5a17afd; IA 0809_Network_Broadcasting_02_01_12_00) - code recreation - not affiliated"
     }
   ]
 }

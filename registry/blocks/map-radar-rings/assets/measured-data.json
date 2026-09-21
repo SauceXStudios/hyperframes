@@ -1,0 +1,533 @@
+{
+  "provenance": {
+    "source": "evidence/probe-rings-3p5-8p5.mp4",
+    "updated": "2026-09-21T13:35:00-04:00",
+    "pass": "pass8j-closer-nyc-softink",
+    "measure_artifacts": "qc/_measure/pass8j/",
+    "notes": [
+      "Lead QC_FAIL_REFINE pass8j closer: soft-ink sigma overshot fog (FWHM Chi t3 ~31 REC vs ~11 PROBE); NYC not firing in live window (5/6).",
+      "KEEP expand_s=3.15 ease_r_pow=1.1 max_r=17 6 hubs t0 dark normal blend.",
+      "P0 sigma 1.00->0.62 soft-ink band; stroke 1.48; op 0.50.",
+      "P0 NYC restore: op_scale 1.70 (bright NE plate); prove 6/6 in replica-rings-window.mp4 + SBS + annot."
+    ],
+    "shipped": {
+      "max_r_px": 17,
+      "stroke_px": 1.48,
+      "opacity": 0.5,
+      "onset_s_first": 1.06,
+      "expand_s": 3.15,
+      "hold_frac": 0.65,
+      "ease": "mildOut",
+      "ease_r_pow": 1.1,
+      "blend": "normal",
+      "bloom": "filmBloom \u03c30.62 single",
+      "sigma": 0.62,
+      "black_overlay_start": 1.0,
+      "fade_duration_s": 1.15,
+      "fade_ease": "power2.in",
+      "fade_color": "#0F0F0F",
+      "hub_count": 6,
+      "hubs": ["nyc", "chicago", "denver", "kansas_city", "nashville_area", "atlanta"],
+      "nyc_op_scale": 1.7,
+      "west_op_scale": {
+        "denver": 1.55,
+        "kansas_city": 1.7
+      },
+      "duration_s": 3.5,
+      "pass": "pass8j-closer",
+      "pass_id": "pass8j-closer"
+    },
+    "pass_id": "pass8j-closer-nyc-softink"
+  },
+  "canvas": {
+    "w": 320,
+    "h": 240,
+    "display": {
+      "letterbox_x": 240,
+      "scale": 4.5,
+      "stage": [1920, 1080]
+    }
+  },
+  "dots": [
+    {
+      "x": 253,
+      "y": 172,
+      "p": "measured"
+    },
+    {
+      "x": 229,
+      "y": 76,
+      "p": "measured"
+    },
+    {
+      "x": 198,
+      "y": 183,
+      "p": "measured"
+    },
+    {
+      "x": 123,
+      "y": 142,
+      "p": "measured"
+    },
+    {
+      "x": 225,
+      "y": 88,
+      "p": "measured"
+    },
+    {
+      "x": 273,
+      "y": 101,
+      "p": "measured"
+    },
+    {
+      "x": 273,
+      "y": 114,
+      "p": "measured"
+    },
+    {
+      "x": 89,
+      "y": 167,
+      "p": "measured"
+    },
+    {
+      "x": 151,
+      "y": 84,
+      "p": "measured"
+    },
+    {
+      "x": 203,
+      "y": 78,
+      "p": "measured"
+    },
+    {
+      "x": 282,
+      "y": 90,
+      "p": "measured"
+    },
+    {
+      "x": 227,
+      "y": 94,
+      "p": "measured"
+    },
+    {
+      "x": 252,
+      "y": 184,
+      "p": "measured"
+    },
+    {
+      "x": 258,
+      "y": 189,
+      "p": "measured"
+    },
+    {
+      "x": 172,
+      "y": 156,
+      "p": "measured"
+    },
+    {
+      "x": 129,
+      "y": 193,
+      "p": "measured"
+    },
+    {
+      "x": 218,
+      "y": 83,
+      "p": "measured"
+    },
+    {
+      "x": 247,
+      "y": 70,
+      "p": "measured"
+    },
+    {
+      "x": 285,
+      "y": 86,
+      "p": "measured"
+    },
+    {
+      "x": 263,
+      "y": 117,
+      "p": "measured"
+    },
+    {
+      "x": 234,
+      "y": 88,
+      "p": "measured"
+    },
+    {
+      "x": 135,
+      "y": 202,
+      "p": "measured"
+    },
+    {
+      "x": 243,
+      "y": 74,
+      "p": "measured"
+    },
+    {
+      "x": 239,
+      "y": 88,
+      "p": "measured"
+    },
+    {
+      "x": 186,
+      "y": 99,
+      "p": "measured"
+    },
+    {
+      "x": 227,
+      "y": 99,
+      "p": "measured"
+    },
+    {
+      "x": 199,
+      "y": 93,
+      "p": "measured"
+    },
+    {
+      "x": 159,
+      "y": 94,
+      "p": "measured"
+    },
+    {
+      "x": 181,
+      "y": 146,
+      "p": "measured"
+    },
+    {
+      "x": 256,
+      "y": 150,
+      "p": "measured"
+    },
+    {
+      "x": 223,
+      "y": 103,
+      "p": "measured"
+    },
+    {
+      "x": 267,
+      "y": 108,
+      "p": "measured"
+    },
+    {
+      "x": 270,
+      "y": 118,
+      "p": "measured"
+    },
+    {
+      "x": 215,
+      "y": 132,
+      "p": "measured"
+    },
+    {
+      "x": 292,
+      "y": 72,
+      "p": "measured"
+    },
+    {
+      "x": 243,
+      "y": 85,
+      "p": "measured"
+    },
+    {
+      "x": 256,
+      "y": 130,
+      "p": "measured"
+    },
+    {
+      "x": 253,
+      "y": 165,
+      "p": "measured"
+    },
+    {
+      "x": 248,
+      "y": 166,
+      "p": "measured"
+    },
+    {
+      "x": 254,
+      "y": 77,
+      "p": "measured"
+    },
+    {
+      "x": 218,
+      "y": 104,
+      "p": "measured"
+    },
+    {
+      "x": 286,
+      "y": 77,
+      "p": "measured"
+    },
+    {
+      "x": 221,
+      "y": 116,
+      "p": "measured"
+    },
+    {
+      "x": 227,
+      "y": 139,
+      "p": "measured"
+    },
+    {
+      "x": 215,
+      "y": 90,
+      "p": "measured"
+    },
+    {
+      "x": 268,
+      "y": 92,
+      "p": "measured"
+    },
+    {
+      "x": 131,
+      "y": 52,
+      "p": "measured"
+    },
+    {
+      "x": 250,
+      "y": 80,
+      "p": "measured"
+    },
+    {
+      "x": 220,
+      "y": 88,
+      "p": "measured"
+    },
+    {
+      "x": 240,
+      "y": 98,
+      "p": "measured"
+    },
+    {
+      "x": 210,
+      "y": 107,
+      "p": "measured"
+    },
+    {
+      "x": 242,
+      "y": 111,
+      "p": "measured"
+    },
+    {
+      "x": 161,
+      "y": 186,
+      "p": "measured"
+    },
+    {
+      "x": 254,
+      "y": 90,
+      "p": "measured"
+    },
+    {
+      "x": 168,
+      "y": 127,
+      "p": "measured"
+    },
+    {
+      "x": 149,
+      "y": 164,
+      "p": "measured"
+    },
+    {
+      "x": 156,
+      "y": 87,
+      "p": "measured"
+    },
+    {
+      "x": 174,
+      "y": 164,
+      "p": "measured"
+    },
+    {
+      "x": 194,
+      "y": 165,
+      "p": "measured"
+    },
+    {
+      "x": 203,
+      "y": 165,
+      "p": "measured"
+    },
+    {
+      "x": 154,
+      "y": 78,
+      "p": "measured"
+    },
+    {
+      "x": 175,
+      "y": 86,
+      "p": "measured"
+    },
+    {
+      "x": 210,
+      "y": 90,
+      "p": "measured"
+    },
+    {
+      "x": 189,
+      "y": 92,
+      "p": "measured"
+    },
+    {
+      "x": 125,
+      "y": 121,
+      "p": "measured"
+    },
+    {
+      "x": 297,
+      "y": 60,
+      "p": "measured"
+    },
+    {
+      "x": 216,
+      "y": 78,
+      "p": "measured"
+    },
+    {
+      "x": 276,
+      "y": 88,
+      "p": "measured"
+    },
+    {
+      "x": 171,
+      "y": 94,
+      "p": "measured"
+    },
+    {
+      "x": 279,
+      "y": 84,
+      "p": "measured"
+    },
+    {
+      "x": 191,
+      "y": 117,
+      "p": "measured"
+    },
+    {
+      "x": 230,
+      "y": 118,
+      "p": "measured"
+    },
+    {
+      "x": 224,
+      "y": 162,
+      "p": "measured"
+    },
+    {
+      "x": 256,
+      "y": 72,
+      "p": "measured"
+    },
+    {
+      "x": 216,
+      "y": 169,
+      "p": "measured"
+    }
+  ],
+  "hubs": [
+    {
+      "id": "nyc",
+      "x": 281,
+      "y": 82,
+      "onset_rel": 1.1,
+      "r_max": 17,
+      "expand_s": 3.15,
+      "p": "measured",
+      "op_scale": 1.7
+    },
+    {
+      "id": "chicago",
+      "x": 221,
+      "y": 94,
+      "onset_rel": 1.12,
+      "r_max": 17,
+      "expand_s": 3.15,
+      "p": "measured"
+    },
+    {
+      "id": "denver",
+      "x": 109,
+      "y": 101,
+      "onset_rel": 1.06,
+      "r_max": 17,
+      "expand_s": 3.15,
+      "op_scale": 1.55,
+      "p": "measured"
+    },
+    {
+      "id": "kansas_city",
+      "x": 167,
+      "y": 103,
+      "onset_rel": 1.08,
+      "r_max": 17,
+      "expand_s": 3.15,
+      "op_scale": 1.7,
+      "p": "measured"
+    },
+    {
+      "id": "nashville_area",
+      "x": 220,
+      "y": 138,
+      "onset_rel": 1.2,
+      "r_max": 17,
+      "expand_s": 3.15,
+      "p": "measured"
+    },
+    {
+      "id": "atlanta",
+      "x": 233,
+      "y": 140,
+      "onset_rel": 1.24,
+      "r_max": 17,
+      "expand_s": 3.15,
+      "p": "measured"
+    }
+  ],
+  "ring": {
+    "rings_per_pulse": 2,
+    "pulse_interval_s": 0.75,
+    "expand_duration_s": 3.15,
+    "r_max_px": 17,
+    "stroke_px": 1.48,
+    "intra_pulse_stagger_s": 0.28,
+    "color": "#FFFFFF",
+    "opacity": [0.5, 0.0],
+    "ease": "mildOut",
+    "opacity_ease": "power1.in",
+    "max_pulses": 2,
+    "p": "measured",
+    "opacity_hold_frac": 0.65,
+    "bloom": {
+      "filter": "filmBloom",
+      "std_wide": 0,
+      "std_mid": 0,
+      "std_tight": 0.62,
+      "wide_weight": 0,
+      "mid_weight": 0,
+      "tight_weight": 1.0,
+      "blend": "normal",
+      "target_fwhm_px": 2.2,
+      "note": "pass8j-closer: stroke 1.48 + single soft-ink sigma0.62; op 0.50; NYC op_scale 1.70 (NE plate punch); KEEP normal; no multi-sigma/screen"
+    }
+  },
+  "iris": {
+    "oos": true,
+    "note": "Live control-room iris starts ~3.8s on PROBE \u2014 OUT OF SCOPE for rings-only window. Do not fake gray disk.",
+    "onset_rel_s_probe": 3.8,
+    "p_timing": "measured"
+  },
+  "fade": {
+    "black_overlay_start": 1.0,
+    "black_overlay_end": 0.0,
+    "duration_s": 1.15,
+    "ease": "power2.in",
+    "color": "#0F0F0F",
+    "p": "measured",
+    "note": "pass8i KEEP: stronger solid-to-fade hold power2.in over 1.15s; early SBS cols stay dark; ghost-dead t0"
+  },
+  "duration": 3.5,
+  "window_label": "rings-only pre-iris",
+  "hub_count": 6,
+  "ease_r_pow": 1.1
+}

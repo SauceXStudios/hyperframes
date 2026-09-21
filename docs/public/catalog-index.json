@@ -3425,16 +3425,16 @@
     "name": "map-radar-rings",
     "type": "block",
     "title": "Map Radar Rings",
-    "description": "Concentric radar and range rings that expand from a focal point with a seek-safe sweep. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
+    "description": "Measured film hold-plate with soft-ink multi-hub concentric rings (pass8j-closer: 6 hubs incl NYC, sigma 0.62, stroke 1.48, expand 3.15s, pre-iris 3.5s). Seek-safe SVG/GSAP; PNG plate only (no MP4 wrapper). Inspired by Moving Image Archive, Network Broadcasting, 1934 - not affiliated; code recreation. QC_PASS (Lead + independent judge) 2026-09-21.",
     "tags": [
       "map",
       "geography",
       "animation",
       "radar",
       "rings",
-      "range",
       "newsreel",
-      "svg"
+      "svg",
+      "mia"
     ],
     "href": "/catalog/blocks/map-radar-rings",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-radar-rings.png"

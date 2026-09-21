@@ -34,10 +34,6 @@ Not affiliated; footage not included. Original HyperFrames GSAP/HTML composition
 
 Miguel rejected CEILING_ONLY ports on #4237. Reverted to pre-port baseline SVG. Ungated until Lead+judge QC_PASS. No CEILING_ONLY without Miguel OK.
 
-## map-radar-rings (REHOLD 2026-09-21)
-
-Miguel rejected CEILING_ONLY ports on #4237. Reverted to pre-port baseline SVG. Ungated until Lead+judge QC_PASS. No CEILING_ONLY without Miguel OK.
-
 ## map-arrow-fanout (REHOLD 2026-09-21)
 
 Miguel rejected CEILING_ONLY ports on #4237. Reverted to pre-port baseline SVG. Ungated until Lead+judge QC_PASS. No CEILING_ONLY without Miguel OK.
@@ -56,3 +52,8 @@ Ceilings: live open stand-ins, grain/weave, DEM sharpness, tunnel micro-breaks, 
 
 Source inspiration: Moving Image Archive animated-map clip map-border-chase (Alaska Highway).
 Ported from `reversals/mia-maps/border-chase/recreate/hf-project/compositions/map-border-chase.html` + `public/basemap-t0.png` (still plate, not MP4).
+
+## map-radar-rings (QC_PASS 2026-09-21 pass8j-closer)
+
+Source: Moving Image Archive, Network Broadcasting, 1934 (clip bbdd60a1-a3f6-5d22-8953-3419f5a17afd; IA 0809_Network_Broadcasting_02_01_12_00).
+Ported from `reversals/mia-maps/radar-rings/recreate/` (hold-plate.png + measured GSAP rings). No MP4 wrapper. Lead + independent judge PASS.
