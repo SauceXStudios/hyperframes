@@ -1,6 +1,6 @@
 ---
 title: "Archival Map - Stamp Labels"
-description: "Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Flying the Islands of the Bahamas. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
+description: "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Flying the Islands of the Bahamas, 2009. Acquired via /api/clips/b873e568-d8bb-57f2-b89e-deb594c08f83/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
 mode: "frame"
 ---
 
@@ -12,8 +12,8 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   compositionId="map-stamp-labels"
   compositionSrc="compositions/map-stamp-labels.html"
   title="Archival Map - Stamp Labels"
-  description="Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Flying the Islands of the Bahamas. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Stamp Labels"},{"id":"credit","type":"string","label":"Credit line","default":"Footage: Moving Image Archive | Flying the Islands of the Bahamas"}]}
+  description="Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Flying the Islands of the Bahamas, 2009. Acquired via /api/clips/b873e568-d8bb-57f2-b89e-deb594c08f83/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Stamp Labels"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, Flying the Islands of the Bahamas, 2009"}]}
   meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":143}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-stamp-labels","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
   hasCode
@@ -140,7 +140,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         var credit =
           typeof vars.credit === "string" && vars.credit
             ? vars.credit
-            : "Footage: Moving Image Archive | Flying the Islands of the Bahamas";
+            : "Moving Image Archive, Flying the Islands of the Bahamas, 2009";
 
         document.getElementById("sl-title").textContent = title;
         document.querySelector('#sl-credit [data-var-text="credit"]').textContent = credit;
@@ -204,7 +204,7 @@ Move it in time with `data-start`. Put it on a different timeline row with
 Set these CSS variables on the block:
 
 - `title` - Title. Defaults to `Archival Map - Stamp Labels`.
-- `credit` - Credit line. Defaults to `Footage: Moving Image Archive | Flying the Islands of the Bahamas`.
+- `credit` - Credit line. Defaults to `Moving Image Archive, Flying the Islands of the Bahamas, 2009`.
 
 ## Variables
 
@@ -214,7 +214,7 @@ want to change on the element:
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
 | `title` | `Archival Map - Stamp Labels` | string |  |
-| `credit` | `Footage: Moving Image Archive | Flying the Islands of the Bahamas` | string |  |
+| `credit` | `Moving Image Archive, Flying the Islands of the Bahamas, 2009` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -223,7 +223,7 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-stamp-labels"
   data-composition-src="compositions/map-stamp-labels.html"
-  data-variable-values='{"title":"Archival Map - Stamp Labels","credit":"Footage: Moving Image Archive | Flying the Islands of the Bahamas"}'
+  data-variable-values='{"title":"Archival Map - Stamp Labels","credit":"Moving Image Archive, Flying the Islands of the Bahamas, 2009"}'
 ></div>
 ```
 

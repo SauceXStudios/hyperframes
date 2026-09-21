@@ -3,11 +3,11 @@
   "name": "map-stamp-labels",
   "type": "hyperframes:block",
   "title": "Archival Map - Stamp Labels",
-  "description": "Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Flying the Islands of the Bahamas. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms.",
+  "description": "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Flying the Islands of the Bahamas, 2009. Acquired via /api/clips/b873e568-d8bb-57f2-b89e-deb594c08f83/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive.",
   "tags": ["map", "geography", "animation", "archival", "footage", "mia", "newsreel", "video"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
-  "license": "Footage: public domain / free to reuse via Moving Image Archive. Composition: project license.",
+  "license": "Footage: public domain / free to reuse (Moving Image Archive). Composition: project license.",
   "dimensions": {
     "width": 1920,
     "height": 1080
@@ -24,7 +24,7 @@
       "id": "credit",
       "type": "string",
       "label": "Credit line",
-      "default": "Footage: Moving Image Archive | Flying the Islands of the Bahamas"
+      "default": "Moving Image Archive, Flying the Islands of the Bahamas, 2009"
     }
   ],
   "files": [
@@ -54,7 +54,7 @@
     {
       "type": "text",
       "label": "Credit line",
-      "default": "Footage: Moving Image Archive | Flying the Islands of the Bahamas",
+      "default": "Moving Image Archive, Flying the Islands of the Bahamas, 2009",
       "key": "credit"
     }
   ]

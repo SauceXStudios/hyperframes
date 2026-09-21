@@ -1,6 +1,6 @@
 ---
 title: "Archival Map - Arrow Fanout"
-description: "Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Germany. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
+description: "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Germany, 1957. Acquired via /api/clips/6a1958ac-3075-5e27-bc04-6bf472f362ff/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
 mode: "frame"
 ---
 
@@ -12,8 +12,8 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   compositionId="map-arrow-fanout"
   compositionSrc="compositions/map-arrow-fanout.html"
   title="Archival Map - Arrow Fanout"
-  description="Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Germany. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Arrow Fanout"},{"id":"credit","type":"string","label":"Credit line","default":"Footage: Moving Image Archive | Germany"}]}
+  description="Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Germany, 1957. Acquired via /api/clips/6a1958ac-3075-5e27-bc04-6bf472f362ff/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Arrow Fanout"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, Germany, 1957"}]}
   meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":141}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-arrow-fanout","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
   hasCode
@@ -118,7 +118,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
       <div id="af-frame" aria-hidden="true"></div>
       <div id="af-title" data-var-text="title">Archival Map - Arrow Fanout</div>
       <div id="af-credit">
-        <span data-var-text="credit">Footage: Moving Image Archive | Germany</span>
+        <span data-var-text="credit">Moving Image Archive, Germany, 1957</span>
         <span id="af-credit-url"
           >movingimagearchive.com/collection/animated-maps - public domain / free to reuse</span
         >
@@ -138,7 +138,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         var credit =
           typeof vars.credit === "string" && vars.credit
             ? vars.credit
-            : "Footage: Moving Image Archive | Germany";
+            : "Moving Image Archive, Germany, 1957";
 
         document.getElementById("af-title").textContent = title;
         document.querySelector('#af-credit [data-var-text="credit"]').textContent = credit;
@@ -202,7 +202,7 @@ Move it in time with `data-start`. Put it on a different timeline row with
 Set these CSS variables on the block:
 
 - `title` - Title. Defaults to `Archival Map - Arrow Fanout`.
-- `credit` - Credit line. Defaults to `Footage: Moving Image Archive | Germany`.
+- `credit` - Credit line. Defaults to `Moving Image Archive, Germany, 1957`.
 
 ## Variables
 
@@ -212,7 +212,7 @@ want to change on the element:
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
 | `title` | `Archival Map - Arrow Fanout` | string |  |
-| `credit` | `Footage: Moving Image Archive | Germany` | string |  |
+| `credit` | `Moving Image Archive, Germany, 1957` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -221,7 +221,7 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-arrow-fanout"
   data-composition-src="compositions/map-arrow-fanout.html"
-  data-variable-values='{"title":"Archival Map - Arrow Fanout","credit":"Footage: Moving Image Archive | Germany"}'
+  data-variable-values='{"title":"Archival Map - Arrow Fanout","credit":"Moving Image Archive, Germany, 1957"}'
 ></div>
 ```
 

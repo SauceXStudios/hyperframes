@@ -1,6 +1,6 @@
 ---
 title: "Archival Map - Boundary Morph"
-description: "Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Alaska's Silver Millions (Part I). Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
+description: "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Alaska's Silver Millions (Part I), 1936. Acquired via /api/clips/ed15e61c-168d-5c7b-a2f9-6c658f5eda37/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
 mode: "frame"
 ---
 
@@ -12,8 +12,8 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   compositionId="map-boundary-morph"
   compositionSrc="compositions/map-boundary-morph.html"
   title="Archival Map - Boundary Morph"
-  description="Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Alaska's Silver Millions (Part I). Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Boundary Morph"},{"id":"credit","type":"string","label":"Credit line","default":"Footage: Moving Image Archive | Alaska's Silver Millions (Part I)"}]}
+  description="Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Alaska's Silver Millions (Part I), 1936. Acquired via /api/clips/ed15e61c-168d-5c7b-a2f9-6c658f5eda37/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Boundary Morph"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, Alaska's Silver Millions (Part I), 1936"}]}
   meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":145}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-boundary-morph","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
   hasCode
@@ -142,7 +142,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         var credit =
           typeof vars.credit === "string" && vars.credit
             ? vars.credit
-            : "Footage: Moving Image Archive | Alaska's Silver Millions (Part I)";
+            : "Moving Image Archive, Alaska's Silver Millions (Part I), 1936";
 
         document.getElementById("bm-title").textContent = title;
         document.querySelector('#bm-credit [data-var-text="credit"]').textContent = credit;
@@ -206,7 +206,7 @@ Move it in time with `data-start`. Put it on a different timeline row with
 Set these CSS variables on the block:
 
 - `title` - Title. Defaults to `Archival Map - Boundary Morph`.
-- `credit` - Credit line. Defaults to `Footage: Moving Image Archive | Alaska's Silver Millions (Part I)`.
+- `credit` - Credit line. Defaults to `Moving Image Archive, Alaska's Silver Millions (Part I), 1936`.
 
 ## Variables
 
@@ -216,7 +216,7 @@ want to change on the element:
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
 | `title` | `Archival Map - Boundary Morph` | string |  |
-| `credit` | `Footage: Moving Image Archive | Alaska's Silver Millions (Part I)` | string |  |
+| `credit` | `Moving Image Archive, Alaska's Silver Millions (Part I), 1936` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -225,7 +225,7 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-boundary-morph"
   data-composition-src="compositions/map-boundary-morph.html"
-  data-variable-values='{"title":"Archival Map - Boundary Morph","credit":"Footage: Moving Image Archive | Alaska's Silver Millions (Part I)"}'
+  data-variable-values='{"title":"Archival Map - Boundary Morph","credit":"Moving Image Archive, Alaska's Silver Millions (Part I), 1936"}'
 ></div>
 ```
 

@@ -1,6 +1,6 @@
 ---
 title: "Archival Map - Hotspot Pulse"
-description: "Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from EVOLUTION OF THE OIL INDUSTRY, THE. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
+description: "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, EVOLUTION OF THE OIL INDUSTRY, THE, 1934; National Archives and Records Administration / NARA ARC mirror / FedFlix; https://archive.org/details/gov.archives.arc.12477. Acquired via /api/clips/a36b3d33-8c6b-5748-b606-e7841020121f/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
 mode: "frame"
 ---
 
@@ -12,8 +12,8 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   compositionId="map-hotspot-pulse"
   compositionSrc="compositions/map-hotspot-pulse.html"
   title="Archival Map - Hotspot Pulse"
-  description="Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from EVOLUTION OF THE OIL INDUSTRY, THE. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Hotspot Pulse"},{"id":"credit","type":"string","label":"Credit line","default":"Footage: Moving Image Archive | EVOLUTION OF THE OIL INDUSTRY, THE"}]}
+  description="Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, EVOLUTION OF THE OIL INDUSTRY, THE, 1934; National Archives and Records Administration / NARA ARC mirror / FedFlix; https://archive.org/details/gov.archives.arc.12477. Acquired via /api/clips/a36b3d33-8c6b-5748-b606-e7841020121f/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Hotspot Pulse"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, EVOLUTION OF THE OIL INDUSTRY, THE, 1934"}]}
   meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":145}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-hotspot-pulse","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
   hasCode
@@ -142,7 +142,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         var credit =
           typeof vars.credit === "string" && vars.credit
             ? vars.credit
-            : "Footage: Moving Image Archive | EVOLUTION OF THE OIL INDUSTRY, THE";
+            : "Moving Image Archive, EVOLUTION OF THE OIL INDUSTRY, THE, 1934";
 
         document.getElementById("hp-title").textContent = title;
         document.querySelector('#hp-credit [data-var-text="credit"]').textContent = credit;
@@ -206,7 +206,7 @@ Move it in time with `data-start`. Put it on a different timeline row with
 Set these CSS variables on the block:
 
 - `title` - Title. Defaults to `Archival Map - Hotspot Pulse`.
-- `credit` - Credit line. Defaults to `Footage: Moving Image Archive | EVOLUTION OF THE OIL INDUSTRY, THE`.
+- `credit` - Credit line. Defaults to `Moving Image Archive, EVOLUTION OF THE OIL INDUSTRY, THE, 1934`.
 
 ## Variables
 
@@ -216,7 +216,7 @@ want to change on the element:
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
 | `title` | `Archival Map - Hotspot Pulse` | string |  |
-| `credit` | `Footage: Moving Image Archive | EVOLUTION OF THE OIL INDUSTRY, THE` | string |  |
+| `credit` | `Moving Image Archive, EVOLUTION OF THE OIL INDUSTRY, THE, 1934` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -225,7 +225,7 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-hotspot-pulse"
   data-composition-src="compositions/map-hotspot-pulse.html"
-  data-variable-values='{"title":"Archival Map - Hotspot Pulse","credit":"Footage: Moving Image Archive | EVOLUTION OF THE OIL INDUSTRY, THE"}'
+  data-variable-values='{"title":"Archival Map - Hotspot Pulse","credit":"Moving Image Archive, EVOLUTION OF THE OIL INDUSTRY, THE, 1934"}'
 ></div>
 ```
 

@@ -3,11 +3,11 @@
   "name": "map-isoline-reveal",
   "type": "hyperframes:block",
   "title": "Archival Map - Isoline Reveal",
-  "description": "Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Climate Factor. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms.",
+  "description": "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Climate Factor, 1984. Acquired via /api/clips/37f8ebaf-2a5c-587c-9740-cb92cd79bb56/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive.",
   "tags": ["map", "geography", "animation", "archival", "footage", "mia", "newsreel", "video"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
-  "license": "Footage: public domain / free to reuse via Moving Image Archive. Composition: project license.",
+  "license": "Footage: public domain / free to reuse (Moving Image Archive). Composition: project license.",
   "dimensions": {
     "width": 1920,
     "height": 1080
@@ -24,7 +24,7 @@
       "id": "credit",
       "type": "string",
       "label": "Credit line",
-      "default": "Footage: Moving Image Archive | Climate Factor"
+      "default": "Moving Image Archive, Climate Factor, 1984"
     }
   ],
   "files": [
@@ -54,7 +54,7 @@
     {
       "type": "text",
       "label": "Credit line",
-      "default": "Footage: Moving Image Archive | Climate Factor",
+      "default": "Moving Image Archive, Climate Factor, 1984",
       "key": "credit"
     }
   ]

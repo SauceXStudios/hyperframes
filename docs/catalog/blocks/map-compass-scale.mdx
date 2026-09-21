@@ -1,6 +1,6 @@
 ---
 title: "Archival Map - Compass Scale"
-description: "Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from A TRAVELER MEETS AIR TRAFFIC CONTROL. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
+description: "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, A TRAVELER MEETS AIR TRAFFIC CONTROL, 1963. Acquired via /api/clips/01ccbfe4-29e0-5834-bfd0-4d8c02b3aea5/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
 mode: "frame"
 ---
 
@@ -12,8 +12,8 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   compositionId="map-compass-scale"
   compositionSrc="compositions/map-compass-scale.html"
   title="Archival Map - Compass Scale"
-  description="Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from A TRAVELER MEETS AIR TRAFFIC CONTROL. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Compass Scale"},{"id":"credit","type":"string","label":"Credit line","default":"Footage: Moving Image Archive | A TRAVELER MEETS AIR TRAFFIC CONTROL"}]}
+  description="Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, A TRAVELER MEETS AIR TRAFFIC CONTROL, 1963. Acquired via /api/clips/01ccbfe4-29e0-5834-bfd0-4d8c02b3aea5/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Compass Scale"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, A TRAVELER MEETS AIR TRAFFIC CONTROL, 1963"}]}
   meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":145}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-compass-scale","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
   hasCode
@@ -142,7 +142,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         var credit =
           typeof vars.credit === "string" && vars.credit
             ? vars.credit
-            : "Footage: Moving Image Archive | A TRAVELER MEETS AIR TRAFFIC CONTROL";
+            : "Moving Image Archive, A TRAVELER MEETS AIR TRAFFIC CONTROL, 1963";
 
         document.getElementById("cs-title").textContent = title;
         document.querySelector('#cs-credit [data-var-text="credit"]').textContent = credit;
@@ -206,7 +206,7 @@ Move it in time with `data-start`. Put it on a different timeline row with
 Set these CSS variables on the block:
 
 - `title` - Title. Defaults to `Archival Map - Compass Scale`.
-- `credit` - Credit line. Defaults to `Footage: Moving Image Archive | A TRAVELER MEETS AIR TRAFFIC CONTROL`.
+- `credit` - Credit line. Defaults to `Moving Image Archive, A TRAVELER MEETS AIR TRAFFIC CONTROL, 1963`.
 
 ## Variables
 
@@ -216,7 +216,7 @@ want to change on the element:
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
 | `title` | `Archival Map - Compass Scale` | string |  |
-| `credit` | `Footage: Moving Image Archive | A TRAVELER MEETS AIR TRAFFIC CONTROL` | string |  |
+| `credit` | `Moving Image Archive, A TRAVELER MEETS AIR TRAFFIC CONTROL, 1963` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -225,7 +225,7 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-compass-scale"
   data-composition-src="compositions/map-compass-scale.html"
-  data-variable-values='{"title":"Archival Map - Compass Scale","credit":"Footage: Moving Image Archive | A TRAVELER MEETS AIR TRAFFIC CONTROL"}'
+  data-variable-values='{"title":"Archival Map - Compass Scale","credit":"Moving Image Archive, A TRAVELER MEETS AIR TRAFFIC CONTROL, 1963"}'
 ></div>
 ```
 

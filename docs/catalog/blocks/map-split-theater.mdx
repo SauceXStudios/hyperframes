@@ -1,6 +1,6 @@
 ---
 title: "Archival Map - Split Theater"
-description: "Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Fire Behavior in the Wildland/Urban Interface. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
+description: "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Fire Behavior in the Wildland/Urban Interface, 2003. Acquired via /api/clips/b17ac08f-8a18-562e-bf11-33459518ae08/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
 mode: "frame"
 ---
 
@@ -12,8 +12,8 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   compositionId="map-split-theater"
   compositionSrc="compositions/map-split-theater.html"
   title="Archival Map - Split Theater"
-  description="Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Fire Behavior in the Wildland/Urban Interface. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Split Theater"},{"id":"credit","type":"string","label":"Credit line","default":"Footage: Moving Image Archive | Fire Behavior in the Wildland/Urban Interface"}]}
+  description="Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Fire Behavior in the Wildland/Urban Interface, 2003. Acquired via /api/clips/b17ac08f-8a18-562e-bf11-33459518ae08/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Split Theater"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, Fire Behavior in the Wildland/Urban Interface, 2003"}]}
   meta={{"duration":4.6,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":145}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-split-theater","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
   hasCode
@@ -142,7 +142,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         var credit =
           typeof vars.credit === "string" && vars.credit
             ? vars.credit
-            : "Footage: Moving Image Archive | Fire Behavior in the Wildland/Urban Interface";
+            : "Moving Image Archive, Fire Behavior in the Wildland/Urban Interface, 2003";
 
         document.getElementById("st-title").textContent = title;
         document.querySelector('#st-credit [data-var-text="credit"]').textContent = credit;
@@ -206,7 +206,7 @@ Move it in time with `data-start`. Put it on a different timeline row with
 Set these CSS variables on the block:
 
 - `title` - Title. Defaults to `Archival Map - Split Theater`.
-- `credit` - Credit line. Defaults to `Footage: Moving Image Archive | Fire Behavior in the Wildland/Urban Interface`.
+- `credit` - Credit line. Defaults to `Moving Image Archive, Fire Behavior in the Wildland/Urban Interface, 2003`.
 
 ## Variables
 
@@ -216,7 +216,7 @@ want to change on the element:
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
 | `title` | `Archival Map - Split Theater` | string |  |
-| `credit` | `Footage: Moving Image Archive | Fire Behavior in the Wildland/Urban Interface` | string |  |
+| `credit` | `Moving Image Archive, Fire Behavior in the Wildland/Urban Interface, 2003` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -225,7 +225,7 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-split-theater"
   data-composition-src="compositions/map-split-theater.html"
-  data-variable-values='{"title":"Archival Map - Split Theater","credit":"Footage: Moving Image Archive | Fire Behavior in the Wildland/Urban Interface"}'
+  data-variable-values='{"title":"Archival Map - Split Theater","credit":"Moving Image Archive, Fire Behavior in the Wildland/Urban Interface, 2003"}'
 ></div>
 ```
 

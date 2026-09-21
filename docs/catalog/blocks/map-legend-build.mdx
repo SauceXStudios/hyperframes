@@ -1,6 +1,6 @@
 ---
 title: "Archival Map - Legend Build"
-description: "Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Trading Centers of the Pacific Coast. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
+description: "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Trading Centers of the Pacific Coast, 1947. Acquired via /api/clips/36a29a94-bb07-5bf2-ac21-1ad9dab65f76/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
 mode: "frame"
 ---
 
@@ -12,8 +12,8 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   compositionId="map-legend-build"
   compositionSrc="compositions/map-legend-build.html"
   title="Archival Map - Legend Build"
-  description="Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Trading Centers of the Pacific Coast. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Legend Build"},{"id":"credit","type":"string","label":"Credit line","default":"Footage: Moving Image Archive | Trading Centers of the Pacific Coast"}]}
+  description="Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Trading Centers of the Pacific Coast, 1947. Acquired via /api/clips/36a29a94-bb07-5bf2-ac21-1ad9dab65f76/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Legend Build"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, Trading Centers of the Pacific Coast, 1947"}]}
   meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":143}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-legend-build","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
   hasCode
@@ -140,7 +140,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         var credit =
           typeof vars.credit === "string" && vars.credit
             ? vars.credit
-            : "Footage: Moving Image Archive | Trading Centers of the Pacific Coast";
+            : "Moving Image Archive, Trading Centers of the Pacific Coast, 1947";
 
         document.getElementById("lb-title").textContent = title;
         document.querySelector('#lb-credit [data-var-text="credit"]').textContent = credit;
@@ -204,7 +204,7 @@ Move it in time with `data-start`. Put it on a different timeline row with
 Set these CSS variables on the block:
 
 - `title` - Title. Defaults to `Archival Map - Legend Build`.
-- `credit` - Credit line. Defaults to `Footage: Moving Image Archive | Trading Centers of the Pacific Coast`.
+- `credit` - Credit line. Defaults to `Moving Image Archive, Trading Centers of the Pacific Coast, 1947`.
 
 ## Variables
 
@@ -214,7 +214,7 @@ want to change on the element:
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
 | `title` | `Archival Map - Legend Build` | string |  |
-| `credit` | `Footage: Moving Image Archive | Trading Centers of the Pacific Coast` | string |  |
+| `credit` | `Moving Image Archive, Trading Centers of the Pacific Coast, 1947` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -223,7 +223,7 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-legend-build"
   data-composition-src="compositions/map-legend-build.html"
-  data-variable-values='{"title":"Archival Map - Legend Build","credit":"Footage: Moving Image Archive | Trading Centers of the Pacific Coast"}'
+  data-variable-values='{"title":"Archival Map - Legend Build","credit":"Moving Image Archive, Trading Centers of the Pacific Coast, 1947"}'
 ></div>
 ```
 

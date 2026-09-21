@@ -1,6 +1,6 @@
 ---
 title: "Archival Map - Isoline Reveal"
-description: "Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Climate Factor. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
+description: "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Climate Factor, 1984. Acquired via /api/clips/37f8ebaf-2a5c-587c-9740-cb92cd79bb56/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
 mode: "frame"
 ---
 
@@ -12,8 +12,8 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   compositionId="map-isoline-reveal"
   compositionSrc="compositions/map-isoline-reveal.html"
   title="Archival Map - Isoline Reveal"
-  description="Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Climate Factor. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Isoline Reveal"},{"id":"credit","type":"string","label":"Credit line","default":"Footage: Moving Image Archive | Climate Factor"}]}
+  description="Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Climate Factor, 1984. Acquired via /api/clips/37f8ebaf-2a5c-587c-9740-cb92cd79bb56/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Isoline Reveal"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, Climate Factor, 1984"}]}
   meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":143}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-isoline-reveal","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
   hasCode
@@ -118,7 +118,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
       <div id="ir-frame" aria-hidden="true"></div>
       <div id="ir-title" data-var-text="title">Archival Map - Isoline Reveal</div>
       <div id="ir-credit">
-        <span data-var-text="credit">Footage: Moving Image Archive | Climate Factor</span>
+        <span data-var-text="credit">Moving Image Archive, Climate Factor, 1984</span>
         <span id="ir-credit-url"
           >movingimagearchive.com/collection/animated-maps - public domain / free to reuse</span
         >
@@ -140,7 +140,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         var credit =
           typeof vars.credit === "string" && vars.credit
             ? vars.credit
-            : "Footage: Moving Image Archive | Climate Factor";
+            : "Moving Image Archive, Climate Factor, 1984";
 
         document.getElementById("ir-title").textContent = title;
         document.querySelector('#ir-credit [data-var-text="credit"]').textContent = credit;
@@ -204,7 +204,7 @@ Move it in time with `data-start`. Put it on a different timeline row with
 Set these CSS variables on the block:
 
 - `title` - Title. Defaults to `Archival Map - Isoline Reveal`.
-- `credit` - Credit line. Defaults to `Footage: Moving Image Archive | Climate Factor`.
+- `credit` - Credit line. Defaults to `Moving Image Archive, Climate Factor, 1984`.
 
 ## Variables
 
@@ -214,7 +214,7 @@ want to change on the element:
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
 | `title` | `Archival Map - Isoline Reveal` | string |  |
-| `credit` | `Footage: Moving Image Archive | Climate Factor` | string |  |
+| `credit` | `Moving Image Archive, Climate Factor, 1984` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -223,7 +223,7 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-isoline-reveal"
   data-composition-src="compositions/map-isoline-reveal.html"
-  data-variable-values='{"title":"Archival Map - Isoline Reveal","credit":"Footage: Moving Image Archive | Climate Factor"}'
+  data-variable-values='{"title":"Archival Map - Isoline Reveal","credit":"Moving Image Archive, Climate Factor, 1984"}'
 ></div>
 ```
 

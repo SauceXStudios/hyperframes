@@ -1,6 +1,6 @@
 ---
 title: "Archival Map - Conquest Fill"
-description: "Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Man On The Land. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
+description: "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Man On The Land, 1951. Acquired via /api/clips/008090d0-9ab5-5a46-9152-1389094bb21d/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
 mode: "frame"
 ---
 
@@ -12,8 +12,8 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   compositionId="map-conquest-fill-sequence"
   compositionSrc="compositions/map-conquest-fill-sequence.html"
   title="Archival Map - Conquest Fill"
-  description="Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Man On The Land. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Conquest Fill"},{"id":"credit","type":"string","label":"Credit line","default":"Footage: Moving Image Archive | Man On The Land"}]}
+  description="Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Man On The Land, 1951. Acquired via /api/clips/008090d0-9ab5-5a46-9152-1389094bb21d/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Conquest Fill"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, Man On The Land, 1951"}]}
   meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":143}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-conquest-fill-sequence","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
   hasCode
@@ -118,7 +118,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
       <div id="cfs-frame" aria-hidden="true"></div>
       <div id="cfs-title" data-var-text="title">Archival Map - Conquest Fill</div>
       <div id="cfs-credit">
-        <span data-var-text="credit">Footage: Moving Image Archive | Man On The Land</span>
+        <span data-var-text="credit">Moving Image Archive, Man On The Land, 1951</span>
         <span id="cfs-credit-url"
           >movingimagearchive.com/collection/animated-maps - public domain / free to reuse</span
         >
@@ -140,7 +140,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         var credit =
           typeof vars.credit === "string" && vars.credit
             ? vars.credit
-            : "Footage: Moving Image Archive | Man On The Land";
+            : "Moving Image Archive, Man On The Land, 1951";
 
         document.getElementById("cfs-title").textContent = title;
         document.querySelector('#cfs-credit [data-var-text="credit"]').textContent = credit;
@@ -204,7 +204,7 @@ Move it in time with `data-start`. Put it on a different timeline row with
 Set these CSS variables on the block:
 
 - `title` - Title. Defaults to `Archival Map - Conquest Fill`.
-- `credit` - Credit line. Defaults to `Footage: Moving Image Archive | Man On The Land`.
+- `credit` - Credit line. Defaults to `Moving Image Archive, Man On The Land, 1951`.
 
 ## Variables
 
@@ -214,7 +214,7 @@ want to change on the element:
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
 | `title` | `Archival Map - Conquest Fill` | string |  |
-| `credit` | `Footage: Moving Image Archive | Man On The Land` | string |  |
+| `credit` | `Moving Image Archive, Man On The Land, 1951` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -223,7 +223,7 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-conquest-fill-sequence"
   data-composition-src="compositions/map-conquest-fill-sequence.html"
-  data-variable-values='{"title":"Archival Map - Conquest Fill","credit":"Footage: Moving Image Archive | Man On The Land"}'
+  data-variable-values='{"title":"Archival Map - Conquest Fill","credit":"Moving Image Archive, Man On The Land, 1951"}'
 ></div>
 ```
 

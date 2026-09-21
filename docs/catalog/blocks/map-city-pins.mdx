@@ -1,6 +1,6 @@
 ---
 title: "Archival Map - City Pins"
-description: "Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from New York Water Supply. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
+description: "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, New York Water Supply, 1927; National Archives and Records Administration / U.S. Government Films (Internet Archive collection); https://archive.org/details/gov.archives.arc.95622. Acquired via /api/clips/5791dad1-539e-5947-863e-f19cbac765ba/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
 mode: "frame"
 ---
 
@@ -12,8 +12,8 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   compositionId="map-city-pins"
   compositionSrc="compositions/map-city-pins.html"
   title="Archival Map - City Pins"
-  description="Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from New York Water Supply. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - City Pins"},{"id":"credit","type":"string","label":"Credit line","default":"Footage: Moving Image Archive | New York Water Supply"}]}
+  description="Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, New York Water Supply, 1927; National Archives and Records Administration / U.S. Government Films (Internet Archive collection); https://archive.org/details/gov.archives.arc.95622. Acquired via /api/clips/5791dad1-539e-5947-863e-f19cbac765ba/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - City Pins"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, New York Water Supply, 1927"}]}
   meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":141}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-city-pins","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
   hasCode
@@ -118,7 +118,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
       <div id="cp-frame" aria-hidden="true"></div>
       <div id="cp-title" data-var-text="title">Archival Map - City Pins</div>
       <div id="cp-credit">
-        <span data-var-text="credit">Footage: Moving Image Archive | New York Water Supply</span>
+        <span data-var-text="credit">Moving Image Archive, New York Water Supply, 1927</span>
         <span id="cp-credit-url"
           >movingimagearchive.com/collection/animated-maps - public domain / free to reuse</span
         >
@@ -138,7 +138,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         var credit =
           typeof vars.credit === "string" && vars.credit
             ? vars.credit
-            : "Footage: Moving Image Archive | New York Water Supply";
+            : "Moving Image Archive, New York Water Supply, 1927";
 
         document.getElementById("cp-title").textContent = title;
         document.querySelector('#cp-credit [data-var-text="credit"]').textContent = credit;
@@ -202,7 +202,7 @@ Move it in time with `data-start`. Put it on a different timeline row with
 Set these CSS variables on the block:
 
 - `title` - Title. Defaults to `Archival Map - City Pins`.
-- `credit` - Credit line. Defaults to `Footage: Moving Image Archive | New York Water Supply`.
+- `credit` - Credit line. Defaults to `Moving Image Archive, New York Water Supply, 1927`.
 
 ## Variables
 
@@ -212,7 +212,7 @@ want to change on the element:
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
 | `title` | `Archival Map - City Pins` | string |  |
-| `credit` | `Footage: Moving Image Archive | New York Water Supply` | string |  |
+| `credit` | `Moving Image Archive, New York Water Supply, 1927` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -221,7 +221,7 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-city-pins"
   data-composition-src="compositions/map-city-pins.html"
-  data-variable-values='{"title":"Archival Map - City Pins","credit":"Footage: Moving Image Archive | New York Water Supply"}'
+  data-variable-values='{"title":"Archival Map - City Pins","credit":"Moving Image Archive, New York Water Supply, 1927"}'
 ></div>
 ```
 

@@ -1,6 +1,6 @@
 ---
 title: "Archival Map - Grid Crosshair"
-description: "Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Scatter radar: Space research from the ground. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
+description: "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Scatter radar: Space research from the ground, 1963. Acquired via /api/clips/ef35ba39-a4c7-5ca1-b648-4ce7e21a987e/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
 mode: "frame"
 ---
 
@@ -12,8 +12,8 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   compositionId="map-grid-crosshair"
   compositionSrc="compositions/map-grid-crosshair.html"
   title="Archival Map - Grid Crosshair"
-  description="Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Scatter radar: Space research from the ground. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Grid Crosshair"},{"id":"credit","type":"string","label":"Credit line","default":"Footage: Moving Image Archive | Scatter radar: Space research from the ground"}]}
+  description="Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Scatter radar: Space research from the ground, 1963. Acquired via /api/clips/ef35ba39-a4c7-5ca1-b648-4ce7e21a987e/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Grid Crosshair"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, Scatter radar: Space research from the ground, 1963"}]}
   meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":145}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-grid-crosshair","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
   hasCode
@@ -142,7 +142,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         var credit =
           typeof vars.credit === "string" && vars.credit
             ? vars.credit
-            : "Footage: Moving Image Archive | Scatter radar: Space research from the ground";
+            : "Moving Image Archive, Scatter radar: Space research from the ground, 1963";
 
         document.getElementById("gc-title").textContent = title;
         document.querySelector('#gc-credit [data-var-text="credit"]').textContent = credit;
@@ -206,7 +206,7 @@ Move it in time with `data-start`. Put it on a different timeline row with
 Set these CSS variables on the block:
 
 - `title` - Title. Defaults to `Archival Map - Grid Crosshair`.
-- `credit` - Credit line. Defaults to `Footage: Moving Image Archive | Scatter radar: Space research from the ground`.
+- `credit` - Credit line. Defaults to `Moving Image Archive, Scatter radar: Space research from the ground, 1963`.
 
 ## Variables
 
@@ -216,7 +216,7 @@ want to change on the element:
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
 | `title` | `Archival Map - Grid Crosshair` | string |  |
-| `credit` | `Footage: Moving Image Archive | Scatter radar: Space research from the ground` | string |  |
+| `credit` | `Moving Image Archive, Scatter radar: Space research from the ground, 1963` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -225,7 +225,7 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-grid-crosshair"
   data-composition-src="compositions/map-grid-crosshair.html"
-  data-variable-values='{"title":"Archival Map - Grid Crosshair","credit":"Footage: Moving Image Archive | Scatter radar: Space research from the ground"}'
+  data-variable-values='{"title":"Archival Map - Grid Crosshair","credit":"Moving Image Archive, Scatter radar: Space research from the ground, 1963"}'
 ></div>
 ```
 

@@ -1,6 +1,6 @@
 ---
 title: "Archival Map - Ink Blot"
-description: "Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Oil Across Arabia. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
+description: "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Oil Across Arabia, 1950. Acquired via /api/clips/8d6ee4fc-680f-5efa-851e-c1711d9f1c0e/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
 mode: "frame"
 ---
 
@@ -12,8 +12,8 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   compositionId="map-ink-blot-soak"
   compositionSrc="compositions/map-ink-blot-soak.html"
   title="Archival Map - Ink Blot"
-  description="Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Oil Across Arabia. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Ink Blot"},{"id":"credit","type":"string","label":"Credit line","default":"Footage: Moving Image Archive | Oil Across Arabia"}]}
+  description="Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Oil Across Arabia, 1950. Acquired via /api/clips/8d6ee4fc-680f-5efa-851e-c1711d9f1c0e/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Ink Blot"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, Oil Across Arabia, 1950"}]}
   meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":141}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-ink-blot-soak","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
   hasCode
@@ -118,7 +118,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
       <div id="ibs-frame" aria-hidden="true"></div>
       <div id="ibs-title" data-var-text="title">Archival Map - Ink Blot</div>
       <div id="ibs-credit">
-        <span data-var-text="credit">Footage: Moving Image Archive | Oil Across Arabia</span>
+        <span data-var-text="credit">Moving Image Archive, Oil Across Arabia, 1950</span>
         <span id="ibs-credit-url"
           >movingimagearchive.com/collection/animated-maps - public domain / free to reuse</span
         >
@@ -138,7 +138,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         var credit =
           typeof vars.credit === "string" && vars.credit
             ? vars.credit
-            : "Footage: Moving Image Archive | Oil Across Arabia";
+            : "Moving Image Archive, Oil Across Arabia, 1950";
 
         document.getElementById("ibs-title").textContent = title;
         document.querySelector('#ibs-credit [data-var-text="credit"]').textContent = credit;
@@ -202,7 +202,7 @@ Move it in time with `data-start`. Put it on a different timeline row with
 Set these CSS variables on the block:
 
 - `title` - Title. Defaults to `Archival Map - Ink Blot`.
-- `credit` - Credit line. Defaults to `Footage: Moving Image Archive | Oil Across Arabia`.
+- `credit` - Credit line. Defaults to `Moving Image Archive, Oil Across Arabia, 1950`.
 
 ## Variables
 
@@ -212,7 +212,7 @@ want to change on the element:
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
 | `title` | `Archival Map - Ink Blot` | string |  |
-| `credit` | `Footage: Moving Image Archive | Oil Across Arabia` | string |  |
+| `credit` | `Moving Image Archive, Oil Across Arabia, 1950` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -221,7 +221,7 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-ink-blot-soak"
   data-composition-src="compositions/map-ink-blot-soak.html"
-  data-variable-values='{"title":"Archival Map - Ink Blot","credit":"Footage: Moving Image Archive | Oil Across Arabia"}'
+  data-variable-values='{"title":"Archival Map - Ink Blot","credit":"Moving Image Archive, Oil Across Arabia, 1950"}'
 ></div>
 ```
 

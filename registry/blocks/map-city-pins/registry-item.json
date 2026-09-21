@@ -3,11 +3,11 @@
   "name": "map-city-pins",
   "type": "hyperframes:block",
   "title": "Archival Map - City Pins",
-  "description": "Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from New York Water Supply. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms.",
+  "description": "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, New York Water Supply, 1927; National Archives and Records Administration / U.S. Government Films (Internet Archive collection); https://archive.org/details/gov.archives.arc.95622. Acquired via /api/clips/5791dad1-539e-5947-863e-f19cbac765ba/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive.",
   "tags": ["map", "geography", "animation", "archival", "footage", "mia", "newsreel", "video"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
-  "license": "Footage: public domain / free to reuse via Moving Image Archive. Composition: project license.",
+  "license": "Footage: public domain / free to reuse (Moving Image Archive). Composition: project license.",
   "dimensions": {
     "width": 1920,
     "height": 1080
@@ -24,7 +24,7 @@
       "id": "credit",
       "type": "string",
       "label": "Credit line",
-      "default": "Footage: Moving Image Archive | New York Water Supply"
+      "default": "Moving Image Archive, New York Water Supply, 1927"
     }
   ],
   "files": [
@@ -54,7 +54,7 @@
     {
       "type": "text",
       "label": "Credit line",
-      "default": "Footage: Moving Image Archive | New York Water Supply",
+      "default": "Moving Image Archive, New York Water Supply, 1927",
       "key": "credit"
     }
   ]

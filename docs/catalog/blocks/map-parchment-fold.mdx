@@ -1,6 +1,6 @@
 ---
 title: "Archival Map - Parchment Fold"
-description: "Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from AOPA-ASF: Thunderstorms and the ATC. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
+description: "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, AOPA-ASF: Thunderstorms and the ATC, 2008. Acquired via /api/clips/538de0ed-fd6e-5ac6-891c-c7bfd597cd39/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
 mode: "frame"
 ---
 
@@ -12,8 +12,8 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   compositionId="map-parchment-fold"
   compositionSrc="compositions/map-parchment-fold.html"
   title="Archival Map - Parchment Fold"
-  description="Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from AOPA-ASF: Thunderstorms and the ATC. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Parchment Fold"},{"id":"credit","type":"string","label":"Credit line","default":"Footage: Moving Image Archive | AOPA-ASF: Thunderstorms and the ATC"}]}
+  description="Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, AOPA-ASF: Thunderstorms and the ATC, 2008. Acquired via /api/clips/538de0ed-fd6e-5ac6-891c-c7bfd597cd39/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Parchment Fold"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, AOPA-ASF: Thunderstorms and the ATC, 2008"}]}
   meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":145}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-parchment-fold","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
   hasCode
@@ -142,7 +142,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         var credit =
           typeof vars.credit === "string" && vars.credit
             ? vars.credit
-            : "Footage: Moving Image Archive | AOPA-ASF: Thunderstorms and the ATC";
+            : "Moving Image Archive, AOPA-ASF: Thunderstorms and the ATC, 2008";
 
         document.getElementById("pf-title").textContent = title;
         document.querySelector('#pf-credit [data-var-text="credit"]').textContent = credit;
@@ -206,7 +206,7 @@ Move it in time with `data-start`. Put it on a different timeline row with
 Set these CSS variables on the block:
 
 - `title` - Title. Defaults to `Archival Map - Parchment Fold`.
-- `credit` - Credit line. Defaults to `Footage: Moving Image Archive | AOPA-ASF: Thunderstorms and the ATC`.
+- `credit` - Credit line. Defaults to `Moving Image Archive, AOPA-ASF: Thunderstorms and the ATC, 2008`.
 
 ## Variables
 
@@ -216,7 +216,7 @@ want to change on the element:
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
 | `title` | `Archival Map - Parchment Fold` | string |  |
-| `credit` | `Footage: Moving Image Archive | AOPA-ASF: Thunderstorms and the ATC` | string |  |
+| `credit` | `Moving Image Archive, AOPA-ASF: Thunderstorms and the ATC, 2008` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -225,7 +225,7 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-parchment-fold"
   data-composition-src="compositions/map-parchment-fold.html"
-  data-variable-values='{"title":"Archival Map - Parchment Fold","credit":"Footage: Moving Image Archive | AOPA-ASF: Thunderstorms and the ATC"}'
+  data-variable-values='{"title":"Archival Map - Parchment Fold","credit":"Moving Image Archive, AOPA-ASF: Thunderstorms and the ATC, 2008"}'
 ></div>
 ```
 

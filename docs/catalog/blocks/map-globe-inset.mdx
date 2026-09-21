@@ -1,6 +1,6 @@
 ---
 title: "Archival Map - Globe Inset"
-description: "Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Space Flight: Application of Orbital Mechanics. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
+description: "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Space Flight: Application of Orbital Mechanics, 1994. Acquired via /api/clips/ec91c430-808a-57a5-a63e-f238d596f11c/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
 mode: "frame"
 ---
 
@@ -12,8 +12,8 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   compositionId="map-globe-inset"
   compositionSrc="compositions/map-globe-inset.html"
   title="Archival Map - Globe Inset"
-  description="Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Space Flight: Application of Orbital Mechanics. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Globe Inset"},{"id":"credit","type":"string","label":"Credit line","default":"Footage: Moving Image Archive | Space Flight: Application of Orbital Mechanics"}]}
+  description="Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Space Flight: Application of Orbital Mechanics, 1994. Acquired via /api/clips/ec91c430-808a-57a5-a63e-f238d596f11c/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Globe Inset"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, Space Flight: Application of Orbital Mechanics, 1994"}]}
   meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":143}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-globe-inset","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
   hasCode
@@ -140,7 +140,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         var credit =
           typeof vars.credit === "string" && vars.credit
             ? vars.credit
-            : "Footage: Moving Image Archive | Space Flight: Application of Orbital Mechanics";
+            : "Moving Image Archive, Space Flight: Application of Orbital Mechanics, 1994";
 
         document.getElementById("gi-title").textContent = title;
         document.querySelector('#gi-credit [data-var-text="credit"]').textContent = credit;
@@ -204,7 +204,7 @@ Move it in time with `data-start`. Put it on a different timeline row with
 Set these CSS variables on the block:
 
 - `title` - Title. Defaults to `Archival Map - Globe Inset`.
-- `credit` - Credit line. Defaults to `Footage: Moving Image Archive | Space Flight: Application of Orbital Mechanics`.
+- `credit` - Credit line. Defaults to `Moving Image Archive, Space Flight: Application of Orbital Mechanics, 1994`.
 
 ## Variables
 
@@ -214,7 +214,7 @@ want to change on the element:
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
 | `title` | `Archival Map - Globe Inset` | string |  |
-| `credit` | `Footage: Moving Image Archive | Space Flight: Application of Orbital Mechanics` | string |  |
+| `credit` | `Moving Image Archive, Space Flight: Application of Orbital Mechanics, 1994` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -223,7 +223,7 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-globe-inset"
   data-composition-src="compositions/map-globe-inset.html"
-  data-variable-values='{"title":"Archival Map - Globe Inset","credit":"Footage: Moving Image Archive | Space Flight: Application of Orbital Mechanics"}'
+  data-variable-values='{"title":"Archival Map - Globe Inset","credit":"Moving Image Archive, Space Flight: Application of Orbital Mechanics, 1994"}'
 ></div>
 ```
 

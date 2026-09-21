@@ -1,6 +1,6 @@
 ---
 title: "Archival Map - Region Zoom"
-description: "Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Blackwater National Wildlife Refuge. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
+description: "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Blackwater National Wildlife Refuge, 2005. Acquired via /api/clips/2aff5249-9d8d-575f-9d80-859509d7f69c/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
 mode: "frame"
 ---
 
@@ -12,8 +12,8 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   compositionId="map-region-zoom"
   compositionSrc="compositions/map-region-zoom.html"
   title="Archival Map - Region Zoom"
-  description="Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Blackwater National Wildlife Refuge. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Region Zoom"},{"id":"credit","type":"string","label":"Credit line","default":"Footage: Moving Image Archive | Blackwater National Wildlife Refuge"}]}
+  description="Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Blackwater National Wildlife Refuge, 2005. Acquired via /api/clips/2aff5249-9d8d-575f-9d80-859509d7f69c/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Region Zoom"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, Blackwater National Wildlife Refuge, 2005"}]}
   meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":143}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-region-zoom","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
   hasCode
@@ -140,7 +140,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         var credit =
           typeof vars.credit === "string" && vars.credit
             ? vars.credit
-            : "Footage: Moving Image Archive | Blackwater National Wildlife Refuge";
+            : "Moving Image Archive, Blackwater National Wildlife Refuge, 2005";
 
         document.getElementById("rz-title").textContent = title;
         document.querySelector('#rz-credit [data-var-text="credit"]').textContent = credit;
@@ -204,7 +204,7 @@ Move it in time with `data-start`. Put it on a different timeline row with
 Set these CSS variables on the block:
 
 - `title` - Title. Defaults to `Archival Map - Region Zoom`.
-- `credit` - Credit line. Defaults to `Footage: Moving Image Archive | Blackwater National Wildlife Refuge`.
+- `credit` - Credit line. Defaults to `Moving Image Archive, Blackwater National Wildlife Refuge, 2005`.
 
 ## Variables
 
@@ -214,7 +214,7 @@ want to change on the element:
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
 | `title` | `Archival Map - Region Zoom` | string |  |
-| `credit` | `Footage: Moving Image Archive | Blackwater National Wildlife Refuge` | string |  |
+| `credit` | `Moving Image Archive, Blackwater National Wildlife Refuge, 2005` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -223,7 +223,7 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-region-zoom"
   data-composition-src="compositions/map-region-zoom.html"
-  data-variable-values='{"title":"Archival Map - Region Zoom","credit":"Footage: Moving Image Archive | Blackwater National Wildlife Refuge"}'
+  data-variable-values='{"title":"Archival Map - Region Zoom","credit":"Moving Image Archive, Blackwater National Wildlife Refuge, 2005"}'
 ></div>
 ```
 

@@ -1,6 +1,6 @@
 ---
 title: "Archival Map - Route Draw"
-description: "Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Cities How They Grow. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
+description: "Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Cities How They Grow, 1952. Acquired via /api/clips/0e8dc9a8-6afd-5038-b377-415016526b9c/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
 mode: "frame"
 ---
 
@@ -12,8 +12,8 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   compositionId="map-route-draw"
   compositionSrc="compositions/map-route-draw.html"
   title="Archival Map - Route Draw"
-  description="Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Cities How They Grow. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Route Draw"},{"id":"credit","type":"string","label":"Credit line","default":"Footage: Moving Image Archive | Cities How They Grow"}]}
+  description="Public-domain archival animated-map footage via Moving Image Archive Animated Maps (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Cities How They Grow, 1952. Acquired via /api/clips/0e8dc9a8-6afd-5038-b377-415016526b9c/download; self-hosted seek-safe video block. Not affiliated with Moving Image Archive."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Route Draw"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, Cities How They Grow, 1952"}]}
   meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":141}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-route-draw","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
   hasCode
@@ -118,7 +118,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
       <div id="rd-frame" aria-hidden="true"></div>
       <div id="rd-title" data-var-text="title">Archival Map - Route Draw</div>
       <div id="rd-credit">
-        <span data-var-text="credit">Footage: Moving Image Archive | Cities How They Grow</span>
+        <span data-var-text="credit">Moving Image Archive, Cities How They Grow, 1952</span>
         <span id="rd-credit-url"
           >movingimagearchive.com/collection/animated-maps - public domain / free to reuse</span
         >
@@ -138,7 +138,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         var credit =
           typeof vars.credit === "string" && vars.credit
             ? vars.credit
-            : "Footage: Moving Image Archive | Cities How They Grow";
+            : "Moving Image Archive, Cities How They Grow, 1952";
 
         document.getElementById("rd-title").textContent = title;
         document.querySelector('#rd-credit [data-var-text="credit"]').textContent = credit;
@@ -202,7 +202,7 @@ Move it in time with `data-start`. Put it on a different timeline row with
 Set these CSS variables on the block:
 
 - `title` - Title. Defaults to `Archival Map - Route Draw`.
-- `credit` - Credit line. Defaults to `Footage: Moving Image Archive | Cities How They Grow`.
+- `credit` - Credit line. Defaults to `Moving Image Archive, Cities How They Grow, 1952`.
 
 ## Variables
 
@@ -212,7 +212,7 @@ want to change on the element:
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
 | `title` | `Archival Map - Route Draw` | string |  |
-| `credit` | `Footage: Moving Image Archive | Cities How They Grow` | string |  |
+| `credit` | `Moving Image Archive, Cities How They Grow, 1952` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -221,7 +221,7 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-route-draw"
   data-composition-src="compositions/map-route-draw.html"
-  data-variable-values='{"title":"Archival Map - Route Draw","credit":"Footage: Moving Image Archive | Cities How They Grow"}'
+  data-variable-values='{"title":"Archival Map - Route Draw","credit":"Moving Image Archive, Cities How They Grow, 1952"}'
 ></div>
 ```
 
