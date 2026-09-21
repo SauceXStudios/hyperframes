@@ -48,3 +48,9 @@ Ceilings: grain/CRT bloom, blocky 320 coast, partial borders, live-action after 
 Source inspiration: Moving Image Archive Animated Maps (Germany / Berlin Airlift reference).
 Ported from video-reverse `reversals/mia-maps/arrow-fanout/recreate/map-arrow-fanout.html` (CDN GSAP; local gsap.min.js not shipped).
 Ceilings: hotter glow, sector purple-to-blue, faceted coasts, SVG endcard, Act1 grammar, grain.
+
+## map-territory-wipe (QC-gated CEILING_ONLY 2026-09-20)
+
+Source: Moving Image Archive, Evolution of the Oil Industry (1934) shot 49; NARA/FedFlix PD (clip a36b3d33-8c6b-5748-b606-e7841020121f).
+Ported from `reversals/mia-maps/territory-wipe/recreate/map-territory-wipe.html` only (demo mp4 not shipped).
+Ceilings: painterly topo/grain, vector outline, flare tips, 8s compress, live-action OOS.

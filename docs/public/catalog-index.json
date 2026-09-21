@@ -3536,16 +3536,18 @@
     "name": "map-territory-wipe",
     "type": "block",
     "title": "Map Territory Wipe",
-    "description": "Newsreel-style territory fill that wipes on via clip-path reveal over a stylized landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection — not affiliated; footage not included).",
+    "description": "US silhouette with NE pin, soft westward territory wipe, and cascade trunk-to-fork arrows. Seek-safe SVG/GSAP; no MP4 wrapper. Inspired by Moving Image Archive, Evolution of the Oil Industry (1934) shot 49 (clip a36b3d33-8c6b-5748-b606-e7841020121f); NARA/FedFlix public domain - not affiliated; code recreation. Fidelity ceilings: painterly topo/grain, soft film ink vs vector outline, diamond flare tips, 8s compress vs longer ref, live-action open/close OOS.",
     "tags": [
       "map",
       "geography",
       "animation",
       "territory",
       "wipe",
+      "arrows",
       "newsreel",
-      "reveal",
-      "svg"
+      "svg",
+      "mia",
+      "ceiling-only"
     ],
     "href": "/catalog/blocks/map-territory-wipe",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-territory-wipe.png"
