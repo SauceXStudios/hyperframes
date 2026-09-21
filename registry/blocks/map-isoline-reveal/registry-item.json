@@ -1,0 +1,62 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "map-isoline-reveal",
+  "type": "hyperframes:block",
+  "title": "Map Isoline Reveal",
+  "description": "Isoline contour rings that reveal outward like topographic bands. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection — not affiliated; footage not included).",
+  "tags": ["map", "geography", "animation", "isoline", "contour", "newsreel", "svg"],
+  "author": "HeyGen",
+  "authorUrl": "https://hyperframes.heygen.com",
+  "dimensions": {
+    "width": 1920,
+    "height": 1080
+  },
+  "duration": 8,
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "label": "Title",
+      "default": "Isolines"
+    },
+    {
+      "id": "subtitle",
+      "type": "string",
+      "label": "Subtitle",
+      "default": "Educational cartography · contour reveal"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "label": "Accent",
+      "default": "#c45c26"
+    }
+  ],
+  "files": [
+    {
+      "path": "map-isoline-reveal.html",
+      "target": "compositions/map-isoline-reveal.html",
+      "type": "hyperframes:composition"
+    }
+  ],
+  "params": [
+    {
+      "id": "title",
+      "type": "string",
+      "label": "Title",
+      "default": "Isolines"
+    },
+    {
+      "id": "subtitle",
+      "type": "string",
+      "label": "Subtitle",
+      "default": "Educational cartography · contour reveal"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "label": "Accent",
+      "default": "#c45c26"
+    }
+  ]
+}

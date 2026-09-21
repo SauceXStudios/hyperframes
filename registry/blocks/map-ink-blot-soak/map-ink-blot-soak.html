@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+
+      *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+      body { background: #1a1714; overflow: hidden; }
+      #root-map-ink-blot-soak {
+        position: relative; width: 1920px; height: 1080px; overflow: hidden;
+        background: #1a1714; font-family: Georgia, "Times New Roman", serif;
+      }
+      #mib-frame {
+        position: absolute; inset: 48px;
+        border: 1px solid rgba(196, 181, 154, 0.14); background: #221e19;
+      }
+      #mib-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+      #mib-title {
+        position: absolute; top: 72px; left: 96px;
+        color: rgba(232, 220, 196, 0.92); font-size: 42px;
+        letter-spacing: 0.08em; text-transform: uppercase; font-weight: 400;
+      }
+      #mib-subtitle {
+        position: absolute; top: 128px; left: 96px;
+        color: rgba(196, 181, 154, 0.55); font-size: 22px;
+        letter-spacing: 0.18em; text-transform: uppercase;
+      }
+      #mib-note {
+        position: absolute; bottom: 88px; left: 96px;
+        color: rgba(196, 181, 154, 0.55); font-size: 16px;
+        letter-spacing: 0.1em; text-transform: uppercase; max-width: 900px;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div id="root-map-ink-blot-soak" data-composition-id="map-ink-blot-soak"
+      data-start="0" data-duration="8" data-width="1920" data-height="1080">
+      <div id="mib-frame">
+        <svg id="mib-svg" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <pattern id="mib-hatch" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+              <line x1="0" y1="0" x2="0" y2="12" stroke="rgba(196,181,154,0.08)" stroke-width="1" />
+            </pattern>
+          </defs>
+
+          <rect width="1920" height="1080" fill="#1f1b17" />
+          <rect width="1920" height="1080" fill="url(#mib-hatch)" />
+          <path id="mib-land" d="M 280 320 C 340 220 480 180 620 210 C 760 240 820 300 900 280 C 980 260 1080 300 1180 340 C 1280 380 1360 460 1380 560 C 1400 660 1340 760 1240 820 C 1140 880 980 900 860 860 C 740 820 700 780 620 800 C 540 820 420 780 360 700 C 300 620 240 500 280 320 Z" fill="rgba(196,181,154,0.16)" stroke="rgba(196,181,154,0.4)" stroke-width="2" />
+          <path id="mib-island" d="M 1480 420 C 1540 400 1600 430 1610 480 C 1620 530 1580 570 1520 560 C 1460 550 1450 450 1480 420 Z" fill="rgba(196,181,154,0.12)" stroke="rgba(196,181,154,0.3)" stroke-width="1.5" />
+
+          <ellipse id="mib-blot1" cx="720" cy="520" rx="40" ry="32" fill="#c45c26" />
+          <ellipse id="mib-blot2" cx="860" cy="480" rx="70" ry="55" fill="#c45c26" />
+          <ellipse id="mib-blot3" cx="980" cy="560" rx="110" ry="90" fill="#c45c26" />
+          <ellipse id="mib-blot4" cx="1080" cy="500" rx="160" ry="130" fill="#c45c26" />
+          <path id="mib-region" d="M 620 420 C 760 380 920 400 1040 460 C 1160 520 1200 620 1100 700 C 1000 780 820 780 700 720 C 580 660 540 520 620 420 Z"
+            fill="none" stroke="rgba(232,220,196,0.45)" stroke-width="2" stroke-dasharray="8 6" />
+
+        </svg>
+      </div>
+      <div id="mib-title" data-var-text="title">Ink Across the Province</div>
+      <div id="mib-subtitle" data-var-text="subtitle">Educational cartography · ink blot soak</div>
+      <div id="mib-note">Blot wash soak · stylized wash only</div>
+    </div>
+    <script>
+      (function () {
+        window.__timelines = window.__timelines || {};
+        var vars = window.__hyperframes && window.__hyperframes.getVariables
+          ? window.__hyperframes.getVariables() : {};
+        var accent = /^#[0-9a-fA-F]{6}$/.test(String(vars.accent || ""))
+          ? String(vars.accent) : "#c45c26";
+        var title = typeof vars.title === "string" && vars.title ? vars.title : "Ink Across the Province";
+        var subtitle = typeof vars.subtitle === "string" && vars.subtitle ? vars.subtitle : "Educational cartography \u00b7 ink blot soak";
+
+        document.getElementById("mib-title").textContent = title;
+        document.getElementById("mib-subtitle").textContent = subtitle;
+        ["mib-blot1","mib-blot2","mib-blot3","mib-blot4"].forEach(function (id) {
+          document.getElementById(id).setAttribute("fill", accent);
+        });
+        gsap.set(["#mib-land","#mib-island","#mib-region","#mib-title","#mib-subtitle","#mib-note"], { opacity: 0 });
+        gsap.set(["#mib-blot1","#mib-blot2","#mib-blot3","#mib-blot4"], { scale: 0, opacity: 0, transformOrigin: "50% 50%" });
+        var tl = gsap.timeline({ paused: true });
+        tl.to("#mib-land", { opacity: 1, duration: 0.5 }, 0);
+        tl.to("#mib-island", { opacity: 1, duration: 0.4 }, 0.1);
+        tl.to("#mib-title", { opacity: 1, duration: 0.4 }, 0.15);
+        tl.to("#mib-subtitle", { opacity: 1, duration: 0.35 }, 0.35);
+        tl.to("#mib-region", { opacity: 1, duration: 0.4 }, 0.55);
+        tl.to("#mib-blot1", { scale: 1, opacity: 0.55, duration: 0.7, ease: "power2.out" }, 1.0);
+        tl.to("#mib-blot2", { scale: 1, opacity: 0.4, duration: 0.9, ease: "power2.out" }, 1.5);
+        tl.to("#mib-blot3", { scale: 1, opacity: 0.32, duration: 1.1, ease: "power2.out" }, 2.2);
+        tl.to("#mib-blot4", { scale: 1, opacity: 0.22, duration: 1.3, ease: "power2.out" }, 3.1);
+        tl.to("#mib-note", { opacity: 1, duration: 0.4 }, 5.0);
+        window.__timelines["map-ink-blot-soak"] = tl;
+
+      })();
+    </script>
+  </body>
+</html>

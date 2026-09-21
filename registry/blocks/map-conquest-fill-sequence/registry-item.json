@@ -1,0 +1,62 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "map-conquest-fill-sequence",
+  "type": "hyperframes:block",
+  "title": "Map Conquest Fill Sequence",
+  "description": "Sequential region fill sequence — abstract educational conquest cartography, not glorifying. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection — not affiliated; footage not included).",
+  "tags": ["map", "geography", "animation", "conquest", "fill", "sequence", "newsreel", "svg"],
+  "author": "HeyGen",
+  "authorUrl": "https://hyperframes.heygen.com",
+  "dimensions": {
+    "width": 1920,
+    "height": 1080
+  },
+  "duration": 8,
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "label": "Title",
+      "default": "Sequential Fill"
+    },
+    {
+      "id": "subtitle",
+      "type": "string",
+      "label": "Subtitle",
+      "default": "Educational cartography · conquest fill"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "label": "Accent",
+      "default": "#c45c26"
+    }
+  ],
+  "files": [
+    {
+      "path": "map-conquest-fill-sequence.html",
+      "target": "compositions/map-conquest-fill-sequence.html",
+      "type": "hyperframes:composition"
+    }
+  ],
+  "params": [
+    {
+      "id": "title",
+      "type": "string",
+      "label": "Title",
+      "default": "Sequential Fill"
+    },
+    {
+      "id": "subtitle",
+      "type": "string",
+      "label": "Subtitle",
+      "default": "Educational cartography · conquest fill"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "label": "Accent",
+      "default": "#c45c26"
+    }
+  ]
+}

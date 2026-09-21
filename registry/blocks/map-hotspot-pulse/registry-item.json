@@ -1,0 +1,62 @@
+{
+  "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
+  "name": "map-hotspot-pulse",
+  "type": "hyperframes:block",
+  "title": "Map Hotspot Pulse",
+  "description": "Heat-pulse hotspots that appear and blink on a stylized landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection — not affiliated; footage not included).",
+  "tags": ["map", "geography", "animation", "hotspot", "pulse", "heat", "newsreel", "svg"],
+  "author": "HeyGen",
+  "authorUrl": "https://hyperframes.heygen.com",
+  "dimensions": {
+    "width": 1920,
+    "height": 1080
+  },
+  "duration": 8,
+  "variables": [
+    {
+      "id": "title",
+      "type": "string",
+      "label": "Title",
+      "default": "Hotspots"
+    },
+    {
+      "id": "subtitle",
+      "type": "string",
+      "label": "Subtitle",
+      "default": "Educational cartography · heat pulse"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "label": "Accent",
+      "default": "#c45c26"
+    }
+  ],
+  "files": [
+    {
+      "path": "map-hotspot-pulse.html",
+      "target": "compositions/map-hotspot-pulse.html",
+      "type": "hyperframes:composition"
+    }
+  ],
+  "params": [
+    {
+      "id": "title",
+      "type": "string",
+      "label": "Title",
+      "default": "Hotspots"
+    },
+    {
+      "id": "subtitle",
+      "type": "string",
+      "label": "Subtitle",
+      "default": "Educational cartography · heat pulse"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "label": "Accent",
+      "default": "#c45c26"
+    }
+  ]
+}

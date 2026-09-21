@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+
+      *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+      body { background: #1a1714; overflow: hidden; }
+      #root-map-itinerary-stops {
+        position: relative; width: 1920px; height: 1080px; overflow: hidden;
+        background: #1a1714; font-family: Georgia, "Times New Roman", serif;
+      }
+      #mis-frame {
+        position: absolute; inset: 48px;
+        border: 1px solid rgba(196, 181, 154, 0.14); background: #221e19;
+      }
+      #mis-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+      #mis-title {
+        position: absolute; top: 72px; left: 96px;
+        color: rgba(232, 220, 196, 0.92); font-size: 42px;
+        letter-spacing: 0.08em; text-transform: uppercase; font-weight: 400;
+      }
+      #mis-subtitle {
+        position: absolute; top: 128px; left: 96px;
+        color: rgba(196, 181, 154, 0.55); font-size: 22px;
+        letter-spacing: 0.18em; text-transform: uppercase;
+      }
+      #mis-note {
+        position: absolute; bottom: 88px; left: 96px;
+        color: rgba(196, 181, 154, 0.55); font-size: 16px;
+        letter-spacing: 0.1em; text-transform: uppercase; max-width: 900px;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div id="root-map-itinerary-stops" data-composition-id="map-itinerary-stops"
+      data-start="0" data-duration="8" data-width="1920" data-height="1080">
+      <div id="mis-frame">
+        <svg id="mis-svg" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <pattern id="mis-hatch" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+              <line x1="0" y1="0" x2="0" y2="12" stroke="rgba(196,181,154,0.08)" stroke-width="1" />
+            </pattern>
+          </defs>
+
+          <rect width="1920" height="1080" fill="#1f1b17" />
+          <rect width="1920" height="1080" fill="url(#mis-hatch)" />
+          <path id="mis-land" d="M 280 320 C 340 220 480 180 620 210 C 760 240 820 300 900 280 C 980 260 1080 300 1180 340 C 1280 380 1360 460 1380 560 C 1400 660 1340 760 1240 820 C 1140 880 980 900 860 860 C 740 820 700 780 620 800 C 540 820 420 780 360 700 C 300 620 240 500 280 320 Z" fill="rgba(196,181,154,0.16)" stroke="rgba(196,181,154,0.4)" stroke-width="2" />
+          <path id="mis-island" d="M 1480 420 C 1540 400 1600 430 1610 480 C 1620 530 1580 570 1520 560 C 1460 550 1450 450 1480 420 Z" fill="rgba(196,181,154,0.12)" stroke="rgba(196,181,154,0.3)" stroke-width="1.5" />
+
+          <path id="mis-path" d="M 420 620 C 560 540 700 500 840 480 C 980 460 1100 500 1220 540 C 1320 570 1400 520 1500 460"
+            fill="none" stroke="#c45c26" stroke-width="3" stroke-linecap="round" />
+          <g id="mis-s1"><circle cx="420" cy="620" r="18" fill="#c45c26" /><text id="mis-t1" x="420" y="626" text-anchor="middle" fill="#1a1714" font-size="18" font-family="Georgia, serif" font-weight="700">1</text></g>
+          <g id="mis-s2"><circle cx="840" cy="480" r="18" fill="#c45c26" /><text id="mis-t2" x="840" y="486" text-anchor="middle" fill="#1a1714" font-size="18" font-family="Georgia, serif" font-weight="700">2</text></g>
+          <g id="mis-s3"><circle cx="1220" cy="540" r="18" fill="#c45c26" /><text id="mis-t3" x="1220" y="546" text-anchor="middle" fill="#1a1714" font-size="18" font-family="Georgia, serif" font-weight="700">3</text></g>
+          <g id="mis-s4"><circle cx="1500" cy="460" r="18" fill="#c45c26" /><text id="mis-t4" x="1500" y="466" text-anchor="middle" fill="#1a1714" font-size="18" font-family="Georgia, serif" font-weight="700">4</text></g>
+
+        </svg>
+      </div>
+      <div id="mis-title" data-var-text="title">The Itinerary</div>
+      <div id="mis-subtitle" data-var-text="subtitle">Educational cartography · multi-stop route</div>
+      <div id="mis-note">Numbered stops along a schematic itinerary</div>
+    </div>
+    <script>
+      (function () {
+        window.__timelines = window.__timelines || {};
+        var vars = window.__hyperframes && window.__hyperframes.getVariables
+          ? window.__hyperframes.getVariables() : {};
+        var accent = /^#[0-9a-fA-F]{6}$/.test(String(vars.accent || ""))
+          ? String(vars.accent) : "#c45c26";
+        var title = typeof vars.title === "string" && vars.title ? vars.title : "The Itinerary";
+        var subtitle = typeof vars.subtitle === "string" && vars.subtitle ? vars.subtitle : "Educational cartography \u00b7 multi-stop route";
+        var labelA = typeof vars.labelA === "string" && vars.labelA ? vars.labelA : "1";
+        var labelB = typeof vars.labelB === "string" && vars.labelB ? vars.labelB : "2";
+        var labelC = typeof vars.labelC === "string" && vars.labelC ? vars.labelC : "3";
+        var labelD = typeof vars.labelD === "string" && vars.labelD ? vars.labelD : "4";
+
+        document.getElementById("mis-title").textContent = title;
+        document.getElementById("mis-subtitle").textContent = subtitle;
+        document.getElementById("mis-t1").textContent = labelA;
+        document.getElementById("mis-t2").textContent = labelB;
+        document.getElementById("mis-t3").textContent = labelC;
+        document.getElementById("mis-t4").textContent = labelD;
+        var path = document.getElementById("mis-path");
+        path.setAttribute("stroke", accent);
+        ["mis-s1","mis-s2","mis-s3","mis-s4"].forEach(function (id) {
+          document.getElementById(id).querySelector("circle").setAttribute("fill", accent);
+        });
+        var len = path.getTotalLength();
+        gsap.set(path, { strokeDasharray: len, strokeDashoffset: len });
+        gsap.set(["#mis-land","#mis-island","#mis-title","#mis-subtitle","#mis-note"], { opacity: 0 });
+        gsap.set(["#mis-s1","#mis-s2","#mis-s3","#mis-s4"], { opacity: 0, scale: 0, transformOrigin: "50% 50%" });
+        var tl = gsap.timeline({ paused: true });
+        tl.to("#mis-land", { opacity: 1, duration: 0.5 }, 0);
+        tl.to("#mis-island", { opacity: 1, duration: 0.4 }, 0.1);
+        tl.to("#mis-title", { opacity: 1, duration: 0.4 }, 0.15);
+        tl.to("#mis-subtitle", { opacity: 1, duration: 0.35 }, 0.35);
+        tl.to("#mis-s1", { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(1.8)" }, 0.8);
+        tl.to(path, { strokeDashoffset: len * 0.72, duration: 1.0, ease: "power1.inOut" }, 1.2);
+        tl.to("#mis-s2", { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(1.8)" }, 2.1);
+        tl.to(path, { strokeDashoffset: len * 0.35, duration: 1.0, ease: "power1.inOut" }, 2.4);
+        tl.to("#mis-s3", { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(1.8)" }, 3.3);
+        tl.to(path, { strokeDashoffset: 0, duration: 1.0, ease: "power1.inOut" }, 3.6);
+        tl.to("#mis-s4", { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(1.8)" }, 4.5);
+        tl.to("#mis-note", { opacity: 1, duration: 0.4 }, 5.5);
+        window.__timelines["map-itinerary-stops"] = tl;
+
+      })();
+    </script>
+  </body>
+</html>

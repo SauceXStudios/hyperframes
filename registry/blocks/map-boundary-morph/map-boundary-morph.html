@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+
+      *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+      body { background: #1a1714; overflow: hidden; }
+      #root-map-boundary-morph {
+        position: relative; width: 1920px; height: 1080px; overflow: hidden;
+        background: #1a1714; font-family: Georgia, "Times New Roman", serif;
+      }
+      #mbm-frame {
+        position: absolute; inset: 48px;
+        border: 1px solid rgba(196, 181, 154, 0.14); background: #221e19;
+      }
+      #mbm-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+      #mbm-title {
+        position: absolute; top: 72px; left: 96px;
+        color: rgba(232, 220, 196, 0.92); font-size: 42px;
+        letter-spacing: 0.08em; text-transform: uppercase; font-weight: 400;
+      }
+      #mbm-subtitle {
+        position: absolute; top: 128px; left: 96px;
+        color: rgba(196, 181, 154, 0.55); font-size: 22px;
+        letter-spacing: 0.18em; text-transform: uppercase;
+      }
+      #mbm-note {
+        position: absolute; bottom: 88px; left: 96px;
+        color: rgba(196, 181, 154, 0.55); font-size: 16px;
+        letter-spacing: 0.1em; text-transform: uppercase; max-width: 900px;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div id="root-map-boundary-morph" data-composition-id="map-boundary-morph"
+      data-start="0" data-duration="8" data-width="1920" data-height="1080">
+      <div id="mbm-frame">
+        <svg id="mbm-svg" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <pattern id="mbm-hatch" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+              <line x1="0" y1="0" x2="0" y2="12" stroke="rgba(196,181,154,0.08)" stroke-width="1" />
+            </pattern>
+          </defs>
+
+          <rect width="1920" height="1080" fill="#1f1b17" />
+          <rect width="1920" height="1080" fill="url(#mbm-hatch)" />
+          <path id="mbm-land" d="M 280 320 C 340 220 480 180 620 210 C 760 240 820 300 900 280 C 980 260 1080 300 1180 340 C 1280 380 1360 460 1380 560 C 1400 660 1340 760 1240 820 C 1140 880 980 900 860 860 C 740 820 700 780 620 800 C 540 820 420 780 360 700 C 300 620 240 500 280 320 Z" fill="rgba(196,181,154,0.16)" stroke="rgba(196,181,154,0.4)" stroke-width="2" />
+          <path id="mbm-island" d="M 1480 420 C 1540 400 1600 430 1610 480 C 1620 530 1580 570 1520 560 C 1460 550 1450 450 1480 420 Z" fill="rgba(196,181,154,0.12)" stroke="rgba(196,181,154,0.3)" stroke-width="1.5" />
+
+          <path id="mbm-old" d="M 280 320 C 340 220 480 180 620 210 C 760 240 820 300 900 280 C 980 260 1080 300 1180 340 C 1280 380 1360 460 1380 560 C 1400 660 1340 760 1240 820 C 1140 880 980 900 860 860 C 740 820 700 780 620 800 C 540 820 420 780 360 700 C 300 620 240 500 280 320 Z" fill="rgba(196,92,38,0.18)" stroke="#c45c26" stroke-width="2.5" />
+          <path id="mbm-new" d="M 300 340 C 380 240 520 200 660 230 C 800 260 860 320 940 300 C 1020 280 1120 320 1220 360 C 1320 400 1400 480 1420 580 C 1440 680 1380 780 1280 840 C 1180 900 1020 920 900 880 C 780 840 740 800 660 820 C 580 840 460 800 400 720 C 340 640 280 520 300 340 Z" fill="rgba(196,92,38,0.18)" stroke="#c45c26" stroke-width="2.5" />
+          <text id="mbm-era1" x="420" y="280" fill="rgba(232,220,196,0.75)" font-size="20" font-family="Georgia, serif">ERA I</text>
+          <text id="mbm-era2" x="420" y="280" fill="rgba(232,220,196,0.75)" font-size="20" font-family="Georgia, serif">ERA II</text>
+
+        </svg>
+      </div>
+      <div id="mbm-title" data-var-text="title">Shifting Borders</div>
+      <div id="mbm-subtitle" data-var-text="subtitle">Educational cartography · boundary morph</div>
+      <div id="mbm-note">Simplified boundary crossfade · not a precise historical claim</div>
+    </div>
+    <script>
+      (function () {
+        window.__timelines = window.__timelines || {};
+        var vars = window.__hyperframes && window.__hyperframes.getVariables
+          ? window.__hyperframes.getVariables() : {};
+        var accent = /^#[0-9a-fA-F]{6}$/.test(String(vars.accent || ""))
+          ? String(vars.accent) : "#c45c26";
+        var title = typeof vars.title === "string" && vars.title ? vars.title : "Shifting Borders";
+        var subtitle = typeof vars.subtitle === "string" && vars.subtitle ? vars.subtitle : "Educational cartography \u00b7 boundary morph";
+
+        document.getElementById("mbm-title").textContent = title;
+        document.getElementById("mbm-subtitle").textContent = subtitle;
+        document.getElementById("mbm-old").setAttribute("stroke", accent);
+        document.getElementById("mbm-new").setAttribute("stroke", accent);
+        gsap.set(["#mbm-land","#mbm-island","#mbm-title","#mbm-subtitle","#mbm-note","#mbm-era1","#mbm-era2"], { opacity: 0 });
+        gsap.set("#mbm-old", { opacity: 0 });
+        gsap.set("#mbm-new", { opacity: 0 });
+        var tl = gsap.timeline({ paused: true });
+        tl.to("#mbm-land", { opacity: 0.35, duration: 0.5 }, 0);
+        tl.to("#mbm-island", { opacity: 0.35, duration: 0.4 }, 0.1);
+        tl.to("#mbm-title", { opacity: 1, duration: 0.4 }, 0.15);
+        tl.to("#mbm-subtitle", { opacity: 1, duration: 0.35 }, 0.35);
+        tl.to(["#mbm-old","#mbm-era1"], { opacity: 1, duration: 0.6 }, 0.8);
+        tl.to("#mbm-old", { opacity: 0, duration: 1.4, ease: "power1.inOut" }, 3.2);
+        tl.to("#mbm-era1", { opacity: 0, duration: 0.5 }, 3.2);
+        tl.to(["#mbm-new","#mbm-era2"], { opacity: 1, duration: 1.4, ease: "power1.inOut" }, 3.2);
+        tl.to("#mbm-note", { opacity: 1, duration: 0.4 }, 5.5);
+        window.__timelines["map-boundary-morph"] = tl;
+
+      })();
+    </script>
+  </body>
+</html>
