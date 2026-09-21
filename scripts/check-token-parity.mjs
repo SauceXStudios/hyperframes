@@ -138,11 +138,18 @@ function slots(line) {
   const properties = propertySlots(line).filter(
     (slot) => !["class", "className"].includes(slot.key),
   );
-  const result = [...properties, ...classSlots(line)];
+  const scope = line.match(/^\s*([^{}<>]+)\s*\{/);
+  const prefix = scope ? scope[1].trim() : "";
+  const result = [...properties, ...classSlots(line)].map((slot) => ({
+    ...slot,
+    key: `${prefix}|${slot.key}`,
+  }));
   return result.length ? result : [{ key: "line", value: line }];
 }
 
 function matchReplacement(slot, oldSlots, values) {
+  const candidates = oldSlots.filter((old) => old.key === slot.key);
+  const ambiguous = new Set(candidates.map((old) => canonical(old.value))).size > 1;
   const index = oldSlots.findIndex((old) => old.key === slot.key);
   if (index < 0) return undefined;
   const [before] = oldSlots.splice(index, 1);
@@ -151,7 +158,11 @@ function matchReplacement(slot, oldSlots, values) {
   if (!/#[\da-f]{3,8}\b|\b(?:rgba?|hsla?)\(|-(?:white|black)(?:\/\d+)?\b/i.test(before.value))
     return undefined;
   const expanded = canonical(expandTokens(slot.value, values));
-  return { before, equal: canonical(before.value) === expanded, names };
+  return {
+    before,
+    equal: [!ambiguous, canonical(before.value) === expanded].every(Boolean),
+    names,
+  };
 }
 function compareSlot(file, line, slot, oldSlots, values, allowlist) {
   const match = matchReplacement(slot, oldSlots, values);

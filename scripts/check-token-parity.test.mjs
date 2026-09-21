@@ -108,3 +108,9 @@ test("unchanged colours consume their declaration before later migrations", () =
     "--- a/a.css\n+++ b/a.css\n@@ -1,2 +1,2 @@\n-.a { color: #fff; width: 1; }\n-.b { color: #000; }\n+.a { color: #fff; width: 2; }\n+.b { color: var(--white); }";
   assert.equal(findTokenParityIssues(change, "--white: #fff;").length, 1);
 });
+
+test("a deleted declaration cannot supply another selector's old colour", () => {
+  const change =
+    "--- a/a.css\n+++ b/a.css\n@@ -1,2 +1 @@\n-.a { color: #fff; }\n-.b { color: #000; }\n+.b { color: var(--white); }";
+  assert.equal(findTokenParityIssues(change, "--white: #fff;").length, 1);
+});
