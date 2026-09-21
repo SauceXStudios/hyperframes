@@ -143,22 +143,19 @@ function slots(line) {
 }
 
 function matchReplacement(slot, oldSlots, values) {
+  const index = oldSlots.findIndex((old) => old.key === slot.key);
+  if (index < 0) return undefined;
+  const [before] = oldSlots.splice(index, 1);
   const names = [...slot.value.matchAll(TOKEN)].map((match) => match[1]);
   if (!names.length) return undefined;
-  const candidates = oldSlots.filter(
-    (old) =>
-      old.key === slot.key &&
-      /#[\da-f]{3,8}\b|\b(?:rgba?|hsla?)\(|-(?:white|black)(?:\/\d+)?\b/i.test(old.value),
-  );
-  if (!candidates.length) return undefined;
+  if (!/#[\da-f]{3,8}\b|\b(?:rgba?|hsla?)\(|-(?:white|black)(?:\/\d+)?\b/i.test(before.value))
+    return undefined;
   const expanded = canonical(expandTokens(slot.value, values));
-  const before = candidates[0];
   return { before, equal: canonical(before.value) === expanded, names };
 }
 function compareSlot(file, line, slot, oldSlots, values, allowlist) {
   const match = matchReplacement(slot, oldSlots, values);
   if (!match) return [];
-  oldSlots.splice(oldSlots.indexOf(match.before), 1);
   if (match.equal) return [];
   const entry = { file, before: match.before.line.trim(), after: line.trim() };
   if (allowedReplacement(entry, allowlist)) return [];

@@ -102,3 +102,9 @@ test("swapping opposite token values between declarations fails", () => {
     "--- a/packages/a.css\n+++ b/packages/a.css\n@@ -1,2 +1,2 @@\n-.a { color: #fff; }\n-.b { color: #000; }\n+.a { color: var(--black); }\n+.b { color: var(--white); }";
   assert.equal(findTokenParityIssues(change, "--black: #000; --white: #fff;").length, 2);
 });
+
+test("unchanged colours consume their declaration before later migrations", () => {
+  const change =
+    "--- a/a.css\n+++ b/a.css\n@@ -1,2 +1,2 @@\n-.a { color: #fff; width: 1; }\n-.b { color: #000; }\n+.a { color: #fff; width: 2; }\n+.b { color: var(--white); }";
+  assert.equal(findTokenParityIssues(change, "--white: #fff;").length, 1);
+});
