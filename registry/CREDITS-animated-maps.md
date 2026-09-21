@@ -29,3 +29,10 @@ Not affiliated; footage not included. Original HyperFrames GSAP/HTML composition
 - `map-isoline-reveal` - isoline/contour reveal
 - `map-conquest-fill-sequence` - sequential region conquest fill
 - `map-legend-build` - legend panel assemble
+
+## map-globe-inset (QC-gated CEILING_ONLY 2026-09-20)
+
+Source inspiration: Moving Image Archive, Our Shrinking World, 1946.
+Ported from video-reverse `reversals/mia-maps/globe-inset/recreate/`.
+Still plates: `assets/clouds.jpg`, `assets/switchboard.jpg` (not MP4 wrappers).
+Ceilings: angular coasts, grain, SVG plane silhouette (not photoreal), radial lighting, switchboard still.

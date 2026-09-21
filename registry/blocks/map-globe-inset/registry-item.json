@@ -3,33 +3,31 @@
   "name": "map-globe-inset",
   "type": "hyperframes:block",
   "title": "Map Globe Inset",
-  "description": "Inset globe that rotates via seek-safe GSAP transform beside a main stylized map. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
-  "tags": ["map", "geography", "animation", "globe", "inset", "newsreel", "svg"],
+  "description": "Newsreel globe with concentric rings, spinning continents, plane pass behind the disk, then switchboard still plate. Seek-safe SVG/GSAP + stills only (no MP4 wrapper). Inspired by Moving Image Archive, Our Shrinking World, 1946 (Animated Maps) - not affiliated; code recreation. Fidelity ceilings: angular coasts, film grain approximation, SVG plane silhouette (not photoreal), radial lighting vs physical globe, switchboard as still.",
+  "tags": [
+    "map",
+    "geography",
+    "animation",
+    "globe",
+    "rings",
+    "newsreel",
+    "svg",
+    "mia",
+    "ceiling-only"
+  ],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
   "dimensions": {
     "width": 1920,
     "height": 1080
   },
-  "duration": 9,
+  "duration": 18.7,
   "variables": [
     {
-      "id": "title",
+      "id": "credit",
       "type": "string",
-      "label": "Title",
-      "default": "World Inset"
-    },
-    {
-      "id": "subtitle",
-      "type": "string",
-      "label": "Subtitle",
-      "default": "Educational cartography · globe inset"
-    },
-    {
-      "id": "accent",
-      "type": "color",
-      "label": "Accent",
-      "default": "#c45c26"
+      "label": "Credit",
+      "default": "Moving Image Archive inspiration - Our Shrinking World 1946 - code recreation - not affiliated"
     }
   ],
   "files": [
@@ -37,26 +35,24 @@
       "path": "map-globe-inset.html",
       "target": "compositions/map-globe-inset.html",
       "type": "hyperframes:composition"
+    },
+    {
+      "path": "assets/clouds.jpg",
+      "target": "assets/clouds.jpg",
+      "type": "hyperframes:asset"
+    },
+    {
+      "path": "assets/switchboard.jpg",
+      "target": "assets/switchboard.jpg",
+      "type": "hyperframes:asset"
     }
   ],
   "params": [
     {
-      "id": "title",
+      "id": "credit",
       "type": "string",
-      "label": "Title",
-      "default": "World Inset"
-    },
-    {
-      "id": "subtitle",
-      "type": "string",
-      "label": "Subtitle",
-      "default": "Educational cartography · globe inset"
-    },
-    {
-      "id": "accent",
-      "type": "color",
-      "label": "Accent",
-      "default": "#c45c26"
+      "label": "Credit",
+      "default": "Moving Image Archive inspiration - Our Shrinking World 1946 - code recreation - not affiliated"
     }
   ]
 }

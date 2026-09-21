@@ -3283,15 +3283,17 @@
     "name": "map-globe-inset",
     "type": "block",
     "title": "Map Globe Inset",
-    "description": "Inset globe that rotates via seek-safe GSAP transform beside a main stylized map. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
+    "description": "Newsreel globe with concentric rings, spinning continents, plane pass behind the disk, then switchboard still plate. Seek-safe SVG/GSAP + stills only (no MP4 wrapper). Inspired by Moving Image Archive, Our Shrinking World, 1946 (Animated Maps) - not affiliated; code recreation. Fidelity ceilings: angular coasts, film grain approximation, SVG plane silhouette (not photoreal), radial lighting vs physical globe, switchboard as still.",
     "tags": [
       "map",
       "geography",
       "animation",
       "globe",
-      "inset",
+      "rings",
       "newsreel",
-      "svg"
+      "svg",
+      "mia",
+      "ceiling-only"
     ],
     "href": "/catalog/blocks/map-globe-inset",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-globe-inset.png"
