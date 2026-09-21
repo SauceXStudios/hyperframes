@@ -1,6 +1,6 @@
 ---
-title: "City Water Supply (1941)"
-description: "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, City Water Supply, 1941. Self-hosted seek-safe video via /api/clips/f148eecb-aead-5b27-b64a-2b402e19b5d2/download. Not affiliated with Moving Image Archive. Footage-only video block."
+title: "Map Shipping Lanes"
+description: "Dotted sea shipping lanes that draw on across open water between ports. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
 mode: "frame"
 ---
 
@@ -11,11 +11,11 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   previewSrc="/public/catalog/blocks/map-shipping-lanes.json"
   compositionId="map-shipping-lanes"
   compositionSrc="compositions/map-shipping-lanes.html"
-  title="City Water Supply (1941)"
-  description="Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, City Water Supply, 1941. Self-hosted seek-safe video via /api/clips/f148eecb-aead-5b27-b64a-2b402e19b5d2/download. Not affiliated with Moving Image Archive. Footage-only video block."
-  variables={[{"id":"title","type":"string","label":"Title","default":"City Water Supply (1941)"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, City Water Supply, 1941"}]}
-  meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":139}}
-  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-shipping-lanes","tags":["map","geography","archival","footage","mia","video","public-domain"]}}
+  title="Map Shipping Lanes"
+  description="Dotted sea shipping lanes that draw on across open water between ports. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Sea Lanes"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · shipping lanes"},{"id":"fromLabel","type":"string","label":"Origin label","default":"PORT A"},{"id":"toLabel","type":"string","label":"Destination label","default":"PORT B"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
+  meta={{"duration":9,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":224}}
+  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-shipping-lanes","tags":["map","geography","animation","shipping","lanes","sea","newsreel","svg"]}}
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-shipping-lanes/map-shipping-lanes.html"
 >
@@ -38,7 +38,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         box-sizing: border-box;
       }
       body {
-        background: #0a0a0a;
+        background: #1a1714;
         overflow: hidden;
       }
       #root-map-shipping-lanes {
@@ -46,51 +46,49 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         width: 1920px;
         height: 1080px;
         overflow: hidden;
-        background: #0a0a0a;
-        font-family: "Helvetica Neue", Helvetica, sans-serif;
+        background: #1a1714;
+        font-family: Georgia, "Times New Roman", serif;
       }
-      #sl-video {
+      #msl-frame {
+        position: absolute;
+        inset: 48px;
+        border: 1px solid rgba(196, 181, 154, 0.14);
+        background: #221e19;
+      }
+      #msl-svg {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
-        object-fit: contain;
-        background: #000;
       }
-      #sl-frame {
+      #msl-title {
         position: absolute;
-        inset: 36px;
-        border: 1px solid rgba(232, 220, 196, 0.28);
-        pointer-events: none;
-      }
-      #sl-title {
-        position: absolute;
-        left: 72px;
-        top: 56px;
-        max-width: 1600px;
-        color: rgba(245, 236, 214, 0.95);
-        font-size: 34px;
-        font-weight: 700;
+        top: 72px;
+        left: 96px;
+        color: rgba(232, 220, 196, 0.92);
+        font-size: 42px;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);
+        font-weight: 400;
       }
-      #sl-credit {
+      #msl-subtitle {
         position: absolute;
-        left: 72px;
-        right: 72px;
-        bottom: 56px;
-        color: rgba(232, 220, 196, 0.88);
-        font-size: 16px;
-        letter-spacing: 0.06em;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        top: 128px;
+        left: 96px;
+        color: rgba(196, 181, 154, 0.55);
+        font-size: 22px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
       }
-      #sl-credit-url {
-        display: block;
-        margin-top: 8px;
-        font-size: 13px;
-        letter-spacing: 0.03em;
-        color: rgba(196, 181, 154, 0.7);
+      #msl-note {
+        position: absolute;
+        bottom: 88px;
+        left: 96px;
+        color: rgba(196, 181, 154, 0.55);
+        font-size: 16px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        max-width: 900px;
       }
     </style>
   </head>
@@ -99,64 +97,151 @@ import { InstallCommand } from "/snippets/install-command.jsx";
       id="root-map-shipping-lanes"
       data-composition-id="map-shipping-lanes"
       data-start="0"
-      data-duration="12.01"
+      data-duration="9"
       data-width="1920"
       data-height="1080"
     >
-      <video
-        id="sl-video"
-        src="assets/clip.mp4"
-        muted
-        playsinline
-        preload="auto"
-        data-start="0"
-        data-duration="12.01"
-        data-media-start="0"
-      ></video>
-      <div id="sl-frame" aria-hidden="true"></div>
-      <div id="sl-title" data-var-text="title">City Water Supply (1941)</div>
-      <div id="sl-credit">
-        <span data-var-text="credit">Moving Image Archive, City Water Supply, 1941</span>
-        <span id="sl-credit-url"
-          >https://www.movingimagearchive.com/sources/city-water-supply-f655cbe6?clip=f148eecb-aead-5b27-b64a-2b402e19b5d2
-          - Rights: public_domain / free to reuse</span
+      <div id="msl-frame">
+        <svg
+          id="msl-svg"
+          viewBox="0 0 1920 1080"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
         >
+          <defs>
+            <pattern
+              id="msl-hatch"
+              width="12"
+              height="12"
+              patternUnits="userSpaceOnUse"
+              patternTransform="rotate(35)"
+            >
+              <line x1="0" y1="0" x2="0" y2="12" stroke="rgba(196,181,154,0.08)" stroke-width="1" />
+            </pattern>
+          </defs>
+
+          <rect width="1920" height="1080" fill="#1f1b17" />
+          <rect width="1920" height="1080" fill="url(#msl-hatch)" />
+          <path
+            id="msl-land"
+            d="M 280 320 C 340 220 480 180 620 210 C 760 240 820 300 900 280 C 980 260 1080 300 1180 340 C 1280 380 1360 460 1380 560 C 1400 660 1340 760 1240 820 C 1140 880 980 900 860 860 C 740 820 700 780 620 800 C 540 820 420 780 360 700 C 300 620 240 500 280 320 Z"
+            fill="rgba(196,181,154,0.16)"
+            stroke="rgba(196,181,154,0.4)"
+            stroke-width="2"
+          />
+          <path
+            id="msl-island"
+            d="M 1480 420 C 1540 400 1600 430 1610 480 C 1620 530 1580 570 1520 560 C 1460 550 1450 450 1480 420 Z"
+            fill="rgba(196,181,154,0.12)"
+            stroke="rgba(196,181,154,0.3)"
+            stroke-width="1.5"
+          />
+
+          <path
+            id="msl-lane1"
+            d="M 400 640 C 560 700 780 720 980 680 C 1180 640 1380 600 1520 520"
+            fill="none"
+            stroke="#c45c26"
+            stroke-width="3"
+            stroke-linecap="round"
+          />
+          <path
+            id="msl-lane2"
+            d="M 440 580 C 640 540 860 500 1080 520 C 1280 540 1420 480 1560 440"
+            fill="none"
+            stroke="#c45c26"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            opacity="0.7"
+          />
+          <circle id="msl-pa" cx="400" cy="640" r="10" fill="#c45c26" />
+          <circle id="msl-pb" cx="1520" cy="520" r="10" fill="#c45c26" />
+          <text
+            id="msl-from"
+            x="400"
+            y="680"
+            text-anchor="middle"
+            fill="rgba(232,220,196,0.85)"
+            font-size="18"
+            font-family="Georgia, serif"
+          >
+            PORT A
+          </text>
+          <text
+            id="msl-to"
+            x="1520"
+            y="560"
+            text-anchor="middle"
+            fill="rgba(232,220,196,0.85)"
+            font-size="18"
+            font-family="Georgia, serif"
+          >
+            PORT B
+          </text>
+        </svg>
       </div>
+      <div id="msl-title" data-var-text="title">Sea Lanes</div>
+      <div id="msl-subtitle" data-var-text="subtitle">Educational cartography · shipping lanes</div>
+      <div id="msl-note">Dotted sea lanes · schematic ports only</div>
     </div>
     <script>
       (function () {
         window.__timelines = window.__timelines || {};
-
         var vars =
           window.__hyperframes && window.__hyperframes.getVariables
             ? window.__hyperframes.getVariables()
             : {};
+        var accent = /^#[0-9a-fA-F]{6}$/.test(String(vars.accent || ""))
+          ? String(vars.accent)
+          : "#c45c26";
+        var title = typeof vars.title === "string" && vars.title ? vars.title : "Sea Lanes";
+        var subtitle =
+          typeof vars.subtitle === "string" && vars.subtitle
+            ? vars.subtitle
+            : "Educational cartography \u00b7 shipping lanes";
+        var fromLabel =
+          typeof vars.fromLabel === "string" && vars.fromLabel ? vars.fromLabel : "PORT A";
+        var toLabel = typeof vars.toLabel === "string" && vars.toLabel ? vars.toLabel : "PORT B";
 
-        var title =
-          typeof vars.title === "string" && vars.title ? vars.title : "City Water Supply (1941)";
-        var credit =
-          typeof vars.credit === "string" && vars.credit
-            ? vars.credit
-            : "Moving Image Archive, City Water Supply, 1941";
-
-        document.getElementById("sl-title").textContent = title;
-        document.querySelector('#sl-credit [data-var-text="credit"]').textContent = credit;
-
+        document.getElementById("msl-title").textContent = title;
+        document.getElementById("msl-subtitle").textContent = subtitle;
+        document.getElementById("msl-from").textContent = fromLabel;
+        document.getElementById("msl-to").textContent = toLabel;
+        ["msl-lane1", "msl-lane2"].forEach(function (id) {
+          document.getElementById(id).setAttribute("stroke", accent);
+        });
+        document.getElementById("msl-pa").setAttribute("fill", accent);
+        document.getElementById("msl-pb").setAttribute("fill", accent);
+        var l1 = document.getElementById("msl-lane1");
+        var l2 = document.getElementById("msl-lane2");
+        var len1 = l1.getTotalLength(),
+          len2 = l2.getTotalLength();
+        gsap.set(l1, { strokeDasharray: "3 14", strokeDashoffset: len1 });
+        gsap.set(l2, { strokeDasharray: "3 14", strokeDashoffset: len2 });
+        gsap.set(
+          [
+            "#msl-land",
+            "#msl-island",
+            "#msl-from",
+            "#msl-to",
+            "#msl-pa",
+            "#msl-pb",
+            "#msl-title",
+            "#msl-subtitle",
+            "#msl-note",
+          ],
+          { opacity: 0 },
+        );
         var tl = gsap.timeline({ paused: true });
-        tl.fromTo(
-          "#sl-title",
-          { opacity: 0 },
-          { opacity: 1, duration: 0.6, ease: "power1.out" },
-          0,
-        );
-        tl.fromTo(
-          "#sl-credit",
-          { opacity: 0 },
-          { opacity: 1, duration: 0.6, ease: "power1.out" },
-          0.15,
-        );
-        tl.to({}, { duration: Math.max(0.01, 12.01 - 0.75) });
-
+        tl.to("#msl-land", { opacity: 1, duration: 0.5 }, 0);
+        tl.to("#msl-island", { opacity: 1, duration: 0.4 }, 0.1);
+        tl.to("#msl-title", { opacity: 1, duration: 0.4 }, 0.15);
+        tl.to("#msl-subtitle", { opacity: 1, duration: 0.35 }, 0.35);
+        tl.to(["#msl-pa", "#msl-from"], { opacity: 1, duration: 0.35 }, 0.7);
+        tl.to(l1, { strokeDashoffset: 0, duration: 3.5, ease: "power1.inOut" }, 1.1);
+        tl.to(l2, { strokeDashoffset: 0, duration: 3.2, ease: "power1.inOut" }, 1.6);
+        tl.to(["#msl-pb", "#msl-to"], { opacity: 1, duration: 0.35 }, 4.4);
+        tl.to("#msl-note", { opacity: 1, duration: 0.4 }, 5.5);
         window.__timelines["map-shipping-lanes"] = tl;
       })();
     </script>
@@ -170,7 +255,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
 
 <InstallCommand command="npx hyperframes add map-shipping-lanes" item="map-shipping-lanes" />
 
-That writes `compositions/map-shipping-lanes.html`, plus 2 supporting files under `assets/`.
+That writes one file: `compositions/map-shipping-lanes.html`.
 
 </CatalogSlot>
 
@@ -178,14 +263,14 @@ That writes `compositions/map-shipping-lanes.html`, plus 2 supporting files unde
 
 ## Add it to your video
 
-It runs for 12.01 seconds at 1920×1080. Paste this into your composition:
+It runs for 9 seconds at 1920×1080. Paste this into your composition:
 
 ```html index.html
 <div
   data-composition-id="map-shipping-lanes"
   data-composition-src="compositions/map-shipping-lanes.html"
   data-start="0"
-  data-duration="12.01"
+  data-duration="9"
   data-track-index="1"
   data-width="1920"
   data-height="1080"
@@ -199,8 +284,11 @@ Move it in time with `data-start`. Put it on a different timeline row with
 
 Set these CSS variables on the block:
 
-- `title` - Title. Defaults to `City Water Supply (1941)`.
-- `credit` - Credit line. Defaults to `Moving Image Archive, City Water Supply, 1941`.
+- `undefined` — Title. Defaults to `Sea Lanes`.
+- `undefined` — Subtitle. Defaults to `Educational cartography · shipping lanes`.
+- `undefined` — Origin label. Defaults to `PORT A`.
+- `undefined` — Destination label. Defaults to `PORT B`.
+- `undefined` — Accent. Defaults to `#c45c26`.
 
 ## Variables
 
@@ -209,8 +297,11 @@ want to change on the element:
 
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
-| `title` | `City Water Supply (1941)` | string |  |
-| `credit` | `Moving Image Archive, City Water Supply, 1941` | string |  |
+| `title` | `Sea Lanes` | string |  |
+| `subtitle` | `Educational cartography · shipping lanes` | string |  |
+| `fromLabel` | `PORT A` | string |  |
+| `toLabel` | `PORT B` | string |  |
+| `accent` | `#c45c26` | color |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -219,13 +310,13 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-shipping-lanes"
   data-composition-src="compositions/map-shipping-lanes.html"
-  data-variable-values='{"title":"City Water Supply (1941)","credit":"Moving Image Archive, City Water Supply, 1941"}'
+  data-variable-values='{"title":"Sea Lanes","subtitle":"Educational cartography · shipping lanes","fromLabel":"PORT A","toLabel":"PORT B","accent":"#c45c26"}'
 ></div>
 ```
 
 {/* hf:generated-footer */}
 
-Tagged `map` `geography` `archival` `footage` `mia` `video` `public-domain`.
+Tagged `map` `geography` `animation` `shipping` `lanes` `sea` `newsreel` `svg`.
 
 Created by [HeyGen](https://hyperframes.heygen.com).
 

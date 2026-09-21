@@ -3139,16 +3139,17 @@
   {
     "name": "map-arrow-fanout",
     "type": "block",
-    "title": "Germany (1957)",
-    "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Germany, 1957. Self-hosted seek-safe video via /api/clips/6a1958ac-3075-5e27-bc04-6bf472f362ff/download. Not affiliated with Moving Image Archive. Footage-only video block.",
+    "title": "Map Arrow Fanout",
+    "description": "Arrow swarm fan-out from an origin - abstract schematic advances. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
     "tags": [
       "map",
       "geography",
-      "archival",
-      "footage",
-      "mia",
-      "video",
-      "public-domain"
+      "animation",
+      "arrows",
+      "fanout",
+      "swarm",
+      "newsreel",
+      "svg"
     ],
     "href": "/catalog/blocks/map-arrow-fanout",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-arrow-fanout.png"
@@ -3156,16 +3157,17 @@
   {
     "name": "map-border-chase",
     "type": "block",
-    "title": "Alaska: A Modern Frontier (Revised edition) (1948)",
-    "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Alaska: A Modern Frontier (Revised edition), 1948. Self-hosted seek-safe video via /api/clips/32ac28fb-c318-5fe7-9641-1a0549fd8f07/download. Not affiliated with Moving Image Archive. Footage-only video block.",
+    "title": "Map Border Chase",
+    "description": "Border highlight chase that races along a coastline or frontier stroke. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
     "tags": [
       "map",
       "geography",
-      "archival",
-      "footage",
-      "mia",
-      "video",
-      "public-domain"
+      "animation",
+      "border",
+      "chase",
+      "highlight",
+      "newsreel",
+      "svg"
     ],
     "href": "/catalog/blocks/map-border-chase",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-border-chase.png"
@@ -3173,16 +3175,17 @@
   {
     "name": "map-boundary-morph",
     "type": "block",
-    "title": "Alaska's Silver Millions (Part I) (1936)",
-    "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Alaska's Silver Millions (Part I), 1936. Self-hosted seek-safe video via /api/clips/ed15e61c-168d-5c7b-a2f9-6c658f5eda37/download. Not affiliated with Moving Image Archive. Footage-only video block.",
+    "title": "Map Boundary Morph",
+    "description": "Crossfade morph between two simplified historical boundary silhouettes. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
     "tags": [
       "map",
       "geography",
-      "archival",
-      "footage",
-      "mia",
-      "video",
-      "public-domain"
+      "animation",
+      "boundary",
+      "morph",
+      "historical",
+      "newsreel",
+      "svg"
     ],
     "href": "/catalog/blocks/map-boundary-morph",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-boundary-morph.png"
@@ -3190,16 +3193,17 @@
   {
     "name": "map-campaign-arrows",
     "type": "block",
-    "title": "How Our Country Grew (1950)",
-    "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, How Our Country Grew, 1950. Self-hosted seek-safe video via /api/clips/0040705f-edda-5719-a113-5b0bef613987/download. Not affiliated with Moving Image Archive. Footage-only video block.",
+    "title": "Map Campaign Arrows",
+    "description": "Newsreel wartime aesthetic with sequential schematic campaign arrows along a path — abstract educational cartography, not glorifying. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection — not affiliated; footage not included).",
     "tags": [
       "map",
       "geography",
-      "archival",
-      "footage",
-      "mia",
-      "video",
-      "public-domain"
+      "animation",
+      "arrows",
+      "campaign",
+      "newsreel",
+      "schematic",
+      "svg"
     ],
     "href": "/catalog/blocks/map-campaign-arrows",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-campaign-arrows.png"
@@ -3207,16 +3211,17 @@
   {
     "name": "map-city-pins",
     "type": "block",
-    "title": "New York Water Supply (1927)",
-    "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, New York Water Supply, 1927; National Archives and Records Administration / U.S. Government Films (Internet Archive collection); https://archive.org/details/gov.archives.arc.95622. Self-hosted seek-safe video via /api/clips/5791dad1-539e-5947-863e-f19cbac765ba/download. Not affiliated with Moving Image Archive. Footage-only video block.",
+    "title": "Map City Pins",
+    "description": "Newsreel-style labeled city pins that pop and stagger onto a stylized landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection — not affiliated; footage not included).",
     "tags": [
       "map",
       "geography",
-      "archival",
-      "footage",
-      "mia",
-      "video",
-      "public-domain"
+      "animation",
+      "pins",
+      "cities",
+      "newsreel",
+      "labels",
+      "svg"
     ],
     "href": "/catalog/blocks/map-city-pins",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-city-pins.png"
@@ -3224,16 +3229,16 @@
   {
     "name": "map-compass-scale",
     "type": "block",
-    "title": "A TRAVELER MEETS AIR TRAFFIC CONTROL (1963)",
-    "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, A TRAVELER MEETS AIR TRAFFIC CONTROL, 1963. Self-hosted seek-safe video via /api/clips/01ccbfe4-29e0-5834-bfd0-4d8c02b3aea5/download. Not affiliated with Moving Image Archive. Footage-only video block.",
+    "title": "Map Compass Scale",
+    "description": "Compass rose and scale bar reveal over a stylized newsreel landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
     "tags": [
       "map",
       "geography",
-      "archival",
-      "footage",
-      "mia",
-      "video",
-      "public-domain"
+      "animation",
+      "compass",
+      "scale",
+      "newsreel",
+      "svg"
     ],
     "href": "/catalog/blocks/map-compass-scale",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-compass-scale.png"
@@ -3241,16 +3246,17 @@
   {
     "name": "map-conquest-fill-sequence",
     "type": "block",
-    "title": "Man On The Land (1951)",
-    "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Man On The Land, 1951. Self-hosted seek-safe video via /api/clips/008090d0-9ab5-5a46-9152-1389094bb21d/download. Not affiliated with Moving Image Archive. Footage-only video block.",
+    "title": "Map Conquest Fill Sequence",
+    "description": "Sequential region fill sequence - abstract educational conquest cartography, not glorifying. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
     "tags": [
       "map",
       "geography",
-      "archival",
-      "footage",
-      "mia",
-      "video",
-      "public-domain"
+      "animation",
+      "conquest",
+      "fill",
+      "sequence",
+      "newsreel",
+      "svg"
     ],
     "href": "/catalog/blocks/map-conquest-fill-sequence",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-conquest-fill-sequence.png"
@@ -3258,16 +3264,17 @@
   {
     "name": "map-front-line-crawl",
     "type": "block",
-    "title": "Earth Resources Technology Satellite (ERTS) (1973)",
-    "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Earth Resources Technology Satellite (ERTS), 1973. Self-hosted seek-safe video via /api/clips/513f038f-a4ab-5c90-a213-a8a46b7d341e/download. Not affiliated with Moving Image Archive. Footage-only video block.",
+    "title": "Map Front Line Crawl",
+    "description": "Dashed front-line crawl across a stylized landmass - abstract educational cartography. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
     "tags": [
       "map",
       "geography",
-      "archival",
-      "footage",
-      "mia",
-      "video",
-      "public-domain"
+      "animation",
+      "front-line",
+      "dashed",
+      "newsreel",
+      "battle-line",
+      "svg"
     ],
     "href": "/catalog/blocks/map-front-line-crawl",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-front-line-crawl.png"
@@ -3275,16 +3282,16 @@
   {
     "name": "map-globe-inset",
     "type": "block",
-    "title": "Space Flight: Application of Orbital Mechanics (1994)",
-    "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Space Flight: Application of Orbital Mechanics, 1994. Self-hosted seek-safe video via /api/clips/ec91c430-808a-57a5-a63e-f238d596f11c/download. Not affiliated with Moving Image Archive. Footage-only video block.",
+    "title": "Map Globe Inset",
+    "description": "Inset globe that rotates via seek-safe GSAP transform beside a main stylized map. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
     "tags": [
       "map",
       "geography",
-      "archival",
-      "footage",
-      "mia",
-      "video",
-      "public-domain"
+      "animation",
+      "globe",
+      "inset",
+      "newsreel",
+      "svg"
     ],
     "href": "/catalog/blocks/map-globe-inset",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-globe-inset.png"
@@ -3292,16 +3299,17 @@
   {
     "name": "map-grid-crosshair",
     "type": "block",
-    "title": "Scatter radar: Space research from the ground (1963)",
-    "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Scatter radar: Space research from the ground, 1963. Self-hosted seek-safe video via /api/clips/ef35ba39-a4c7-5ca1-b648-4ce7e21a987e/download. Not affiliated with Moving Image Archive. Footage-only video block.",
+    "title": "Map Grid Crosshair",
+    "description": "Lat-long grid draw-on with a crosshair lock on a target point. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
     "tags": [
       "map",
       "geography",
-      "archival",
-      "footage",
-      "mia",
-      "video",
-      "public-domain"
+      "animation",
+      "grid",
+      "crosshair",
+      "latlong",
+      "newsreel",
+      "svg"
     ],
     "href": "/catalog/blocks/map-grid-crosshair",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-grid-crosshair.png"
@@ -3309,16 +3317,17 @@
   {
     "name": "map-hotspot-pulse",
     "type": "block",
-    "title": "EVOLUTION OF THE OIL INDUSTRY, THE (1934)",
-    "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, EVOLUTION OF THE OIL INDUSTRY, THE, 1934; National Archives and Records Administration / NARA ARC mirror / FedFlix; https://archive.org/details/gov.archives.arc.12477. Self-hosted seek-safe video via /api/clips/a36b3d33-8c6b-5748-b606-e7841020121f/download. Not affiliated with Moving Image Archive. Footage-only video block.",
+    "title": "Map Hotspot Pulse",
+    "description": "Heat-pulse hotspots that appear and blink on a stylized landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
     "tags": [
       "map",
       "geography",
-      "archival",
-      "footage",
-      "mia",
-      "video",
-      "public-domain"
+      "animation",
+      "hotspot",
+      "pulse",
+      "heat",
+      "newsreel",
+      "svg"
     ],
     "href": "/catalog/blocks/map-hotspot-pulse",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-hotspot-pulse.png"
@@ -3326,16 +3335,17 @@
   {
     "name": "map-ink-blot-soak",
     "type": "block",
-    "title": "Oil Across Arabia (1950)",
-    "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Oil Across Arabia, 1950. Self-hosted seek-safe video via /api/clips/8d6ee4fc-680f-5efa-851e-c1711d9f1c0e/download. Not affiliated with Moving Image Archive. Footage-only video block.",
+    "title": "Map Ink Blot Soak",
+    "description": "Ink-blot territory soak filling a region with a spreading blot wash. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
     "tags": [
       "map",
       "geography",
-      "archival",
-      "footage",
-      "mia",
-      "video",
-      "public-domain"
+      "animation",
+      "ink",
+      "blot",
+      "territory",
+      "newsreel",
+      "svg"
     ],
     "href": "/catalog/blocks/map-ink-blot-soak",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-ink-blot-soak.png"
@@ -3343,16 +3353,16 @@
   {
     "name": "map-isoline-reveal",
     "type": "block",
-    "title": "Climate Factor (1984)",
-    "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Climate Factor, 1984. Self-hosted seek-safe video via /api/clips/37f8ebaf-2a5c-587c-9740-cb92cd79bb56/download. Not affiliated with Moving Image Archive. Footage-only video block.",
+    "title": "Map Isoline Reveal",
+    "description": "Isoline contour rings that reveal outward like topographic bands. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
     "tags": [
       "map",
       "geography",
-      "archival",
-      "footage",
-      "mia",
-      "video",
-      "public-domain"
+      "animation",
+      "isoline",
+      "contour",
+      "newsreel",
+      "svg"
     ],
     "href": "/catalog/blocks/map-isoline-reveal",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-isoline-reveal.png"
@@ -3360,16 +3370,17 @@
   {
     "name": "map-itinerary-stops",
     "type": "block",
-    "title": "Network Broadcasting (1934)",
-    "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Network Broadcasting, 1934. Self-hosted seek-safe video via /api/clips/5f7f8e14-1e02-5460-99f0-4762a314904d/download. Not affiliated with Moving Image Archive. Footage-only video block.",
+    "title": "Map Itinerary Stops",
+    "description": "Multi-stop itinerary path with numbered markers that appear in sequence. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
     "tags": [
       "map",
       "geography",
-      "archival",
-      "footage",
-      "mia",
-      "video",
-      "public-domain"
+      "animation",
+      "itinerary",
+      "stops",
+      "markers",
+      "newsreel",
+      "svg"
     ],
     "href": "/catalog/blocks/map-itinerary-stops",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-itinerary-stops.png"
@@ -3377,16 +3388,16 @@
   {
     "name": "map-legend-build",
     "type": "block",
-    "title": "Trading Centers of the Pacific Coast (1947)",
-    "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Trading Centers of the Pacific Coast, 1947. Self-hosted seek-safe video via /api/clips/36a29a94-bb07-5bf2-ac21-1ad9dab65f76/download. Not affiliated with Moving Image Archive. Footage-only video block.",
+    "title": "Map Legend Build",
+    "description": "Legend panel that builds row-by-row while map symbols appear. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
     "tags": [
       "map",
       "geography",
-      "archival",
-      "footage",
-      "mia",
-      "video",
-      "public-domain"
+      "animation",
+      "legend",
+      "key",
+      "newsreel",
+      "svg"
     ],
     "href": "/catalog/blocks/map-legend-build",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-legend-build.png"
@@ -3394,16 +3405,17 @@
   {
     "name": "map-parchment-fold",
     "type": "block",
-    "title": "AOPA-ASF: Thunderstorms and the ATC (2008)",
-    "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, AOPA-ASF: Thunderstorms and the ATC, 2008. Self-hosted seek-safe video via /api/clips/538de0ed-fd6e-5ac6-891c-c7bfd597cd39/download. Not affiliated with Moving Image Archive. Footage-only video block.",
+    "title": "Map Parchment Fold",
+    "description": "Parchment aesthetic with a paper-map unfold and route reveal. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
     "tags": [
       "map",
       "geography",
-      "archival",
-      "footage",
-      "mia",
-      "video",
-      "public-domain"
+      "animation",
+      "parchment",
+      "fold",
+      "paper",
+      "newsreel",
+      "svg"
     ],
     "href": "/catalog/blocks/map-parchment-fold",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-parchment-fold.png"
@@ -3411,16 +3423,17 @@
   {
     "name": "map-radar-rings",
     "type": "block",
-    "title": "Arteries of New York City (1941)",
-    "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Arteries of New York City, 1941. Self-hosted seek-safe video via /api/clips/8a33520f-770b-5ce0-9e7b-56f1d80f4bb5/download. Not affiliated with Moving Image Archive. Footage-only video block.",
+    "title": "Map Radar Rings",
+    "description": "Concentric radar and range rings that expand from a focal point with a seek-safe sweep. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
     "tags": [
       "map",
       "geography",
-      "archival",
-      "footage",
-      "mia",
-      "video",
-      "public-domain"
+      "animation",
+      "radar",
+      "rings",
+      "range",
+      "newsreel",
+      "svg"
     ],
     "href": "/catalog/blocks/map-radar-rings",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-radar-rings.png"
@@ -3428,16 +3441,17 @@
   {
     "name": "map-region-zoom",
     "type": "block",
-    "title": "Blackwater National Wildlife Refuge (2005)",
-    "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Blackwater National Wildlife Refuge, 2005. Self-hosted seek-safe video via /api/clips/2aff5249-9d8d-575f-9d80-859509d7f69c/download. Not affiliated with Moving Image Archive. Footage-only video block.",
+    "title": "Map Region Zoom",
+    "description": "Newsreel-style grid overlay and camera zoom into a framed region on a stylized landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection — not affiliated; footage not included).",
     "tags": [
       "map",
       "geography",
-      "archival",
-      "footage",
-      "mia",
-      "video",
-      "public-domain"
+      "animation",
+      "zoom",
+      "grid",
+      "newsreel",
+      "camera",
+      "svg"
     ],
     "href": "/catalog/blocks/map-region-zoom",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-region-zoom.png"
@@ -3445,16 +3459,16 @@
   {
     "name": "map-route-draw",
     "type": "block",
-    "title": "Cities How They Grow (1952)",
-    "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Cities How They Grow, 1952. Self-hosted seek-safe video via /api/clips/0e8dc9a8-6afd-5038-b377-415016526b9c/download. Not affiliated with Moving Image Archive. Footage-only video block.",
+    "title": "Map Route Draw",
+    "description": "Newsreel-style stylized landmass with a route line that stroke-draws on across the map. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection — not affiliated; footage not included).",
     "tags": [
       "map",
       "geography",
-      "archival",
-      "footage",
-      "mia",
-      "video",
-      "public-domain"
+      "animation",
+      "route",
+      "newsreel",
+      "draw-on",
+      "svg"
     ],
     "href": "/catalog/blocks/map-route-draw",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-route-draw.png"
@@ -3462,16 +3476,17 @@
   {
     "name": "map-shipping-lanes",
     "type": "block",
-    "title": "City Water Supply (1941)",
-    "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, City Water Supply, 1941. Self-hosted seek-safe video via /api/clips/f148eecb-aead-5b27-b64a-2b402e19b5d2/download. Not affiliated with Moving Image Archive. Footage-only video block.",
+    "title": "Map Shipping Lanes",
+    "description": "Dotted sea shipping lanes that draw on across open water between ports. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
     "tags": [
       "map",
       "geography",
-      "archival",
-      "footage",
-      "mia",
-      "video",
-      "public-domain"
+      "animation",
+      "shipping",
+      "lanes",
+      "sea",
+      "newsreel",
+      "svg"
     ],
     "href": "/catalog/blocks/map-shipping-lanes",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-shipping-lanes.png"
@@ -3479,16 +3494,17 @@
   {
     "name": "map-split-theater",
     "type": "block",
-    "title": "Fire Behavior in the Wildland/Urban Interface (2003)",
-    "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Fire Behavior in the Wildland/Urban Interface, 2003. Self-hosted seek-safe video via /api/clips/b17ac08f-8a18-562e-bf11-33459518ae08/download. Not affiliated with Moving Image Archive. Footage-only video block.",
+    "title": "Map Split Theater",
+    "description": "Split-screen two-theater maps with parallel schematic advances. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
     "tags": [
       "map",
       "geography",
-      "archival",
-      "footage",
-      "mia",
-      "video",
-      "public-domain"
+      "animation",
+      "split",
+      "theater",
+      "dual",
+      "newsreel",
+      "svg"
     ],
     "href": "/catalog/blocks/map-split-theater",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-split-theater.png"
@@ -3496,16 +3512,17 @@
   {
     "name": "map-stamp-labels",
     "type": "block",
-    "title": "Flying the Islands of the Bahamas (2009)",
-    "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Flying the Islands of the Bahamas, 2009. Self-hosted seek-safe video via /api/clips/b873e568-d8bb-57f2-b89e-deb594c08f83/download. Not affiliated with Moving Image Archive. Footage-only video block.",
+    "title": "Map Stamp Labels",
+    "description": "Stamp and typewriter-style location labels that slam onto the map. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
     "tags": [
       "map",
       "geography",
-      "archival",
-      "footage",
-      "mia",
-      "video",
-      "public-domain"
+      "animation",
+      "stamp",
+      "typewriter",
+      "labels",
+      "newsreel",
+      "svg"
     ],
     "href": "/catalog/blocks/map-stamp-labels",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-stamp-labels.png"
@@ -3513,16 +3530,17 @@
   {
     "name": "map-territory-wipe",
     "type": "block",
-    "title": "Frontiers of the Future (A Screen Editorial With Lowell Thomas) (1937)",
-    "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Frontiers of the Future (A Screen Editorial With Lowell Thomas), 1937. Self-hosted seek-safe video via /api/clips/4c5888b5-ca56-59cc-a62d-91ae5bcf3174/download. Not affiliated with Moving Image Archive. Footage-only video block.",
+    "title": "Map Territory Wipe",
+    "description": "Newsreel-style territory fill that wipes on via clip-path reveal over a stylized landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection — not affiliated; footage not included).",
     "tags": [
       "map",
       "geography",
-      "archival",
-      "footage",
-      "mia",
-      "video",
-      "public-domain"
+      "animation",
+      "territory",
+      "wipe",
+      "newsreel",
+      "reveal",
+      "svg"
     ],
     "href": "/catalog/blocks/map-territory-wipe",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-territory-wipe.png"

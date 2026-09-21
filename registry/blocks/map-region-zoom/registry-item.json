@@ -2,29 +2,40 @@
   "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
   "name": "map-region-zoom",
   "type": "hyperframes:block",
-  "title": "Blackwater National Wildlife Refuge (2005)",
-  "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Blackwater National Wildlife Refuge, 2005. Self-hosted seek-safe video via /api/clips/2aff5249-9d8d-575f-9d80-859509d7f69c/download. Not affiliated with Moving Image Archive. Footage-only video block.",
-  "tags": ["map", "geography", "archival", "footage", "mia", "video", "public-domain"],
+  "title": "Map Region Zoom",
+  "description": "Newsreel-style grid overlay and camera zoom into a framed region on a stylized landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection \u2014 not affiliated; footage not included).",
+  "tags": ["map", "geography", "animation", "zoom", "grid", "newsreel", "camera", "svg"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
-  "license": "Footage: public domain / free to reuse (Moving Image Archive). Composition: project license.",
   "dimensions": {
     "width": 1920,
     "height": 1080
   },
-  "duration": 12.01,
+  "duration": 9,
   "variables": [
     {
       "id": "title",
       "type": "string",
       "label": "Title",
-      "default": "Blackwater National Wildlife Refuge (2005)"
+      "default": "Sector Focus"
     },
     {
-      "id": "credit",
+      "id": "subtitle",
       "type": "string",
-      "label": "Credit line",
-      "default": "Moving Image Archive, Blackwater National Wildlife Refuge, 2005"
+      "label": "Subtitle",
+      "default": "Grid overlay \u00b7 camera zoom"
+    },
+    {
+      "id": "regionLabel",
+      "type": "string",
+      "label": "Region label",
+      "default": "Sector 7"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "label": "Accent",
+      "default": "#c45c26"
     }
   ],
   "files": [
@@ -32,30 +43,32 @@
       "path": "map-region-zoom.html",
       "target": "compositions/map-region-zoom.html",
       "type": "hyperframes:composition"
-    },
-    {
-      "path": "assets/clip.mp4",
-      "target": "assets/clip.mp4",
-      "type": "hyperframes:asset"
-    },
-    {
-      "path": "assets/poster.jpg",
-      "target": "assets/poster.jpg",
-      "type": "hyperframes:asset"
     }
   ],
   "params": [
     {
-      "type": "text",
+      "id": "title",
+      "type": "string",
       "label": "Title",
-      "default": "Blackwater National Wildlife Refuge (2005)",
-      "key": "title"
+      "default": "Sector Focus"
     },
     {
-      "type": "text",
-      "label": "Credit line",
-      "default": "Moving Image Archive, Blackwater National Wildlife Refuge, 2005",
-      "key": "credit"
+      "id": "subtitle",
+      "type": "string",
+      "label": "Subtitle",
+      "default": "Grid overlay \u00b7 camera zoom"
+    },
+    {
+      "id": "regionLabel",
+      "type": "string",
+      "label": "Region label",
+      "default": "Sector 7"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "label": "Accent",
+      "default": "#c45c26"
     }
   ]
 }

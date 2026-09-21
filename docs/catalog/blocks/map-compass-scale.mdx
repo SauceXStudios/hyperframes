@@ -1,6 +1,6 @@
 ---
-title: "A TRAVELER MEETS AIR TRAFFIC CONTROL (1963)"
-description: "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, A TRAVELER MEETS AIR TRAFFIC CONTROL, 1963. Self-hosted seek-safe video via /api/clips/01ccbfe4-29e0-5834-bfd0-4d8c02b3aea5/download. Not affiliated with Moving Image Archive. Footage-only video block."
+title: "Map Compass Scale"
+description: "Compass rose and scale bar reveal over a stylized newsreel landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
 mode: "frame"
 ---
 
@@ -11,11 +11,11 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   previewSrc="/public/catalog/blocks/map-compass-scale.json"
   compositionId="map-compass-scale"
   compositionSrc="compositions/map-compass-scale.html"
-  title="A TRAVELER MEETS AIR TRAFFIC CONTROL (1963)"
-  description="Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, A TRAVELER MEETS AIR TRAFFIC CONTROL, 1963. Self-hosted seek-safe video via /api/clips/01ccbfe4-29e0-5834-bfd0-4d8c02b3aea5/download. Not affiliated with Moving Image Archive. Footage-only video block."
-  variables={[{"id":"title","type":"string","label":"Title","default":"A TRAVELER MEETS AIR TRAFFIC CONTROL (1963)"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, A TRAVELER MEETS AIR TRAFFIC CONTROL, 1963"}]}
-  meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":143}}
-  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-compass-scale","tags":["map","geography","archival","footage","mia","video","public-domain"]}}
+  title="Map Compass Scale"
+  description="Compass rose and scale bar reveal over a stylized newsreel landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Compass & Scale"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · compass rose"},{"id":"scaleLabel","type":"string","label":"Scale label","default":"100 mi"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
+  meta={{"duration":7,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":212}}
+  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-compass-scale","tags":["map","geography","animation","compass","scale","newsreel","svg"]}}
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-compass-scale/map-compass-scale.html"
 >
@@ -38,7 +38,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         box-sizing: border-box;
       }
       body {
-        background: #0a0a0a;
+        background: #1a1714;
         overflow: hidden;
       }
       #root-map-compass-scale {
@@ -46,51 +46,49 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         width: 1920px;
         height: 1080px;
         overflow: hidden;
-        background: #0a0a0a;
-        font-family: "Helvetica Neue", Helvetica, sans-serif;
+        background: #1a1714;
+        font-family: Georgia, "Times New Roman", serif;
       }
-      #cs-video {
+      #mcs-frame {
+        position: absolute;
+        inset: 48px;
+        border: 1px solid rgba(196, 181, 154, 0.14);
+        background: #221e19;
+      }
+      #mcs-svg {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
-        object-fit: contain;
-        background: #000;
       }
-      #cs-frame {
+      #mcs-title {
         position: absolute;
-        inset: 36px;
-        border: 1px solid rgba(232, 220, 196, 0.28);
-        pointer-events: none;
-      }
-      #cs-title {
-        position: absolute;
-        left: 72px;
-        top: 56px;
-        max-width: 1600px;
-        color: rgba(245, 236, 214, 0.95);
-        font-size: 34px;
-        font-weight: 700;
+        top: 72px;
+        left: 96px;
+        color: rgba(232, 220, 196, 0.92);
+        font-size: 42px;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);
+        font-weight: 400;
       }
-      #cs-credit {
+      #mcs-subtitle {
         position: absolute;
-        left: 72px;
-        right: 72px;
-        bottom: 56px;
-        color: rgba(232, 220, 196, 0.88);
-        font-size: 16px;
-        letter-spacing: 0.06em;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        top: 128px;
+        left: 96px;
+        color: rgba(196, 181, 154, 0.55);
+        font-size: 22px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
       }
-      #cs-credit-url {
-        display: block;
-        margin-top: 8px;
-        font-size: 13px;
-        letter-spacing: 0.03em;
-        color: rgba(196, 181, 154, 0.7);
+      #mcs-note {
+        position: absolute;
+        bottom: 88px;
+        left: 96px;
+        color: rgba(196, 181, 154, 0.55);
+        font-size: 16px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        max-width: 900px;
       }
     </style>
   </head>
@@ -99,68 +97,139 @@ import { InstallCommand } from "/snippets/install-command.jsx";
       id="root-map-compass-scale"
       data-composition-id="map-compass-scale"
       data-start="0"
-      data-duration="12.01"
+      data-duration="7"
       data-width="1920"
       data-height="1080"
     >
-      <video
-        id="cs-video"
-        src="assets/clip.mp4"
-        muted
-        playsinline
-        preload="auto"
-        data-start="0"
-        data-duration="12.01"
-        data-media-start="0"
-      ></video>
-      <div id="cs-frame" aria-hidden="true"></div>
-      <div id="cs-title" data-var-text="title">A TRAVELER MEETS AIR TRAFFIC CONTROL (1963)</div>
-      <div id="cs-credit">
-        <span data-var-text="credit"
-          >Moving Image Archive, A TRAVELER MEETS AIR TRAFFIC CONTROL, 1963</span
+      <div id="mcs-frame">
+        <svg
+          id="mcs-svg"
+          viewBox="0 0 1920 1080"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
         >
-        <span id="cs-credit-url"
-          >https://www.movingimagearchive.com/sources/a-traveler-meets-air-traffic-control-26c42b46?clip=01ccbfe4-29e0-5834-bfd0-4d8c02b3aea5
-          - Rights: public_domain / free to reuse</span
-        >
+          <defs>
+            <pattern
+              id="mcs-hatch"
+              width="12"
+              height="12"
+              patternUnits="userSpaceOnUse"
+              patternTransform="rotate(35)"
+            >
+              <line x1="0" y1="0" x2="0" y2="12" stroke="rgba(196,181,154,0.08)" stroke-width="1" />
+            </pattern>
+          </defs>
+
+          <rect width="1920" height="1080" fill="#1f1b17" />
+          <rect width="1920" height="1080" fill="url(#mcs-hatch)" />
+          <path
+            id="mcs-land"
+            d="M 280 320 C 340 220 480 180 620 210 C 760 240 820 300 900 280 C 980 260 1080 300 1180 340 C 1280 380 1360 460 1380 560 C 1400 660 1340 760 1240 820 C 1140 880 980 900 860 860 C 740 820 700 780 620 800 C 540 820 420 780 360 700 C 300 620 240 500 280 320 Z"
+            fill="rgba(196,181,154,0.16)"
+            stroke="rgba(196,181,154,0.4)"
+            stroke-width="2"
+          />
+          <path
+            id="mcs-island"
+            d="M 1480 420 C 1540 400 1600 430 1610 480 C 1620 530 1580 570 1520 560 C 1460 550 1450 450 1480 420 Z"
+            fill="rgba(196,181,154,0.12)"
+            stroke="rgba(196,181,154,0.3)"
+            stroke-width="1.5"
+          />
+
+          <g id="mcs-compass" transform="translate(420 780)">
+            <circle
+              cx="0"
+              cy="0"
+              r="70"
+              fill="#1a1714"
+              stroke="rgba(196,181,154,0.45)"
+              stroke-width="2"
+            />
+            <polygon id="mcs-needle-n" points="0,-58 10,8 -10,8" fill="#c45c26" />
+            <polygon points="0,58 8,-4 -8,-4" fill="rgba(232,220,196,0.55)" />
+            <text
+              x="0"
+              y="-78"
+              text-anchor="middle"
+              fill="rgba(232,220,196,0.8)"
+              font-size="16"
+              font-family="Georgia, serif"
+            >
+              N
+            </text>
+          </g>
+          <g id="mcs-scale" transform="translate(1280 820)">
+            <line x1="0" y1="0" x2="220" y2="0" stroke="#c45c26" stroke-width="4" />
+            <line x1="0" y1="-10" x2="0" y2="10" stroke="#c45c26" stroke-width="3" />
+            <line x1="110" y1="-8" x2="110" y2="8" stroke="#c45c26" stroke-width="2" />
+            <line x1="220" y1="-10" x2="220" y2="10" stroke="#c45c26" stroke-width="3" />
+            <text
+              id="mcs-scale-label"
+              x="110"
+              y="32"
+              text-anchor="middle"
+              fill="rgba(232,220,196,0.8)"
+              font-size="18"
+              font-family="Georgia, serif"
+            >
+              100 mi
+            </text>
+          </g>
+        </svg>
       </div>
+      <div id="mcs-title" data-var-text="title">Compass & Scale</div>
+      <div id="mcs-subtitle" data-var-text="subtitle">Educational cartography · compass rose</div>
+      <div id="mcs-note">Compass rose + scale bar · cartographic chrome</div>
     </div>
     <script>
       (function () {
         window.__timelines = window.__timelines || {};
-
         var vars =
           window.__hyperframes && window.__hyperframes.getVariables
             ? window.__hyperframes.getVariables()
             : {};
+        var accent = /^#[0-9a-fA-F]{6}$/.test(String(vars.accent || ""))
+          ? String(vars.accent)
+          : "#c45c26";
+        var title = typeof vars.title === "string" && vars.title ? vars.title : "Compass & Scale";
+        var subtitle =
+          typeof vars.subtitle === "string" && vars.subtitle
+            ? vars.subtitle
+            : "Educational cartography \u00b7 compass rose";
+        var scaleLabel =
+          typeof vars.scaleLabel === "string" && vars.scaleLabel ? vars.scaleLabel : "100 mi";
 
-        var title =
-          typeof vars.title === "string" && vars.title
-            ? vars.title
-            : "A TRAVELER MEETS AIR TRAFFIC CONTROL (1963)";
-        var credit =
-          typeof vars.credit === "string" && vars.credit
-            ? vars.credit
-            : "Moving Image Archive, A TRAVELER MEETS AIR TRAFFIC CONTROL, 1963";
-
-        document.getElementById("cs-title").textContent = title;
-        document.querySelector('#cs-credit [data-var-text="credit"]').textContent = credit;
-
+        document.getElementById("mcs-title").textContent = title;
+        document.getElementById("mcs-subtitle").textContent = subtitle;
+        document.getElementById("mcs-scale-label").textContent = scaleLabel;
+        document.getElementById("mcs-needle-n").setAttribute("fill", accent);
+        document.querySelectorAll("#mcs-scale line").forEach(function (el) {
+          el.setAttribute("stroke", accent);
+        });
+        gsap.set(["#mcs-land", "#mcs-island", "#mcs-title", "#mcs-subtitle", "#mcs-note"], {
+          opacity: 0,
+        });
+        gsap.set("#mcs-compass", {
+          opacity: 0,
+          scale: 0.6,
+          rotationOrigin: "50% 50%",
+          svgOrigin: "420px 780px",
+        });
+        gsap.set("#mcs-scale", {
+          opacity: 0,
+          scaleX: 0,
+          transformOrigin: "0% 50%",
+          svgOrigin: "1280px 820px",
+        });
         var tl = gsap.timeline({ paused: true });
-        tl.fromTo(
-          "#cs-title",
-          { opacity: 0 },
-          { opacity: 1, duration: 0.6, ease: "power1.out" },
-          0,
-        );
-        tl.fromTo(
-          "#cs-credit",
-          { opacity: 0 },
-          { opacity: 1, duration: 0.6, ease: "power1.out" },
-          0.15,
-        );
-        tl.to({}, { duration: Math.max(0.01, 12.01 - 0.75) });
-
+        tl.to("#mcs-land", { opacity: 1, duration: 0.5 }, 0);
+        tl.to("#mcs-island", { opacity: 1, duration: 0.4 }, 0.1);
+        tl.to("#mcs-title", { opacity: 1, duration: 0.4 }, 0.15);
+        tl.to("#mcs-subtitle", { opacity: 1, duration: 0.35 }, 0.35);
+        tl.to("#mcs-compass", { opacity: 1, scale: 1, duration: 0.7, ease: "back.out(1.6)" }, 1.0);
+        tl.to("#mcs-scale", { opacity: 1, scaleX: 1, duration: 0.9, ease: "power2.out" }, 2.0);
+        tl.to("#mcs-note", { opacity: 1, duration: 0.4 }, 4.0);
         window.__timelines["map-compass-scale"] = tl;
       })();
     </script>
@@ -174,7 +243,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
 
 <InstallCommand command="npx hyperframes add map-compass-scale" item="map-compass-scale" />
 
-That writes `compositions/map-compass-scale.html`, plus 2 supporting files under `assets/`.
+That writes one file: `compositions/map-compass-scale.html`.
 
 </CatalogSlot>
 
@@ -182,14 +251,14 @@ That writes `compositions/map-compass-scale.html`, plus 2 supporting files under
 
 ## Add it to your video
 
-It runs for 12.01 seconds at 1920×1080. Paste this into your composition:
+It runs for 7 seconds at 1920×1080. Paste this into your composition:
 
 ```html index.html
 <div
   data-composition-id="map-compass-scale"
   data-composition-src="compositions/map-compass-scale.html"
   data-start="0"
-  data-duration="12.01"
+  data-duration="7"
   data-track-index="1"
   data-width="1920"
   data-height="1080"
@@ -203,8 +272,10 @@ Move it in time with `data-start`. Put it on a different timeline row with
 
 Set these CSS variables on the block:
 
-- `title` - Title. Defaults to `A TRAVELER MEETS AIR TRAFFIC CONTROL (1963)`.
-- `credit` - Credit line. Defaults to `Moving Image Archive, A TRAVELER MEETS AIR TRAFFIC CONTROL, 1963`.
+- `undefined` — Title. Defaults to `Compass & Scale`.
+- `undefined` — Subtitle. Defaults to `Educational cartography · compass rose`.
+- `undefined` — Scale label. Defaults to `100 mi`.
+- `undefined` — Accent. Defaults to `#c45c26`.
 
 ## Variables
 
@@ -213,8 +284,10 @@ want to change on the element:
 
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
-| `title` | `A TRAVELER MEETS AIR TRAFFIC CONTROL (1963)` | string |  |
-| `credit` | `Moving Image Archive, A TRAVELER MEETS AIR TRAFFIC CONTROL, 1963` | string |  |
+| `title` | `Compass & Scale` | string |  |
+| `subtitle` | `Educational cartography · compass rose` | string |  |
+| `scaleLabel` | `100 mi` | string |  |
+| `accent` | `#c45c26` | color |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -223,13 +296,13 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-compass-scale"
   data-composition-src="compositions/map-compass-scale.html"
-  data-variable-values='{"title":"A TRAVELER MEETS AIR TRAFFIC CONTROL (1963)","credit":"Moving Image Archive, A TRAVELER MEETS AIR TRAFFIC CONTROL, 1963"}'
+  data-variable-values='{"title":"Compass & Scale","subtitle":"Educational cartography · compass rose","scaleLabel":"100 mi","accent":"#c45c26"}'
 ></div>
 ```
 
 {/* hf:generated-footer */}
 
-Tagged `map` `geography` `archival` `footage` `mia` `video` `public-domain`.
+Tagged `map` `geography` `animation` `compass` `scale` `newsreel` `svg`.
 
 Created by [HeyGen](https://hyperframes.heygen.com).
 

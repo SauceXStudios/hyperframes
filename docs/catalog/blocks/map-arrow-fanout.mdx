@@ -1,6 +1,6 @@
 ---
-title: "Germany (1957)"
-description: "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Germany, 1957. Self-hosted seek-safe video via /api/clips/6a1958ac-3075-5e27-bc04-6bf472f362ff/download. Not affiliated with Moving Image Archive. Footage-only video block."
+title: "Map Arrow Fanout"
+description: "Arrow swarm fan-out from an origin - abstract schematic advances. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
 mode: "frame"
 ---
 
@@ -11,11 +11,11 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   previewSrc="/public/catalog/blocks/map-arrow-fanout.json"
   compositionId="map-arrow-fanout"
   compositionSrc="compositions/map-arrow-fanout.html"
-  title="Germany (1957)"
-  description="Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Germany, 1957. Self-hosted seek-safe video via /api/clips/6a1958ac-3075-5e27-bc04-6bf472f362ff/download. Not affiliated with Moving Image Archive. Footage-only video block."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Germany (1957)"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, Germany, 1957"}]}
-  meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":138}}
-  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-arrow-fanout","tags":["map","geography","archival","footage","mia","video","public-domain"]}}
+  title="Map Arrow Fanout"
+  description="Arrow swarm fan-out from an origin - abstract schematic advances. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Advance Fan-Out"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · arrow swarm"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
+  meta={{"duration":8,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":282}}
+  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-arrow-fanout","tags":["map","geography","animation","arrows","fanout","swarm","newsreel","svg"]}}
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-arrow-fanout/map-arrow-fanout.html"
 >
@@ -38,7 +38,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         box-sizing: border-box;
       }
       body {
-        background: #0a0a0a;
+        background: #1a1714;
         overflow: hidden;
       }
       #root-map-arrow-fanout {
@@ -46,51 +46,49 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         width: 1920px;
         height: 1080px;
         overflow: hidden;
-        background: #0a0a0a;
-        font-family: "Helvetica Neue", Helvetica, sans-serif;
+        background: #1a1714;
+        font-family: Georgia, "Times New Roman", serif;
       }
-      #af-video {
+      #maf-frame {
+        position: absolute;
+        inset: 48px;
+        border: 1px solid rgba(196, 181, 154, 0.14);
+        background: #221e19;
+      }
+      #maf-svg {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
-        object-fit: contain;
-        background: #000;
       }
-      #af-frame {
+      #maf-title {
         position: absolute;
-        inset: 36px;
-        border: 1px solid rgba(232, 220, 196, 0.28);
-        pointer-events: none;
-      }
-      #af-title {
-        position: absolute;
-        left: 72px;
-        top: 56px;
-        max-width: 1600px;
-        color: rgba(245, 236, 214, 0.95);
-        font-size: 34px;
-        font-weight: 700;
+        top: 72px;
+        left: 96px;
+        color: rgba(232, 220, 196, 0.92);
+        font-size: 42px;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);
+        font-weight: 400;
       }
-      #af-credit {
+      #maf-subtitle {
         position: absolute;
-        left: 72px;
-        right: 72px;
-        bottom: 56px;
-        color: rgba(232, 220, 196, 0.88);
-        font-size: 16px;
-        letter-spacing: 0.06em;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        top: 128px;
+        left: 96px;
+        color: rgba(196, 181, 154, 0.55);
+        font-size: 22px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
       }
-      #af-credit-url {
-        display: block;
-        margin-top: 8px;
-        font-size: 13px;
-        letter-spacing: 0.03em;
-        color: rgba(196, 181, 154, 0.7);
+      #maf-note {
+        position: absolute;
+        bottom: 88px;
+        left: 96px;
+        color: rgba(196, 181, 154, 0.55);
+        font-size: 16px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        max-width: 900px;
       }
     </style>
   </head>
@@ -99,63 +97,209 @@ import { InstallCommand } from "/snippets/install-command.jsx";
       id="root-map-arrow-fanout"
       data-composition-id="map-arrow-fanout"
       data-start="0"
-      data-duration="12.01"
+      data-duration="8"
       data-width="1920"
       data-height="1080"
     >
-      <video
-        id="af-video"
-        src="assets/clip.mp4"
-        muted
-        playsinline
-        preload="auto"
-        data-start="0"
-        data-duration="12.01"
-        data-media-start="0"
-      ></video>
-      <div id="af-frame" aria-hidden="true"></div>
-      <div id="af-title" data-var-text="title">Germany (1957)</div>
-      <div id="af-credit">
-        <span data-var-text="credit">Moving Image Archive, Germany, 1957</span>
-        <span id="af-credit-url"
-          >https://www.movingimagearchive.com/sources/germany-c8c7bb27?clip=6a1958ac-3075-5e27-bc04-6bf472f362ff
-          - Rights: public_domain / free to reuse</span
+      <div id="maf-frame">
+        <svg
+          id="maf-svg"
+          viewBox="0 0 1920 1080"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
         >
+          <defs>
+            <pattern
+              id="maf-hatch"
+              width="12"
+              height="12"
+              patternUnits="userSpaceOnUse"
+              patternTransform="rotate(35)"
+            >
+              <line x1="0" y1="0" x2="0" y2="12" stroke="rgba(196,181,154,0.08)" stroke-width="1" />
+            </pattern>
+          </defs>
+
+          <rect width="1920" height="1080" fill="#1f1b17" />
+          <rect width="1920" height="1080" fill="url(#maf-hatch)" />
+          <path
+            id="maf-land"
+            d="M 280 320 C 340 220 480 180 620 210 C 760 240 820 300 900 280 C 980 260 1080 300 1180 340 C 1280 380 1360 460 1380 560 C 1400 660 1340 760 1240 820 C 1140 880 980 900 860 860 C 740 820 700 780 620 800 C 540 820 420 780 360 700 C 300 620 240 500 280 320 Z"
+            fill="rgba(196,181,154,0.16)"
+            stroke="rgba(196,181,154,0.4)"
+            stroke-width="2"
+          />
+          <path
+            id="maf-island"
+            d="M 1480 420 C 1540 400 1600 430 1610 480 C 1620 530 1580 570 1520 560 C 1460 550 1450 450 1480 420 Z"
+            fill="rgba(196,181,154,0.12)"
+            stroke="rgba(196,181,154,0.3)"
+            stroke-width="1.5"
+          />
+
+          <defs>
+            <marker
+              id="maf-head"
+              markerWidth="10"
+              markerHeight="10"
+              refX="8"
+              refY="5"
+              orient="auto"
+              markerUnits="strokeWidth"
+            >
+              <path d="M 0 0 L 10 5 L 0 10 Z" fill="#c45c26" />
+            </marker>
+          </defs>
+          <circle id="maf-origin" cx="520" cy="600" r="12" fill="#c45c26" />
+          <path
+            id="maf-a0"
+            d="M 520 600 L 700 480"
+            fill="none"
+            stroke="#c45c26"
+            stroke-width="3.5"
+            stroke-linecap="round"
+            marker-end="url(#maf-head)"
+          />
+          <path
+            id="maf-a1"
+            d="M 520 600 L 780 540"
+            fill="none"
+            stroke="#c45c26"
+            stroke-width="3.5"
+            stroke-linecap="round"
+            marker-end="url(#maf-head)"
+          />
+          <path
+            id="maf-a2"
+            d="M 520 600 L 820 620"
+            fill="none"
+            stroke="#c45c26"
+            stroke-width="3.5"
+            stroke-linecap="round"
+            marker-end="url(#maf-head)"
+          />
+          <path
+            id="maf-a3"
+            d="M 520 600 L 760 700"
+            fill="none"
+            stroke="#c45c26"
+            stroke-width="3.5"
+            stroke-linecap="round"
+            marker-end="url(#maf-head)"
+          />
+          <path
+            id="maf-a4"
+            d="M 520 600 L 680 740"
+            fill="none"
+            stroke="#c45c26"
+            stroke-width="3.5"
+            stroke-linecap="round"
+            marker-end="url(#maf-head)"
+          />
+          <path
+            id="maf-a5"
+            d="M 520 600 L 860 500"
+            fill="none"
+            stroke="#c45c26"
+            stroke-width="3.5"
+            stroke-linecap="round"
+            marker-end="url(#maf-head)"
+          />
+          <path
+            id="maf-a6"
+            d="M 520 600 L 900 580"
+            fill="none"
+            stroke="#c45c26"
+            stroke-width="3.5"
+            stroke-linecap="round"
+            marker-end="url(#maf-head)"
+          />
+          <path
+            id="maf-a7"
+            d="M 520 600 L 880 660"
+            fill="none"
+            stroke="#c45c26"
+            stroke-width="3.5"
+            stroke-linecap="round"
+            marker-end="url(#maf-head)"
+          />
+        </svg>
       </div>
+      <div id="maf-title" data-var-text="title">Advance Fan-Out</div>
+      <div id="maf-subtitle" data-var-text="subtitle">Educational cartography · arrow swarm</div>
+      <div id="maf-note">Abstract arrow fan-out - educational schematic only</div>
     </div>
     <script>
       (function () {
         window.__timelines = window.__timelines || {};
-
         var vars =
           window.__hyperframes && window.__hyperframes.getVariables
             ? window.__hyperframes.getVariables()
             : {};
-
-        var title = typeof vars.title === "string" && vars.title ? vars.title : "Germany (1957)";
-        var credit =
-          typeof vars.credit === "string" && vars.credit
-            ? vars.credit
-            : "Moving Image Archive, Germany, 1957";
-
-        document.getElementById("af-title").textContent = title;
-        document.querySelector('#af-credit [data-var-text="credit"]').textContent = credit;
-
+        var accent = /^#[0-9a-fA-F]{6}$/.test(String(vars.accent || ""))
+          ? String(vars.accent)
+          : "#c45c26";
+        var title = typeof vars.title === "string" && vars.title ? vars.title : "Advance Fan-Out";
+        var subtitle =
+          typeof vars.subtitle === "string" && vars.subtitle
+            ? vars.subtitle
+            : "Educational cartography \u00b7 arrow swarm";
+        document.getElementById("maf-title").textContent = title;
+        document.getElementById("maf-subtitle").textContent = subtitle;
+        document.getElementById("maf-origin").setAttribute("fill", accent);
+        var head = document.querySelector("#maf-head path");
+        if (head) head.setAttribute("fill", accent);
+        gsap.set(
+          ["#maf-land", "#maf-island", "#maf-title", "#maf-subtitle", "#maf-note", "#maf-origin"],
+          { opacity: 0 },
+        );
+        var a0 = document.getElementById("maf-a0");
+        a0.setAttribute("stroke", accent);
+        var len0 = a0.getTotalLength();
+        gsap.set(a0, { strokeDasharray: len0, strokeDashoffset: len0 });
+        var a1 = document.getElementById("maf-a1");
+        a1.setAttribute("stroke", accent);
+        var len1 = a1.getTotalLength();
+        gsap.set(a1, { strokeDasharray: len1, strokeDashoffset: len1 });
+        var a2 = document.getElementById("maf-a2");
+        a2.setAttribute("stroke", accent);
+        var len2 = a2.getTotalLength();
+        gsap.set(a2, { strokeDasharray: len2, strokeDashoffset: len2 });
+        var a3 = document.getElementById("maf-a3");
+        a3.setAttribute("stroke", accent);
+        var len3 = a3.getTotalLength();
+        gsap.set(a3, { strokeDasharray: len3, strokeDashoffset: len3 });
+        var a4 = document.getElementById("maf-a4");
+        a4.setAttribute("stroke", accent);
+        var len4 = a4.getTotalLength();
+        gsap.set(a4, { strokeDasharray: len4, strokeDashoffset: len4 });
+        var a5 = document.getElementById("maf-a5");
+        a5.setAttribute("stroke", accent);
+        var len5 = a5.getTotalLength();
+        gsap.set(a5, { strokeDasharray: len5, strokeDashoffset: len5 });
+        var a6 = document.getElementById("maf-a6");
+        a6.setAttribute("stroke", accent);
+        var len6 = a6.getTotalLength();
+        gsap.set(a6, { strokeDasharray: len6, strokeDashoffset: len6 });
+        var a7 = document.getElementById("maf-a7");
+        a7.setAttribute("stroke", accent);
+        var len7 = a7.getTotalLength();
+        gsap.set(a7, { strokeDasharray: len7, strokeDashoffset: len7 });
         var tl = gsap.timeline({ paused: true });
-        tl.fromTo(
-          "#af-title",
-          { opacity: 0 },
-          { opacity: 1, duration: 0.6, ease: "power1.out" },
-          0,
-        );
-        tl.fromTo(
-          "#af-credit",
-          { opacity: 0 },
-          { opacity: 1, duration: 0.6, ease: "power1.out" },
-          0.15,
-        );
-        tl.to({}, { duration: Math.max(0.01, 12.01 - 0.75) });
-
+        tl.to("#maf-land", { opacity: 1, duration: 0.5 }, 0);
+        tl.to("#maf-island", { opacity: 1, duration: 0.4 }, 0.1);
+        tl.to("#maf-title", { opacity: 1, duration: 0.4 }, 0.15);
+        tl.to("#maf-subtitle", { opacity: 1, duration: 0.35 }, 0.35);
+        tl.to("#maf-origin", { opacity: 1, duration: 0.3 }, 0.7);
+        tl.to(a0, { strokeDashoffset: 0, duration: 0.7, ease: "power2.out" }, 1.0);
+        tl.to(a1, { strokeDashoffset: 0, duration: 0.7, ease: "power2.out" }, 1.22);
+        tl.to(a2, { strokeDashoffset: 0, duration: 0.7, ease: "power2.out" }, 1.44);
+        tl.to(a3, { strokeDashoffset: 0, duration: 0.7, ease: "power2.out" }, 1.66);
+        tl.to(a4, { strokeDashoffset: 0, duration: 0.7, ease: "power2.out" }, 1.88);
+        tl.to(a5, { strokeDashoffset: 0, duration: 0.7, ease: "power2.out" }, 2.1);
+        tl.to(a6, { strokeDashoffset: 0, duration: 0.7, ease: "power2.out" }, 2.32);
+        tl.to(a7, { strokeDashoffset: 0, duration: 0.7, ease: "power2.out" }, 2.54);
+        tl.to("#maf-note", { opacity: 1, duration: 0.4 }, 5.2);
         window.__timelines["map-arrow-fanout"] = tl;
       })();
     </script>
@@ -169,7 +313,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
 
 <InstallCommand command="npx hyperframes add map-arrow-fanout" item="map-arrow-fanout" />
 
-That writes `compositions/map-arrow-fanout.html`, plus 2 supporting files under `assets/`.
+That writes one file: `compositions/map-arrow-fanout.html`.
 
 </CatalogSlot>
 
@@ -177,14 +321,14 @@ That writes `compositions/map-arrow-fanout.html`, plus 2 supporting files under 
 
 ## Add it to your video
 
-It runs for 12.01 seconds at 1920×1080. Paste this into your composition:
+It runs for 8 seconds at 1920×1080. Paste this into your composition:
 
 ```html index.html
 <div
   data-composition-id="map-arrow-fanout"
   data-composition-src="compositions/map-arrow-fanout.html"
   data-start="0"
-  data-duration="12.01"
+  data-duration="8"
   data-track-index="1"
   data-width="1920"
   data-height="1080"
@@ -198,8 +342,9 @@ Move it in time with `data-start`. Put it on a different timeline row with
 
 Set these CSS variables on the block:
 
-- `title` - Title. Defaults to `Germany (1957)`.
-- `credit` - Credit line. Defaults to `Moving Image Archive, Germany, 1957`.
+- `undefined` — Title. Defaults to `Advance Fan-Out`.
+- `undefined` — Subtitle. Defaults to `Educational cartography · arrow swarm`.
+- `undefined` — Accent. Defaults to `#c45c26`.
 
 ## Variables
 
@@ -208,8 +353,9 @@ want to change on the element:
 
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
-| `title` | `Germany (1957)` | string |  |
-| `credit` | `Moving Image Archive, Germany, 1957` | string |  |
+| `title` | `Advance Fan-Out` | string |  |
+| `subtitle` | `Educational cartography · arrow swarm` | string |  |
+| `accent` | `#c45c26` | color |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -218,13 +364,13 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-arrow-fanout"
   data-composition-src="compositions/map-arrow-fanout.html"
-  data-variable-values='{"title":"Germany (1957)","credit":"Moving Image Archive, Germany, 1957"}'
+  data-variable-values='{"title":"Advance Fan-Out","subtitle":"Educational cartography · arrow swarm","accent":"#c45c26"}'
 ></div>
 ```
 
 {/* hf:generated-footer */}
 
-Tagged `map` `geography` `archival` `footage` `mia` `video` `public-domain`.
+Tagged `map` `geography` `animation` `arrows` `fanout` `swarm` `newsreel` `svg`.
 
 Created by [HeyGen](https://hyperframes.heygen.com).
 

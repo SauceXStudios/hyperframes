@@ -13,7 +13,7 @@
         box-sizing: border-box;
       }
       body {
-        background: #0a0a0a;
+        background: #1a1714;
         overflow: hidden;
       }
       #root-map-region-zoom {
@@ -21,51 +21,62 @@
         width: 1920px;
         height: 1080px;
         overflow: hidden;
-        background: #0a0a0a;
-        font-family: "Helvetica Neue", Helvetica, sans-serif;
+        background: #1a1714;
+        font-family: Georgia, "Times New Roman", serif;
       }
-      #rz-video {
+      #mrz-frame {
+        position: absolute;
+        inset: 48px;
+        border: 1px solid rgba(196, 181, 154, 0.14);
+        background: #221e19;
+        overflow: hidden;
+      }
+      #mrz-camera {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        transform-origin: 920px 560px;
+      }
+      #mrz-svg {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
-        object-fit: contain;
-        background: #000;
       }
-      #rz-frame {
+      #mrz-title {
         position: absolute;
-        inset: 36px;
-        border: 1px solid rgba(232, 220, 196, 0.28);
-        pointer-events: none;
-      }
-      #rz-title {
-        position: absolute;
-        left: 72px;
-        top: 56px;
-        max-width: 1600px;
-        color: rgba(245, 236, 214, 0.95);
-        font-size: 34px;
-        font-weight: 700;
+        top: 72px;
+        left: 96px;
+        z-index: 2;
+        color: rgba(232, 220, 196, 0.92);
+        font-size: 42px;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);
       }
-      #rz-credit {
+      #mrz-subtitle {
         position: absolute;
-        left: 72px;
-        right: 72px;
-        bottom: 56px;
-        color: rgba(232, 220, 196, 0.88);
-        font-size: 16px;
-        letter-spacing: 0.06em;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        top: 128px;
+        left: 96px;
+        z-index: 2;
+        color: rgba(196, 181, 154, 0.55);
+        font-size: 22px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
       }
-      #rz-credit-url {
-        display: block;
-        margin-top: 8px;
-        font-size: 13px;
-        letter-spacing: 0.03em;
-        color: rgba(196, 181, 154, 0.7);
+      #mrz-callout {
+        position: absolute;
+        bottom: 96px;
+        right: 120px;
+        z-index: 2;
+        padding: 14px 28px;
+        border: 1px solid rgba(196, 181, 154, 0.28);
+        color: rgba(232, 220, 196, 0.9);
+        font-size: 20px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        background: rgba(26, 23, 20, 0.65);
       }
     </style>
   </head>
@@ -74,67 +85,139 @@
       id="root-map-region-zoom"
       data-composition-id="map-region-zoom"
       data-start="0"
-      data-duration="12.01"
+      data-duration="9"
       data-width="1920"
       data-height="1080"
     >
-      <video
-        id="rz-video"
-        src="assets/clip.mp4"
-        muted
-        playsinline
-        preload="auto"
-        data-start="0"
-        data-duration="12.01"
-        data-media-start="0"
-      ></video>
-      <div id="rz-frame" aria-hidden="true"></div>
-      <div id="rz-title" data-var-text="title">Blackwater National Wildlife Refuge (2005)</div>
-      <div id="rz-credit">
-        <span data-var-text="credit"
-          >Moving Image Archive, Blackwater National Wildlife Refuge, 2005</span
-        >
-        <span id="rz-credit-url"
-          >https://www.movingimagearchive.com/sources/blackwater-national-wildlife-refuge-1677118f?clip=2aff5249-9d8d-575f-9d80-859509d7f69c
-          - Rights: public_domain / free to reuse</span
-        >
+      <div id="mrz-frame">
+        <div id="mrz-camera">
+          <svg
+            id="mrz-svg"
+            viewBox="0 0 1920 1080"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <defs>
+              <pattern id="mrz-grid" width="80" height="80" patternUnits="userSpaceOnUse">
+                <path
+                  d="M 80 0 L 0 0 0 80"
+                  fill="none"
+                  stroke="rgba(196,181,154,0.12)"
+                  stroke-width="1"
+                />
+              </pattern>
+            </defs>
+            <rect width="1920" height="1080" fill="#1f1b17" />
+            <rect
+              id="mrz-grid-layer"
+              width="1920"
+              height="1080"
+              fill="url(#mrz-grid)"
+              opacity="0"
+            />
+            <path
+              id="mrz-land"
+              d="M 280 320 C 340 220 480 180 620 210 C 760 240 820 300 900 280 C 980 260 1080 300 1180 340 C 1280 380 1360 460 1380 560 C 1400 660 1340 760 1240 820 C 1140 880 980 900 860 860 C 740 820 700 780 620 800 C 540 820 420 780 360 700 C 300 620 240 500 280 320 Z"
+              fill="rgba(196,181,154,0.16)"
+              stroke="rgba(196,181,154,0.4)"
+              stroke-width="2"
+            />
+            <path
+              id="mrz-island"
+              d="M 1480 420 C 1540 400 1600 430 1610 480 C 1620 530 1580 570 1520 560 C 1460 550 1450 450 1480 420 Z"
+              fill="rgba(196,181,154,0.12)"
+              stroke="rgba(196,181,154,0.3)"
+              stroke-width="1.5"
+            />
+            <path
+              id="mrz-detail"
+              d="M 820 460 C 900 430 980 450 1020 510 C 1060 570 1020 630 940 650 C 860 670 780 620 780 550 C 780 500 790 475 820 460 Z"
+              fill="rgba(196,181,154,0.08)"
+              stroke="rgba(196,181,154,0.25)"
+              stroke-width="1"
+            />
+            <!-- focus rect -->
+            <rect
+              id="mrz-focus"
+              x="760"
+              y="420"
+              width="320"
+              height="260"
+              fill="none"
+              stroke="#c45c26"
+              stroke-width="3"
+              opacity="0"
+            />
+            <rect
+              id="mrz-focus-fill"
+              x="760"
+              y="420"
+              width="320"
+              height="260"
+              fill="#c45c26"
+              fill-opacity="0.08"
+              opacity="0"
+            />
+            <circle id="mrz-focus-dot" cx="920" cy="560" r="8" fill="#c45c26" opacity="0" />
+          </svg>
+        </div>
       </div>
+      <div id="mrz-title" data-var-text="title">Sector Focus</div>
+      <div id="mrz-subtitle" data-var-text="subtitle">Grid overlay · camera zoom</div>
+      <div id="mrz-callout" data-var-text="regionLabel">Sector 7</div>
     </div>
     <script>
       (function () {
         window.__timelines = window.__timelines || {};
-
         var vars =
           window.__hyperframes && window.__hyperframes.getVariables
             ? window.__hyperframes.getVariables()
             : {};
+        var accent = /^#[0-9a-fA-F]{6}$/.test(String(vars.accent || ""))
+          ? String(vars.accent)
+          : "#c45c26";
+        var title = typeof vars.title === "string" && vars.title ? vars.title : "Sector Focus";
+        var subtitle =
+          typeof vars.subtitle === "string" && vars.subtitle
+            ? vars.subtitle
+            : "Grid overlay · camera zoom";
+        var regionLabel =
+          typeof vars.regionLabel === "string" && vars.regionLabel ? vars.regionLabel : "Sector 7";
 
-        var title =
-          typeof vars.title === "string" && vars.title
-            ? vars.title
-            : "Blackwater National Wildlife Refuge (2005)";
-        var credit =
-          typeof vars.credit === "string" && vars.credit
-            ? vars.credit
-            : "Moving Image Archive, Blackwater National Wildlife Refuge, 2005";
+        document.getElementById("mrz-title").textContent = title;
+        document.getElementById("mrz-subtitle").textContent = subtitle;
+        document.getElementById("mrz-callout").textContent = regionLabel;
 
-        document.getElementById("rz-title").textContent = title;
-        document.querySelector('#rz-credit [data-var-text="credit"]').textContent = credit;
+        document.getElementById("mrz-focus").setAttribute("stroke", accent);
+        document.getElementById("mrz-focus-fill").setAttribute("fill", accent);
+        document.getElementById("mrz-focus-dot").setAttribute("fill", accent);
+
+        gsap.set("#mrz-title", { opacity: 0, y: -10 });
+        gsap.set("#mrz-subtitle", { opacity: 0 });
+        gsap.set("#mrz-callout", { opacity: 0 });
+        gsap.set("#mrz-land", { opacity: 0 });
+        gsap.set("#mrz-island", { opacity: 0 });
+        gsap.set("#mrz-detail", { opacity: 0 });
+        gsap.set("#mrz-grid-layer", { opacity: 0 });
+        gsap.set(["#mrz-focus", "#mrz-focus-fill", "#mrz-focus-dot"], { opacity: 0 });
+        gsap.set("#mrz-camera", { scale: 1, x: 0, y: 0 });
 
         var tl = gsap.timeline({ paused: true });
-        tl.fromTo(
-          "#rz-title",
-          { opacity: 0 },
-          { opacity: 1, duration: 0.6, ease: "power1.out" },
-          0,
-        );
-        tl.fromTo(
-          "#rz-credit",
-          { opacity: 0 },
-          { opacity: 1, duration: 0.6, ease: "power1.out" },
-          0.15,
-        );
-        tl.to({}, { duration: Math.max(0.01, 12.01 - 0.75) });
+        tl.to("#mrz-land", { opacity: 1, duration: 0.5, ease: "power2.out" }, 0);
+        tl.to("#mrz-island", { opacity: 1, duration: 0.4, ease: "power2.out" }, 0.12);
+        tl.to("#mrz-title", { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 0.08);
+        tl.to("#mrz-subtitle", { opacity: 1, duration: 0.35, ease: "power1.out" }, 0.28);
+        // Grid fades in - classic newsreel planning overlay
+        tl.to("#mrz-grid-layer", { opacity: 1, duration: 0.7, ease: "power1.out" }, 0.9);
+        tl.to("#mrz-focus", { opacity: 1, duration: 0.35, ease: "power2.out" }, 1.5);
+        tl.to("#mrz-focus-fill", { opacity: 1, duration: 0.35, ease: "power2.out" }, 1.5);
+        tl.to("#mrz-focus-dot", { opacity: 1, duration: 0.3, ease: "power2.out" }, 1.7);
+        tl.to("#mrz-detail", { opacity: 1, duration: 0.4, ease: "power1.out" }, 1.8);
+        // Camera zoom into focus region
+        tl.to("#mrz-camera", { scale: 2.15, duration: 2.8, ease: "power2.inOut" }, 2.4);
+        tl.to("#mrz-callout", { opacity: 1, duration: 0.45, ease: "power2.out" }, 4.8);
+        // Settle
+        tl.to("#mrz-focus", { strokeWidth: 4, duration: 0.5, ease: "sine.inOut" }, 5.4);
 
         window.__timelines["map-region-zoom"] = tl;
       })();

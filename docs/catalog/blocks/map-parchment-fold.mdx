@@ -1,6 +1,6 @@
 ---
-title: "AOPA-ASF: Thunderstorms and the ATC (2008)"
-description: "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, AOPA-ASF: Thunderstorms and the ATC, 2008. Self-hosted seek-safe video via /api/clips/538de0ed-fd6e-5ac6-891c-c7bfd597cd39/download. Not affiliated with Moving Image Archive. Footage-only video block."
+title: "Map Parchment Fold"
+description: "Parchment aesthetic with a paper-map unfold and route reveal. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
 mode: "frame"
 ---
 
@@ -11,11 +11,11 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   previewSrc="/public/catalog/blocks/map-parchment-fold.json"
   compositionId="map-parchment-fold"
   compositionSrc="compositions/map-parchment-fold.html"
-  title="AOPA-ASF: Thunderstorms and the ATC (2008)"
-  description="Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, AOPA-ASF: Thunderstorms and the ATC, 2008. Self-hosted seek-safe video via /api/clips/538de0ed-fd6e-5ac6-891c-c7bfd597cd39/download. Not affiliated with Moving Image Archive. Footage-only video block."
-  variables={[{"id":"title","type":"string","label":"Title","default":"AOPA-ASF: Thunderstorms and the ATC (2008)"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, AOPA-ASF: Thunderstorms and the ATC, 2008"}]}
-  meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":143}}
-  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-parchment-fold","tags":["map","geography","archival","footage","mia","video","public-domain"]}}
+  title="Map Parchment Fold"
+  description="Parchment aesthetic with a paper-map unfold and route reveal. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Parchment Chart"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · paper fold"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
+  meta={{"duration":8,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":178}}
+  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-parchment-fold","tags":["map","geography","animation","parchment","fold","paper","newsreel","svg"]}}
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-parchment-fold/map-parchment-fold.html"
 >
@@ -38,7 +38,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         box-sizing: border-box;
       }
       body {
-        background: #0a0a0a;
+        background: #1a1714;
         overflow: hidden;
       }
       #root-map-parchment-fold {
@@ -46,51 +46,49 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         width: 1920px;
         height: 1080px;
         overflow: hidden;
-        background: #0a0a0a;
-        font-family: "Helvetica Neue", Helvetica, sans-serif;
+        background: #1a1714;
+        font-family: Georgia, "Times New Roman", serif;
       }
-      #pf-video {
+      #mpf-frame {
+        position: absolute;
+        inset: 48px;
+        border: 1px solid rgba(196, 181, 154, 0.14);
+        background: #221e19;
+      }
+      #mpf-svg {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
-        object-fit: contain;
-        background: #000;
       }
-      #pf-frame {
+      #mpf-title {
         position: absolute;
-        inset: 36px;
-        border: 1px solid rgba(232, 220, 196, 0.28);
-        pointer-events: none;
-      }
-      #pf-title {
-        position: absolute;
-        left: 72px;
-        top: 56px;
-        max-width: 1600px;
-        color: rgba(245, 236, 214, 0.95);
-        font-size: 34px;
-        font-weight: 700;
+        top: 72px;
+        left: 96px;
+        color: rgba(232, 220, 196, 0.92);
+        font-size: 42px;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);
+        font-weight: 400;
       }
-      #pf-credit {
+      #mpf-subtitle {
         position: absolute;
-        left: 72px;
-        right: 72px;
-        bottom: 56px;
-        color: rgba(232, 220, 196, 0.88);
-        font-size: 16px;
-        letter-spacing: 0.06em;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        top: 128px;
+        left: 96px;
+        color: rgba(196, 181, 154, 0.55);
+        font-size: 22px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
       }
-      #pf-credit-url {
-        display: block;
-        margin-top: 8px;
-        font-size: 13px;
-        letter-spacing: 0.03em;
-        color: rgba(196, 181, 154, 0.7);
+      #mpf-note {
+        position: absolute;
+        bottom: 88px;
+        left: 96px;
+        color: rgba(196, 181, 154, 0.55);
+        font-size: 16px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        max-width: 900px;
       }
     </style>
   </head>
@@ -99,68 +97,105 @@ import { InstallCommand } from "/snippets/install-command.jsx";
       id="root-map-parchment-fold"
       data-composition-id="map-parchment-fold"
       data-start="0"
-      data-duration="12.01"
+      data-duration="8"
       data-width="1920"
       data-height="1080"
     >
-      <video
-        id="pf-video"
-        src="assets/clip.mp4"
-        muted
-        playsinline
-        preload="auto"
-        data-start="0"
-        data-duration="12.01"
-        data-media-start="0"
-      ></video>
-      <div id="pf-frame" aria-hidden="true"></div>
-      <div id="pf-title" data-var-text="title">AOPA-ASF: Thunderstorms and the ATC (2008)</div>
-      <div id="pf-credit">
-        <span data-var-text="credit"
-          >Moving Image Archive, AOPA-ASF: Thunderstorms and the ATC, 2008</span
+      <div id="mpf-frame">
+        <svg
+          id="mpf-svg"
+          viewBox="0 0 1920 1080"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
         >
-        <span id="pf-credit-url"
-          >https://www.movingimagearchive.com/sources/aopa-asf-thunderstorms-and-the-atc-bba0d548?clip=538de0ed-fd6e-5ac6-891c-c7bfd597cd39
-          - Rights: public_domain / free to reuse</span
-        >
+          <defs>
+            <pattern
+              id="mpf-hatch"
+              width="12"
+              height="12"
+              patternUnits="userSpaceOnUse"
+              patternTransform="rotate(35)"
+            >
+              <line x1="0" y1="0" x2="0" y2="12" stroke="rgba(196,181,154,0.08)" stroke-width="1" />
+            </pattern>
+          </defs>
+
+          <rect width="1920" height="1080" fill="#c4b59a" />
+          <rect width="1920" height="1080" fill="url(#mpf-hatch)" opacity="0.5" />
+          <path
+            id="mpf-land"
+            d="M 280 320 C 340 220 480 180 620 210 C 760 240 820 300 900 280 C 980 260 1080 300 1180 340 C 1280 380 1360 460 1380 560 C 1400 660 1340 760 1240 820 C 1140 880 980 900 860 860 C 740 820 700 780 620 800 C 540 820 420 780 360 700 C 300 620 240 500 280 320 Z"
+            fill="rgba(90,70,40,0.28)"
+            stroke="rgba(90,70,40,0.55)"
+            stroke-width="2"
+          />
+          <path
+            id="mpf-island"
+            d="M 1480 420 C 1540 400 1600 430 1610 480 C 1620 530 1580 570 1520 560 C 1460 550 1450 450 1480 420 Z"
+            fill="rgba(90,70,40,0.2)"
+            stroke="rgba(90,70,40,0.4)"
+            stroke-width="1.5"
+          />
+          <path
+            id="mpf-route"
+            d="M 480 560 C 680 500 900 480 1120 520 C 1280 548 1400 500 1520 470"
+            fill="none"
+            stroke="#c45c26"
+            stroke-width="3"
+            stroke-linecap="round"
+          />
+          <line
+            id="mpf-crease"
+            x1="960"
+            y1="80"
+            x2="960"
+            y2="1000"
+            stroke="rgba(90,70,40,0.25)"
+            stroke-width="2"
+            stroke-dasharray="6 8"
+          />
+        </svg>
       </div>
+      <div id="mpf-title" data-var-text="title">Parchment Chart</div>
+      <div id="mpf-subtitle" data-var-text="subtitle">Educational cartography · paper fold</div>
+      <div id="mpf-note">Parchment unfold · paper-map aesthetic</div>
     </div>
     <script>
       (function () {
         window.__timelines = window.__timelines || {};
-
         var vars =
           window.__hyperframes && window.__hyperframes.getVariables
             ? window.__hyperframes.getVariables()
             : {};
+        var accent = /^#[0-9a-fA-F]{6}$/.test(String(vars.accent || ""))
+          ? String(vars.accent)
+          : "#c45c26";
+        var title = typeof vars.title === "string" && vars.title ? vars.title : "Parchment Chart";
+        var subtitle =
+          typeof vars.subtitle === "string" && vars.subtitle
+            ? vars.subtitle
+            : "Educational cartography \u00b7 paper fold";
 
-        var title =
-          typeof vars.title === "string" && vars.title
-            ? vars.title
-            : "AOPA-ASF: Thunderstorms and the ATC (2008)";
-        var credit =
-          typeof vars.credit === "string" && vars.credit
-            ? vars.credit
-            : "Moving Image Archive, AOPA-ASF: Thunderstorms and the ATC, 2008";
-
-        document.getElementById("pf-title").textContent = title;
-        document.querySelector('#pf-credit [data-var-text="credit"]').textContent = credit;
-
+        document.getElementById("mpf-title").textContent = title;
+        document.getElementById("mpf-subtitle").textContent = subtitle;
+        document.getElementById("mpf-route").setAttribute("stroke", accent);
+        var route = document.getElementById("mpf-route");
+        var len = route.getTotalLength();
+        gsap.set(route, { strokeDasharray: len, strokeDashoffset: len });
+        gsap.set(
+          ["#mpf-land", "#mpf-island", "#mpf-title", "#mpf-subtitle", "#mpf-note", "#mpf-crease"],
+          { opacity: 0 },
+        );
+        gsap.set("#mpf-frame", { scaleX: 0.08, transformOrigin: "50% 50%" });
         var tl = gsap.timeline({ paused: true });
-        tl.fromTo(
-          "#pf-title",
-          { opacity: 0 },
-          { opacity: 1, duration: 0.6, ease: "power1.out" },
-          0,
-        );
-        tl.fromTo(
-          "#pf-credit",
-          { opacity: 0 },
-          { opacity: 1, duration: 0.6, ease: "power1.out" },
-          0.15,
-        );
-        tl.to({}, { duration: Math.max(0.01, 12.01 - 0.75) });
-
+        tl.to("#mpf-frame", { scaleX: 1, duration: 1.4, ease: "power2.out" }, 0);
+        tl.to("#mpf-land", { opacity: 1, duration: 0.5 }, 1.0);
+        tl.to("#mpf-island", { opacity: 1, duration: 0.4 }, 1.1);
+        tl.to("#mpf-crease", { opacity: 1, duration: 0.4 }, 1.2);
+        tl.to("#mpf-title", { opacity: 1, duration: 0.4 }, 1.3);
+        tl.to("#mpf-subtitle", { opacity: 1, duration: 0.35 }, 1.5);
+        tl.to(route, { strokeDashoffset: 0, duration: 2.8, ease: "power1.inOut" }, 2.0);
+        tl.to("#mpf-note", { opacity: 1, duration: 0.4 }, 5.2);
         window.__timelines["map-parchment-fold"] = tl;
       })();
     </script>
@@ -174,7 +209,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
 
 <InstallCommand command="npx hyperframes add map-parchment-fold" item="map-parchment-fold" />
 
-That writes `compositions/map-parchment-fold.html`, plus 2 supporting files under `assets/`.
+That writes one file: `compositions/map-parchment-fold.html`.
 
 </CatalogSlot>
 
@@ -182,14 +217,14 @@ That writes `compositions/map-parchment-fold.html`, plus 2 supporting files unde
 
 ## Add it to your video
 
-It runs for 12.01 seconds at 1920×1080. Paste this into your composition:
+It runs for 8 seconds at 1920×1080. Paste this into your composition:
 
 ```html index.html
 <div
   data-composition-id="map-parchment-fold"
   data-composition-src="compositions/map-parchment-fold.html"
   data-start="0"
-  data-duration="12.01"
+  data-duration="8"
   data-track-index="1"
   data-width="1920"
   data-height="1080"
@@ -203,8 +238,9 @@ Move it in time with `data-start`. Put it on a different timeline row with
 
 Set these CSS variables on the block:
 
-- `title` - Title. Defaults to `AOPA-ASF: Thunderstorms and the ATC (2008)`.
-- `credit` - Credit line. Defaults to `Moving Image Archive, AOPA-ASF: Thunderstorms and the ATC, 2008`.
+- `undefined` — Title. Defaults to `Parchment Chart`.
+- `undefined` — Subtitle. Defaults to `Educational cartography · paper fold`.
+- `undefined` — Accent. Defaults to `#c45c26`.
 
 ## Variables
 
@@ -213,8 +249,9 @@ want to change on the element:
 
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
-| `title` | `AOPA-ASF: Thunderstorms and the ATC (2008)` | string |  |
-| `credit` | `Moving Image Archive, AOPA-ASF: Thunderstorms and the ATC, 2008` | string |  |
+| `title` | `Parchment Chart` | string |  |
+| `subtitle` | `Educational cartography · paper fold` | string |  |
+| `accent` | `#c45c26` | color |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -223,13 +260,13 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-parchment-fold"
   data-composition-src="compositions/map-parchment-fold.html"
-  data-variable-values='{"title":"AOPA-ASF: Thunderstorms and the ATC (2008)","credit":"Moving Image Archive, AOPA-ASF: Thunderstorms and the ATC, 2008"}'
+  data-variable-values='{"title":"Parchment Chart","subtitle":"Educational cartography · paper fold","accent":"#c45c26"}'
 ></div>
 ```
 
 {/* hf:generated-footer */}
 
-Tagged `map` `geography` `archival` `footage` `mia` `video` `public-domain`.
+Tagged `map` `geography` `animation` `parchment` `fold` `paper` `newsreel` `svg`.
 
 Created by [HeyGen](https://hyperframes.heygen.com).
 

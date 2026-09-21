@@ -1,6 +1,6 @@
 ---
-title: "Network Broadcasting (1934)"
-description: "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Network Broadcasting, 1934. Self-hosted seek-safe video via /api/clips/5f7f8e14-1e02-5460-99f0-4762a314904d/download. Not affiliated with Moving Image Archive. Footage-only video block."
+title: "Map Itinerary Stops"
+description: "Multi-stop itinerary path with numbered markers that appear in sequence. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
 mode: "frame"
 ---
 
@@ -11,11 +11,11 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   previewSrc="/public/catalog/blocks/map-itinerary-stops.json"
   compositionId="map-itinerary-stops"
   compositionSrc="compositions/map-itinerary-stops.html"
-  title="Network Broadcasting (1934)"
-  description="Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Network Broadcasting, 1934. Self-hosted seek-safe video via /api/clips/5f7f8e14-1e02-5460-99f0-4762a314904d/download. Not affiliated with Moving Image Archive. Footage-only video block."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Network Broadcasting (1934)"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, Network Broadcasting, 1934"}]}
-  meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":139}}
-  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-itinerary-stops","tags":["map","geography","archival","footage","mia","video","public-domain"]}}
+  title="Map Itinerary Stops"
+  description="Multi-stop itinerary path with numbered markers that appear in sequence. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
+  variables={[{"id":"title","type":"string","label":"Title","default":"The Itinerary"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · multi-stop route"},{"id":"labelA","type":"string","label":"Label A","default":"1"},{"id":"labelB","type":"string","label":"Label B","default":"2"},{"id":"labelC","type":"string","label":"Label C","default":"3"},{"id":"labelD","type":"string","label":"Label D","default":"4"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
+  meta={{"duration":8,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":249}}
+  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-itinerary-stops","tags":["map","geography","animation","itinerary","stops","markers","newsreel","svg"]}}
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-itinerary-stops/map-itinerary-stops.html"
 >
@@ -38,7 +38,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         box-sizing: border-box;
       }
       body {
-        background: #0a0a0a;
+        background: #1a1714;
         overflow: hidden;
       }
       #root-map-itinerary-stops {
@@ -46,51 +46,49 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         width: 1920px;
         height: 1080px;
         overflow: hidden;
-        background: #0a0a0a;
-        font-family: "Helvetica Neue", Helvetica, sans-serif;
+        background: #1a1714;
+        font-family: Georgia, "Times New Roman", serif;
       }
-      #is-video {
+      #mis-frame {
+        position: absolute;
+        inset: 48px;
+        border: 1px solid rgba(196, 181, 154, 0.14);
+        background: #221e19;
+      }
+      #mis-svg {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
-        object-fit: contain;
-        background: #000;
       }
-      #is-frame {
+      #mis-title {
         position: absolute;
-        inset: 36px;
-        border: 1px solid rgba(232, 220, 196, 0.28);
-        pointer-events: none;
-      }
-      #is-title {
-        position: absolute;
-        left: 72px;
-        top: 56px;
-        max-width: 1600px;
-        color: rgba(245, 236, 214, 0.95);
-        font-size: 34px;
-        font-weight: 700;
+        top: 72px;
+        left: 96px;
+        color: rgba(232, 220, 196, 0.92);
+        font-size: 42px;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);
+        font-weight: 400;
       }
-      #is-credit {
+      #mis-subtitle {
         position: absolute;
-        left: 72px;
-        right: 72px;
-        bottom: 56px;
-        color: rgba(232, 220, 196, 0.88);
-        font-size: 16px;
-        letter-spacing: 0.06em;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        top: 128px;
+        left: 96px;
+        color: rgba(196, 181, 154, 0.55);
+        font-size: 22px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
       }
-      #is-credit-url {
-        display: block;
-        margin-top: 8px;
-        font-size: 13px;
-        letter-spacing: 0.03em;
-        color: rgba(196, 181, 154, 0.7);
+      #mis-note {
+        position: absolute;
+        bottom: 88px;
+        left: 96px;
+        color: rgba(196, 181, 154, 0.55);
+        font-size: 16px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        max-width: 900px;
       }
     </style>
   </head>
@@ -99,64 +97,176 @@ import { InstallCommand } from "/snippets/install-command.jsx";
       id="root-map-itinerary-stops"
       data-composition-id="map-itinerary-stops"
       data-start="0"
-      data-duration="12.01"
+      data-duration="8"
       data-width="1920"
       data-height="1080"
     >
-      <video
-        id="is-video"
-        src="assets/clip.mp4"
-        muted
-        playsinline
-        preload="auto"
-        data-start="0"
-        data-duration="12.01"
-        data-media-start="0"
-      ></video>
-      <div id="is-frame" aria-hidden="true"></div>
-      <div id="is-title" data-var-text="title">Network Broadcasting (1934)</div>
-      <div id="is-credit">
-        <span data-var-text="credit">Moving Image Archive, Network Broadcasting, 1934</span>
-        <span id="is-credit-url"
-          >https://www.movingimagearchive.com/sources/network-broadcasting-f8fd2623?clip=5f7f8e14-1e02-5460-99f0-4762a314904d
-          - Rights: public_domain / free to reuse</span
+      <div id="mis-frame">
+        <svg
+          id="mis-svg"
+          viewBox="0 0 1920 1080"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
         >
+          <defs>
+            <pattern
+              id="mis-hatch"
+              width="12"
+              height="12"
+              patternUnits="userSpaceOnUse"
+              patternTransform="rotate(35)"
+            >
+              <line x1="0" y1="0" x2="0" y2="12" stroke="rgba(196,181,154,0.08)" stroke-width="1" />
+            </pattern>
+          </defs>
+
+          <rect width="1920" height="1080" fill="#1f1b17" />
+          <rect width="1920" height="1080" fill="url(#mis-hatch)" />
+          <path
+            id="mis-land"
+            d="M 280 320 C 340 220 480 180 620 210 C 760 240 820 300 900 280 C 980 260 1080 300 1180 340 C 1280 380 1360 460 1380 560 C 1400 660 1340 760 1240 820 C 1140 880 980 900 860 860 C 740 820 700 780 620 800 C 540 820 420 780 360 700 C 300 620 240 500 280 320 Z"
+            fill="rgba(196,181,154,0.16)"
+            stroke="rgba(196,181,154,0.4)"
+            stroke-width="2"
+          />
+          <path
+            id="mis-island"
+            d="M 1480 420 C 1540 400 1600 430 1610 480 C 1620 530 1580 570 1520 560 C 1460 550 1450 450 1480 420 Z"
+            fill="rgba(196,181,154,0.12)"
+            stroke="rgba(196,181,154,0.3)"
+            stroke-width="1.5"
+          />
+
+          <path
+            id="mis-path"
+            d="M 420 620 C 560 540 700 500 840 480 C 980 460 1100 500 1220 540 C 1320 570 1400 520 1500 460"
+            fill="none"
+            stroke="#c45c26"
+            stroke-width="3"
+            stroke-linecap="round"
+          />
+          <g id="mis-s1">
+            <circle cx="420" cy="620" r="18" fill="#c45c26" />
+            <text
+              id="mis-t1"
+              x="420"
+              y="626"
+              text-anchor="middle"
+              fill="#1a1714"
+              font-size="18"
+              font-family="Georgia, serif"
+              font-weight="700"
+            >
+              1
+            </text>
+          </g>
+          <g id="mis-s2">
+            <circle cx="840" cy="480" r="18" fill="#c45c26" />
+            <text
+              id="mis-t2"
+              x="840"
+              y="486"
+              text-anchor="middle"
+              fill="#1a1714"
+              font-size="18"
+              font-family="Georgia, serif"
+              font-weight="700"
+            >
+              2
+            </text>
+          </g>
+          <g id="mis-s3">
+            <circle cx="1220" cy="540" r="18" fill="#c45c26" />
+            <text
+              id="mis-t3"
+              x="1220"
+              y="546"
+              text-anchor="middle"
+              fill="#1a1714"
+              font-size="18"
+              font-family="Georgia, serif"
+              font-weight="700"
+            >
+              3
+            </text>
+          </g>
+          <g id="mis-s4">
+            <circle cx="1500" cy="460" r="18" fill="#c45c26" />
+            <text
+              id="mis-t4"
+              x="1500"
+              y="466"
+              text-anchor="middle"
+              fill="#1a1714"
+              font-size="18"
+              font-family="Georgia, serif"
+              font-weight="700"
+            >
+              4
+            </text>
+          </g>
+        </svg>
       </div>
+      <div id="mis-title" data-var-text="title">The Itinerary</div>
+      <div id="mis-subtitle" data-var-text="subtitle">
+        Educational cartography · multi-stop route
+      </div>
+      <div id="mis-note">Numbered stops along a schematic itinerary</div>
     </div>
     <script>
       (function () {
         window.__timelines = window.__timelines || {};
-
         var vars =
           window.__hyperframes && window.__hyperframes.getVariables
             ? window.__hyperframes.getVariables()
             : {};
+        var accent = /^#[0-9a-fA-F]{6}$/.test(String(vars.accent || ""))
+          ? String(vars.accent)
+          : "#c45c26";
+        var title = typeof vars.title === "string" && vars.title ? vars.title : "The Itinerary";
+        var subtitle =
+          typeof vars.subtitle === "string" && vars.subtitle
+            ? vars.subtitle
+            : "Educational cartography \u00b7 multi-stop route";
+        var labelA = typeof vars.labelA === "string" && vars.labelA ? vars.labelA : "1";
+        var labelB = typeof vars.labelB === "string" && vars.labelB ? vars.labelB : "2";
+        var labelC = typeof vars.labelC === "string" && vars.labelC ? vars.labelC : "3";
+        var labelD = typeof vars.labelD === "string" && vars.labelD ? vars.labelD : "4";
 
-        var title =
-          typeof vars.title === "string" && vars.title ? vars.title : "Network Broadcasting (1934)";
-        var credit =
-          typeof vars.credit === "string" && vars.credit
-            ? vars.credit
-            : "Moving Image Archive, Network Broadcasting, 1934";
-
-        document.getElementById("is-title").textContent = title;
-        document.querySelector('#is-credit [data-var-text="credit"]').textContent = credit;
-
+        document.getElementById("mis-title").textContent = title;
+        document.getElementById("mis-subtitle").textContent = subtitle;
+        document.getElementById("mis-t1").textContent = labelA;
+        document.getElementById("mis-t2").textContent = labelB;
+        document.getElementById("mis-t3").textContent = labelC;
+        document.getElementById("mis-t4").textContent = labelD;
+        var path = document.getElementById("mis-path");
+        path.setAttribute("stroke", accent);
+        ["mis-s1", "mis-s2", "mis-s3", "mis-s4"].forEach(function (id) {
+          document.getElementById(id).querySelector("circle").setAttribute("fill", accent);
+        });
+        var len = path.getTotalLength();
+        gsap.set(path, { strokeDasharray: len, strokeDashoffset: len });
+        gsap.set(["#mis-land", "#mis-island", "#mis-title", "#mis-subtitle", "#mis-note"], {
+          opacity: 0,
+        });
+        gsap.set(["#mis-s1", "#mis-s2", "#mis-s3", "#mis-s4"], {
+          opacity: 0,
+          scale: 0,
+          transformOrigin: "50% 50%",
+        });
         var tl = gsap.timeline({ paused: true });
-        tl.fromTo(
-          "#is-title",
-          { opacity: 0 },
-          { opacity: 1, duration: 0.6, ease: "power1.out" },
-          0,
-        );
-        tl.fromTo(
-          "#is-credit",
-          { opacity: 0 },
-          { opacity: 1, duration: 0.6, ease: "power1.out" },
-          0.15,
-        );
-        tl.to({}, { duration: Math.max(0.01, 12.01 - 0.75) });
-
+        tl.to("#mis-land", { opacity: 1, duration: 0.5 }, 0);
+        tl.to("#mis-island", { opacity: 1, duration: 0.4 }, 0.1);
+        tl.to("#mis-title", { opacity: 1, duration: 0.4 }, 0.15);
+        tl.to("#mis-subtitle", { opacity: 1, duration: 0.35 }, 0.35);
+        tl.to("#mis-s1", { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(1.8)" }, 0.8);
+        tl.to(path, { strokeDashoffset: len * 0.72, duration: 1.0, ease: "power1.inOut" }, 1.2);
+        tl.to("#mis-s2", { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(1.8)" }, 2.1);
+        tl.to(path, { strokeDashoffset: len * 0.35, duration: 1.0, ease: "power1.inOut" }, 2.4);
+        tl.to("#mis-s3", { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(1.8)" }, 3.3);
+        tl.to(path, { strokeDashoffset: 0, duration: 1.0, ease: "power1.inOut" }, 3.6);
+        tl.to("#mis-s4", { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(1.8)" }, 4.5);
+        tl.to("#mis-note", { opacity: 1, duration: 0.4 }, 5.5);
         window.__timelines["map-itinerary-stops"] = tl;
       })();
     </script>
@@ -170,7 +280,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
 
 <InstallCommand command="npx hyperframes add map-itinerary-stops" item="map-itinerary-stops" />
 
-That writes `compositions/map-itinerary-stops.html`, plus 2 supporting files under `assets/`.
+That writes one file: `compositions/map-itinerary-stops.html`.
 
 </CatalogSlot>
 
@@ -178,14 +288,14 @@ That writes `compositions/map-itinerary-stops.html`, plus 2 supporting files und
 
 ## Add it to your video
 
-It runs for 12.01 seconds at 1920×1080. Paste this into your composition:
+It runs for 8 seconds at 1920×1080. Paste this into your composition:
 
 ```html index.html
 <div
   data-composition-id="map-itinerary-stops"
   data-composition-src="compositions/map-itinerary-stops.html"
   data-start="0"
-  data-duration="12.01"
+  data-duration="8"
   data-track-index="1"
   data-width="1920"
   data-height="1080"
@@ -199,8 +309,13 @@ Move it in time with `data-start`. Put it on a different timeline row with
 
 Set these CSS variables on the block:
 
-- `title` - Title. Defaults to `Network Broadcasting (1934)`.
-- `credit` - Credit line. Defaults to `Moving Image Archive, Network Broadcasting, 1934`.
+- `undefined` — Title. Defaults to `The Itinerary`.
+- `undefined` — Subtitle. Defaults to `Educational cartography · multi-stop route`.
+- `undefined` — Label A. Defaults to `1`.
+- `undefined` — Label B. Defaults to `2`.
+- `undefined` — Label C. Defaults to `3`.
+- `undefined` — Label D. Defaults to `4`.
+- `undefined` — Accent. Defaults to `#c45c26`.
 
 ## Variables
 
@@ -209,8 +324,13 @@ want to change on the element:
 
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
-| `title` | `Network Broadcasting (1934)` | string |  |
-| `credit` | `Moving Image Archive, Network Broadcasting, 1934` | string |  |
+| `title` | `The Itinerary` | string |  |
+| `subtitle` | `Educational cartography · multi-stop route` | string |  |
+| `labelA` | `1` | string |  |
+| `labelB` | `2` | string |  |
+| `labelC` | `3` | string |  |
+| `labelD` | `4` | string |  |
+| `accent` | `#c45c26` | color |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -219,13 +339,13 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-itinerary-stops"
   data-composition-src="compositions/map-itinerary-stops.html"
-  data-variable-values='{"title":"Network Broadcasting (1934)","credit":"Moving Image Archive, Network Broadcasting, 1934"}'
+  data-variable-values='{"title":"The Itinerary","subtitle":"Educational cartography · multi-stop route","labelA":"1","labelB":"2","labelC":"3","labelD":"4","accent":"#c45c26"}'
 ></div>
 ```
 
 {/* hf:generated-footer */}
 
-Tagged `map` `geography` `archival` `footage` `mia` `video` `public-domain`.
+Tagged `map` `geography` `animation` `itinerary` `stops` `markers` `newsreel` `svg`.
 
 Created by [HeyGen](https://hyperframes.heygen.com).
 

@@ -2,29 +2,34 @@
   "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
   "name": "map-parchment-fold",
   "type": "hyperframes:block",
-  "title": "AOPA-ASF: Thunderstorms and the ATC (2008)",
-  "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, AOPA-ASF: Thunderstorms and the ATC, 2008. Self-hosted seek-safe video via /api/clips/538de0ed-fd6e-5ac6-891c-c7bfd597cd39/download. Not affiliated with Moving Image Archive. Footage-only video block.",
-  "tags": ["map", "geography", "archival", "footage", "mia", "video", "public-domain"],
+  "title": "Map Parchment Fold",
+  "description": "Parchment aesthetic with a paper-map unfold and route reveal. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
+  "tags": ["map", "geography", "animation", "parchment", "fold", "paper", "newsreel", "svg"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
-  "license": "Footage: public domain / free to reuse (Moving Image Archive). Composition: project license.",
   "dimensions": {
     "width": 1920,
     "height": 1080
   },
-  "duration": 12.01,
+  "duration": 8,
   "variables": [
     {
       "id": "title",
       "type": "string",
       "label": "Title",
-      "default": "AOPA-ASF: Thunderstorms and the ATC (2008)"
+      "default": "Parchment Chart"
     },
     {
-      "id": "credit",
+      "id": "subtitle",
       "type": "string",
-      "label": "Credit line",
-      "default": "Moving Image Archive, AOPA-ASF: Thunderstorms and the ATC, 2008"
+      "label": "Subtitle",
+      "default": "Educational cartography · paper fold"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "label": "Accent",
+      "default": "#c45c26"
     }
   ],
   "files": [
@@ -32,30 +37,26 @@
       "path": "map-parchment-fold.html",
       "target": "compositions/map-parchment-fold.html",
       "type": "hyperframes:composition"
-    },
-    {
-      "path": "assets/clip.mp4",
-      "target": "assets/clip.mp4",
-      "type": "hyperframes:asset"
-    },
-    {
-      "path": "assets/poster.jpg",
-      "target": "assets/poster.jpg",
-      "type": "hyperframes:asset"
     }
   ],
   "params": [
     {
-      "type": "text",
+      "id": "title",
+      "type": "string",
       "label": "Title",
-      "default": "AOPA-ASF: Thunderstorms and the ATC (2008)",
-      "key": "title"
+      "default": "Parchment Chart"
     },
     {
-      "type": "text",
-      "label": "Credit line",
-      "default": "Moving Image Archive, AOPA-ASF: Thunderstorms and the ATC, 2008",
-      "key": "credit"
+      "id": "subtitle",
+      "type": "string",
+      "label": "Subtitle",
+      "default": "Educational cartography · paper fold"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "label": "Accent",
+      "default": "#c45c26"
     }
   ]
 }

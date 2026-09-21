@@ -2,29 +2,34 @@
   "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
   "name": "map-hotspot-pulse",
   "type": "hyperframes:block",
-  "title": "EVOLUTION OF THE OIL INDUSTRY, THE (1934)",
-  "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, EVOLUTION OF THE OIL INDUSTRY, THE, 1934; National Archives and Records Administration / NARA ARC mirror / FedFlix; https://archive.org/details/gov.archives.arc.12477. Self-hosted seek-safe video via /api/clips/a36b3d33-8c6b-5748-b606-e7841020121f/download. Not affiliated with Moving Image Archive. Footage-only video block.",
-  "tags": ["map", "geography", "archival", "footage", "mia", "video", "public-domain"],
+  "title": "Map Hotspot Pulse",
+  "description": "Heat-pulse hotspots that appear and blink on a stylized landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
+  "tags": ["map", "geography", "animation", "hotspot", "pulse", "heat", "newsreel", "svg"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
-  "license": "Footage: public domain / free to reuse (Moving Image Archive). Composition: project license.",
   "dimensions": {
     "width": 1920,
     "height": 1080
   },
-  "duration": 12.01,
+  "duration": 8,
   "variables": [
     {
       "id": "title",
       "type": "string",
       "label": "Title",
-      "default": "EVOLUTION OF THE OIL INDUSTRY, THE (1934)"
+      "default": "Hotspots"
     },
     {
-      "id": "credit",
+      "id": "subtitle",
       "type": "string",
-      "label": "Credit line",
-      "default": "Moving Image Archive, EVOLUTION OF THE OIL INDUSTRY, THE, 1934; National Archives and Records Administration / NARA ARC mirror / FedFlix; https://archive.org/details/gov.archives.arc.12477"
+      "label": "Subtitle",
+      "default": "Educational cartography · heat pulse"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "label": "Accent",
+      "default": "#c45c26"
     }
   ],
   "files": [
@@ -32,30 +37,26 @@
       "path": "map-hotspot-pulse.html",
       "target": "compositions/map-hotspot-pulse.html",
       "type": "hyperframes:composition"
-    },
-    {
-      "path": "assets/clip.mp4",
-      "target": "assets/clip.mp4",
-      "type": "hyperframes:asset"
-    },
-    {
-      "path": "assets/poster.jpg",
-      "target": "assets/poster.jpg",
-      "type": "hyperframes:asset"
     }
   ],
   "params": [
     {
-      "type": "text",
+      "id": "title",
+      "type": "string",
       "label": "Title",
-      "default": "EVOLUTION OF THE OIL INDUSTRY, THE (1934)",
-      "key": "title"
+      "default": "Hotspots"
     },
     {
-      "type": "text",
-      "label": "Credit line",
-      "default": "Moving Image Archive, EVOLUTION OF THE OIL INDUSTRY, THE, 1934; National Archives and Records Administration / NARA ARC mirror / FedFlix; https://archive.org/details/gov.archives.arc.12477",
-      "key": "credit"
+      "id": "subtitle",
+      "type": "string",
+      "label": "Subtitle",
+      "default": "Educational cartography · heat pulse"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "label": "Accent",
+      "default": "#c45c26"
     }
   ]
 }

@@ -13,7 +13,7 @@
         box-sizing: border-box;
       }
       body {
-        background: #0a0a0a;
+        background: #1a1714;
         overflow: hidden;
       }
       #root-map-grid-crosshair {
@@ -21,51 +21,49 @@
         width: 1920px;
         height: 1080px;
         overflow: hidden;
-        background: #0a0a0a;
-        font-family: "Helvetica Neue", Helvetica, sans-serif;
+        background: #1a1714;
+        font-family: Georgia, "Times New Roman", serif;
       }
-      #gc-video {
+      #mgc-frame {
+        position: absolute;
+        inset: 48px;
+        border: 1px solid rgba(196, 181, 154, 0.14);
+        background: #221e19;
+      }
+      #mgc-svg {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
-        object-fit: contain;
-        background: #000;
       }
-      #gc-frame {
+      #mgc-title {
         position: absolute;
-        inset: 36px;
-        border: 1px solid rgba(232, 220, 196, 0.28);
-        pointer-events: none;
-      }
-      #gc-title {
-        position: absolute;
-        left: 72px;
-        top: 56px;
-        max-width: 1600px;
-        color: rgba(245, 236, 214, 0.95);
-        font-size: 34px;
-        font-weight: 700;
+        top: 72px;
+        left: 96px;
+        color: rgba(232, 220, 196, 0.92);
+        font-size: 42px;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);
+        font-weight: 400;
       }
-      #gc-credit {
+      #mgc-subtitle {
         position: absolute;
-        left: 72px;
-        right: 72px;
-        bottom: 56px;
-        color: rgba(232, 220, 196, 0.88);
-        font-size: 16px;
-        letter-spacing: 0.06em;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        top: 128px;
+        left: 96px;
+        color: rgba(196, 181, 154, 0.55);
+        font-size: 22px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
       }
-      #gc-credit-url {
-        display: block;
-        margin-top: 8px;
-        font-size: 13px;
-        letter-spacing: 0.03em;
-        color: rgba(196, 181, 154, 0.7);
+      #mgc-note {
+        position: absolute;
+        bottom: 88px;
+        left: 96px;
+        color: rgba(196, 181, 154, 0.55);
+        font-size: 16px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        max-width: 900px;
       }
     </style>
   </head>
@@ -74,70 +72,310 @@
       id="root-map-grid-crosshair"
       data-composition-id="map-grid-crosshair"
       data-start="0"
-      data-duration="12.01"
+      data-duration="7"
       data-width="1920"
       data-height="1080"
     >
-      <video
-        id="gc-video"
-        src="assets/clip.mp4"
-        muted
-        playsinline
-        preload="auto"
-        data-start="0"
-        data-duration="12.01"
-        data-media-start="0"
-      ></video>
-      <div id="gc-frame" aria-hidden="true"></div>
-      <div id="gc-title" data-var-text="title">
-        Scatter radar: Space research from the ground (1963)
-      </div>
-      <div id="gc-credit">
-        <span data-var-text="credit"
-          >Moving Image Archive, Scatter radar: Space research from the ground, 1963</span
+      <div id="mgc-frame">
+        <svg
+          id="mgc-svg"
+          viewBox="0 0 1920 1080"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
         >
-        <span id="gc-credit-url"
-          >https://www.movingimagearchive.com/sources/scatter-radar-space-research-from-the-ground-e8ccef6d?clip=ef35ba39-a4c7-5ca1-b648-4ce7e21a987e
-          - Rights: public_domain / free to reuse</span
-        >
+          <defs>
+            <pattern
+              id="mgc-hatch"
+              width="12"
+              height="12"
+              patternUnits="userSpaceOnUse"
+              patternTransform="rotate(35)"
+            >
+              <line x1="0" y1="0" x2="0" y2="12" stroke="rgba(196,181,154,0.08)" stroke-width="1" />
+            </pattern>
+          </defs>
+
+          <rect width="1920" height="1080" fill="#1f1b17" />
+          <rect width="1920" height="1080" fill="url(#mgc-hatch)" />
+          <path
+            id="mgc-land"
+            d="M 280 320 C 340 220 480 180 620 210 C 760 240 820 300 900 280 C 980 260 1080 300 1180 340 C 1280 380 1360 460 1380 560 C 1400 660 1340 760 1240 820 C 1140 880 980 900 860 860 C 740 820 700 780 620 800 C 540 820 420 780 360 700 C 300 620 240 500 280 320 Z"
+            fill="rgba(196,181,154,0.16)"
+            stroke="rgba(196,181,154,0.4)"
+            stroke-width="2"
+          />
+          <path
+            id="mgc-island"
+            d="M 1480 420 C 1540 400 1600 430 1610 480 C 1620 530 1580 570 1520 560 C 1460 550 1450 450 1480 420 Z"
+            fill="rgba(196,181,154,0.12)"
+            stroke="rgba(196,181,154,0.3)"
+            stroke-width="1.5"
+          />
+
+          <g id="mgc-grid">
+            <line
+              class="mgc-v"
+              x1="240"
+              y1="160"
+              x2="240"
+              y2="920"
+              stroke="rgba(196,181,154,0.18)"
+              stroke-width="1"
+            />
+            <line
+              class="mgc-v"
+              x1="360"
+              y1="160"
+              x2="360"
+              y2="920"
+              stroke="rgba(196,181,154,0.18)"
+              stroke-width="1"
+            />
+            <line
+              class="mgc-v"
+              x1="480"
+              y1="160"
+              x2="480"
+              y2="920"
+              stroke="rgba(196,181,154,0.18)"
+              stroke-width="1"
+            />
+            <line
+              class="mgc-v"
+              x1="600"
+              y1="160"
+              x2="600"
+              y2="920"
+              stroke="rgba(196,181,154,0.18)"
+              stroke-width="1"
+            />
+            <line
+              class="mgc-v"
+              x1="720"
+              y1="160"
+              x2="720"
+              y2="920"
+              stroke="rgba(196,181,154,0.18)"
+              stroke-width="1"
+            />
+            <line
+              class="mgc-v"
+              x1="840"
+              y1="160"
+              x2="840"
+              y2="920"
+              stroke="rgba(196,181,154,0.18)"
+              stroke-width="1"
+            />
+            <line
+              class="mgc-v"
+              x1="960"
+              y1="160"
+              x2="960"
+              y2="920"
+              stroke="rgba(196,181,154,0.18)"
+              stroke-width="1"
+            />
+            <line
+              class="mgc-v"
+              x1="1080"
+              y1="160"
+              x2="1080"
+              y2="920"
+              stroke="rgba(196,181,154,0.18)"
+              stroke-width="1"
+            />
+            <line
+              class="mgc-v"
+              x1="1200"
+              y1="160"
+              x2="1200"
+              y2="920"
+              stroke="rgba(196,181,154,0.18)"
+              stroke-width="1"
+            />
+            <line
+              class="mgc-v"
+              x1="1320"
+              y1="160"
+              x2="1320"
+              y2="920"
+              stroke="rgba(196,181,154,0.18)"
+              stroke-width="1"
+            />
+            <line
+              class="mgc-v"
+              x1="1440"
+              y1="160"
+              x2="1440"
+              y2="920"
+              stroke="rgba(196,181,154,0.18)"
+              stroke-width="1"
+            />
+            <line
+              class="mgc-v"
+              x1="1560"
+              y1="160"
+              x2="1560"
+              y2="920"
+              stroke="rgba(196,181,154,0.18)"
+              stroke-width="1"
+            />
+            <line
+              class="mgc-v"
+              x1="1680"
+              y1="160"
+              x2="1680"
+              y2="920"
+              stroke="rgba(196,181,154,0.18)"
+              stroke-width="1"
+            />
+            <line
+              class="mgc-h"
+              x1="200"
+              y1="200"
+              x2="1720"
+              y2="200"
+              stroke="rgba(196,181,154,0.18)"
+              stroke-width="1"
+            />
+            <line
+              class="mgc-h"
+              x1="200"
+              y1="300"
+              x2="1720"
+              y2="300"
+              stroke="rgba(196,181,154,0.18)"
+              stroke-width="1"
+            />
+            <line
+              class="mgc-h"
+              x1="200"
+              y1="400"
+              x2="1720"
+              y2="400"
+              stroke="rgba(196,181,154,0.18)"
+              stroke-width="1"
+            />
+            <line
+              class="mgc-h"
+              x1="200"
+              y1="500"
+              x2="1720"
+              y2="500"
+              stroke="rgba(196,181,154,0.18)"
+              stroke-width="1"
+            />
+            <line
+              class="mgc-h"
+              x1="200"
+              y1="600"
+              x2="1720"
+              y2="600"
+              stroke="rgba(196,181,154,0.18)"
+              stroke-width="1"
+            />
+            <line
+              class="mgc-h"
+              x1="200"
+              y1="700"
+              x2="1720"
+              y2="700"
+              stroke="rgba(196,181,154,0.18)"
+              stroke-width="1"
+            />
+            <line
+              class="mgc-h"
+              x1="200"
+              y1="800"
+              x2="1720"
+              y2="800"
+              stroke="rgba(196,181,154,0.18)"
+              stroke-width="1"
+            />
+          </g>
+          <line
+            id="mgc-ch-h"
+            x1="200"
+            y1="520"
+            x2="1720"
+            y2="520"
+            stroke="#c45c26"
+            stroke-width="2"
+          />
+          <line
+            id="mgc-ch-v"
+            x1="980"
+            y1="160"
+            x2="980"
+            y2="920"
+            stroke="#c45c26"
+            stroke-width="2"
+          />
+          <circle
+            id="mgc-lock"
+            cx="980"
+            cy="520"
+            r="16"
+            fill="none"
+            stroke="#c45c26"
+            stroke-width="3"
+          />
+          <circle id="mgc-dot" cx="980" cy="520" r="5" fill="#c45c26" />
+        </svg>
       </div>
+      <div id="mgc-title" data-var-text="title">Grid Lock</div>
+      <div id="mgc-subtitle" data-var-text="subtitle">Educational cartography · lat-long lock</div>
+      <div id="mgc-note">Grid draw + crosshair lock · schematic only</div>
     </div>
     <script>
       (function () {
         window.__timelines = window.__timelines || {};
-
         var vars =
           window.__hyperframes && window.__hyperframes.getVariables
             ? window.__hyperframes.getVariables()
             : {};
+        var accent = /^#[0-9a-fA-F]{6}$/.test(String(vars.accent || ""))
+          ? String(vars.accent)
+          : "#c45c26";
+        var title = typeof vars.title === "string" && vars.title ? vars.title : "Grid Lock";
+        var subtitle =
+          typeof vars.subtitle === "string" && vars.subtitle
+            ? vars.subtitle
+            : "Educational cartography \u00b7 lat-long lock";
 
-        var title =
-          typeof vars.title === "string" && vars.title
-            ? vars.title
-            : "Scatter radar: Space research from the ground (1963)";
-        var credit =
-          typeof vars.credit === "string" && vars.credit
-            ? vars.credit
-            : "Moving Image Archive, Scatter radar: Space research from the ground, 1963";
-
-        document.getElementById("gc-title").textContent = title;
-        document.querySelector('#gc-credit [data-var-text="credit"]').textContent = credit;
-
+        document.getElementById("mgc-title").textContent = title;
+        document.getElementById("mgc-subtitle").textContent = subtitle;
+        ["mgc-ch-h", "mgc-ch-v", "mgc-lock"].forEach(function (id) {
+          document.getElementById(id).setAttribute("stroke", accent);
+        });
+        document.getElementById("mgc-dot").setAttribute("fill", accent);
+        gsap.set(
+          ["#mgc-land", "#mgc-island", "#mgc-title", "#mgc-subtitle", "#mgc-note", "#mgc-grid"],
+          { opacity: 0 },
+        );
+        gsap.set(["#mgc-ch-h", "#mgc-ch-v"], { opacity: 0, scaleX: 0, transformOrigin: "50% 50%" });
+        gsap.set("#mgc-ch-v", { scaleX: 1, scaleY: 0 });
+        gsap.set(["#mgc-lock", "#mgc-dot"], {
+          opacity: 0,
+          scale: 0.4,
+          transformOrigin: "50% 50%",
+          svgOrigin: "980px 520px",
+        });
         var tl = gsap.timeline({ paused: true });
-        tl.fromTo(
-          "#gc-title",
-          { opacity: 0 },
-          { opacity: 1, duration: 0.6, ease: "power1.out" },
-          0,
+        tl.to("#mgc-land", { opacity: 1, duration: 0.5 }, 0);
+        tl.to("#mgc-island", { opacity: 1, duration: 0.4 }, 0.1);
+        tl.to("#mgc-title", { opacity: 1, duration: 0.4 }, 0.15);
+        tl.to("#mgc-subtitle", { opacity: 1, duration: 0.35 }, 0.35);
+        tl.to("#mgc-grid", { opacity: 1, duration: 1.2, ease: "power1.out" }, 0.8);
+        tl.to("#mgc-ch-h", { opacity: 1, scaleX: 1, duration: 0.7, ease: "power2.out" }, 2.2);
+        tl.to("#mgc-ch-v", { opacity: 1, scaleY: 1, duration: 0.7, ease: "power2.out" }, 2.5);
+        tl.to(
+          ["#mgc-lock", "#mgc-dot"],
+          { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(1.8)" },
+          3.4,
         );
-        tl.fromTo(
-          "#gc-credit",
-          { opacity: 0 },
-          { opacity: 1, duration: 0.6, ease: "power1.out" },
-          0.15,
-        );
-        tl.to({}, { duration: Math.max(0.01, 12.01 - 0.75) });
-
+        tl.to("#mgc-note", { opacity: 1, duration: 0.4 }, 4.5);
         window.__timelines["map-grid-crosshair"] = tl;
       })();
     </script>

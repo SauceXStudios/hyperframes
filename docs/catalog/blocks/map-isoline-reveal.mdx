@@ -1,6 +1,6 @@
 ---
-title: "Climate Factor (1984)"
-description: "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Climate Factor, 1984. Self-hosted seek-safe video via /api/clips/37f8ebaf-2a5c-587c-9740-cb92cd79bb56/download. Not affiliated with Moving Image Archive. Footage-only video block."
+title: "Map Isoline Reveal"
+description: "Isoline contour rings that reveal outward like topographic bands. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
 mode: "frame"
 ---
 
@@ -11,11 +11,11 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   previewSrc="/public/catalog/blocks/map-isoline-reveal.json"
   compositionId="map-isoline-reveal"
   compositionSrc="compositions/map-isoline-reveal.html"
-  title="Climate Factor (1984)"
-  description="Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, Climate Factor, 1984. Self-hosted seek-safe video via /api/clips/37f8ebaf-2a5c-587c-9740-cb92cd79bb56/download. Not affiliated with Moving Image Archive. Footage-only video block."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Climate Factor (1984)"},{"id":"credit","type":"string","label":"Credit line","default":"Moving Image Archive, Climate Factor, 1984"}]}
-  meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":139}}
-  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-isoline-reveal","tags":["map","geography","archival","footage","mia","video","public-domain"]}}
+  title="Map Isoline Reveal"
+  description="Isoline contour rings that reveal outward like topographic bands. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Isolines"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · contour reveal"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
+  meta={{"duration":8,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":221}}
+  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-isoline-reveal","tags":["map","geography","animation","isoline","contour","newsreel","svg"]}}
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-isoline-reveal/map-isoline-reveal.html"
 >
@@ -38,7 +38,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         box-sizing: border-box;
       }
       body {
-        background: #0a0a0a;
+        background: #1a1714;
         overflow: hidden;
       }
       #root-map-isoline-reveal {
@@ -46,51 +46,49 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         width: 1920px;
         height: 1080px;
         overflow: hidden;
-        background: #0a0a0a;
-        font-family: "Helvetica Neue", Helvetica, sans-serif;
+        background: #1a1714;
+        font-family: Georgia, "Times New Roman", serif;
       }
-      #ir-video {
+      #mir-frame {
+        position: absolute;
+        inset: 48px;
+        border: 1px solid rgba(196, 181, 154, 0.14);
+        background: #221e19;
+      }
+      #mir-svg {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
-        object-fit: contain;
-        background: #000;
       }
-      #ir-frame {
+      #mir-title {
         position: absolute;
-        inset: 36px;
-        border: 1px solid rgba(232, 220, 196, 0.28);
-        pointer-events: none;
-      }
-      #ir-title {
-        position: absolute;
-        left: 72px;
-        top: 56px;
-        max-width: 1600px;
-        color: rgba(245, 236, 214, 0.95);
-        font-size: 34px;
-        font-weight: 700;
+        top: 72px;
+        left: 96px;
+        color: rgba(232, 220, 196, 0.92);
+        font-size: 42px;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);
+        font-weight: 400;
       }
-      #ir-credit {
+      #mir-subtitle {
         position: absolute;
-        left: 72px;
-        right: 72px;
-        bottom: 56px;
-        color: rgba(232, 220, 196, 0.88);
-        font-size: 16px;
-        letter-spacing: 0.06em;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        top: 128px;
+        left: 96px;
+        color: rgba(196, 181, 154, 0.55);
+        font-size: 22px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
       }
-      #ir-credit-url {
-        display: block;
-        margin-top: 8px;
-        font-size: 13px;
-        letter-spacing: 0.03em;
-        color: rgba(196, 181, 154, 0.7);
+      #mir-note {
+        position: absolute;
+        bottom: 88px;
+        left: 96px;
+        color: rgba(196, 181, 154, 0.55);
+        font-size: 16px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        max-width: 900px;
       }
     </style>
   </head>
@@ -99,64 +97,148 @@ import { InstallCommand } from "/snippets/install-command.jsx";
       id="root-map-isoline-reveal"
       data-composition-id="map-isoline-reveal"
       data-start="0"
-      data-duration="12.01"
+      data-duration="8"
       data-width="1920"
       data-height="1080"
     >
-      <video
-        id="ir-video"
-        src="assets/clip.mp4"
-        muted
-        playsinline
-        preload="auto"
-        data-start="0"
-        data-duration="12.01"
-        data-media-start="0"
-      ></video>
-      <div id="ir-frame" aria-hidden="true"></div>
-      <div id="ir-title" data-var-text="title">Climate Factor (1984)</div>
-      <div id="ir-credit">
-        <span data-var-text="credit">Moving Image Archive, Climate Factor, 1984</span>
-        <span id="ir-credit-url"
-          >https://www.movingimagearchive.com/sources/climate-factor-a7c554f5?clip=37f8ebaf-2a5c-587c-9740-cb92cd79bb56
-          - Rights: public_domain / free to reuse</span
+      <div id="mir-frame">
+        <svg
+          id="mir-svg"
+          viewBox="0 0 1920 1080"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
         >
+          <defs>
+            <pattern
+              id="mir-hatch"
+              width="12"
+              height="12"
+              patternUnits="userSpaceOnUse"
+              patternTransform="rotate(35)"
+            >
+              <line x1="0" y1="0" x2="0" y2="12" stroke="rgba(196,181,154,0.08)" stroke-width="1" />
+            </pattern>
+          </defs>
+
+          <rect width="1920" height="1080" fill="#1f1b17" />
+          <rect width="1920" height="1080" fill="url(#mir-hatch)" />
+          <path
+            id="mir-land"
+            d="M 280 320 C 340 220 480 180 620 210 C 760 240 820 300 900 280 C 980 260 1080 300 1180 340 C 1280 380 1360 460 1380 560 C 1400 660 1340 760 1240 820 C 1140 880 980 900 860 860 C 740 820 700 780 620 800 C 540 820 420 780 360 700 C 300 620 240 500 280 320 Z"
+            fill="rgba(196,181,154,0.16)"
+            stroke="rgba(196,181,154,0.4)"
+            stroke-width="2"
+          />
+          <path
+            id="mir-island"
+            d="M 1480 420 C 1540 400 1600 430 1610 480 C 1620 530 1580 570 1520 560 C 1460 550 1450 450 1480 420 Z"
+            fill="rgba(196,181,154,0.12)"
+            stroke="rgba(196,181,154,0.3)"
+            stroke-width="1.5"
+          />
+          <ellipse
+            id="mir-iso0"
+            cx="900"
+            cy="560"
+            rx="84.0"
+            ry="60"
+            fill="none"
+            stroke="#c45c26"
+            stroke-width="2"
+            opacity="0.9"
+          />
+          <ellipse
+            id="mir-iso1"
+            cx="900"
+            cy="560"
+            rx="154.0"
+            ry="110"
+            fill="none"
+            stroke="#c45c26"
+            stroke-width="2"
+            opacity="0.78"
+          />
+          <ellipse
+            id="mir-iso2"
+            cx="900"
+            cy="560"
+            rx="237.99999999999997"
+            ry="170"
+            fill="none"
+            stroke="#c45c26"
+            stroke-width="2"
+            opacity="0.66"
+          />
+          <ellipse
+            id="mir-iso3"
+            cx="900"
+            cy="560"
+            rx="336.0"
+            ry="240"
+            fill="none"
+            stroke="#c45c26"
+            stroke-width="2"
+            opacity="0.54"
+          />
+          <ellipse
+            id="mir-iso4"
+            cx="900"
+            cy="560"
+            rx="448.0"
+            ry="320"
+            fill="none"
+            stroke="#c45c26"
+            stroke-width="2"
+            opacity="0.42000000000000004"
+          />
+        </svg>
       </div>
+      <div id="mir-title" data-var-text="title">Isolines</div>
+      <div id="mir-subtitle" data-var-text="subtitle">Educational cartography · contour reveal</div>
+      <div id="mir-note">Isoline contour reveal · schematic topography</div>
     </div>
     <script>
       (function () {
         window.__timelines = window.__timelines || {};
-
         var vars =
           window.__hyperframes && window.__hyperframes.getVariables
             ? window.__hyperframes.getVariables()
             : {};
+        var accent = /^#[0-9a-fA-F]{6}$/.test(String(vars.accent || ""))
+          ? String(vars.accent)
+          : "#c45c26";
+        var title = typeof vars.title === "string" && vars.title ? vars.title : "Isolines";
+        var subtitle =
+          typeof vars.subtitle === "string" && vars.subtitle
+            ? vars.subtitle
+            : "Educational cartography \u00b7 contour reveal";
 
-        var title =
-          typeof vars.title === "string" && vars.title ? vars.title : "Climate Factor (1984)";
-        var credit =
-          typeof vars.credit === "string" && vars.credit
-            ? vars.credit
-            : "Moving Image Archive, Climate Factor, 1984";
-
-        document.getElementById("ir-title").textContent = title;
-        document.querySelector('#ir-credit [data-var-text="credit"]').textContent = credit;
-
+        document.getElementById("mir-title").textContent = title;
+        document.getElementById("mir-subtitle").textContent = subtitle;
+        for (var i = 0; i < 5; i++)
+          document.getElementById("mir-iso" + i).setAttribute("stroke", accent);
+        gsap.set(["#mir-land", "#mir-island", "#mir-title", "#mir-subtitle", "#mir-note"], {
+          opacity: 0,
+        });
+        gsap.set(["#mir-iso0", "#mir-iso1", "#mir-iso2", "#mir-iso3", "#mir-iso4"], {
+          opacity: 0,
+          scale: 0.5,
+          transformOrigin: "50% 50%",
+          svgOrigin: "900px 560px",
+        });
         var tl = gsap.timeline({ paused: true });
-        tl.fromTo(
-          "#ir-title",
-          { opacity: 0 },
-          { opacity: 1, duration: 0.6, ease: "power1.out" },
-          0,
-        );
-        tl.fromTo(
-          "#ir-credit",
-          { opacity: 0 },
-          { opacity: 1, duration: 0.6, ease: "power1.out" },
-          0.15,
-        );
-        tl.to({}, { duration: Math.max(0.01, 12.01 - 0.75) });
-
+        tl.to("#mir-land", { opacity: 1, duration: 0.5 }, 0);
+        tl.to("#mir-island", { opacity: 1, duration: 0.4 }, 0.1);
+        tl.to("#mir-title", { opacity: 1, duration: 0.4 }, 0.15);
+        tl.to("#mir-subtitle", { opacity: 1, duration: 0.35 }, 0.35);
+        for (var j = 0; j < 5; j++) {
+          tl.to(
+            "#mir-iso" + j,
+            { opacity: 0.9 - j * 0.12, scale: 1, duration: 0.7, ease: "power2.out" },
+            0.9 + j * 0.55,
+          );
+        }
+        tl.to("#mir-note", { opacity: 1, duration: 0.4 }, 5.0);
         window.__timelines["map-isoline-reveal"] = tl;
       })();
     </script>
@@ -170,7 +252,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
 
 <InstallCommand command="npx hyperframes add map-isoline-reveal" item="map-isoline-reveal" />
 
-That writes `compositions/map-isoline-reveal.html`, plus 2 supporting files under `assets/`.
+That writes one file: `compositions/map-isoline-reveal.html`.
 
 </CatalogSlot>
 
@@ -178,14 +260,14 @@ That writes `compositions/map-isoline-reveal.html`, plus 2 supporting files unde
 
 ## Add it to your video
 
-It runs for 12.01 seconds at 1920×1080. Paste this into your composition:
+It runs for 8 seconds at 1920×1080. Paste this into your composition:
 
 ```html index.html
 <div
   data-composition-id="map-isoline-reveal"
   data-composition-src="compositions/map-isoline-reveal.html"
   data-start="0"
-  data-duration="12.01"
+  data-duration="8"
   data-track-index="1"
   data-width="1920"
   data-height="1080"
@@ -199,8 +281,9 @@ Move it in time with `data-start`. Put it on a different timeline row with
 
 Set these CSS variables on the block:
 
-- `title` - Title. Defaults to `Climate Factor (1984)`.
-- `credit` - Credit line. Defaults to `Moving Image Archive, Climate Factor, 1984`.
+- `undefined` — Title. Defaults to `Isolines`.
+- `undefined` — Subtitle. Defaults to `Educational cartography · contour reveal`.
+- `undefined` — Accent. Defaults to `#c45c26`.
 
 ## Variables
 
@@ -209,8 +292,9 @@ want to change on the element:
 
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
-| `title` | `Climate Factor (1984)` | string |  |
-| `credit` | `Moving Image Archive, Climate Factor, 1984` | string |  |
+| `title` | `Isolines` | string |  |
+| `subtitle` | `Educational cartography · contour reveal` | string |  |
+| `accent` | `#c45c26` | color |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -219,13 +303,13 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-isoline-reveal"
   data-composition-src="compositions/map-isoline-reveal.html"
-  data-variable-values='{"title":"Climate Factor (1984)","credit":"Moving Image Archive, Climate Factor, 1984"}'
+  data-variable-values='{"title":"Isolines","subtitle":"Educational cartography · contour reveal","accent":"#c45c26"}'
 ></div>
 ```
 
 {/* hf:generated-footer */}
 
-Tagged `map` `geography` `archival` `footage` `mia` `video` `public-domain`.
+Tagged `map` `geography` `animation` `isoline` `contour` `newsreel` `svg`.
 
 Created by [HeyGen](https://hyperframes.heygen.com).
 

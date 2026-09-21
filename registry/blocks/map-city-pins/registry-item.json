@@ -2,29 +2,64 @@
   "$schema": "https://hyperframes.heygen.com/schema/registry-item.json",
   "name": "map-city-pins",
   "type": "hyperframes:block",
-  "title": "New York Water Supply (1927)",
-  "description": "Real public-domain animated-map footage from Moving Image Archive (https://www.movingimagearchive.com/collection/animated-maps). Credit: Moving Image Archive, New York Water Supply, 1927; National Archives and Records Administration / U.S. Government Films (Internet Archive collection); https://archive.org/details/gov.archives.arc.95622. Self-hosted seek-safe video via /api/clips/5791dad1-539e-5947-863e-f19cbac765ba/download. Not affiliated with Moving Image Archive. Footage-only video block.",
-  "tags": ["map", "geography", "archival", "footage", "mia", "video", "public-domain"],
+  "title": "Map City Pins",
+  "description": "Newsreel-style labeled city pins that pop and stagger onto a stylized landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection \u2014 not affiliated; footage not included).",
+  "tags": ["map", "geography", "animation", "pins", "cities", "newsreel", "labels", "svg"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
-  "license": "Footage: public domain / free to reuse (Moving Image Archive). Composition: project license.",
   "dimensions": {
     "width": 1920,
     "height": 1080
   },
-  "duration": 12.01,
+  "duration": 8,
   "variables": [
     {
       "id": "title",
       "type": "string",
       "label": "Title",
-      "default": "New York Water Supply (1927)"
+      "default": "Cities of Note"
     },
     {
-      "id": "credit",
+      "id": "subtitle",
       "type": "string",
-      "label": "Credit line",
-      "default": "Moving Image Archive, New York Water Supply, 1927; National Archives and Records Administration / U.S. Government Films (Internet Archive collection); https://archive.org/details/gov.archives.arc.95622"
+      "label": "Subtitle",
+      "default": "Staggered pin drops \u00b7 educational map"
+    },
+    {
+      "id": "city1",
+      "type": "string",
+      "label": "City 1",
+      "default": "NORTH"
+    },
+    {
+      "id": "city2",
+      "type": "string",
+      "label": "City 2",
+      "default": "CENTRAL"
+    },
+    {
+      "id": "city3",
+      "type": "string",
+      "label": "City 3",
+      "default": "EAST"
+    },
+    {
+      "id": "city4",
+      "type": "string",
+      "label": "City 4",
+      "default": "SOUTH"
+    },
+    {
+      "id": "city5",
+      "type": "string",
+      "label": "City 5",
+      "default": "ISLE"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "label": "Accent",
+      "default": "#c45c26"
     }
   ],
   "files": [
@@ -32,30 +67,56 @@
       "path": "map-city-pins.html",
       "target": "compositions/map-city-pins.html",
       "type": "hyperframes:composition"
-    },
-    {
-      "path": "assets/clip.mp4",
-      "target": "assets/clip.mp4",
-      "type": "hyperframes:asset"
-    },
-    {
-      "path": "assets/poster.jpg",
-      "target": "assets/poster.jpg",
-      "type": "hyperframes:asset"
     }
   ],
   "params": [
     {
-      "type": "text",
+      "id": "title",
+      "type": "string",
       "label": "Title",
-      "default": "New York Water Supply (1927)",
-      "key": "title"
+      "default": "Cities of Note"
     },
     {
-      "type": "text",
-      "label": "Credit line",
-      "default": "Moving Image Archive, New York Water Supply, 1927; National Archives and Records Administration / U.S. Government Films (Internet Archive collection); https://archive.org/details/gov.archives.arc.95622",
-      "key": "credit"
+      "id": "subtitle",
+      "type": "string",
+      "label": "Subtitle",
+      "default": "Staggered pin drops \u00b7 educational map"
+    },
+    {
+      "id": "city1",
+      "type": "string",
+      "label": "City 1",
+      "default": "NORTH"
+    },
+    {
+      "id": "city2",
+      "type": "string",
+      "label": "City 2",
+      "default": "CENTRAL"
+    },
+    {
+      "id": "city3",
+      "type": "string",
+      "label": "City 3",
+      "default": "EAST"
+    },
+    {
+      "id": "city4",
+      "type": "string",
+      "label": "City 4",
+      "default": "SOUTH"
+    },
+    {
+      "id": "city5",
+      "type": "string",
+      "label": "City 5",
+      "default": "ISLE"
+    },
+    {
+      "id": "accent",
+      "type": "color",
+      "label": "Accent",
+      "default": "#c45c26"
     }
   ]
 }
