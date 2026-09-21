@@ -82,7 +82,10 @@ describe("TimelineTrackHeader", () => {
     const clip: TimelineElement = {
       ...ELEMENT,
       tag: "audio",
-      automation: JSON.stringify({ version: 1, lanes: [{ target: "volume", points: [] }] }),
+      automation: JSON.stringify({
+        version: 1,
+        lanes: [{ target: "volume", points: [{ t: 0, v: 1 }] }],
+      }),
     };
     const { host, root } = renderHeader({ clip, audio: true, hidden: true, onRemove });
     expect(host.querySelectorAll("[data-automation-lane-label]")).toHaveLength(1);
@@ -103,7 +106,10 @@ describe("TimelineTrackHeader", () => {
   });
 
   it("names a shared audio track rather than the selected clip", () => {
-    const automation = JSON.stringify({ version: 1, lanes: [{ target: "volume", points: [] }] });
+    const automation = JSON.stringify({
+      version: 1,
+      lanes: [{ target: "volume", points: [{ t: 0, v: 1 }] }],
+    });
     const first = { ...ELEMENT, id: "first", tag: "audio", automation };
     const second = { ...ELEMENT, id: "second", tag: "audio", automation };
     const { host, root } = renderHeader({ clip: second, elements: [first, second], audio: true });
