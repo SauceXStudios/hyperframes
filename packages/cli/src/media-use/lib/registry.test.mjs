@@ -32,12 +32,13 @@ test("listTypes exposes the v2 media types", () => {
   }
 });
 
-test("heygen provider is first for every type it serves", () => {
-  for (const t of ["bgm", "sfx", "image", "icon"]) {
+test("heygen provider is first for every type it serves except bundled sfx", () => {
+  for (const t of ["bgm", "image", "icon"]) {
     const first = getProviders(t)[0];
     assert.ok(first, `no enabled provider for ${t}`);
     assert.match(first.name, /^heygen/, `${t} first provider is ${first.name}`);
   }
+  assert.equal(getProviders("sfx")[0].name, "bundled.sfx");
 });
 
 test("sanctioned providers only: heygen, local mflux/kokoro/ltx, codex, design spec, logo tiers", () => {

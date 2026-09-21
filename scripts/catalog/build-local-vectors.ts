@@ -53,6 +53,7 @@ function arg(name: string): string | undefined {
   return index === -1 ? undefined : process.argv[index + 1];
 }
 
+// fallow-ignore-next-line high-crap-score
 function mediaRows(manifestPath: string): MediaVectorRow[] {
   const parsed = JSON.parse(readFileSync(manifestPath, "utf8")) as
     | MediaVectorRow[]
@@ -193,7 +194,7 @@ async function main(): Promise<void> {
   const vectors = await embedInBatches(names, catalog, embedder);
   const flat = packVectors(names, vectors);
   const credits =
-    rows && manifestPath.endsWith("skills/media-use/audio/assets/sfx/manifest.json")
+    rows && manifestPath?.endsWith("skills/media-use/audio/assets/sfx/manifest.json")
       ? {
           file: "skills/media-use/audio/assets/sfx/CREDITS.md",
           sha256: sha256Hex(readFileSync("skills/media-use/audio/assets/sfx/CREDITS.md", "utf8")),

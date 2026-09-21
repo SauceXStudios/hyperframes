@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { extname, join } from "node:path";
-import { rankMediaRows } from "../../registry/mediaSearch.mjs";
+import { rankMediaRows } from "./media-search.mjs";
 
 const LIB_DIR =
   process.env.HYPERFRAMES_MEDIA_USE_SFX_DIR ||

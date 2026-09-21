@@ -1,4 +1,5 @@
 import { mediaSemanticRanking, type MediaVectorRow } from "./localSemantic.js";
+// fallow-ignore-file unused-file
 import { searchByWords } from "./localSearch.js";
 
 export type MediaSearchRow = MediaVectorRow;

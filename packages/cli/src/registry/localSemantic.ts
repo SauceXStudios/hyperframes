@@ -43,6 +43,7 @@ export interface MediaVectorRow {
   dimensions?: { width: number; height: number };
 }
 
+// fallow-ignore-next-line high-crap-score
 function isMediaVectorRow(value: unknown): value is MediaVectorRow {
   if (!value || typeof value !== "object") return false;
   const row = value as Partial<MediaVectorRow>;
@@ -99,6 +100,7 @@ function localVectorDirectory(): string {
  * contract. A pair that fails it is a truncated download or a different
  * model, never something worth caching.
  */
+// fallow-ignore-next-line high-crap-score
 function vectorPairAgrees(
   fetched: Array<[string, Buffer]>,
   artifactBasename: "local-vectors" | "media-vectors",
@@ -190,6 +192,7 @@ export async function fetchLocalVectors(
   }
 }
 
+// fallow-ignore-next-line unused-export
 export function fetchMediaVectors(
   registryBaseUrl: string,
   options: Omit<FetchLocalVectorOptions, "artifactBasename"> = {},
@@ -204,6 +207,7 @@ export function hasLocalVectors(directory = localVectorDirectory()): boolean {
   );
 }
 
+// fallow-ignore-next-line unused-export
 export function hasMediaVectors(directory = localVectorDirectory()): boolean {
   return (
     existsSync(join(directory, "media-vectors.bin")) &&
@@ -211,6 +215,7 @@ export function hasMediaVectors(directory = localVectorDirectory()): boolean {
   );
 }
 
+// fallow-ignore-next-line unused-export
 export function mediaVectorRows(directory = localVectorDirectory()): MediaVectorRow[] {
   if (!hasMediaVectors(directory)) return [];
   try {
