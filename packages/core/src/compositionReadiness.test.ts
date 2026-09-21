@@ -373,6 +373,14 @@ describe("settleCompositionReadiness", () => {
     Object.defineProperty(image, "complete", { value: false });
     let resolveImage!: () => void;
     image.decode = () => new Promise<void>((resolve) => (resolveImage = resolve));
+    let resolveFonts!: () => void;
+    Object.defineProperty(doc, "fonts", {
+      configurable: true,
+      value: {
+        status: "loading",
+        ready: new Promise<void>((resolve) => (resolveFonts = resolve)),
+      },
+    });
     Object.defineProperty(video, "readyState", { value: 0, configurable: true });
 
     let result: { timedOut: boolean } | undefined;
@@ -388,6 +396,9 @@ describe("settleCompositionReadiness", () => {
     await new Promise((resolve) => setTimeout(resolve, 5));
     expect(result).toBeUndefined();
     resolveImage();
+    await flushMicrotasks();
+    expect(result).toBeUndefined();
+    resolveFonts();
     await flushMicrotasks();
     expect(result).toEqual({ timedOut: false });
   });
