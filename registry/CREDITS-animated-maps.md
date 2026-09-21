@@ -1,31 +1,33 @@
 # Credits - Animated Maps pack
 
-Inspired by the Animated Maps collection at Moving Image Archive
+Footage from the Animated Maps collection at Moving Image Archive
 (https://www.movingimagearchive.com/collection/animated-maps).
-Not affiliated; footage not included. Original HyperFrames GSAP/HTML compositions only.
 
-## Items
+About page quote: "The material is drawn from public-domain collections and is free to reuse."
+Not affiliated. Original HyperFrames compositions mount the archival clips with credit.
 
-- `map-route-draw` - route line stroke draw-on
-- `map-territory-wipe` - territory/region fill wipe
-- `map-city-pins` - labeled city pins (pop/stagger)
-- `map-region-zoom` - grid overlay + camera zoom
-- `map-campaign-arrows` - sequential schematic campaign arrows
-- `map-front-line-crawl` - dashed battle/front line crawl
-- `map-ink-blot-soak` - ink/blot territory soak
-- `map-shipping-lanes` - sea/shipping lane dotted path
-- `map-globe-inset` - inset rotating globe + main map
-- `map-stamp-labels` - stamp/typewriter location labels
-- `map-border-chase` - border highlight chase
-- `map-radar-rings` - concentric radar/range rings
-- `map-boundary-morph` - crossfade/simplified SVG historical boundary morph
-- `map-compass-scale` - compass rose + scale bar reveal
-- `map-itinerary-stops` - multi-stop itinerary with numbered markers
-- `map-hotspot-pulse` - heat pulse / hotspot blink
-- `map-parchment-fold` - paper-map fold / parchment aesthetic
-- `map-split-theater` - split-screen two-theater maps
-- `map-arrow-fanout` - arrow swarm / advance fan-out
-- `map-grid-crosshair` - lat-long grid draw + crosshair lock
-- `map-isoline-reveal` - isoline/contour reveal
-- `map-conquest-fill-sequence` - sequential region conquest fill
-- `map-legend-build` - legend panel assemble
+## Shots
+
+- `map-arrow-fanout` - source film: Germany; local `registry/blocks/map-arrow-fanout/assets/clip.mp4`; original https://pub-075ff01374c04555b51c9bc50f258b42.r2.dev/sources/c8c7bb27-d87c-5f44-ada6-2e500c73f67e/v5-windowed-clip-split-1/clips/261939fa-f4cb-5903-9bdf-ffe47d6531ee.mp4; duration 12.01s
+- `map-border-chase` - source film: Alaska: A Modern Frontier (Revised edition); local `registry/blocks/map-border-chase/assets/clip.mp4`; original https://pub-075ff01374c04555b51c9bc50f258b42.r2.dev/sources/alaska-a-modern-frontier-revised-edition/clips/0000165999-0000174941.mp4; duration 8.94s
+- `map-boundary-morph` - source film: Alaska's Silver Millions (Part I); local `registry/blocks/map-boundary-morph/assets/clip.mp4`; original https://pub-075ff01374c04555b51c9bc50f258b42.r2.dev/sources/ee39dc66-4e13-515e-9253-727117b92e93/v5-windowed-clip-split-1/clips/ec949b9b-4dfe-517f-801c-080c36a3e152.mp4; duration 12.01s
+- `map-campaign-arrows` - source film: How Our Country Grew; local `registry/blocks/map-campaign-arrows/assets/clip.mp4`; original https://pub-075ff01374c04555b51c9bc50f258b42.r2.dev/sources/b8ae9e69-ed83-5843-a047-203f1369128a/v4-conditional-luna-1/clips/2a7066f4-4961-54c6-8fdc-f30e1cb6a9ba.mp4; duration 12.01s
+- `map-city-pins` - source film: New York Water Supply; local `registry/blocks/map-city-pins/assets/clip.mp4`; original https://pub-075ff01374c04555b51c9bc50f258b42.r2.dev/sources/0dcea171-7891-5fee-b88a-b9e3bafe999f/v3-ffmpeg-openclip-1/clips/5791dad1-539e-5947-863e-f19cbac765ba.mp4; duration 12.01s
+- `map-compass-scale` - source film: A TRAVELER MEETS AIR TRAFFIC CONTROL; local `registry/blocks/map-compass-scale/assets/clip.mp4`; original https://pub-075ff01374c04555b51c9bc50f258b42.r2.dev/sources/26c42b46-babf-5975-aa59-df4d50c129c9/v3-ffmpeg-openclip-1/clips/11e3e200-9107-5c21-ae5e-607791685daa.mp4; duration 12.01s
+- `map-conquest-fill-sequence` - source film: Man On The Land; local `registry/blocks/map-conquest-fill-sequence/assets/clip.mp4`; original https://pub-075ff01374c04555b51c9bc50f258b42.r2.dev/sources/1a9bf502-c33b-5365-8bd9-827b870d8e71/v4-conditional-luna-1/clips/0e109938-a24a-5d1e-98b7-06340d6b94be.mp4; duration 12.01s
+- `map-front-line-crawl` - source film: Earth Resources Technology Satellite (ERTS); local `registry/blocks/map-front-line-crawl/assets/clip.mp4`; original https://pub-075ff01374c04555b51c9bc50f258b42.r2.dev/sources/55bb460a-e044-5abc-a093-898716cd544c/v5-windowed-clip-split-1/clips/ebdebb47-bc64-52df-8fcf-8f5ba42370cd.mp4; duration 12.01s
+- `map-globe-inset` - source film: Space Flight: Application of Orbital Mechanics; local `registry/blocks/map-globe-inset/assets/clip.mp4`; original https://pub-075ff01374c04555b51c9bc50f258b42.r2.dev/sources/1d4ef756-c577-5d14-9a60-438f53e5b104/v4-conditional-luna-1/clips/9f3c151e-34a0-5c70-89bd-affeeeefacc3.mp4; duration 12.01s
+- `map-grid-crosshair` - source film: Scatter radar: Space research from the ground; local `registry/blocks/map-grid-crosshair/assets/clip.mp4`; original https://pub-075ff01374c04555b51c9bc50f258b42.r2.dev/sources/e8ccef6d-905c-59b4-8f99-01ccd76181b4/v3-ffmpeg-openclip-1/clips/32cc3076-24d9-57ea-af83-bc5a6698040f.mp4; duration 12.01s
+- `map-hotspot-pulse` - source film: EVOLUTION OF THE OIL INDUSTRY, THE; local `registry/blocks/map-hotspot-pulse/assets/clip.mp4`; original https://pub-075ff01374c04555b51c9bc50f258b42.r2.dev/sources/evolution-of-the-oil-industry-the/clips/0000566299-0000584250.mp4; duration 12.01s
+- `map-ink-blot-soak` - source film: Oil Across Arabia; local `registry/blocks/map-ink-blot-soak/assets/clip.mp4`; original https://pub-075ff01374c04555b51c9bc50f258b42.r2.dev/sources/eca4afbe-dd5d-5902-b5d5-6c351964055d/v3-ffmpeg-openclip-1/clips/81004fac-a792-5900-a794-57d70a7a7499.mp4; duration 12.01s
+- `map-isoline-reveal` - source film: Climate Factor; local `registry/blocks/map-isoline-reveal/assets/clip.mp4`; original https://pub-075ff01374c04555b51c9bc50f258b42.r2.dev/sources/a7c554f5-d9e9-5a4a-918a-ee4e2182a01b/v4-conditional-luna-1/clips/987095c5-40bd-53b3-94b6-bfef2bd55ceb.mp4; duration 12.01s
+- `map-itinerary-stops` - source film: Network Broadcasting; local `registry/blocks/map-itinerary-stops/assets/clip.mp4`; original https://pub-075ff01374c04555b51c9bc50f258b42.r2.dev/sources/f8fd2623-7f4f-5dc8-848d-316dfa1b9577/v4-conditional-luna-1/clips/302f6306-83b7-5821-b524-6de9d88c7430.mp4; duration 12.01s
+- `map-legend-build` - source film: Trading Centers of the Pacific Coast; local `registry/blocks/map-legend-build/assets/clip.mp4`; original https://pub-075ff01374c04555b51c9bc50f258b42.r2.dev/sources/d4fb62c2-d729-5d7a-8991-9888de676e53/v5-windowed-clip-split-1/clips/01cb79df-ac89-5864-b9a8-ce5d83d08d3c.mp4; duration 12.01s
+- `map-parchment-fold` - source film: AOPA-ASF: Thunderstorms and the ATC; local `registry/blocks/map-parchment-fold/assets/clip.mp4`; original https://pub-075ff01374c04555b51c9bc50f258b42.r2.dev/sources/bba0d548-4396-5d61-87ad-78789c095c6a/v4-conditional-luna-1/clips/3fe88e0e-68d5-5096-bbe1-e411e69dde86.mp4; duration 12.01s
+- `map-radar-rings` - source film: Arteries of New York City; local `registry/blocks/map-radar-rings/assets/clip.mp4`; original https://pub-075ff01374c04555b51c9bc50f258b42.r2.dev/sources/f655cbe6-9999-5548-9641-cac50a3887ab/v4-conditional-luna-1/clips/f148eecb-aead-5b27-b64a-2b402e19b5d2.mp4; duration 12.01s
+- `map-region-zoom` - source film: Blackwater National Wildlife Refuge; local `registry/blocks/map-region-zoom/assets/clip.mp4`; original https://pub-075ff01374c04555b51c9bc50f258b42.r2.dev/sources/4f8d0d2c-8353-5324-886f-24c801202b5a/v4-conditional-luna-1/clips/a3d7fa33-c395-550e-b0d5-6324dd472292.mp4; duration 12.01s
+- `map-route-draw` - source film: Cities How They Grow; local `registry/blocks/map-route-draw/assets/clip.mp4`; original https://pub-075ff01374c04555b51c9bc50f258b42.r2.dev/sources/383dc482-ae58-5d3c-a12c-92fb90473b7a/v4-conditional-luna-1/clips/2a6954bd-aa6e-5c55-8217-8b8dec70566e.mp4; duration 12.01s
+- `map-shipping-lanes` - source film: City Water Supply; local `registry/blocks/map-shipping-lanes/assets/clip.mp4`; original https://pub-075ff01374c04555b51c9bc50f258b42.r2.dev/sources/f655cbe6-9999-5548-9641-cac50a3887ab/v4-conditional-luna-1/clips/edef9978-a7e7-55a0-8ad6-3245a1770b6f.mp4; duration 12.01s
+- `map-split-theater` - source film: Fire Behavior in the Wildland/Urban Interface; local `registry/blocks/map-split-theater/assets/clip.mp4`; original https://pub-075ff01374c04555b51c9bc50f258b42.r2.dev/sources/1677118f-10a0-56ea-b100-21f6ced25c59/v4-conditional-luna-1/clips/2aff5249-9d8d-575f-9d80-859509d7f69c.mp4; duration 4.6s
+- `map-stamp-labels` - source film: Flying the Islands of the Bahamas; local `registry/blocks/map-stamp-labels/assets/clip.mp4`; original https://pub-075ff01374c04555b51c9bc50f258b42.r2.dev/sources/0b4764b8-4710-5782-a29f-6ede43cb913e/v5-windowed-clip-split-1/clips/b71c03cc-f540-530b-8c5b-b0dd14fdcd91.mp4; duration 12.01s
+- `map-territory-wipe` - source film: Frontiers of the Future (A Screen Editorial With Lowell Thomas); local `registry/blocks/map-territory-wipe/assets/clip.mp4`; original https://pub-075ff01374c04555b51c9bc50f258b42.r2.dev/sources/e1852564-f332-59d5-a883-8f55612a4fc4/v5-windowed-clip-split-1/clips/52a51463-c61d-53aa-a4f4-3c99917eb4cb.mp4; duration 12.01s

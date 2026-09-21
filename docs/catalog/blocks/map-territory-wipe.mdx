@@ -1,6 +1,6 @@
 ---
-title: "Map Territory Wipe"
-description: "Newsreel-style territory fill that wipes on via clip-path reveal over a stylized landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
+title: "Archival Map - Territory Wipe"
+description: "Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Frontiers of the Future (A Screen Editorial With Lowell Thomas). Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
 mode: "frame"
 ---
 
@@ -11,11 +11,11 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   previewSrc="/public/catalog/blocks/map-territory-wipe.json"
   compositionId="map-territory-wipe"
   compositionSrc="compositions/map-territory-wipe.html"
-  title="Map Territory Wipe"
-  description="Newsreel-style territory fill that wipes on via clip-path reveal over a stylized landmass. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Territory Revealed"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Wipe fill · educational cartography"},{"id":"regionLabel","type":"string","label":"Region label","default":"Region A"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
-  meta={{"duration":8,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":210}}
-  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-territory-wipe","tags":["map","geography","animation","territory","wipe","newsreel","reveal","svg"]}}
+  title="Archival Map - Territory Wipe"
+  description="Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Frontiers of the Future (A Screen Editorial With Lowell Thomas). Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Territory Wipe"},{"id":"credit","type":"string","label":"Credit line","default":"Footage: Moving Image Archive | Frontiers of the Future (A Screen Editorial With Lowell Thomas)"}]}
+  meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":146}}
+  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-territory-wipe","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-territory-wipe/map-territory-wipe.html"
 >
@@ -38,7 +38,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         box-sizing: border-box;
       }
       body {
-        background: #1a1714;
+        background: #0a0a0a;
         overflow: hidden;
       }
       #root-map-territory-wipe {
@@ -46,50 +46,53 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         width: 1920px;
         height: 1080px;
         overflow: hidden;
-        background: #1a1714;
-        font-family: Georgia, "Times New Roman", serif;
+        background: #0a0a0a;
+        font-family: "Helvetica Neue", Helvetica, sans-serif;
       }
-      #mtw-frame {
-        position: absolute;
-        inset: 48px;
-        border: 1px solid rgba(196, 181, 154, 0.14);
-        background: #221e19;
-      }
-      #mtw-svg {
+      #tw-video {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
+        object-fit: contain;
+        background: #000;
       }
-      #mtw-title {
+      #tw-frame {
         position: absolute;
-        top: 72px;
-        left: 96px;
-        color: rgba(232, 220, 196, 0.92);
-        font-size: 42px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        inset: 36px;
+        border: 1px solid rgba(232, 220, 196, 0.28);
+        pointer-events: none;
       }
-      #mtw-subtitle {
+      #tw-title {
         position: absolute;
-        top: 128px;
-        left: 96px;
-        color: rgba(196, 181, 154, 0.55);
-        font-size: 22px;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-      }
-      #mtw-badge {
-        position: absolute;
-        bottom: 96px;
-        right: 120px;
-        padding: 14px 28px;
-        border: 1px solid rgba(196, 181, 154, 0.28);
-        color: rgba(232, 220, 196, 0.9);
-        font-size: 20px;
+        left: 72px;
+        top: 56px;
+        max-width: 1400px;
+        color: rgba(245, 236, 214, 0.95);
+        font-size: 36px;
+        font-weight: 700;
         letter-spacing: 0.14em;
         text-transform: uppercase;
-        background: rgba(26, 23, 20, 0.55);
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);
+      }
+      #tw-credit {
+        position: absolute;
+        left: 72px;
+        right: 72px;
+        bottom: 56px;
+        color: rgba(232, 220, 196, 0.88);
+        font-size: 18px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+      }
+      #tw-credit-url {
+        display: block;
+        margin-top: 8px;
+        font-size: 14px;
+        letter-spacing: 0.04em;
+        text-transform: none;
+        color: rgba(196, 181, 154, 0.7);
       }
     </style>
   </head>
@@ -98,135 +101,68 @@ import { InstallCommand } from "/snippets/install-command.jsx";
       id="root-map-territory-wipe"
       data-composition-id="map-territory-wipe"
       data-start="0"
-      data-duration="8"
+      data-duration="12.01"
       data-width="1920"
       data-height="1080"
     >
-      <div id="mtw-frame">
-        <svg
-          id="mtw-svg"
-          viewBox="0 0 1920 1080"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
+      <video
+        id="tw-video"
+        src="assets/clip.mp4"
+        muted
+        playsinline
+        preload="auto"
+        data-start="0"
+        data-duration="12.01"
+        data-media-start="0"
+      ></video>
+      <div id="tw-frame" aria-hidden="true"></div>
+      <div id="tw-title" data-var-text="title">Archival Map - Territory Wipe</div>
+      <div id="tw-credit">
+        <span data-var-text="credit"
+          >Footage: Moving Image Archive | Frontiers of the Future (A Screen Editorial With Lowell
+          Thomas)</span
         >
-          <defs>
-            <clipPath id="mtw-wipe-clip">
-              <rect id="mtw-wipe-rect" x="640" y="300" width="0" height="480" />
-            </clipPath>
-            <pattern
-              id="mtw-hatch"
-              width="10"
-              height="10"
-              patternUnits="userSpaceOnUse"
-              patternTransform="rotate(40)"
-            >
-              <line x1="0" y1="0" x2="0" y2="10" stroke="rgba(196,181,154,0.07)" stroke-width="1" />
-            </pattern>
-          </defs>
-          <rect width="1920" height="1080" fill="#1f1b17" />
-          <rect width="1920" height="1080" fill="url(#mtw-hatch)" />
-          <path
-            id="mtw-land"
-            d="M 280 320 C 340 220 480 180 620 210 C 760 240 820 300 900 280 C 980 260 1080 300 1180 340 C 1280 380 1360 460 1380 560 C 1400 660 1340 760 1240 820 C 1140 880 980 900 860 860 C 740 820 700 780 620 800 C 540 820 420 780 360 700 C 300 620 240 500 280 320 Z"
-            fill="rgba(196,181,154,0.16)"
-            stroke="rgba(196,181,154,0.4)"
-            stroke-width="2"
-          />
-          <path
-            id="mtw-island"
-            d="M 1480 420 C 1540 400 1600 430 1610 480 C 1620 530 1580 570 1520 560 C 1460 550 1450 450 1480 420 Z"
-            fill="rgba(196,181,154,0.12)"
-            stroke="rgba(196,181,154,0.3)"
-            stroke-width="1.5"
-          />
-          <!-- territory under clip -->
-          <path
-            id="mtw-territory"
-            d="M 720 380 C 860 340 980 360 1060 420 C 1140 480 1160 580 1080 640 C 1000 700 860 720 760 680 C 660 640 640 540 680 460 C 700 420 700 400 720 380 Z"
-            fill="#c45c26"
-            fill-opacity="0.55"
-            stroke="#c45c26"
-            stroke-width="2.5"
-            clip-path="url(#mtw-wipe-clip)"
-          />
-          <path
-            id="mtw-territory-outline"
-            d="M 720 380 C 860 340 980 360 1060 420 C 1140 480 1160 580 1080 640 C 1000 700 860 720 760 680 C 660 640 640 540 680 460 C 700 420 700 400 720 380 Z"
-            fill="none"
-            stroke="rgba(196,181,154,0.35)"
-            stroke-width="1.5"
-            stroke-dasharray="6 6"
-          />
-          <text
-            id="mtw-region-label"
-            x="900"
-            y="520"
-            text-anchor="middle"
-            fill="rgba(232,220,196,0.95)"
-            font-size="28"
-            font-family="Georgia, serif"
-            letter-spacing="0.12em"
-            opacity="0"
-          >
-            REGION
-          </text>
-        </svg>
+        <span id="tw-credit-url"
+          >movingimagearchive.com/collection/animated-maps - public domain / free to reuse</span
+        >
       </div>
-      <div id="mtw-title" data-var-text="title">Territory Revealed</div>
-      <div id="mtw-subtitle" data-var-text="subtitle">Wipe fill · educational cartography</div>
-      <div id="mtw-badge" data-var-text="regionLabel">Region A</div>
     </div>
     <script>
       (function () {
         window.__timelines = window.__timelines || {};
+
         var vars =
           window.__hyperframes && window.__hyperframes.getVariables
             ? window.__hyperframes.getVariables()
             : {};
-        var accent = /^#[0-9a-fA-F]{6}$/.test(String(vars.accent || ""))
-          ? String(vars.accent)
-          : "#c45c26";
+
         var title =
-          typeof vars.title === "string" && vars.title ? vars.title : "Territory Revealed";
-        var subtitle =
-          typeof vars.subtitle === "string" && vars.subtitle
-            ? vars.subtitle
-            : "Wipe fill · educational cartography";
-        var regionLabel =
-          typeof vars.regionLabel === "string" && vars.regionLabel ? vars.regionLabel : "Region A";
+          typeof vars.title === "string" && vars.title
+            ? vars.title
+            : "Archival Map - Territory Wipe";
+        var credit =
+          typeof vars.credit === "string" && vars.credit
+            ? vars.credit
+            : "Footage: Moving Image Archive | Frontiers of the Future (A Screen Editorial With Lowell Thomas)";
 
-        document.getElementById("mtw-title").textContent = title;
-        document.getElementById("mtw-subtitle").textContent = subtitle;
-        document.getElementById("mtw-badge").textContent = regionLabel;
-        document.getElementById("mtw-region-label").textContent = regionLabel.toUpperCase();
-
-        var terr = document.getElementById("mtw-territory");
-        terr.setAttribute("fill", accent);
-        terr.setAttribute("stroke", accent);
-
-        var wipe = document.getElementById("mtw-wipe-rect");
-        gsap.set("#mtw-title", { opacity: 0, y: -10 });
-        gsap.set("#mtw-subtitle", { opacity: 0 });
-        gsap.set("#mtw-badge", { opacity: 0, y: 10 });
-        gsap.set("#mtw-land", { opacity: 0 });
-        gsap.set("#mtw-island", { opacity: 0 });
-        gsap.set("#mtw-territory-outline", { opacity: 0 });
-        gsap.set("#mtw-region-label", { opacity: 0 });
-        gsap.set(wipe, { attr: { width: 0 } });
+        document.getElementById("tw-title").textContent = title;
+        document.querySelector('#tw-credit [data-var-text="credit"]').textContent = credit;
 
         var tl = gsap.timeline({ paused: true });
-        tl.to("#mtw-land", { opacity: 1, duration: 0.5, ease: "power2.out" }, 0);
-        tl.to("#mtw-island", { opacity: 1, duration: 0.4, ease: "power2.out" }, 0.12);
-        tl.to("#mtw-title", { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 0.08);
-        tl.to("#mtw-subtitle", { opacity: 1, duration: 0.35, ease: "power1.out" }, 0.3);
-        tl.to("#mtw-territory-outline", { opacity: 1, duration: 0.4, ease: "power1.out" }, 0.7);
-        // Horizontal wipe reveal via clip rect width
-        tl.to(wipe, { attr: { width: 560 }, duration: 2.6, ease: "power2.inOut" }, 1.2);
-        tl.to("#mtw-region-label", { opacity: 1, duration: 0.4, ease: "power1.out" }, 3.5);
-        tl.to("#mtw-badge", { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 3.7);
-        // Soft pulse settle on territory opacity
-        tl.to(terr, { fillOpacity: 0.7, duration: 0.6, ease: "sine.inOut" }, 4.2);
-        tl.to(terr, { fillOpacity: 0.55, duration: 0.6, ease: "sine.inOut" }, 4.8);
+        // Credit/title hold - HyperFrames media runtime seeks the video via data-start
+        tl.fromTo(
+          "#tw-title",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.6, ease: "power1.out" },
+          0,
+        );
+        tl.fromTo(
+          "#tw-credit",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.6, ease: "power1.out" },
+          0.15,
+        );
+        tl.to({}, { duration: Math.max(0.01, 12.01 - 0.75) });
 
         window.__timelines["map-territory-wipe"] = tl;
       })();
@@ -241,7 +177,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
 
 <InstallCommand command="npx hyperframes add map-territory-wipe" item="map-territory-wipe" />
 
-That writes one file: `compositions/map-territory-wipe.html`.
+That writes `compositions/map-territory-wipe.html`, plus 2 supporting files under `assets/`.
 
 </CatalogSlot>
 
@@ -249,14 +185,14 @@ That writes one file: `compositions/map-territory-wipe.html`.
 
 ## Add it to your video
 
-It runs for 8 seconds at 1920×1080. Paste this into your composition:
+It runs for 12.01 seconds at 1920×1080. Paste this into your composition:
 
 ```html index.html
 <div
   data-composition-id="map-territory-wipe"
   data-composition-src="compositions/map-territory-wipe.html"
   data-start="0"
-  data-duration="8"
+  data-duration="12.01"
   data-track-index="1"
   data-width="1920"
   data-height="1080"
@@ -270,10 +206,8 @@ Move it in time with `data-start`. Put it on a different timeline row with
 
 Set these CSS variables on the block:
 
-- `title` - Title. Defaults to `Territory Revealed`.
-- `subtitle` - Subtitle. Defaults to `Wipe fill · educational cartography`.
-- `regionLabel` - Region label. Defaults to `Region A`.
-- `accent` - Accent. Defaults to `#c45c26`.
+- `title` - Title. Defaults to `Archival Map - Territory Wipe`.
+- `credit` - Credit line. Defaults to `Footage: Moving Image Archive | Frontiers of the Future (A Screen Editorial With Lowell Thomas)`.
 
 ## Variables
 
@@ -282,10 +216,8 @@ want to change on the element:
 
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
-| `title` | `Territory Revealed` | string |  |
-| `subtitle` | `Wipe fill · educational cartography` | string |  |
-| `regionLabel` | `Region A` | string |  |
-| `accent` | `#c45c26` | color |  |
+| `title` | `Archival Map - Territory Wipe` | string |  |
+| `credit` | `Footage: Moving Image Archive | Frontiers of the Future (A Screen Editorial With Lowell Thomas)` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -294,13 +226,13 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-territory-wipe"
   data-composition-src="compositions/map-territory-wipe.html"
-  data-variable-values='{"title":"Territory Revealed","subtitle":"Wipe fill · educational cartography","regionLabel":"Region A","accent":"#c45c26"}'
+  data-variable-values='{"title":"Archival Map - Territory Wipe","credit":"Footage: Moving Image Archive | Frontiers of the Future (A Screen Editorial With Lowell Thomas)"}'
 ></div>
 ```
 
 {/* hf:generated-footer */}
 
-Tagged `map` `geography` `animation` `territory` `wipe` `newsreel` `reveal` `svg`.
+Tagged `map` `geography` `animation` `archival` `footage` `mia` `newsreel` `video`.
 
 Created by [HeyGen](https://hyperframes.heygen.com).
 

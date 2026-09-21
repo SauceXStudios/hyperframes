@@ -1,6 +1,6 @@
 ---
-title: "Map Grid Crosshair"
-description: "Lat-long grid draw-on with a crosshair lock on a target point. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
+title: "Archival Map - Grid Crosshair"
+description: "Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Scatter radar: Space research from the ground. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
 mode: "frame"
 ---
 
@@ -11,11 +11,11 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   previewSrc="/public/catalog/blocks/map-grid-crosshair.json"
   compositionId="map-grid-crosshair"
   compositionSrc="compositions/map-grid-crosshair.html"
-  title="Map Grid Crosshair"
-  description="Lat-long grid draw-on with a crosshair lock on a target point. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Grid Lock"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · lat-long lock"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
-  meta={{"duration":7,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":383}}
-  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-grid-crosshair","tags":["map","geography","animation","grid","crosshair","latlong","newsreel","svg"]}}
+  title="Archival Map - Grid Crosshair"
+  description="Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Scatter radar: Space research from the ground. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Grid Crosshair"},{"id":"credit","type":"string","label":"Credit line","default":"Footage: Moving Image Archive | Scatter radar: Space research from the ground"}]}
+  meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":145}}
+  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-grid-crosshair","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-grid-crosshair/map-grid-crosshair.html"
 >
@@ -38,7 +38,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         box-sizing: border-box;
       }
       body {
-        background: #1a1714;
+        background: #0a0a0a;
         overflow: hidden;
       }
       #root-map-grid-crosshair {
@@ -46,49 +46,53 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         width: 1920px;
         height: 1080px;
         overflow: hidden;
-        background: #1a1714;
-        font-family: Georgia, "Times New Roman", serif;
+        background: #0a0a0a;
+        font-family: "Helvetica Neue", Helvetica, sans-serif;
       }
-      #mgc-frame {
-        position: absolute;
-        inset: 48px;
-        border: 1px solid rgba(196, 181, 154, 0.14);
-        background: #221e19;
-      }
-      #mgc-svg {
+      #gc-video {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
+        object-fit: contain;
+        background: #000;
       }
-      #mgc-title {
+      #gc-frame {
         position: absolute;
-        top: 72px;
-        left: 96px;
-        color: rgba(232, 220, 196, 0.92);
-        font-size: 42px;
+        inset: 36px;
+        border: 1px solid rgba(232, 220, 196, 0.28);
+        pointer-events: none;
+      }
+      #gc-title {
+        position: absolute;
+        left: 72px;
+        top: 56px;
+        max-width: 1400px;
+        color: rgba(245, 236, 214, 0.95);
+        font-size: 36px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);
+      }
+      #gc-credit {
+        position: absolute;
+        left: 72px;
+        right: 72px;
+        bottom: 56px;
+        color: rgba(232, 220, 196, 0.88);
+        font-size: 18px;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        font-weight: 400;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
       }
-      #mgc-subtitle {
-        position: absolute;
-        top: 128px;
-        left: 96px;
-        color: rgba(196, 181, 154, 0.55);
-        font-size: 22px;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-      }
-      #mgc-note {
-        position: absolute;
-        bottom: 88px;
-        left: 96px;
-        color: rgba(196, 181, 154, 0.55);
-        font-size: 16px;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        max-width: 900px;
+      #gc-credit-url {
+        display: block;
+        margin-top: 8px;
+        font-size: 14px;
+        letter-spacing: 0.04em;
+        text-transform: none;
+        color: rgba(196, 181, 154, 0.7);
       }
     </style>
   </head>
@@ -97,310 +101,68 @@ import { InstallCommand } from "/snippets/install-command.jsx";
       id="root-map-grid-crosshair"
       data-composition-id="map-grid-crosshair"
       data-start="0"
-      data-duration="7"
+      data-duration="12.01"
       data-width="1920"
       data-height="1080"
     >
-      <div id="mgc-frame">
-        <svg
-          id="mgc-svg"
-          viewBox="0 0 1920 1080"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
+      <video
+        id="gc-video"
+        src="assets/clip.mp4"
+        muted
+        playsinline
+        preload="auto"
+        data-start="0"
+        data-duration="12.01"
+        data-media-start="0"
+      ></video>
+      <div id="gc-frame" aria-hidden="true"></div>
+      <div id="gc-title" data-var-text="title">Archival Map - Grid Crosshair</div>
+      <div id="gc-credit">
+        <span data-var-text="credit"
+          >Footage: Moving Image Archive | Scatter radar: Space research from the ground</span
         >
-          <defs>
-            <pattern
-              id="mgc-hatch"
-              width="12"
-              height="12"
-              patternUnits="userSpaceOnUse"
-              patternTransform="rotate(35)"
-            >
-              <line x1="0" y1="0" x2="0" y2="12" stroke="rgba(196,181,154,0.08)" stroke-width="1" />
-            </pattern>
-          </defs>
-
-          <rect width="1920" height="1080" fill="#1f1b17" />
-          <rect width="1920" height="1080" fill="url(#mgc-hatch)" />
-          <path
-            id="mgc-land"
-            d="M 280 320 C 340 220 480 180 620 210 C 760 240 820 300 900 280 C 980 260 1080 300 1180 340 C 1280 380 1360 460 1380 560 C 1400 660 1340 760 1240 820 C 1140 880 980 900 860 860 C 740 820 700 780 620 800 C 540 820 420 780 360 700 C 300 620 240 500 280 320 Z"
-            fill="rgba(196,181,154,0.16)"
-            stroke="rgba(196,181,154,0.4)"
-            stroke-width="2"
-          />
-          <path
-            id="mgc-island"
-            d="M 1480 420 C 1540 400 1600 430 1610 480 C 1620 530 1580 570 1520 560 C 1460 550 1450 450 1480 420 Z"
-            fill="rgba(196,181,154,0.12)"
-            stroke="rgba(196,181,154,0.3)"
-            stroke-width="1.5"
-          />
-
-          <g id="mgc-grid">
-            <line
-              class="mgc-v"
-              x1="240"
-              y1="160"
-              x2="240"
-              y2="920"
-              stroke="rgba(196,181,154,0.18)"
-              stroke-width="1"
-            />
-            <line
-              class="mgc-v"
-              x1="360"
-              y1="160"
-              x2="360"
-              y2="920"
-              stroke="rgba(196,181,154,0.18)"
-              stroke-width="1"
-            />
-            <line
-              class="mgc-v"
-              x1="480"
-              y1="160"
-              x2="480"
-              y2="920"
-              stroke="rgba(196,181,154,0.18)"
-              stroke-width="1"
-            />
-            <line
-              class="mgc-v"
-              x1="600"
-              y1="160"
-              x2="600"
-              y2="920"
-              stroke="rgba(196,181,154,0.18)"
-              stroke-width="1"
-            />
-            <line
-              class="mgc-v"
-              x1="720"
-              y1="160"
-              x2="720"
-              y2="920"
-              stroke="rgba(196,181,154,0.18)"
-              stroke-width="1"
-            />
-            <line
-              class="mgc-v"
-              x1="840"
-              y1="160"
-              x2="840"
-              y2="920"
-              stroke="rgba(196,181,154,0.18)"
-              stroke-width="1"
-            />
-            <line
-              class="mgc-v"
-              x1="960"
-              y1="160"
-              x2="960"
-              y2="920"
-              stroke="rgba(196,181,154,0.18)"
-              stroke-width="1"
-            />
-            <line
-              class="mgc-v"
-              x1="1080"
-              y1="160"
-              x2="1080"
-              y2="920"
-              stroke="rgba(196,181,154,0.18)"
-              stroke-width="1"
-            />
-            <line
-              class="mgc-v"
-              x1="1200"
-              y1="160"
-              x2="1200"
-              y2="920"
-              stroke="rgba(196,181,154,0.18)"
-              stroke-width="1"
-            />
-            <line
-              class="mgc-v"
-              x1="1320"
-              y1="160"
-              x2="1320"
-              y2="920"
-              stroke="rgba(196,181,154,0.18)"
-              stroke-width="1"
-            />
-            <line
-              class="mgc-v"
-              x1="1440"
-              y1="160"
-              x2="1440"
-              y2="920"
-              stroke="rgba(196,181,154,0.18)"
-              stroke-width="1"
-            />
-            <line
-              class="mgc-v"
-              x1="1560"
-              y1="160"
-              x2="1560"
-              y2="920"
-              stroke="rgba(196,181,154,0.18)"
-              stroke-width="1"
-            />
-            <line
-              class="mgc-v"
-              x1="1680"
-              y1="160"
-              x2="1680"
-              y2="920"
-              stroke="rgba(196,181,154,0.18)"
-              stroke-width="1"
-            />
-            <line
-              class="mgc-h"
-              x1="200"
-              y1="200"
-              x2="1720"
-              y2="200"
-              stroke="rgba(196,181,154,0.18)"
-              stroke-width="1"
-            />
-            <line
-              class="mgc-h"
-              x1="200"
-              y1="300"
-              x2="1720"
-              y2="300"
-              stroke="rgba(196,181,154,0.18)"
-              stroke-width="1"
-            />
-            <line
-              class="mgc-h"
-              x1="200"
-              y1="400"
-              x2="1720"
-              y2="400"
-              stroke="rgba(196,181,154,0.18)"
-              stroke-width="1"
-            />
-            <line
-              class="mgc-h"
-              x1="200"
-              y1="500"
-              x2="1720"
-              y2="500"
-              stroke="rgba(196,181,154,0.18)"
-              stroke-width="1"
-            />
-            <line
-              class="mgc-h"
-              x1="200"
-              y1="600"
-              x2="1720"
-              y2="600"
-              stroke="rgba(196,181,154,0.18)"
-              stroke-width="1"
-            />
-            <line
-              class="mgc-h"
-              x1="200"
-              y1="700"
-              x2="1720"
-              y2="700"
-              stroke="rgba(196,181,154,0.18)"
-              stroke-width="1"
-            />
-            <line
-              class="mgc-h"
-              x1="200"
-              y1="800"
-              x2="1720"
-              y2="800"
-              stroke="rgba(196,181,154,0.18)"
-              stroke-width="1"
-            />
-          </g>
-          <line
-            id="mgc-ch-h"
-            x1="200"
-            y1="520"
-            x2="1720"
-            y2="520"
-            stroke="#c45c26"
-            stroke-width="2"
-          />
-          <line
-            id="mgc-ch-v"
-            x1="980"
-            y1="160"
-            x2="980"
-            y2="920"
-            stroke="#c45c26"
-            stroke-width="2"
-          />
-          <circle
-            id="mgc-lock"
-            cx="980"
-            cy="520"
-            r="16"
-            fill="none"
-            stroke="#c45c26"
-            stroke-width="3"
-          />
-          <circle id="mgc-dot" cx="980" cy="520" r="5" fill="#c45c26" />
-        </svg>
+        <span id="gc-credit-url"
+          >movingimagearchive.com/collection/animated-maps - public domain / free to reuse</span
+        >
       </div>
-      <div id="mgc-title" data-var-text="title">Grid Lock</div>
-      <div id="mgc-subtitle" data-var-text="subtitle">Educational cartography · lat-long lock</div>
-      <div id="mgc-note">Grid draw + crosshair lock · schematic only</div>
     </div>
     <script>
       (function () {
         window.__timelines = window.__timelines || {};
+
         var vars =
           window.__hyperframes && window.__hyperframes.getVariables
             ? window.__hyperframes.getVariables()
             : {};
-        var accent = /^#[0-9a-fA-F]{6}$/.test(String(vars.accent || ""))
-          ? String(vars.accent)
-          : "#c45c26";
-        var title = typeof vars.title === "string" && vars.title ? vars.title : "Grid Lock";
-        var subtitle =
-          typeof vars.subtitle === "string" && vars.subtitle
-            ? vars.subtitle
-            : "Educational cartography \u00b7 lat-long lock";
 
-        document.getElementById("mgc-title").textContent = title;
-        document.getElementById("mgc-subtitle").textContent = subtitle;
-        ["mgc-ch-h", "mgc-ch-v", "mgc-lock"].forEach(function (id) {
-          document.getElementById(id).setAttribute("stroke", accent);
-        });
-        document.getElementById("mgc-dot").setAttribute("fill", accent);
-        gsap.set(
-          ["#mgc-land", "#mgc-island", "#mgc-title", "#mgc-subtitle", "#mgc-note", "#mgc-grid"],
-          { opacity: 0 },
-        );
-        gsap.set(["#mgc-ch-h", "#mgc-ch-v"], { opacity: 0, scaleX: 0, transformOrigin: "50% 50%" });
-        gsap.set("#mgc-ch-v", { scaleX: 1, scaleY: 0 });
-        gsap.set(["#mgc-lock", "#mgc-dot"], {
-          opacity: 0,
-          scale: 0.4,
-          transformOrigin: "50% 50%",
-          svgOrigin: "980px 520px",
-        });
+        var title =
+          typeof vars.title === "string" && vars.title
+            ? vars.title
+            : "Archival Map - Grid Crosshair";
+        var credit =
+          typeof vars.credit === "string" && vars.credit
+            ? vars.credit
+            : "Footage: Moving Image Archive | Scatter radar: Space research from the ground";
+
+        document.getElementById("gc-title").textContent = title;
+        document.querySelector('#gc-credit [data-var-text="credit"]').textContent = credit;
+
         var tl = gsap.timeline({ paused: true });
-        tl.to("#mgc-land", { opacity: 1, duration: 0.5 }, 0);
-        tl.to("#mgc-island", { opacity: 1, duration: 0.4 }, 0.1);
-        tl.to("#mgc-title", { opacity: 1, duration: 0.4 }, 0.15);
-        tl.to("#mgc-subtitle", { opacity: 1, duration: 0.35 }, 0.35);
-        tl.to("#mgc-grid", { opacity: 1, duration: 1.2, ease: "power1.out" }, 0.8);
-        tl.to("#mgc-ch-h", { opacity: 1, scaleX: 1, duration: 0.7, ease: "power2.out" }, 2.2);
-        tl.to("#mgc-ch-v", { opacity: 1, scaleY: 1, duration: 0.7, ease: "power2.out" }, 2.5);
-        tl.to(
-          ["#mgc-lock", "#mgc-dot"],
-          { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(1.8)" },
-          3.4,
+        // Credit/title hold - HyperFrames media runtime seeks the video via data-start
+        tl.fromTo(
+          "#gc-title",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.6, ease: "power1.out" },
+          0,
         );
-        tl.to("#mgc-note", { opacity: 1, duration: 0.4 }, 4.5);
+        tl.fromTo(
+          "#gc-credit",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.6, ease: "power1.out" },
+          0.15,
+        );
+        tl.to({}, { duration: Math.max(0.01, 12.01 - 0.75) });
+
         window.__timelines["map-grid-crosshair"] = tl;
       })();
     </script>
@@ -414,7 +176,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
 
 <InstallCommand command="npx hyperframes add map-grid-crosshair" item="map-grid-crosshair" />
 
-That writes one file: `compositions/map-grid-crosshair.html`.
+That writes `compositions/map-grid-crosshair.html`, plus 2 supporting files under `assets/`.
 
 </CatalogSlot>
 
@@ -422,14 +184,14 @@ That writes one file: `compositions/map-grid-crosshair.html`.
 
 ## Add it to your video
 
-It runs for 7 seconds at 1920×1080. Paste this into your composition:
+It runs for 12.01 seconds at 1920×1080. Paste this into your composition:
 
 ```html index.html
 <div
   data-composition-id="map-grid-crosshair"
   data-composition-src="compositions/map-grid-crosshair.html"
   data-start="0"
-  data-duration="7"
+  data-duration="12.01"
   data-track-index="1"
   data-width="1920"
   data-height="1080"
@@ -443,9 +205,8 @@ Move it in time with `data-start`. Put it on a different timeline row with
 
 Set these CSS variables on the block:
 
-- `title` - Title. Defaults to `Grid Lock`.
-- `subtitle` - Subtitle. Defaults to `Educational cartography · lat-long lock`.
-- `accent` - Accent. Defaults to `#c45c26`.
+- `title` - Title. Defaults to `Archival Map - Grid Crosshair`.
+- `credit` - Credit line. Defaults to `Footage: Moving Image Archive | Scatter radar: Space research from the ground`.
 
 ## Variables
 
@@ -454,9 +215,8 @@ want to change on the element:
 
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
-| `title` | `Grid Lock` | string |  |
-| `subtitle` | `Educational cartography · lat-long lock` | string |  |
-| `accent` | `#c45c26` | color |  |
+| `title` | `Archival Map - Grid Crosshair` | string |  |
+| `credit` | `Footage: Moving Image Archive | Scatter radar: Space research from the ground` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -465,13 +225,13 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-grid-crosshair"
   data-composition-src="compositions/map-grid-crosshair.html"
-  data-variable-values='{"title":"Grid Lock","subtitle":"Educational cartography · lat-long lock","accent":"#c45c26"}'
+  data-variable-values='{"title":"Archival Map - Grid Crosshair","credit":"Footage: Moving Image Archive | Scatter radar: Space research from the ground"}'
 ></div>
 ```
 
 {/* hf:generated-footer */}
 
-Tagged `map` `geography` `animation` `grid` `crosshair` `latlong` `newsreel` `svg`.
+Tagged `map` `geography` `animation` `archival` `footage` `mia` `newsreel` `video`.
 
 Created by [HeyGen](https://hyperframes.heygen.com).
 

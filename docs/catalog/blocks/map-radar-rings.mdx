@@ -1,6 +1,6 @@
 ---
-title: "Map Radar Rings"
-description: "Concentric radar and range rings that expand from a focal point with a seek-safe sweep. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
+title: "Archival Map - Radar Rings"
+description: "Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Arteries of New York City. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
 mode: "frame"
 ---
 
@@ -11,11 +11,11 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   previewSrc="/public/catalog/blocks/map-radar-rings.json"
   compositionId="map-radar-rings"
   compositionSrc="compositions/map-radar-rings.html"
-  title="Map Radar Rings"
-  description="Concentric radar and range rings that expand from a focal point with a seek-safe sweep. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Range Rings"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · radar rings"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
-  meta={{"duration":9,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":231}}
-  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-radar-rings","tags":["map","geography","animation","radar","rings","range","newsreel","svg"]}}
+  title="Archival Map - Radar Rings"
+  description="Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Arteries of New York City. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Radar Rings"},{"id":"credit","type":"string","label":"Credit line","default":"Footage: Moving Image Archive | Arteries of New York City"}]}
+  meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":143}}
+  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-radar-rings","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-radar-rings/map-radar-rings.html"
 >
@@ -38,7 +38,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         box-sizing: border-box;
       }
       body {
-        background: #1a1714;
+        background: #0a0a0a;
         overflow: hidden;
       }
       #root-map-radar-rings {
@@ -46,49 +46,53 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         width: 1920px;
         height: 1080px;
         overflow: hidden;
-        background: #1a1714;
-        font-family: Georgia, "Times New Roman", serif;
+        background: #0a0a0a;
+        font-family: "Helvetica Neue", Helvetica, sans-serif;
       }
-      #mrr-frame {
-        position: absolute;
-        inset: 48px;
-        border: 1px solid rgba(196, 181, 154, 0.14);
-        background: #221e19;
-      }
-      #mrr-svg {
+      #rr-video {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
+        object-fit: contain;
+        background: #000;
       }
-      #mrr-title {
+      #rr-frame {
         position: absolute;
-        top: 72px;
-        left: 96px;
-        color: rgba(232, 220, 196, 0.92);
-        font-size: 42px;
+        inset: 36px;
+        border: 1px solid rgba(232, 220, 196, 0.28);
+        pointer-events: none;
+      }
+      #rr-title {
+        position: absolute;
+        left: 72px;
+        top: 56px;
+        max-width: 1400px;
+        color: rgba(245, 236, 214, 0.95);
+        font-size: 36px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);
+      }
+      #rr-credit {
+        position: absolute;
+        left: 72px;
+        right: 72px;
+        bottom: 56px;
+        color: rgba(232, 220, 196, 0.88);
+        font-size: 18px;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        font-weight: 400;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
       }
-      #mrr-subtitle {
-        position: absolute;
-        top: 128px;
-        left: 96px;
-        color: rgba(196, 181, 154, 0.55);
-        font-size: 22px;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-      }
-      #mrr-note {
-        position: absolute;
-        bottom: 88px;
-        left: 96px;
-        color: rgba(196, 181, 154, 0.55);
-        font-size: 16px;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        max-width: 900px;
+      #rr-credit-url {
+        display: block;
+        margin-top: 8px;
+        font-size: 14px;
+        letter-spacing: 0.04em;
+        text-transform: none;
+        color: rgba(196, 181, 154, 0.7);
       }
     </style>
   </head>
@@ -97,158 +101,66 @@ import { InstallCommand } from "/snippets/install-command.jsx";
       id="root-map-radar-rings"
       data-composition-id="map-radar-rings"
       data-start="0"
-      data-duration="9"
+      data-duration="12.01"
       data-width="1920"
       data-height="1080"
     >
-      <div id="mrr-frame">
-        <svg
-          id="mrr-svg"
-          viewBox="0 0 1920 1080"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
+      <video
+        id="rr-video"
+        src="assets/clip.mp4"
+        muted
+        playsinline
+        preload="auto"
+        data-start="0"
+        data-duration="12.01"
+        data-media-start="0"
+      ></video>
+      <div id="rr-frame" aria-hidden="true"></div>
+      <div id="rr-title" data-var-text="title">Archival Map - Radar Rings</div>
+      <div id="rr-credit">
+        <span data-var-text="credit"
+          >Footage: Moving Image Archive | Arteries of New York City</span
         >
-          <defs>
-            <pattern
-              id="mrr-hatch"
-              width="12"
-              height="12"
-              patternUnits="userSpaceOnUse"
-              patternTransform="rotate(35)"
-            >
-              <line x1="0" y1="0" x2="0" y2="12" stroke="rgba(196,181,154,0.08)" stroke-width="1" />
-            </pattern>
-          </defs>
-
-          <rect width="1920" height="1080" fill="#1f1b17" />
-          <rect width="1920" height="1080" fill="url(#mrr-hatch)" />
-          <path
-            id="mrr-land"
-            d="M 280 320 C 340 220 480 180 620 210 C 760 240 820 300 900 280 C 980 260 1080 300 1180 340 C 1280 380 1360 460 1380 560 C 1400 660 1340 760 1240 820 C 1140 880 980 900 860 860 C 740 820 700 780 620 800 C 540 820 420 780 360 700 C 300 620 240 500 280 320 Z"
-            fill="rgba(196,181,154,0.16)"
-            stroke="rgba(196,181,154,0.4)"
-            stroke-width="2"
-          />
-          <path
-            id="mrr-island"
-            d="M 1480 420 C 1540 400 1600 430 1610 480 C 1620 530 1580 570 1520 560 C 1460 550 1450 450 1480 420 Z"
-            fill="rgba(196,181,154,0.12)"
-            stroke="rgba(196,181,154,0.3)"
-            stroke-width="1.5"
-          />
-
-          <circle
-            id="mrr-r1"
-            cx="900"
-            cy="540"
-            r="80"
-            fill="none"
-            stroke="#c45c26"
-            stroke-width="2"
-          />
-          <circle
-            id="mrr-r2"
-            cx="900"
-            cy="540"
-            r="160"
-            fill="none"
-            stroke="#c45c26"
-            stroke-width="2"
-          />
-          <circle
-            id="mrr-r3"
-            cx="900"
-            cy="540"
-            r="240"
-            fill="none"
-            stroke="#c45c26"
-            stroke-width="2"
-          />
-          <circle
-            id="mrr-r4"
-            cx="900"
-            cy="540"
-            r="320"
-            fill="none"
-            stroke="#c45c26"
-            stroke-width="1.5"
-            opacity="0.7"
-          />
-          <circle id="mrr-core" cx="900" cy="540" r="10" fill="#c45c26" />
-          <line
-            id="mrr-sweep"
-            x1="900"
-            y1="540"
-            x2="900"
-            y2="220"
-            stroke="#e8dcc4"
-            stroke-width="2"
-            opacity="0.65"
-          />
-        </svg>
+        <span id="rr-credit-url"
+          >movingimagearchive.com/collection/animated-maps - public domain / free to reuse</span
+        >
       </div>
-      <div id="mrr-title" data-var-text="title">Range Rings</div>
-      <div id="mrr-subtitle" data-var-text="subtitle">Educational cartography · radar rings</div>
-      <div id="mrr-note">Range rings · schematic sweep only</div>
     </div>
     <script>
       (function () {
         window.__timelines = window.__timelines || {};
+
         var vars =
           window.__hyperframes && window.__hyperframes.getVariables
             ? window.__hyperframes.getVariables()
             : {};
-        var accent = /^#[0-9a-fA-F]{6}$/.test(String(vars.accent || ""))
-          ? String(vars.accent)
-          : "#c45c26";
-        var title = typeof vars.title === "string" && vars.title ? vars.title : "Range Rings";
-        var subtitle =
-          typeof vars.subtitle === "string" && vars.subtitle
-            ? vars.subtitle
-            : "Educational cartography \u00b7 radar rings";
 
-        document.getElementById("mrr-title").textContent = title;
-        document.getElementById("mrr-subtitle").textContent = subtitle;
-        ["mrr-r1", "mrr-r2", "mrr-r3", "mrr-r4"].forEach(function (id) {
-          document.getElementById(id).setAttribute("stroke", accent);
-        });
-        document.getElementById("mrr-core").setAttribute("fill", accent);
-        gsap.set(
-          [
-            "#mrr-land",
-            "#mrr-island",
-            "#mrr-title",
-            "#mrr-subtitle",
-            "#mrr-note",
-            "#mrr-core",
-            "#mrr-sweep",
-          ],
-          { opacity: 0 },
-        );
-        gsap.set(["#mrr-r1", "#mrr-r2", "#mrr-r3", "#mrr-r4"], {
-          scale: 0.2,
-          opacity: 0,
-          transformOrigin: "50% 50%",
-          svgOrigin: "900px 540px",
-        });
-        gsap.set("#mrr-sweep", {
-          transformOrigin: "900px 540px",
-          rotation: 0,
-          svgOrigin: "900px 540px",
-        });
+        var title =
+          typeof vars.title === "string" && vars.title ? vars.title : "Archival Map - Radar Rings";
+        var credit =
+          typeof vars.credit === "string" && vars.credit
+            ? vars.credit
+            : "Footage: Moving Image Archive | Arteries of New York City";
+
+        document.getElementById("rr-title").textContent = title;
+        document.querySelector('#rr-credit [data-var-text="credit"]').textContent = credit;
+
         var tl = gsap.timeline({ paused: true });
-        tl.to("#mrr-land", { opacity: 1, duration: 0.5 }, 0);
-        tl.to("#mrr-island", { opacity: 1, duration: 0.4 }, 0.1);
-        tl.to("#mrr-title", { opacity: 1, duration: 0.4 }, 0.15);
-        tl.to("#mrr-subtitle", { opacity: 1, duration: 0.35 }, 0.35);
-        tl.to("#mrr-core", { opacity: 1, duration: 0.25 }, 0.7);
-        tl.to("#mrr-r1", { scale: 1, opacity: 1, duration: 0.6, ease: "power2.out" }, 1.0);
-        tl.to("#mrr-r2", { scale: 1, opacity: 1, duration: 0.7, ease: "power2.out" }, 1.5);
-        tl.to("#mrr-r3", { scale: 1, opacity: 1, duration: 0.8, ease: "power2.out" }, 2.1);
-        tl.to("#mrr-r4", { scale: 1, opacity: 0.7, duration: 0.9, ease: "power2.out" }, 2.8);
-        tl.to("#mrr-sweep", { opacity: 0.65, duration: 0.3 }, 3.4);
-        tl.to("#mrr-sweep", { rotation: 360, duration: 4.0, ease: "none" }, 3.5);
-        tl.to("#mrr-note", { opacity: 1, duration: 0.4 }, 6.0);
+        // Credit/title hold - HyperFrames media runtime seeks the video via data-start
+        tl.fromTo(
+          "#rr-title",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.6, ease: "power1.out" },
+          0,
+        );
+        tl.fromTo(
+          "#rr-credit",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.6, ease: "power1.out" },
+          0.15,
+        );
+        tl.to({}, { duration: Math.max(0.01, 12.01 - 0.75) });
+
         window.__timelines["map-radar-rings"] = tl;
       })();
     </script>
@@ -262,7 +174,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
 
 <InstallCommand command="npx hyperframes add map-radar-rings" item="map-radar-rings" />
 
-That writes one file: `compositions/map-radar-rings.html`.
+That writes `compositions/map-radar-rings.html`, plus 2 supporting files under `assets/`.
 
 </CatalogSlot>
 
@@ -270,14 +182,14 @@ That writes one file: `compositions/map-radar-rings.html`.
 
 ## Add it to your video
 
-It runs for 9 seconds at 1920×1080. Paste this into your composition:
+It runs for 12.01 seconds at 1920×1080. Paste this into your composition:
 
 ```html index.html
 <div
   data-composition-id="map-radar-rings"
   data-composition-src="compositions/map-radar-rings.html"
   data-start="0"
-  data-duration="9"
+  data-duration="12.01"
   data-track-index="1"
   data-width="1920"
   data-height="1080"
@@ -291,9 +203,8 @@ Move it in time with `data-start`. Put it on a different timeline row with
 
 Set these CSS variables on the block:
 
-- `title` - Title. Defaults to `Range Rings`.
-- `subtitle` - Subtitle. Defaults to `Educational cartography · radar rings`.
-- `accent` - Accent. Defaults to `#c45c26`.
+- `title` - Title. Defaults to `Archival Map - Radar Rings`.
+- `credit` - Credit line. Defaults to `Footage: Moving Image Archive | Arteries of New York City`.
 
 ## Variables
 
@@ -302,9 +213,8 @@ want to change on the element:
 
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
-| `title` | `Range Rings` | string |  |
-| `subtitle` | `Educational cartography · radar rings` | string |  |
-| `accent` | `#c45c26` | color |  |
+| `title` | `Archival Map - Radar Rings` | string |  |
+| `credit` | `Footage: Moving Image Archive | Arteries of New York City` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -313,13 +223,13 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-radar-rings"
   data-composition-src="compositions/map-radar-rings.html"
-  data-variable-values='{"title":"Range Rings","subtitle":"Educational cartography · radar rings","accent":"#c45c26"}'
+  data-variable-values='{"title":"Archival Map - Radar Rings","credit":"Footage: Moving Image Archive | Arteries of New York City"}'
 ></div>
 ```
 
 {/* hf:generated-footer */}
 
-Tagged `map` `geography` `animation` `radar` `rings` `range` `newsreel` `svg`.
+Tagged `map` `geography` `animation` `archival` `footage` `mia` `newsreel` `video`.
 
 Created by [HeyGen](https://hyperframes.heygen.com).
 

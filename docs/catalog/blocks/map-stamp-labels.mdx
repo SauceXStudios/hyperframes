@@ -1,6 +1,6 @@
 ---
-title: "Map Stamp Labels"
-description: "Stamp and typewriter-style location labels that slam onto the map. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
+title: "Archival Map - Stamp Labels"
+description: "Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Flying the Islands of the Bahamas. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
 mode: "frame"
 ---
 
@@ -11,11 +11,11 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   previewSrc="/public/catalog/blocks/map-stamp-labels.json"
   compositionId="map-stamp-labels"
   compositionSrc="compositions/map-stamp-labels.html"
-  title="Map Stamp Labels"
-  description="Stamp and typewriter-style location labels that slam onto the map. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Stamped Places"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · stamp labels"},{"id":"labelA","type":"string","label":"Label A","default":"HAVEN"},{"id":"labelB","type":"string","label":"Label B","default":"RIDGE"},{"id":"labelC","type":"string","label":"Label C","default":"FORD"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
-  meta={{"duration":8,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":256}}
-  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-stamp-labels","tags":["map","geography","animation","stamp","typewriter","labels","newsreel","svg"]}}
+  title="Archival Map - Stamp Labels"
+  description="Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Flying the Islands of the Bahamas. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Stamp Labels"},{"id":"credit","type":"string","label":"Credit line","default":"Footage: Moving Image Archive | Flying the Islands of the Bahamas"}]}
+  meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":143}}
+  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-stamp-labels","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-stamp-labels/map-stamp-labels.html"
 >
@@ -38,7 +38,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         box-sizing: border-box;
       }
       body {
-        background: #1a1714;
+        background: #0a0a0a;
         overflow: hidden;
       }
       #root-map-stamp-labels {
@@ -46,49 +46,53 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         width: 1920px;
         height: 1080px;
         overflow: hidden;
-        background: #1a1714;
-        font-family: Georgia, "Times New Roman", serif;
+        background: #0a0a0a;
+        font-family: "Helvetica Neue", Helvetica, sans-serif;
       }
-      #mst-frame {
-        position: absolute;
-        inset: 48px;
-        border: 1px solid rgba(196, 181, 154, 0.14);
-        background: #221e19;
-      }
-      #mst-svg {
+      #sl-video {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
+        object-fit: contain;
+        background: #000;
       }
-      #mst-title {
+      #sl-frame {
         position: absolute;
-        top: 72px;
-        left: 96px;
-        color: rgba(232, 220, 196, 0.92);
-        font-size: 42px;
+        inset: 36px;
+        border: 1px solid rgba(232, 220, 196, 0.28);
+        pointer-events: none;
+      }
+      #sl-title {
+        position: absolute;
+        left: 72px;
+        top: 56px;
+        max-width: 1400px;
+        color: rgba(245, 236, 214, 0.95);
+        font-size: 36px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);
+      }
+      #sl-credit {
+        position: absolute;
+        left: 72px;
+        right: 72px;
+        bottom: 56px;
+        color: rgba(232, 220, 196, 0.88);
+        font-size: 18px;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        font-weight: 400;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
       }
-      #mst-subtitle {
-        position: absolute;
-        top: 128px;
-        left: 96px;
-        color: rgba(196, 181, 154, 0.55);
-        font-size: 22px;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-      }
-      #mst-note {
-        position: absolute;
-        bottom: 88px;
-        left: 96px;
-        color: rgba(196, 181, 154, 0.55);
-        font-size: 16px;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        max-width: 900px;
+      #sl-credit-url {
+        display: block;
+        margin-top: 8px;
+        font-size: 14px;
+        letter-spacing: 0.04em;
+        text-transform: none;
+        color: rgba(196, 181, 154, 0.7);
       }
     </style>
   </head>
@@ -97,183 +101,66 @@ import { InstallCommand } from "/snippets/install-command.jsx";
       id="root-map-stamp-labels"
       data-composition-id="map-stamp-labels"
       data-start="0"
-      data-duration="8"
+      data-duration="12.01"
       data-width="1920"
       data-height="1080"
     >
-      <div id="mst-frame">
-        <svg
-          id="mst-svg"
-          viewBox="0 0 1920 1080"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
+      <video
+        id="sl-video"
+        src="assets/clip.mp4"
+        muted
+        playsinline
+        preload="auto"
+        data-start="0"
+        data-duration="12.01"
+        data-media-start="0"
+      ></video>
+      <div id="sl-frame" aria-hidden="true"></div>
+      <div id="sl-title" data-var-text="title">Archival Map - Stamp Labels</div>
+      <div id="sl-credit">
+        <span data-var-text="credit"
+          >Footage: Moving Image Archive | Flying the Islands of the Bahamas</span
         >
-          <defs>
-            <pattern
-              id="mst-hatch"
-              width="12"
-              height="12"
-              patternUnits="userSpaceOnUse"
-              patternTransform="rotate(35)"
-            >
-              <line x1="0" y1="0" x2="0" y2="12" stroke="rgba(196,181,154,0.08)" stroke-width="1" />
-            </pattern>
-          </defs>
-
-          <rect width="1920" height="1080" fill="#1f1b17" />
-          <rect width="1920" height="1080" fill="url(#mst-hatch)" />
-          <path
-            id="mst-land"
-            d="M 280 320 C 340 220 480 180 620 210 C 760 240 820 300 900 280 C 980 260 1080 300 1180 340 C 1280 380 1360 460 1380 560 C 1400 660 1340 760 1240 820 C 1140 880 980 900 860 860 C 740 820 700 780 620 800 C 540 820 420 780 360 700 C 300 620 240 500 280 320 Z"
-            fill="rgba(196,181,154,0.16)"
-            stroke="rgba(196,181,154,0.4)"
-            stroke-width="2"
-          />
-          <path
-            id="mst-island"
-            d="M 1480 420 C 1540 400 1600 430 1610 480 C 1620 530 1580 570 1520 560 C 1460 550 1450 450 1480 420 Z"
-            fill="rgba(196,181,154,0.12)"
-            stroke="rgba(196,181,154,0.3)"
-            stroke-width="1.5"
-          />
-
-          <g id="mst-stamp1">
-            <rect
-              x="450"
-              y="452"
-              width="140"
-              height="56"
-              fill="none"
-              stroke="#c45c26"
-              stroke-width="3"
-              rx="2"
-            />
-            <text
-              id="mst-t1"
-              x="520"
-              y="488"
-              text-anchor="middle"
-              fill="#c45c26"
-              font-size="26"
-              font-family="Georgia, serif"
-              letter-spacing="0.18em"
-            >
-              HAVEN
-            </text>
-          </g>
-          <g id="mst-stamp2">
-            <rect
-              x="830"
-              y="372"
-              width="140"
-              height="56"
-              fill="none"
-              stroke="#c45c26"
-              stroke-width="3"
-              rx="2"
-            />
-            <text
-              id="mst-t2"
-              x="900"
-              y="408"
-              text-anchor="middle"
-              fill="#c45c26"
-              font-size="26"
-              font-family="Georgia, serif"
-              letter-spacing="0.18em"
-            >
-              RIDGE
-            </text>
-          </g>
-          <g id="mst-stamp3">
-            <rect
-              x="1110"
-              y="592"
-              width="140"
-              height="56"
-              fill="none"
-              stroke="#c45c26"
-              stroke-width="3"
-              rx="2"
-            />
-            <text
-              id="mst-t3"
-              x="1180"
-              y="628"
-              text-anchor="middle"
-              fill="#c45c26"
-              font-size="26"
-              font-family="Georgia, serif"
-              letter-spacing="0.18em"
-            >
-              FORD
-            </text>
-          </g>
-        </svg>
+        <span id="sl-credit-url"
+          >movingimagearchive.com/collection/animated-maps - public domain / free to reuse</span
+        >
       </div>
-      <div id="mst-title" data-var-text="title">Stamped Places</div>
-      <div id="mst-subtitle" data-var-text="subtitle">Educational cartography · stamp labels</div>
-      <div id="mst-note">Stamp slam · typewriter place marks</div>
     </div>
     <script>
       (function () {
         window.__timelines = window.__timelines || {};
+
         var vars =
           window.__hyperframes && window.__hyperframes.getVariables
             ? window.__hyperframes.getVariables()
             : {};
-        var accent = /^#[0-9a-fA-F]{6}$/.test(String(vars.accent || ""))
-          ? String(vars.accent)
-          : "#c45c26";
-        var title = typeof vars.title === "string" && vars.title ? vars.title : "Stamped Places";
-        var subtitle =
-          typeof vars.subtitle === "string" && vars.subtitle
-            ? vars.subtitle
-            : "Educational cartography \u00b7 stamp labels";
-        var labelA = typeof vars.labelA === "string" && vars.labelA ? vars.labelA : "HAVEN";
-        var labelB = typeof vars.labelB === "string" && vars.labelB ? vars.labelB : "RIDGE";
-        var labelC = typeof vars.labelC === "string" && vars.labelC ? vars.labelC : "FORD";
 
-        document.getElementById("mst-title").textContent = title;
-        document.getElementById("mst-subtitle").textContent = subtitle;
-        document.getElementById("mst-t1").textContent = labelA;
-        document.getElementById("mst-t2").textContent = labelB;
-        document.getElementById("mst-t3").textContent = labelC;
-        ["mst-stamp1", "mst-stamp2", "mst-stamp3"].forEach(function (id) {
-          var g = document.getElementById(id);
-          g.querySelector("rect").setAttribute("stroke", accent);
-          g.querySelector("text").setAttribute("fill", accent);
-        });
-        gsap.set(["#mst-land", "#mst-island", "#mst-title", "#mst-subtitle", "#mst-note"], {
-          opacity: 0,
-        });
-        gsap.set(["#mst-stamp1", "#mst-stamp2", "#mst-stamp3"], {
-          opacity: 0,
-          scale: 1.55,
-          rotation: -8,
-          transformOrigin: "50% 50%",
-        });
+        var title =
+          typeof vars.title === "string" && vars.title ? vars.title : "Archival Map - Stamp Labels";
+        var credit =
+          typeof vars.credit === "string" && vars.credit
+            ? vars.credit
+            : "Footage: Moving Image Archive | Flying the Islands of the Bahamas";
+
+        document.getElementById("sl-title").textContent = title;
+        document.querySelector('#sl-credit [data-var-text="credit"]').textContent = credit;
+
         var tl = gsap.timeline({ paused: true });
-        tl.to("#mst-land", { opacity: 1, duration: 0.5 }, 0);
-        tl.to("#mst-island", { opacity: 1, duration: 0.4 }, 0.1);
-        tl.to("#mst-title", { opacity: 1, duration: 0.4 }, 0.15);
-        tl.to("#mst-subtitle", { opacity: 1, duration: 0.35 }, 0.35);
-        tl.to(
-          "#mst-stamp1",
-          { opacity: 1, scale: 1, rotation: -3, duration: 0.35, ease: "power3.in" },
-          1.0,
+        // Credit/title hold - HyperFrames media runtime seeks the video via data-start
+        tl.fromTo(
+          "#sl-title",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.6, ease: "power1.out" },
+          0,
         );
-        tl.to(
-          "#mst-stamp2",
-          { opacity: 1, scale: 1, rotation: 2, duration: 0.35, ease: "power3.in" },
-          2.0,
+        tl.fromTo(
+          "#sl-credit",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.6, ease: "power1.out" },
+          0.15,
         );
-        tl.to(
-          "#mst-stamp3",
-          { opacity: 1, scale: 1, rotation: -2, duration: 0.35, ease: "power3.in" },
-          3.0,
-        );
-        tl.to("#mst-note", { opacity: 1, duration: 0.4 }, 4.5);
+        tl.to({}, { duration: Math.max(0.01, 12.01 - 0.75) });
+
         window.__timelines["map-stamp-labels"] = tl;
       })();
     </script>
@@ -287,7 +174,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
 
 <InstallCommand command="npx hyperframes add map-stamp-labels" item="map-stamp-labels" />
 
-That writes one file: `compositions/map-stamp-labels.html`.
+That writes `compositions/map-stamp-labels.html`, plus 2 supporting files under `assets/`.
 
 </CatalogSlot>
 
@@ -295,14 +182,14 @@ That writes one file: `compositions/map-stamp-labels.html`.
 
 ## Add it to your video
 
-It runs for 8 seconds at 1920×1080. Paste this into your composition:
+It runs for 12.01 seconds at 1920×1080. Paste this into your composition:
 
 ```html index.html
 <div
   data-composition-id="map-stamp-labels"
   data-composition-src="compositions/map-stamp-labels.html"
   data-start="0"
-  data-duration="8"
+  data-duration="12.01"
   data-track-index="1"
   data-width="1920"
   data-height="1080"
@@ -316,12 +203,8 @@ Move it in time with `data-start`. Put it on a different timeline row with
 
 Set these CSS variables on the block:
 
-- `title` - Title. Defaults to `Stamped Places`.
-- `subtitle` - Subtitle. Defaults to `Educational cartography · stamp labels`.
-- `labelA` - Label A. Defaults to `HAVEN`.
-- `labelB` - Label B. Defaults to `RIDGE`.
-- `labelC` - Label C. Defaults to `FORD`.
-- `accent` - Accent. Defaults to `#c45c26`.
+- `title` - Title. Defaults to `Archival Map - Stamp Labels`.
+- `credit` - Credit line. Defaults to `Footage: Moving Image Archive | Flying the Islands of the Bahamas`.
 
 ## Variables
 
@@ -330,12 +213,8 @@ want to change on the element:
 
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
-| `title` | `Stamped Places` | string |  |
-| `subtitle` | `Educational cartography · stamp labels` | string |  |
-| `labelA` | `HAVEN` | string |  |
-| `labelB` | `RIDGE` | string |  |
-| `labelC` | `FORD` | string |  |
-| `accent` | `#c45c26` | color |  |
+| `title` | `Archival Map - Stamp Labels` | string |  |
+| `credit` | `Footage: Moving Image Archive | Flying the Islands of the Bahamas` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -344,13 +223,13 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-stamp-labels"
   data-composition-src="compositions/map-stamp-labels.html"
-  data-variable-values='{"title":"Stamped Places","subtitle":"Educational cartography · stamp labels","labelA":"HAVEN","labelB":"RIDGE","labelC":"FORD","accent":"#c45c26"}'
+  data-variable-values='{"title":"Archival Map - Stamp Labels","credit":"Footage: Moving Image Archive | Flying the Islands of the Bahamas"}'
 ></div>
 ```
 
 {/* hf:generated-footer */}
 
-Tagged `map` `geography` `animation` `stamp` `typewriter` `labels` `newsreel` `svg`.
+Tagged `map` `geography` `animation` `archival` `footage` `mia` `newsreel` `video`.
 
 Created by [HeyGen](https://hyperframes.heygen.com).
 

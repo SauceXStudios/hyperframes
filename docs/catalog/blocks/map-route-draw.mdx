@@ -1,6 +1,6 @@
 ---
-title: "Map Route Draw"
-description: "Newsreel-style stylized landmass with a route line that stroke-draws on across the map. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
+title: "Archival Map - Route Draw"
+description: "Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Cities How They Grow. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
 mode: "frame"
 ---
 
@@ -11,11 +11,11 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   previewSrc="/public/catalog/blocks/map-route-draw.json"
   compositionId="map-route-draw"
   compositionSrc="compositions/map-route-draw.html"
-  title="Map Route Draw"
-  description="Newsreel-style stylized landmass with a route line that stroke-draws on across the map. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
-  variables={[{"id":"title","type":"string","label":"Title","default":"The Overland Route"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · route draw-on"},{"id":"fromLabel","type":"string","label":"Origin label","default":"ORIGIN"},{"id":"toLabel","type":"string","label":"Destination label","default":"DESTINATION"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
-  meta={{"duration":8,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":244}}
-  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-route-draw","tags":["map","geography","animation","route","newsreel","draw-on","svg"]}}
+  title="Archival Map - Route Draw"
+  description="Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Cities How They Grow. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Route Draw"},{"id":"credit","type":"string","label":"Credit line","default":"Footage: Moving Image Archive | Cities How They Grow"}]}
+  meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":141}}
+  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-route-draw","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-route-draw/map-route-draw.html"
 >
@@ -38,7 +38,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         box-sizing: border-box;
       }
       body {
-        background: #1a1714;
+        background: #0a0a0a;
         overflow: hidden;
       }
       #root-map-route-draw {
@@ -46,48 +46,53 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         width: 1920px;
         height: 1080px;
         overflow: hidden;
-        background: #1a1714;
-        font-family: "Georgia", "Times New Roman", serif;
+        background: #0a0a0a;
+        font-family: "Helvetica Neue", Helvetica, sans-serif;
       }
-      #mrd-frame {
-        position: absolute;
-        inset: 48px;
-        border: 1px solid rgba(196, 181, 154, 0.14);
-        background: #221e19;
-      }
-      #mrd-svg {
+      #rd-video {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
+        object-fit: contain;
+        background: #000;
       }
-      #mrd-title {
+      #rd-frame {
         position: absolute;
-        top: 72px;
-        left: 96px;
-        color: rgba(232, 220, 196, 0.92);
-        font-size: 42px;
+        inset: 36px;
+        border: 1px solid rgba(232, 220, 196, 0.28);
+        pointer-events: none;
+      }
+      #rd-title {
+        position: absolute;
+        left: 72px;
+        top: 56px;
+        max-width: 1400px;
+        color: rgba(245, 236, 214, 0.95);
+        font-size: 36px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);
+      }
+      #rd-credit {
+        position: absolute;
+        left: 72px;
+        right: 72px;
+        bottom: 56px;
+        color: rgba(232, 220, 196, 0.88);
+        font-size: 18px;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        font-weight: 400;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
       }
-      #mrd-subtitle {
-        position: absolute;
-        top: 128px;
-        left: 96px;
-        color: rgba(196, 181, 154, 0.55);
-        font-size: 22px;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-      }
-      #mrd-legend {
-        position: absolute;
-        bottom: 88px;
-        left: 96px;
+      #rd-credit-url {
+        display: block;
+        margin-top: 8px;
+        font-size: 14px;
+        letter-spacing: 0.04em;
+        text-transform: none;
         color: rgba(196, 181, 154, 0.7);
-        font-size: 18px;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
       }
     </style>
   </head>
@@ -96,102 +101,28 @@ import { InstallCommand } from "/snippets/install-command.jsx";
       id="root-map-route-draw"
       data-composition-id="map-route-draw"
       data-start="0"
-      data-duration="8"
+      data-duration="12.01"
       data-width="1920"
       data-height="1080"
     >
-      <div id="mrd-frame">
-        <svg
-          id="mrd-svg"
-          viewBox="0 0 1920 1080"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
+      <video
+        id="rd-video"
+        src="assets/clip.mp4"
+        muted
+        playsinline
+        preload="auto"
+        data-start="0"
+        data-duration="12.01"
+        data-media-start="0"
+      ></video>
+      <div id="rd-frame" aria-hidden="true"></div>
+      <div id="rd-title" data-var-text="title">Archival Map - Route Draw</div>
+      <div id="rd-credit">
+        <span data-var-text="credit">Footage: Moving Image Archive | Cities How They Grow</span>
+        <span id="rd-credit-url"
+          >movingimagearchive.com/collection/animated-maps - public domain / free to reuse</span
         >
-          <defs>
-            <pattern
-              id="mrd-hatch"
-              width="12"
-              height="12"
-              patternUnits="userSpaceOnUse"
-              patternTransform="rotate(35)"
-            >
-              <line x1="0" y1="0" x2="0" y2="12" stroke="rgba(196,181,154,0.08)" stroke-width="1" />
-            </pattern>
-          </defs>
-          <!-- ocean plate -->
-          <rect x="0" y="0" width="1920" height="1080" fill="#1f1b17" />
-          <rect x="0" y="0" width="1920" height="1080" fill="url(#mrd-hatch)" />
-          <!-- stylized landmass -->
-          <path
-            id="mrd-land"
-            d="M 280 320 C 340 220 480 180 620 210 C 760 240 820 300 900 280 C 980 260 1080 300 1180 340 C 1280 380 1360 460 1380 560 C 1400 660 1340 760 1240 820 C 1140 880 980 900 860 860 C 740 820 700 780 620 800 C 540 820 420 780 360 700 C 300 620 240 500 280 320 Z"
-            fill="rgba(196,181,154,0.18)"
-            stroke="rgba(196,181,154,0.45)"
-            stroke-width="2"
-          />
-          <path
-            id="mrd-island"
-            d="M 1480 420 C 1540 400 1600 430 1610 480 C 1620 530 1580 570 1520 560 C 1460 550 1450 450 1480 420 Z"
-            fill="rgba(196,181,154,0.14)"
-            stroke="rgba(196,181,154,0.35)"
-            stroke-width="1.5"
-          />
-          <!-- latitude lines -->
-          <g id="mrd-lat" stroke="rgba(196,181,154,0.08)" stroke-width="1" fill="none">
-            <path d="M 200 360 H 1700" />
-            <path d="M 200 520 H 1700" />
-            <path d="M 200 680 H 1700" />
-          </g>
-          <!-- route -->
-          <path
-            id="mrd-route"
-            d="M 420 520 C 560 460 720 400 860 420 C 1000 440 1120 520 1240 500 C 1320 488 1400 460 1520 470"
-            fill="none"
-            stroke="#c45c26"
-            stroke-width="4"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <circle id="mrd-start" cx="420" cy="520" r="10" fill="#c45c26" />
-          <circle id="mrd-end" cx="1520" cy="470" r="10" fill="#c45c26" opacity="0" />
-          <circle
-            id="mrd-end-ring"
-            cx="1520"
-            cy="470"
-            r="22"
-            fill="none"
-            stroke="#c45c26"
-            stroke-width="2"
-            opacity="0"
-          />
-          <text
-            id="mrd-from"
-            x="420"
-            y="560"
-            text-anchor="middle"
-            fill="rgba(232,220,196,0.85)"
-            font-size="20"
-            font-family="Georgia, serif"
-          >
-            ORIGIN
-          </text>
-          <text
-            id="mrd-to"
-            x="1520"
-            y="510"
-            text-anchor="middle"
-            fill="rgba(232,220,196,0.85)"
-            font-size="20"
-            font-family="Georgia, serif"
-            opacity="0"
-          >
-            DESTINATION
-          </text>
-        </svg>
       </div>
-      <div id="mrd-title" data-var-text="title">The Overland Route</div>
-      <div id="mrd-subtitle" data-var-text="subtitle">Educational cartography · route draw-on</div>
-      <div id="mrd-legend">Stroke reveals the path · not a live basemap</div>
     </div>
     <script>
       (function () {
@@ -202,65 +133,31 @@ import { InstallCommand } from "/snippets/install-command.jsx";
             ? window.__hyperframes.getVariables()
             : {};
 
-        var accent = /^#[0-9a-fA-F]{6}$/.test(String(vars.accent || ""))
-          ? String(vars.accent)
-          : "#c45c26";
         var title =
-          typeof vars.title === "string" && vars.title ? vars.title : "The Overland Route";
-        var subtitle =
-          typeof vars.subtitle === "string" && vars.subtitle
-            ? vars.subtitle
-            : "Educational cartography · route draw-on";
-        var fromLabel =
-          typeof vars.fromLabel === "string" && vars.fromLabel ? vars.fromLabel : "ORIGIN";
-        var toLabel =
-          typeof vars.toLabel === "string" && vars.toLabel ? vars.toLabel : "DESTINATION";
+          typeof vars.title === "string" && vars.title ? vars.title : "Archival Map - Route Draw";
+        var credit =
+          typeof vars.credit === "string" && vars.credit
+            ? vars.credit
+            : "Footage: Moving Image Archive | Cities How They Grow";
 
-        document.getElementById("mrd-title").textContent = title;
-        document.getElementById("mrd-subtitle").textContent = subtitle;
-        document.getElementById("mrd-from").textContent = fromLabel;
-        document.getElementById("mrd-to").textContent = toLabel;
-
-        var route = document.getElementById("mrd-route");
-        var start = document.getElementById("mrd-start");
-        var end = document.getElementById("mrd-end");
-        var endRing = document.getElementById("mrd-end-ring");
-        route.setAttribute("stroke", accent);
-        start.setAttribute("fill", accent);
-        end.setAttribute("fill", accent);
-        endRing.setAttribute("stroke", accent);
-
-        var len = route.getTotalLength();
-        gsap.set(route, { strokeDasharray: len, strokeDashoffset: len });
-        gsap.set([end, endRing, "#mrd-to"], { opacity: 0 });
-        gsap.set("#mrd-title", { opacity: 0, y: -12 });
-        gsap.set("#mrd-subtitle", { opacity: 0 });
-        gsap.set("#mrd-land", { opacity: 0 });
-        gsap.set("#mrd-island", { opacity: 0 });
-        gsap.set("#mrd-from", { opacity: 0 });
-        gsap.set(start, { scale: 0, transformOrigin: "50% 50%" });
+        document.getElementById("rd-title").textContent = title;
+        document.querySelector('#rd-credit [data-var-text="credit"]').textContent = credit;
 
         var tl = gsap.timeline({ paused: true });
-        // Hero: landmass + title in first second
-        tl.to("#mrd-land", { opacity: 1, duration: 0.55, ease: "power2.out" }, 0);
-        tl.to("#mrd-island", { opacity: 1, duration: 0.45, ease: "power2.out" }, 0.15);
-        tl.to("#mrd-title", { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 0.1);
-        tl.to("#mrd-subtitle", { opacity: 1, duration: 0.4, ease: "power1.out" }, 0.35);
-        tl.to(start, { scale: 1, duration: 0.35, ease: "back.out(1.8)" }, 0.55);
-        tl.to("#mrd-from", { opacity: 1, duration: 0.3, ease: "power1.out" }, 0.7);
-        // Route draw-on
-        tl.to(route, { strokeDashoffset: 0, duration: 3.2, ease: "power1.inOut" }, 1.0);
-        tl.to(end, { opacity: 1, duration: 0.25, ease: "power2.out" }, 4.0);
+        // Credit/title hold - HyperFrames media runtime seeks the video via data-start
         tl.fromTo(
-          endRing,
-          { opacity: 0, scale: 0.4 },
-          { opacity: 1, scale: 1, duration: 0.45, ease: "power2.out", transformOrigin: "50% 50%" },
-          4.05,
+          "#rd-title",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.6, ease: "power1.out" },
+          0,
         );
-        tl.to("#mrd-to", { opacity: 1, duration: 0.35, ease: "power1.out" }, 4.2);
-        // Soft hold settle
-        tl.to("#mrd-legend", { opacity: 0.7, duration: 0.4, ease: "power1.out" }, 5.0);
-        gsap.set("#mrd-legend", { opacity: 0 });
+        tl.fromTo(
+          "#rd-credit",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.6, ease: "power1.out" },
+          0.15,
+        );
+        tl.to({}, { duration: Math.max(0.01, 12.01 - 0.75) });
 
         window.__timelines["map-route-draw"] = tl;
       })();
@@ -275,7 +172,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
 
 <InstallCommand command="npx hyperframes add map-route-draw" item="map-route-draw" />
 
-That writes one file: `compositions/map-route-draw.html`.
+That writes `compositions/map-route-draw.html`, plus 2 supporting files under `assets/`.
 
 </CatalogSlot>
 
@@ -283,14 +180,14 @@ That writes one file: `compositions/map-route-draw.html`.
 
 ## Add it to your video
 
-It runs for 8 seconds at 1920×1080. Paste this into your composition:
+It runs for 12.01 seconds at 1920×1080. Paste this into your composition:
 
 ```html index.html
 <div
   data-composition-id="map-route-draw"
   data-composition-src="compositions/map-route-draw.html"
   data-start="0"
-  data-duration="8"
+  data-duration="12.01"
   data-track-index="1"
   data-width="1920"
   data-height="1080"
@@ -304,11 +201,8 @@ Move it in time with `data-start`. Put it on a different timeline row with
 
 Set these CSS variables on the block:
 
-- `title` - Title. Defaults to `The Overland Route`.
-- `subtitle` - Subtitle. Defaults to `Educational cartography · route draw-on`.
-- `fromLabel` - Origin label. Defaults to `ORIGIN`.
-- `toLabel` - Destination label. Defaults to `DESTINATION`.
-- `accent` - Accent. Defaults to `#c45c26`.
+- `title` - Title. Defaults to `Archival Map - Route Draw`.
+- `credit` - Credit line. Defaults to `Footage: Moving Image Archive | Cities How They Grow`.
 
 ## Variables
 
@@ -317,11 +211,8 @@ want to change on the element:
 
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
-| `title` | `The Overland Route` | string |  |
-| `subtitle` | `Educational cartography · route draw-on` | string |  |
-| `fromLabel` | `ORIGIN` | string |  |
-| `toLabel` | `DESTINATION` | string |  |
-| `accent` | `#c45c26` | color |  |
+| `title` | `Archival Map - Route Draw` | string |  |
+| `credit` | `Footage: Moving Image Archive | Cities How They Grow` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -330,13 +221,13 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-route-draw"
   data-composition-src="compositions/map-route-draw.html"
-  data-variable-values='{"title":"The Overland Route","subtitle":"Educational cartography · route draw-on","fromLabel":"ORIGIN","toLabel":"DESTINATION","accent":"#c45c26"}'
+  data-variable-values='{"title":"Archival Map - Route Draw","credit":"Footage: Moving Image Archive | Cities How They Grow"}'
 ></div>
 ```
 
 {/* hf:generated-footer */}
 
-Tagged `map` `geography` `animation` `route` `newsreel` `draw-on` `svg`.
+Tagged `map` `geography` `animation` `archival` `footage` `mia` `newsreel` `video`.
 
 Created by [HeyGen](https://hyperframes.heygen.com).
 

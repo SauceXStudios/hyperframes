@@ -1,6 +1,6 @@
 ---
-title: "Map Legend Build"
-description: "Legend panel that builds row-by-row while map symbols appear. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
+title: "Archival Map - Legend Build"
+description: "Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Trading Centers of the Pacific Coast. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
 mode: "frame"
 ---
 
@@ -11,11 +11,11 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   previewSrc="/public/catalog/blocks/map-legend-build.json"
   compositionId="map-legend-build"
   compositionSrc="compositions/map-legend-build.html"
-  title="Map Legend Build"
-  description="Legend panel that builds row-by-row while map symbols appear. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Legend Build"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · legend assemble"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
-  meta={{"duration":7,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":260}}
-  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-legend-build","tags":["map","geography","animation","legend","key","newsreel","svg"]}}
+  title="Archival Map - Legend Build"
+  description="Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Trading Centers of the Pacific Coast. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Legend Build"},{"id":"credit","type":"string","label":"Credit line","default":"Footage: Moving Image Archive | Trading Centers of the Pacific Coast"}]}
+  meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":143}}
+  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-legend-build","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-legend-build/map-legend-build.html"
 >
@@ -38,7 +38,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         box-sizing: border-box;
       }
       body {
-        background: #1a1714;
+        background: #0a0a0a;
         overflow: hidden;
       }
       #root-map-legend-build {
@@ -46,49 +46,53 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         width: 1920px;
         height: 1080px;
         overflow: hidden;
-        background: #1a1714;
-        font-family: Georgia, "Times New Roman", serif;
+        background: #0a0a0a;
+        font-family: "Helvetica Neue", Helvetica, sans-serif;
       }
-      #mlb-frame {
-        position: absolute;
-        inset: 48px;
-        border: 1px solid rgba(196, 181, 154, 0.14);
-        background: #221e19;
-      }
-      #mlb-svg {
+      #lb-video {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
+        object-fit: contain;
+        background: #000;
       }
-      #mlb-title {
+      #lb-frame {
         position: absolute;
-        top: 72px;
-        left: 96px;
-        color: rgba(232, 220, 196, 0.92);
-        font-size: 42px;
+        inset: 36px;
+        border: 1px solid rgba(232, 220, 196, 0.28);
+        pointer-events: none;
+      }
+      #lb-title {
+        position: absolute;
+        left: 72px;
+        top: 56px;
+        max-width: 1400px;
+        color: rgba(245, 236, 214, 0.95);
+        font-size: 36px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);
+      }
+      #lb-credit {
+        position: absolute;
+        left: 72px;
+        right: 72px;
+        bottom: 56px;
+        color: rgba(232, 220, 196, 0.88);
+        font-size: 18px;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        font-weight: 400;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
       }
-      #mlb-subtitle {
-        position: absolute;
-        top: 128px;
-        left: 96px;
-        color: rgba(196, 181, 154, 0.55);
-        font-size: 22px;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-      }
-      #mlb-note {
-        position: absolute;
-        bottom: 88px;
-        left: 96px;
-        color: rgba(196, 181, 154, 0.55);
-        font-size: 16px;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        max-width: 900px;
+      #lb-credit-url {
+        display: block;
+        margin-top: 8px;
+        font-size: 14px;
+        letter-spacing: 0.04em;
+        text-transform: none;
+        color: rgba(196, 181, 154, 0.7);
       }
     </style>
   </head>
@@ -97,187 +101,66 @@ import { InstallCommand } from "/snippets/install-command.jsx";
       id="root-map-legend-build"
       data-composition-id="map-legend-build"
       data-start="0"
-      data-duration="7"
+      data-duration="12.01"
       data-width="1920"
       data-height="1080"
     >
-      <div id="mlb-frame">
-        <svg
-          id="mlb-svg"
-          viewBox="0 0 1920 1080"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
+      <video
+        id="lb-video"
+        src="assets/clip.mp4"
+        muted
+        playsinline
+        preload="auto"
+        data-start="0"
+        data-duration="12.01"
+        data-media-start="0"
+      ></video>
+      <div id="lb-frame" aria-hidden="true"></div>
+      <div id="lb-title" data-var-text="title">Archival Map - Legend Build</div>
+      <div id="lb-credit">
+        <span data-var-text="credit"
+          >Footage: Moving Image Archive | Trading Centers of the Pacific Coast</span
         >
-          <defs>
-            <pattern
-              id="mlb-hatch"
-              width="12"
-              height="12"
-              patternUnits="userSpaceOnUse"
-              patternTransform="rotate(35)"
-            >
-              <line x1="0" y1="0" x2="0" y2="12" stroke="rgba(196,181,154,0.08)" stroke-width="1" />
-            </pattern>
-          </defs>
-
-          <rect width="1920" height="1080" fill="#1f1b17" />
-          <rect width="1920" height="1080" fill="url(#mlb-hatch)" />
-          <path
-            id="mlb-land"
-            d="M 280 320 C 340 220 480 180 620 210 C 760 240 820 300 900 280 C 980 260 1080 300 1180 340 C 1280 380 1360 460 1380 560 C 1400 660 1340 760 1240 820 C 1140 880 980 900 860 860 C 740 820 700 780 620 800 C 540 820 420 780 360 700 C 300 620 240 500 280 320 Z"
-            fill="rgba(196,181,154,0.16)"
-            stroke="rgba(196,181,154,0.4)"
-            stroke-width="2"
-          />
-          <path
-            id="mlb-island"
-            d="M 1480 420 C 1540 400 1600 430 1610 480 C 1620 530 1580 570 1520 560 C 1460 550 1450 450 1480 420 Z"
-            fill="rgba(196,181,154,0.12)"
-            stroke="rgba(196,181,154,0.3)"
-            stroke-width="1.5"
-          />
-
-          <g id="mlb-legend" transform="translate(1380 360)">
-            <rect
-              id="mlb-panel"
-              x="0"
-              y="0"
-              width="280"
-              height="280"
-              fill="#1a1714"
-              stroke="rgba(196,181,154,0.35)"
-              stroke-width="1.5"
-            />
-            <g id="mlb-row1">
-              <rect x="24" y="36" width="28" height="16" fill="#c45c26" opacity="0.7" />
-              <text
-                x="68"
-                y="50"
-                fill="rgba(232,220,196,0.85)"
-                font-size="18"
-                font-family="Georgia, serif"
-              >
-                Territory
-              </text>
-            </g>
-            <g id="mlb-row2">
-              <line
-                x1="24"
-                y1="92"
-                x2="52"
-                y2="92"
-                stroke="#c45c26"
-                stroke-width="3"
-                stroke-dasharray="4 6"
-              />
-              <text
-                x="68"
-                y="98"
-                fill="rgba(232,220,196,0.85)"
-                font-size="18"
-                font-family="Georgia, serif"
-              >
-                Route
-              </text>
-            </g>
-            <g id="mlb-row3">
-              <circle cx="38" cy="148" r="8" fill="#c45c26" />
-              <text
-                x="68"
-                y="154"
-                fill="rgba(232,220,196,0.85)"
-                font-size="18"
-                font-family="Georgia, serif"
-              >
-                City
-              </text>
-            </g>
-            <g id="mlb-row4">
-              <polygon points="30,198 46,208 30,218" fill="#c45c26" />
-              <text
-                x="68"
-                y="214"
-                fill="rgba(232,220,196,0.85)"
-                font-size="18"
-                font-family="Georgia, serif"
-              >
-                Advance
-              </text>
-            </g>
-          </g>
-          <path
-            id="mlb-sample"
-            d="M 480 560 C 620 500 760 520 900 500"
-            fill="none"
-            stroke="#c45c26"
-            stroke-width="3"
-            stroke-dasharray="4 6"
-          />
-          <circle id="mlb-city" cx="900" cy="500" r="10" fill="#c45c26" />
-        </svg>
+        <span id="lb-credit-url"
+          >movingimagearchive.com/collection/animated-maps - public domain / free to reuse</span
+        >
       </div>
-      <div id="mlb-title" data-var-text="title">Legend Build</div>
-      <div id="mlb-subtitle" data-var-text="subtitle">
-        Educational cartography · legend assemble
-      </div>
-      <div id="mlb-note">Legend assemble · keyed to schematic symbols</div>
     </div>
     <script>
       (function () {
         window.__timelines = window.__timelines || {};
+
         var vars =
           window.__hyperframes && window.__hyperframes.getVariables
             ? window.__hyperframes.getVariables()
             : {};
-        var accent = /^#[0-9a-fA-F]{6}$/.test(String(vars.accent || ""))
-          ? String(vars.accent)
-          : "#c45c26";
-        var title = typeof vars.title === "string" && vars.title ? vars.title : "Legend Build";
-        var subtitle =
-          typeof vars.subtitle === "string" && vars.subtitle
-            ? vars.subtitle
-            : "Educational cartography \u00b7 legend assemble";
 
-        document.getElementById("mlb-title").textContent = title;
-        document.getElementById("mlb-subtitle").textContent = subtitle;
-        document.querySelector("#mlb-row1 rect").setAttribute("fill", accent);
-        document.querySelector("#mlb-row2 line").setAttribute("stroke", accent);
-        document.querySelector("#mlb-row3 circle").setAttribute("fill", accent);
-        document.querySelector("#mlb-row4 polygon").setAttribute("fill", accent);
-        document.getElementById("mlb-sample").setAttribute("stroke", accent);
-        document.getElementById("mlb-city").setAttribute("fill", accent);
-        gsap.set(
-          [
-            "#mlb-land",
-            "#mlb-island",
-            "#mlb-title",
-            "#mlb-subtitle",
-            "#mlb-note",
-            "#mlb-sample",
-            "#mlb-city",
-          ],
-          { opacity: 0 },
-        );
-        gsap.set("#mlb-panel", {
-          opacity: 0,
-          scaleY: 0,
-          transformOrigin: "50% 0%",
-          svgOrigin: "1520px 360px",
-        });
-        gsap.set(["#mlb-row1", "#mlb-row2", "#mlb-row3", "#mlb-row4"], { opacity: 0, x: 20 });
+        var title =
+          typeof vars.title === "string" && vars.title ? vars.title : "Archival Map - Legend Build";
+        var credit =
+          typeof vars.credit === "string" && vars.credit
+            ? vars.credit
+            : "Footage: Moving Image Archive | Trading Centers of the Pacific Coast";
+
+        document.getElementById("lb-title").textContent = title;
+        document.querySelector('#lb-credit [data-var-text="credit"]').textContent = credit;
+
         var tl = gsap.timeline({ paused: true });
-        tl.to("#mlb-land", { opacity: 1, duration: 0.5 }, 0);
-        tl.to("#mlb-island", { opacity: 1, duration: 0.4 }, 0.1);
-        tl.to("#mlb-title", { opacity: 1, duration: 0.4 }, 0.15);
-        tl.to("#mlb-subtitle", { opacity: 1, duration: 0.35 }, 0.35);
-        tl.to("#mlb-panel", { opacity: 1, scaleY: 1, duration: 0.55, ease: "power2.out" }, 0.9);
-        tl.to("#mlb-row1", { opacity: 1, x: 0, duration: 0.35 }, 1.4);
-        tl.to("#mlb-row2", { opacity: 1, x: 0, duration: 0.35 }, 1.9);
-        tl.to("#mlb-sample", { opacity: 1, duration: 0.4 }, 2.1);
-        tl.to("#mlb-row3", { opacity: 1, x: 0, duration: 0.35 }, 2.4);
-        tl.to("#mlb-city", { opacity: 1, duration: 0.3 }, 2.6);
-        tl.to("#mlb-row4", { opacity: 1, x: 0, duration: 0.35 }, 2.9);
-        tl.to("#mlb-note", { opacity: 1, duration: 0.4 }, 4.2);
+        // Credit/title hold - HyperFrames media runtime seeks the video via data-start
+        tl.fromTo(
+          "#lb-title",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.6, ease: "power1.out" },
+          0,
+        );
+        tl.fromTo(
+          "#lb-credit",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.6, ease: "power1.out" },
+          0.15,
+        );
+        tl.to({}, { duration: Math.max(0.01, 12.01 - 0.75) });
+
         window.__timelines["map-legend-build"] = tl;
       })();
     </script>
@@ -291,7 +174,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
 
 <InstallCommand command="npx hyperframes add map-legend-build" item="map-legend-build" />
 
-That writes one file: `compositions/map-legend-build.html`.
+That writes `compositions/map-legend-build.html`, plus 2 supporting files under `assets/`.
 
 </CatalogSlot>
 
@@ -299,14 +182,14 @@ That writes one file: `compositions/map-legend-build.html`.
 
 ## Add it to your video
 
-It runs for 7 seconds at 1920×1080. Paste this into your composition:
+It runs for 12.01 seconds at 1920×1080. Paste this into your composition:
 
 ```html index.html
 <div
   data-composition-id="map-legend-build"
   data-composition-src="compositions/map-legend-build.html"
   data-start="0"
-  data-duration="7"
+  data-duration="12.01"
   data-track-index="1"
   data-width="1920"
   data-height="1080"
@@ -320,9 +203,8 @@ Move it in time with `data-start`. Put it on a different timeline row with
 
 Set these CSS variables on the block:
 
-- `title` - Title. Defaults to `Legend Build`.
-- `subtitle` - Subtitle. Defaults to `Educational cartography · legend assemble`.
-- `accent` - Accent. Defaults to `#c45c26`.
+- `title` - Title. Defaults to `Archival Map - Legend Build`.
+- `credit` - Credit line. Defaults to `Footage: Moving Image Archive | Trading Centers of the Pacific Coast`.
 
 ## Variables
 
@@ -331,9 +213,8 @@ want to change on the element:
 
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
-| `title` | `Legend Build` | string |  |
-| `subtitle` | `Educational cartography · legend assemble` | string |  |
-| `accent` | `#c45c26` | color |  |
+| `title` | `Archival Map - Legend Build` | string |  |
+| `credit` | `Footage: Moving Image Archive | Trading Centers of the Pacific Coast` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -342,13 +223,13 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-legend-build"
   data-composition-src="compositions/map-legend-build.html"
-  data-variable-values='{"title":"Legend Build","subtitle":"Educational cartography · legend assemble","accent":"#c45c26"}'
+  data-variable-values='{"title":"Archival Map - Legend Build","credit":"Footage: Moving Image Archive | Trading Centers of the Pacific Coast"}'
 ></div>
 ```
 
 {/* hf:generated-footer */}
 
-Tagged `map` `geography` `animation` `legend` `key` `newsreel` `svg`.
+Tagged `map` `geography` `animation` `archival` `footage` `mia` `newsreel` `video`.
 
 Created by [HeyGen](https://hyperframes.heygen.com).
 

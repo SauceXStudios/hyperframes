@@ -2,7 +2,7 @@
   "model": "bge-small-en-v1.5",
   "modelRevision": "ea104dacec62c0de699686887e3f920caeb4f3e3",
   "dimensions": 384,
-  "revision": "fdaf652766503023215a4fea3252dcd119f1ef90e5bd42b364165c0e164e4aa7",
+  "revision": "9cd27cfaf59b8e5d071de215b33e8de810f01d51a35353d57928134e7737a83f",
   "names": [
     "ai-chat-reveal",
     "animated-bar-chart",

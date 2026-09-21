@@ -1,6 +1,6 @@
 ---
-title: "Map Conquest Fill Sequence"
-description: "Sequential region fill sequence - abstract educational conquest cartography, not glorifying. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
+title: "Archival Map - Conquest Fill"
+description: "Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Man On The Land. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
 mode: "frame"
 ---
 
@@ -11,11 +11,11 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   previewSrc="/public/catalog/blocks/map-conquest-fill-sequence.json"
   compositionId="map-conquest-fill-sequence"
   compositionSrc="compositions/map-conquest-fill-sequence.html"
-  title="Map Conquest Fill Sequence"
-  description="Sequential region fill sequence - abstract educational conquest cartography, not glorifying. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Sequential Fill"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · conquest fill"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
-  meta={{"duration":8,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":197}}
-  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-conquest-fill-sequence","tags":["map","geography","animation","conquest","fill","sequence","newsreel","svg"]}}
+  title="Archival Map - Conquest Fill"
+  description="Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Man On The Land. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Conquest Fill"},{"id":"credit","type":"string","label":"Credit line","default":"Footage: Moving Image Archive | Man On The Land"}]}
+  meta={{"duration":12.01,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":143}}
+  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-conquest-fill-sequence","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-conquest-fill-sequence/map-conquest-fill-sequence.html"
 >
@@ -38,7 +38,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         box-sizing: border-box;
       }
       body {
-        background: #1a1714;
+        background: #0a0a0a;
         overflow: hidden;
       }
       #root-map-conquest-fill-sequence {
@@ -46,49 +46,53 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         width: 1920px;
         height: 1080px;
         overflow: hidden;
-        background: #1a1714;
-        font-family: Georgia, "Times New Roman", serif;
+        background: #0a0a0a;
+        font-family: "Helvetica Neue", Helvetica, sans-serif;
       }
-      #mcf-frame {
-        position: absolute;
-        inset: 48px;
-        border: 1px solid rgba(196, 181, 154, 0.14);
-        background: #221e19;
-      }
-      #mcf-svg {
+      #cfs-video {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
+        object-fit: contain;
+        background: #000;
       }
-      #mcf-title {
+      #cfs-frame {
         position: absolute;
-        top: 72px;
-        left: 96px;
-        color: rgba(232, 220, 196, 0.92);
-        font-size: 42px;
+        inset: 36px;
+        border: 1px solid rgba(232, 220, 196, 0.28);
+        pointer-events: none;
+      }
+      #cfs-title {
+        position: absolute;
+        left: 72px;
+        top: 56px;
+        max-width: 1400px;
+        color: rgba(245, 236, 214, 0.95);
+        font-size: 36px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);
+      }
+      #cfs-credit {
+        position: absolute;
+        left: 72px;
+        right: 72px;
+        bottom: 56px;
+        color: rgba(232, 220, 196, 0.88);
+        font-size: 18px;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        font-weight: 400;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
       }
-      #mcf-subtitle {
-        position: absolute;
-        top: 128px;
-        left: 96px;
-        color: rgba(196, 181, 154, 0.55);
-        font-size: 22px;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-      }
-      #mcf-note {
-        position: absolute;
-        bottom: 88px;
-        left: 96px;
-        color: rgba(196, 181, 154, 0.55);
-        font-size: 16px;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        max-width: 900px;
+      #cfs-credit-url {
+        display: block;
+        margin-top: 8px;
+        font-size: 14px;
+        letter-spacing: 0.04em;
+        text-transform: none;
+        color: rgba(196, 181, 154, 0.7);
       }
     </style>
   </head>
@@ -97,124 +101,66 @@ import { InstallCommand } from "/snippets/install-command.jsx";
       id="root-map-conquest-fill-sequence"
       data-composition-id="map-conquest-fill-sequence"
       data-start="0"
-      data-duration="8"
+      data-duration="12.01"
       data-width="1920"
       data-height="1080"
     >
-      <div id="mcf-frame">
-        <svg
-          id="mcf-svg"
-          viewBox="0 0 1920 1080"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
+      <video
+        id="cfs-video"
+        src="assets/clip.mp4"
+        muted
+        playsinline
+        preload="auto"
+        data-start="0"
+        data-duration="12.01"
+        data-media-start="0"
+      ></video>
+      <div id="cfs-frame" aria-hidden="true"></div>
+      <div id="cfs-title" data-var-text="title">Archival Map - Conquest Fill</div>
+      <div id="cfs-credit">
+        <span data-var-text="credit">Footage: Moving Image Archive | Man On The Land</span>
+        <span id="cfs-credit-url"
+          >movingimagearchive.com/collection/animated-maps - public domain / free to reuse</span
         >
-          <defs>
-            <pattern
-              id="mcf-hatch"
-              width="12"
-              height="12"
-              patternUnits="userSpaceOnUse"
-              patternTransform="rotate(35)"
-            >
-              <line x1="0" y1="0" x2="0" y2="12" stroke="rgba(196,181,154,0.08)" stroke-width="1" />
-            </pattern>
-          </defs>
-
-          <rect width="1920" height="1080" fill="#1f1b17" />
-          <rect width="1920" height="1080" fill="url(#mcf-hatch)" />
-          <path
-            id="mcf-land"
-            d="M 280 320 C 340 220 480 180 620 210 C 760 240 820 300 900 280 C 980 260 1080 300 1180 340 C 1280 380 1360 460 1380 560 C 1400 660 1340 760 1240 820 C 1140 880 980 900 860 860 C 740 820 700 780 620 800 C 540 820 420 780 360 700 C 300 620 240 500 280 320 Z"
-            fill="rgba(196,181,154,0.16)"
-            stroke="rgba(196,181,154,0.4)"
-            stroke-width="2"
-          />
-          <path
-            id="mcf-island"
-            d="M 1480 420 C 1540 400 1600 430 1610 480 C 1620 530 1580 570 1520 560 C 1460 550 1450 450 1480 420 Z"
-            fill="rgba(196,181,154,0.12)"
-            stroke="rgba(196,181,154,0.3)"
-            stroke-width="1.5"
-          />
-          <path
-            id="mcf-r1"
-            d="M 400 500 C 480 440 560 450 600 520 C 640 590 560 650 480 640 C 400 630 360 560 400 500 Z"
-            fill="#c45c26"
-            opacity="0.35"
-            stroke="#c45c26"
-            stroke-width="2"
-          />
-          <path
-            id="mcf-r2"
-            d="M 620 420 C 720 380 820 400 860 480 C 900 560 820 620 720 610 C 620 600 560 500 620 420 Z"
-            fill="#c45c26"
-            opacity="0.35"
-            stroke="#c45c26"
-            stroke-width="2"
-          />
-          <path
-            id="mcf-r3"
-            d="M 880 460 C 980 420 1080 450 1120 530 C 1160 610 1080 680 980 670 C 880 660 820 540 880 460 Z"
-            fill="#c45c26"
-            opacity="0.35"
-            stroke="#c45c26"
-            stroke-width="2"
-          />
-          <path
-            id="mcf-r4"
-            d="M 1140 520 C 1240 480 1340 520 1360 600 C 1380 680 1280 740 1180 720 C 1080 700 1060 580 1140 520 Z"
-            fill="#c45c26"
-            opacity="0.35"
-            stroke="#c45c26"
-            stroke-width="2"
-          />
-        </svg>
       </div>
-      <div id="mcf-title" data-var-text="title">Sequential Fill</div>
-      <div id="mcf-subtitle" data-var-text="subtitle">Educational cartography · conquest fill</div>
-      <div id="mcf-note">Abstract sequential fill - not a depiction of any real conquest</div>
     </div>
     <script>
       (function () {
         window.__timelines = window.__timelines || {};
+
         var vars =
           window.__hyperframes && window.__hyperframes.getVariables
             ? window.__hyperframes.getVariables()
             : {};
-        var accent = /^#[0-9a-fA-F]{6}$/.test(String(vars.accent || ""))
-          ? String(vars.accent)
-          : "#c45c26";
-        var title = typeof vars.title === "string" && vars.title ? vars.title : "Sequential Fill";
-        var subtitle =
-          typeof vars.subtitle === "string" && vars.subtitle
-            ? vars.subtitle
-            : "Educational cartography \u00b7 conquest fill";
 
-        document.getElementById("mcf-title").textContent = title;
-        document.getElementById("mcf-subtitle").textContent = subtitle;
-        ["mcf-r1", "mcf-r2", "mcf-r3", "mcf-r4"].forEach(function (id) {
-          var el = document.getElementById(id);
-          el.setAttribute("fill", accent);
-          el.setAttribute("stroke", accent);
-        });
-        gsap.set(["#mcf-land", "#mcf-island", "#mcf-title", "#mcf-subtitle", "#mcf-note"], {
-          opacity: 0,
-        });
-        gsap.set(["#mcf-r1", "#mcf-r2", "#mcf-r3", "#mcf-r4"], {
-          opacity: 0,
-          scale: 0.85,
-          transformOrigin: "50% 50%",
-        });
+        var title =
+          typeof vars.title === "string" && vars.title
+            ? vars.title
+            : "Archival Map - Conquest Fill";
+        var credit =
+          typeof vars.credit === "string" && vars.credit
+            ? vars.credit
+            : "Footage: Moving Image Archive | Man On The Land";
+
+        document.getElementById("cfs-title").textContent = title;
+        document.querySelector('#cfs-credit [data-var-text="credit"]').textContent = credit;
+
         var tl = gsap.timeline({ paused: true });
-        tl.to("#mcf-land", { opacity: 1, duration: 0.5 }, 0);
-        tl.to("#mcf-island", { opacity: 1, duration: 0.4 }, 0.1);
-        tl.to("#mcf-title", { opacity: 1, duration: 0.4 }, 0.15);
-        tl.to("#mcf-subtitle", { opacity: 1, duration: 0.35 }, 0.35);
-        tl.to("#mcf-r1", { opacity: 0.4, scale: 1, duration: 0.7, ease: "power2.out" }, 1.0);
-        tl.to("#mcf-r2", { opacity: 0.4, scale: 1, duration: 0.7, ease: "power2.out" }, 2.0);
-        tl.to("#mcf-r3", { opacity: 0.4, scale: 1, duration: 0.7, ease: "power2.out" }, 3.0);
-        tl.to("#mcf-r4", { opacity: 0.4, scale: 1, duration: 0.7, ease: "power2.out" }, 4.0);
-        tl.to("#mcf-note", { opacity: 1, duration: 0.4 }, 5.2);
+        // Credit/title hold - HyperFrames media runtime seeks the video via data-start
+        tl.fromTo(
+          "#cfs-title",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.6, ease: "power1.out" },
+          0,
+        );
+        tl.fromTo(
+          "#cfs-credit",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.6, ease: "power1.out" },
+          0.15,
+        );
+        tl.to({}, { duration: Math.max(0.01, 12.01 - 0.75) });
+
         window.__timelines["map-conquest-fill-sequence"] = tl;
       })();
     </script>
@@ -228,7 +174,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
 
 <InstallCommand command="npx hyperframes add map-conquest-fill-sequence" item="map-conquest-fill-sequence" />
 
-That writes one file: `compositions/map-conquest-fill-sequence.html`.
+That writes `compositions/map-conquest-fill-sequence.html`, plus 2 supporting files under `assets/`.
 
 </CatalogSlot>
 
@@ -236,14 +182,14 @@ That writes one file: `compositions/map-conquest-fill-sequence.html`.
 
 ## Add it to your video
 
-It runs for 8 seconds at 1920×1080. Paste this into your composition:
+It runs for 12.01 seconds at 1920×1080. Paste this into your composition:
 
 ```html index.html
 <div
   data-composition-id="map-conquest-fill-sequence"
   data-composition-src="compositions/map-conquest-fill-sequence.html"
   data-start="0"
-  data-duration="8"
+  data-duration="12.01"
   data-track-index="1"
   data-width="1920"
   data-height="1080"
@@ -257,9 +203,8 @@ Move it in time with `data-start`. Put it on a different timeline row with
 
 Set these CSS variables on the block:
 
-- `title` - Title. Defaults to `Sequential Fill`.
-- `subtitle` - Subtitle. Defaults to `Educational cartography · conquest fill`.
-- `accent` - Accent. Defaults to `#c45c26`.
+- `title` - Title. Defaults to `Archival Map - Conquest Fill`.
+- `credit` - Credit line. Defaults to `Footage: Moving Image Archive | Man On The Land`.
 
 ## Variables
 
@@ -268,9 +213,8 @@ want to change on the element:
 
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
-| `title` | `Sequential Fill` | string |  |
-| `subtitle` | `Educational cartography · conquest fill` | string |  |
-| `accent` | `#c45c26` | color |  |
+| `title` | `Archival Map - Conquest Fill` | string |  |
+| `credit` | `Footage: Moving Image Archive | Man On The Land` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -279,13 +223,13 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-conquest-fill-sequence"
   data-composition-src="compositions/map-conquest-fill-sequence.html"
-  data-variable-values='{"title":"Sequential Fill","subtitle":"Educational cartography · conquest fill","accent":"#c45c26"}'
+  data-variable-values='{"title":"Archival Map - Conquest Fill","credit":"Footage: Moving Image Archive | Man On The Land"}'
 ></div>
 ```
 
 {/* hf:generated-footer */}
 
-Tagged `map` `geography` `animation` `conquest` `fill` `sequence` `newsreel` `svg`.
+Tagged `map` `geography` `animation` `archival` `footage` `mia` `newsreel` `video`.
 
 Created by [HeyGen](https://hyperframes.heygen.com).
 

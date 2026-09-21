@@ -1,6 +1,6 @@
 ---
-title: "Map Split Theater"
-description: "Split-screen two-theater maps with parallel schematic advances. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
+title: "Archival Map - Split Theater"
+description: "Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Fire Behavior in the Wildland/Urban Interface. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
 mode: "frame"
 ---
 
@@ -11,11 +11,11 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   previewSrc="/public/catalog/blocks/map-split-theater.json"
   compositionId="map-split-theater"
   compositionSrc="compositions/map-split-theater.html"
-  title="Map Split Theater"
-  description="Split-screen two-theater maps with parallel schematic advances. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included)."
-  variables={[{"id":"title","type":"string","label":"Title","default":"Two Theaters"},{"id":"subtitle","type":"string","label":"Subtitle","default":"Educational cartography · split screen"},{"id":"leftTitle","type":"string","label":"Left title","default":"WEST"},{"id":"rightTitle","type":"string","label":"Right title","default":"EAST"},{"id":"accent","type":"color","label":"Accent","default":"#c45c26"}]}
-  meta={{"duration":8,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":237}}
-  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-split-theater","tags":["map","geography","animation","split","theater","dual","newsreel","svg"]}}
+  title="Archival Map - Split Theater"
+  description="Public-domain archival animated-map footage from the Moving Image Archive Animated Maps collection (https://www.movingimagearchive.com/collection/animated-maps), sourced from Fire Behavior in the Wildland/Urban Interface. Mounted as a seek-safe HyperFrames video block with on-screen credit. Not affiliated with Moving Image Archive; footage reused under their stated free-to-reuse terms."
+  variables={[{"id":"title","type":"string","label":"Title","default":"Archival Map - Split Theater"},{"id":"credit","type":"string","label":"Credit line","default":"Footage: Moving Image Archive | Fire Behavior in the Wildland/Urban Interface"}]}
+  meta={{"duration":4.6,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":145}}
+  attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-split-theater","tags":["map","geography","animation","archival","footage","mia","newsreel","video"]}}
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-split-theater/map-split-theater.html"
 >
@@ -38,7 +38,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         box-sizing: border-box;
       }
       body {
-        background: #1a1714;
+        background: #0a0a0a;
         overflow: hidden;
       }
       #root-map-split-theater {
@@ -46,49 +46,53 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         width: 1920px;
         height: 1080px;
         overflow: hidden;
-        background: #1a1714;
-        font-family: Georgia, "Times New Roman", serif;
+        background: #0a0a0a;
+        font-family: "Helvetica Neue", Helvetica, sans-serif;
       }
-      #msx-frame {
-        position: absolute;
-        inset: 48px;
-        border: 1px solid rgba(196, 181, 154, 0.14);
-        background: #221e19;
-      }
-      #msx-svg {
+      #st-video {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
+        object-fit: contain;
+        background: #000;
       }
-      #msx-title {
+      #st-frame {
         position: absolute;
-        top: 72px;
-        left: 96px;
-        color: rgba(232, 220, 196, 0.92);
-        font-size: 42px;
+        inset: 36px;
+        border: 1px solid rgba(232, 220, 196, 0.28);
+        pointer-events: none;
+      }
+      #st-title {
+        position: absolute;
+        left: 72px;
+        top: 56px;
+        max-width: 1400px;
+        color: rgba(245, 236, 214, 0.95);
+        font-size: 36px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);
+      }
+      #st-credit {
+        position: absolute;
+        left: 72px;
+        right: 72px;
+        bottom: 56px;
+        color: rgba(232, 220, 196, 0.88);
+        font-size: 18px;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        font-weight: 400;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
       }
-      #msx-subtitle {
-        position: absolute;
-        top: 128px;
-        left: 96px;
-        color: rgba(196, 181, 154, 0.55);
-        font-size: 22px;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-      }
-      #msx-note {
-        position: absolute;
-        bottom: 88px;
-        left: 96px;
-        color: rgba(196, 181, 154, 0.55);
-        font-size: 16px;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        max-width: 900px;
+      #st-credit-url {
+        display: block;
+        margin-top: 8px;
+        font-size: 14px;
+        letter-spacing: 0.04em;
+        text-transform: none;
+        color: rgba(196, 181, 154, 0.7);
       }
     </style>
   </head>
@@ -97,164 +101,68 @@ import { InstallCommand } from "/snippets/install-command.jsx";
       id="root-map-split-theater"
       data-composition-id="map-split-theater"
       data-start="0"
-      data-duration="8"
+      data-duration="4.6"
       data-width="1920"
       data-height="1080"
     >
-      <div id="msx-frame">
-        <svg
-          id="msx-svg"
-          viewBox="0 0 1920 1080"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
+      <video
+        id="st-video"
+        src="assets/clip.mp4"
+        muted
+        playsinline
+        preload="auto"
+        data-start="0"
+        data-duration="4.6"
+        data-media-start="0"
+      ></video>
+      <div id="st-frame" aria-hidden="true"></div>
+      <div id="st-title" data-var-text="title">Archival Map - Split Theater</div>
+      <div id="st-credit">
+        <span data-var-text="credit"
+          >Footage: Moving Image Archive | Fire Behavior in the Wildland/Urban Interface</span
         >
-          <defs>
-            <pattern
-              id="msx-hatch"
-              width="12"
-              height="12"
-              patternUnits="userSpaceOnUse"
-              patternTransform="rotate(35)"
-            >
-              <line x1="0" y1="0" x2="0" y2="12" stroke="rgba(196,181,154,0.08)" stroke-width="1" />
-            </pattern>
-          </defs>
-
-          <rect width="1920" height="1080" fill="#1f1b17" />
-          <rect width="1920" height="1080" fill="url(#msx-hatch)" />
-          <clipPath id="msx-clip-l"><rect x="0" y="0" width="960" height="1080" /></clipPath>
-          <clipPath id="msx-clip-r"><rect x="960" y="0" width="960" height="1080" /></clipPath>
-          <g id="msx-left" clip-path="url(#msx-clip-l)">
-            <path
-              id="msx-land-l"
-              d="M 280 320 C 340 220 480 180 620 210 C 760 240 820 300 900 280 C 980 260 1080 300 1180 340 C 1280 380 1360 460 1380 560 C 1400 660 1340 760 1240 820 C 1140 880 980 900 860 860 C 740 820 700 780 620 800 C 540 820 420 780 360 700 C 300 620 240 500 280 320 Z"
-              fill="rgba(196,181,154,0.16)"
-              stroke="rgba(196,181,154,0.4)"
-              stroke-width="2"
-              transform="translate(-200 0) scale(0.85)"
-            />
-            <path
-              id="msx-a1"
-              d="M 280 600 L 520 480"
-              fill="none"
-              stroke="#c45c26"
-              stroke-width="4"
-              stroke-linecap="round"
-            />
-          </g>
-          <g id="msx-right" clip-path="url(#msx-clip-r)">
-            <path
-              id="msx-land-r"
-              d="M 280 320 C 340 220 480 180 620 210 C 760 240 820 300 900 280 C 980 260 1080 300 1180 340 C 1280 380 1360 460 1380 560 C 1400 660 1340 760 1240 820 C 1140 880 980 900 860 860 C 740 820 700 780 620 800 C 540 820 420 780 360 700 C 300 620 240 500 280 320 Z"
-              fill="rgba(196,181,154,0.16)"
-              stroke="rgba(196,181,154,0.4)"
-              stroke-width="2"
-              transform="translate(420 40) scale(0.85)"
-            />
-            <path
-              id="msx-a2"
-              d="M 1280 520 L 1520 640"
-              fill="none"
-              stroke="#c45c26"
-              stroke-width="4"
-              stroke-linecap="round"
-            />
-          </g>
-          <line
-            id="msx-divider"
-            x1="960"
-            y1="120"
-            x2="960"
-            y2="960"
-            stroke="rgba(196,181,154,0.35)"
-            stroke-width="2"
-          />
-          <text
-            id="msx-lt"
-            x="480"
-            y="200"
-            text-anchor="middle"
-            fill="rgba(232,220,196,0.8)"
-            font-size="28"
-            font-family="Georgia, serif"
-            letter-spacing="0.2em"
-          >
-            WEST
-          </text>
-          <text
-            id="msx-rt"
-            x="1440"
-            y="200"
-            text-anchor="middle"
-            fill="rgba(232,220,196,0.8)"
-            font-size="28"
-            font-family="Georgia, serif"
-            letter-spacing="0.2em"
-          >
-            EAST
-          </text>
-        </svg>
+        <span id="st-credit-url"
+          >movingimagearchive.com/collection/animated-maps - public domain / free to reuse</span
+        >
       </div>
-      <div id="msx-title" data-var-text="title">Two Theaters</div>
-      <div id="msx-subtitle" data-var-text="subtitle">Educational cartography · split screen</div>
-      <div id="msx-note">Split-screen theaters · abstract dual campaigns</div>
     </div>
     <script>
       (function () {
         window.__timelines = window.__timelines || {};
+
         var vars =
           window.__hyperframes && window.__hyperframes.getVariables
             ? window.__hyperframes.getVariables()
             : {};
-        var accent = /^#[0-9a-fA-F]{6}$/.test(String(vars.accent || ""))
-          ? String(vars.accent)
-          : "#c45c26";
-        var title = typeof vars.title === "string" && vars.title ? vars.title : "Two Theaters";
-        var subtitle =
-          typeof vars.subtitle === "string" && vars.subtitle
-            ? vars.subtitle
-            : "Educational cartography \u00b7 split screen";
-        var leftTitle =
-          typeof vars.leftTitle === "string" && vars.leftTitle ? vars.leftTitle : "WEST";
-        var rightTitle =
-          typeof vars.rightTitle === "string" && vars.rightTitle ? vars.rightTitle : "EAST";
 
-        document.getElementById("msx-title").textContent = title;
-        document.getElementById("msx-subtitle").textContent = subtitle;
-        document.getElementById("msx-lt").textContent = leftTitle;
-        document.getElementById("msx-rt").textContent = rightTitle;
-        document.getElementById("msx-a1").setAttribute("stroke", accent);
-        document.getElementById("msx-a2").setAttribute("stroke", accent);
-        var a1 = document.getElementById("msx-a1");
-        var a2 = document.getElementById("msx-a2");
-        var len1 = a1.getTotalLength(),
-          len2 = a2.getTotalLength();
-        gsap.set(a1, { strokeDasharray: len1, strokeDashoffset: len1 });
-        gsap.set(a2, { strokeDasharray: len2, strokeDashoffset: len2 });
-        gsap.set(
-          [
-            "#msx-left",
-            "#msx-right",
-            "#msx-divider",
-            "#msx-lt",
-            "#msx-rt",
-            "#msx-title",
-            "#msx-subtitle",
-            "#msx-note",
-          ],
-          { opacity: 0 },
-        );
+        var title =
+          typeof vars.title === "string" && vars.title
+            ? vars.title
+            : "Archival Map - Split Theater";
+        var credit =
+          typeof vars.credit === "string" && vars.credit
+            ? vars.credit
+            : "Footage: Moving Image Archive | Fire Behavior in the Wildland/Urban Interface";
+
+        document.getElementById("st-title").textContent = title;
+        document.querySelector('#st-credit [data-var-text="credit"]').textContent = credit;
+
         var tl = gsap.timeline({ paused: true });
-        tl.to("#msx-title", { opacity: 1, duration: 0.4 }, 0.1);
-        tl.to("#msx-subtitle", { opacity: 1, duration: 0.35 }, 0.3);
-        tl.to("#msx-divider", { opacity: 1, duration: 0.4 }, 0.5);
-        tl.to("#msx-left", { opacity: 1, duration: 0.5 }, 0.7);
-        tl.to("#msx-lt", { opacity: 1, duration: 0.35 }, 0.9);
-        tl.to("#msx-right", { opacity: 1, duration: 0.5 }, 1.2);
-        tl.to("#msx-rt", { opacity: 1, duration: 0.35 }, 1.4);
-        tl.to(a1, { strokeDashoffset: 0, duration: 1.8, ease: "power1.inOut" }, 2.0);
-        tl.to(a2, { strokeDashoffset: 0, duration: 1.8, ease: "power1.inOut" }, 2.4);
-        tl.to("#msx-note", { opacity: 1, duration: 0.4 }, 5.0);
+        // Credit/title hold - HyperFrames media runtime seeks the video via data-start
+        tl.fromTo(
+          "#st-title",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.6, ease: "power1.out" },
+          0,
+        );
+        tl.fromTo(
+          "#st-credit",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.6, ease: "power1.out" },
+          0.15,
+        );
+        tl.to({}, { duration: Math.max(0.01, 4.6 - 0.75) });
+
         window.__timelines["map-split-theater"] = tl;
       })();
     </script>
@@ -268,7 +176,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
 
 <InstallCommand command="npx hyperframes add map-split-theater" item="map-split-theater" />
 
-That writes one file: `compositions/map-split-theater.html`.
+That writes `compositions/map-split-theater.html`, plus 2 supporting files under `assets/`.
 
 </CatalogSlot>
 
@@ -276,14 +184,14 @@ That writes one file: `compositions/map-split-theater.html`.
 
 ## Add it to your video
 
-It runs for 8 seconds at 1920×1080. Paste this into your composition:
+It runs for 4.6 seconds at 1920×1080. Paste this into your composition:
 
 ```html index.html
 <div
   data-composition-id="map-split-theater"
   data-composition-src="compositions/map-split-theater.html"
   data-start="0"
-  data-duration="8"
+  data-duration="4.6"
   data-track-index="1"
   data-width="1920"
   data-height="1080"
@@ -297,11 +205,8 @@ Move it in time with `data-start`. Put it on a different timeline row with
 
 Set these CSS variables on the block:
 
-- `title` - Title. Defaults to `Two Theaters`.
-- `subtitle` - Subtitle. Defaults to `Educational cartography · split screen`.
-- `leftTitle` - Left title. Defaults to `WEST`.
-- `rightTitle` - Right title. Defaults to `EAST`.
-- `accent` - Accent. Defaults to `#c45c26`.
+- `title` - Title. Defaults to `Archival Map - Split Theater`.
+- `credit` - Credit line. Defaults to `Footage: Moving Image Archive | Fire Behavior in the Wildland/Urban Interface`.
 
 ## Variables
 
@@ -310,11 +215,8 @@ want to change on the element:
 
 | Variable | Default | Accepts | What it does |
 | --- | --- | --- | --- |
-| `title` | `Two Theaters` | string |  |
-| `subtitle` | `Educational cartography · split screen` | string |  |
-| `leftTitle` | `WEST` | string |  |
-| `rightTitle` | `EAST` | string |  |
-| `accent` | `#c45c26` | color |  |
+| `title` | `Archival Map - Split Theater` | string |  |
+| `credit` | `Footage: Moving Image Archive | Fire Behavior in the Wildland/Urban Interface` | string |  |
 
 Set them with `data-variable-values` on the element that mounts it. These are the
 defaults, so this behaves exactly like the preview above until you change one:
@@ -323,13 +225,13 @@ defaults, so this behaves exactly like the preview above until you change one:
 <div
   data-composition-id="map-split-theater"
   data-composition-src="compositions/map-split-theater.html"
-  data-variable-values='{"title":"Two Theaters","subtitle":"Educational cartography · split screen","leftTitle":"WEST","rightTitle":"EAST","accent":"#c45c26"}'
+  data-variable-values='{"title":"Archival Map - Split Theater","credit":"Footage: Moving Image Archive | Fire Behavior in the Wildland/Urban Interface"}'
 ></div>
 ```
 
 {/* hf:generated-footer */}
 
-Tagged `map` `geography` `animation` `split` `theater` `dual` `newsreel` `svg`.
+Tagged `map` `geography` `animation` `archival` `footage` `mia` `newsreel` `video`.
 
 Created by [HeyGen](https://hyperframes.heygen.com).
 
