@@ -59,7 +59,6 @@ export const TimelineCanvas = memo(function TimelineCanvas() {
         draggedElement={draggedElement}
         multiDragPreview={multiDragPreview}
         onToggleTrackHidden={props.onToggleTrackHidden}
-        onTogglePropertyGroupKeyframe={props.onTogglePropertyGroupKeyframe}
         onResizeElement={props.onResizeElement}
         onMoveElement={props.onMoveElement}
         onRazorSplit={props.onRazorSplit}
