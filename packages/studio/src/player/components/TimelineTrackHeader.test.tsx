@@ -88,7 +88,9 @@ describe("TimelineTrackHeader", () => {
       }),
     };
     const { host, root } = renderHeader({ clip, audio: true, hidden: true, onRemove });
-    expect(host.querySelectorAll("[data-automation-lane-label]")).toHaveLength(1);
+    const lane = host.querySelector<HTMLElement>("[data-automation-lane-label]");
+    expect(lane).not.toBeNull();
+    expect(lane?.style.top).toBe("48px");
     act(() => host.querySelector<HTMLButtonElement>('button[aria-label$="automation"]')?.click());
     expect(onRemove).toHaveBeenCalledWith("volume");
     act(() => root.unmount());
