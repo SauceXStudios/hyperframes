@@ -3,33 +3,31 @@
   "name": "map-border-chase",
   "type": "hyperframes:block",
   "title": "Map Border Chase",
-  "description": "Border highlight chase that races along a coastline or frontier stroke. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
-  "tags": ["map", "geography", "animation", "border", "chase", "highlight", "newsreel", "svg"],
+  "description": "Alaska Highway reverse: static basemap plate with white border/feeder stroke draws and a black arrow riding the trunk to Dawson Creek tip. Seek-safe SVG/GSAP + MotionPath; PNG plate only (no MP4 wrapper). Inspired by Moving Image Archive animated-map clip map-border-chase - not affiliated; footage not included. QC_PASS 2026-09-21.",
+  "tags": [
+    "map",
+    "geography",
+    "animation",
+    "border",
+    "highway",
+    "alaska",
+    "newsreel",
+    "svg",
+    "mia"
+  ],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
   "dimensions": {
     "width": 1920,
     "height": 1080
   },
-  "duration": 8,
+  "duration": 8.942,
   "variables": [
     {
-      "id": "title",
+      "id": "credit",
       "type": "string",
-      "label": "Title",
-      "default": "Frontier Trace"
-    },
-    {
-      "id": "subtitle",
-      "type": "string",
-      "label": "Subtitle",
-      "default": "Educational cartography · border chase"
-    },
-    {
-      "id": "accent",
-      "type": "color",
-      "label": "Accent",
-      "default": "#c45c26"
+      "label": "Credit",
+      "default": "Moving Image Archive inspiration - Alaska Highway / map-border-chase - code recreation - not affiliated"
     }
   ],
   "files": [
@@ -37,26 +35,19 @@
       "path": "map-border-chase.html",
       "target": "compositions/map-border-chase.html",
       "type": "hyperframes:composition"
+    },
+    {
+      "path": "assets/basemap-t0.png",
+      "target": "assets/basemap-t0.png",
+      "type": "hyperframes:asset"
     }
   ],
   "params": [
     {
-      "id": "title",
+      "id": "credit",
       "type": "string",
-      "label": "Title",
-      "default": "Frontier Trace"
-    },
-    {
-      "id": "subtitle",
-      "type": "string",
-      "label": "Subtitle",
-      "default": "Educational cartography · border chase"
-    },
-    {
-      "id": "accent",
-      "type": "color",
-      "label": "Accent",
-      "default": "#c45c26"
+      "label": "Credit",
+      "default": "Moving Image Archive inspiration - Alaska Highway / map-border-chase - code recreation - not affiliated"
     }
   ]
 }

@@ -60,3 +60,8 @@ Ceilings: painterly topo/grain, vector outline, flare tips, 8s compress, live-ac
 Source: Moving Image Archive, City Water Supply, 1941.
 Ported from `reversals/mia-maps/shipping-lanes/recreate/` with topo plate externalized to `assets/topo-plate.png` (no base64 blob; no MP4 wrapper).
 Ceilings: live open stand-ins, grain/weave, DEM sharpness, tunnel micro-breaks, hidden credit.
+
+## map-border-chase (QC_PASS 2026-09-21)
+
+Source inspiration: Moving Image Archive animated-map clip map-border-chase (Alaska Highway).
+Ported from `reversals/mia-maps/border-chase/recreate/hf-project/compositions/map-border-chase.html` + `public/basemap-t0.png` (still plate, not MP4).

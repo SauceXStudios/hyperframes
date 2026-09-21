@@ -3160,16 +3160,17 @@
     "name": "map-border-chase",
     "type": "block",
     "title": "Map Border Chase",
-    "description": "Border highlight chase that races along a coastline or frontier stroke. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
+    "description": "Alaska Highway reverse: static basemap plate with white border/feeder stroke draws and a black arrow riding the trunk to Dawson Creek tip. Seek-safe SVG/GSAP + MotionPath; PNG plate only (no MP4 wrapper). Inspired by Moving Image Archive animated-map clip map-border-chase - not affiliated; footage not included. QC_PASS 2026-09-21.",
     "tags": [
       "map",
       "geography",
       "animation",
       "border",
-      "chase",
-      "highlight",
+      "highway",
+      "alaska",
       "newsreel",
-      "svg"
+      "svg",
+      "mia"
     ],
     "href": "/catalog/blocks/map-border-chase",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-border-chase.png"
