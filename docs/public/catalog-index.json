@@ -3194,17 +3194,16 @@
     "name": "map-campaign-arrows",
     "type": "block",
     "title": "Map Campaign Arrows",
-    "description": "Newsreel-style contiguous US silhouette with staggered eastern rail densify, transcontinental draw, and west spurs. Seek-safe SVG/GSAP. Inspired by Moving Image Archive, How Our Country Grew, 1950 (Animated Maps collection) - not affiliated; code recreation, footage not included.",
+    "description": "Newsreel wartime aesthetic with sequential schematic campaign arrows along a path — abstract educational cartography, not glorifying. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection — not affiliated; footage not included).",
     "tags": [
       "map",
       "geography",
       "animation",
-      "rail",
-      "network",
+      "arrows",
+      "campaign",
       "newsreel",
-      "svg",
-      "mia",
-      "united-states"
+      "schematic",
+      "svg"
     ],
     "href": "/catalog/blocks/map-campaign-arrows",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-campaign-arrows.png"

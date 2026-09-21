@@ -3,91 +3,33 @@
   "name": "map-campaign-arrows",
   "type": "hyperframes:block",
   "title": "Map Campaign Arrows",
-  "description": "Newsreel-style contiguous US silhouette with staggered eastern rail densify, transcontinental draw, and west spurs. Seek-safe SVG/GSAP. Inspired by Moving Image Archive, How Our Country Grew, 1950 (Animated Maps collection) - not affiliated; code recreation, footage not included.",
-  "tags": [
-    "map",
-    "geography",
-    "animation",
-    "rail",
-    "network",
-    "newsreel",
-    "svg",
-    "mia",
-    "united-states"
-  ],
+  "description": "Newsreel wartime aesthetic with sequential schematic campaign arrows along a path \u2014 abstract educational cartography, not glorifying. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection \u2014 not affiliated; footage not included).",
+  "tags": ["map", "geography", "animation", "arrows", "campaign", "newsreel", "schematic", "svg"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
   "dimensions": {
     "width": 1920,
     "height": 1080
   },
-  "duration": 10,
+  "duration": 9,
   "variables": [
     {
       "id": "title",
       "type": "string",
       "label": "Title",
-      "default": "How Our Country Grew"
+      "default": "Schematic Advances"
     },
     {
       "id": "subtitle",
       "type": "string",
       "label": "Subtitle",
-      "default": "Rail web \u00b7 east densify \u00b7 transcontinental \u00b7 west spurs"
+      "default": "Sequential path arrows \u00b7 abstract cartography"
     },
     {
-      "id": "credit",
-      "type": "string",
-      "label": "Credit",
-      "default": "Inspired by Moving Image Archive, How Our Country Grew, 1950 (Animated Maps) - not affiliated; recreation in code, footage not included."
-    },
-    {
-      "id": "bg",
+      "id": "accent",
       "type": "color",
-      "label": "Background",
-      "default": "#6e6e6e"
-    },
-    {
-      "id": "land",
-      "type": "color",
-      "label": "Land",
-      "default": "#1a1a1a"
-    },
-    {
-      "id": "lake",
-      "type": "color",
-      "label": "Lakes",
-      "default": "#d8d8d8"
-    },
-    {
-      "id": "route",
-      "type": "color",
-      "label": "Routes",
-      "default": "#ffffff"
-    },
-    {
-      "id": "ink",
-      "type": "color",
-      "label": "Ink",
-      "default": "#ececec"
-    },
-    {
-      "id": "eastSpeed",
-      "type": "number",
-      "label": "East draw speed (s)",
-      "default": 0.18
-    },
-    {
-      "id": "transSpeed",
-      "type": "number",
-      "label": "Transcontinental draw (s)",
-      "default": 2.4
-    },
-    {
-      "id": "westSpeed",
-      "type": "number",
-      "label": "West spur draw (s)",
-      "default": 0.35
+      "label": "Accent",
+      "default": "#c45c26"
     }
   ],
   "files": [
@@ -102,67 +44,19 @@
       "id": "title",
       "type": "string",
       "label": "Title",
-      "default": "How Our Country Grew"
+      "default": "Schematic Advances"
     },
     {
       "id": "subtitle",
       "type": "string",
       "label": "Subtitle",
-      "default": "Rail web \u00b7 east densify \u00b7 transcontinental \u00b7 west spurs"
+      "default": "Sequential path arrows \u00b7 abstract cartography"
     },
     {
-      "id": "credit",
-      "type": "string",
-      "label": "Credit",
-      "default": "Inspired by Moving Image Archive, How Our Country Grew, 1950 (Animated Maps) - not affiliated; recreation in code, footage not included."
-    },
-    {
-      "id": "bg",
+      "id": "accent",
       "type": "color",
-      "label": "Background",
-      "default": "#6e6e6e"
-    },
-    {
-      "id": "land",
-      "type": "color",
-      "label": "Land",
-      "default": "#1a1a1a"
-    },
-    {
-      "id": "lake",
-      "type": "color",
-      "label": "Lakes",
-      "default": "#d8d8d8"
-    },
-    {
-      "id": "route",
-      "type": "color",
-      "label": "Routes",
-      "default": "#ffffff"
-    },
-    {
-      "id": "ink",
-      "type": "color",
-      "label": "Ink",
-      "default": "#ececec"
-    },
-    {
-      "id": "eastSpeed",
-      "type": "number",
-      "label": "East draw speed (s)",
-      "default": 0.18
-    },
-    {
-      "id": "transSpeed",
-      "type": "number",
-      "label": "Transcontinental draw (s)",
-      "default": 2.4
-    },
-    {
-      "id": "westSpeed",
-      "type": "number",
-      "label": "West spur draw (s)",
-      "default": 0.35
+      "label": "Accent",
+      "default": "#c45c26"
     }
   ]
 }
