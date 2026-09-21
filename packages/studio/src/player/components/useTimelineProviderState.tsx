@@ -147,6 +147,7 @@ export function useTimelineProviderState({
     trackGroupOf,
   } = useTimelineTrackLayout(
     timelineElements,
+    gsapAnimations,
     selectedElementId,
     selectedElementIds,
   );
