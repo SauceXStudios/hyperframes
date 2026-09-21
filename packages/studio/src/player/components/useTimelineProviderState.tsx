@@ -147,7 +147,6 @@ export function useTimelineProviderState({
     trackGroupOf,
   } = useTimelineTrackLayout(
     timelineElements,
-    gsapAnimations,
     selectedElementId,
     selectedElementIds,
   );
@@ -259,7 +258,6 @@ export function useTimelineProviderState({
     selectedElementIds,
     groups,
     trackGroupOf,
-    gsapAnimations,
     elements: timelineElements,
     pixelsPerSecond: pps,
     contentOrigin,

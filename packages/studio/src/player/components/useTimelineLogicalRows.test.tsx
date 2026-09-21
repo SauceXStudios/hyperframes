@@ -26,7 +26,6 @@ const collapsedGroupIds = new Set<string>();
 const expandedLaneOwnerIds = new Set<string>();
 const groups: never[] = [];
 const trackGroupOf = new Map();
-const gsapAnimations = new Map();
 
 function Harness({
   snapshots,
@@ -46,7 +45,6 @@ function Harness({
     expandedLaneOwnerIds,
     groups,
     trackGroupOf,
-    gsapAnimations,
   });
   snapshots.push(logicalRows);
   return null;

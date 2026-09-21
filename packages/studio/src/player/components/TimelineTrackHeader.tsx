@@ -53,6 +53,8 @@ interface TimelineTrackHeaderProps {
    *  clip and one by the row. Minted by TimelineLanes, the one place that sees
    *  every subtree. */
   lanesId: string;
+  /** @deprecated Keyframe property lanes were removed; retained only for stale callers during migration. */
+  animations?: readonly unknown[];
   contentOrigin: number;
   /** The track's active keyframe clip (selected, else primary) — the one whose
    *  disclosure + property rows this header shows, whether expanded or not. */
@@ -71,6 +73,8 @@ interface TimelineTrackHeaderProps {
   rovingTargetId?: string | null;
   theme: TimelineTheme;
   onToggleClipExpanded: () => void;
+  /** @deprecated Keyframe property controls were removed. */
+  onTogglePropertyGroupKeyframe?: TimelineEditCallbacks["onTogglePropertyGroupKeyframe"];
   onToggleTrackHidden: TimelineEditCallbacks["onToggleTrackHidden"];
   /** Drop one envelope. Absent while the lanes are read-only, which is what
    *  hides the control rather than offering a button that cannot act. */

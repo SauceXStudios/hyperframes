@@ -121,7 +121,6 @@ function renderLanes(options: RenderLanesOptions = {}): {
             expandedLaneOwnerIds: new Set(),
             groups: [],
             trackGroupOf: new Map(),
-            gsapAnimations,
           })}
           clipIndex={createTimelineClipIndex(tracks)}
           renderTimeRange={{ start: 0, end: Number.POSITIVE_INFINITY }}
