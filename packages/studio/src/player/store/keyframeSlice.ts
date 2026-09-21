@@ -152,7 +152,6 @@ export function createKeyframeSlice(
       }),
     clearSelectedKeyframes: () => set({ selectedKeyframes: new Set() }),
 
-
     collapsedGroupIds: new Set(),
     toggleGroupExpanded: (id) =>
       set((state) => {

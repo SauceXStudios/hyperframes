@@ -71,8 +71,7 @@ function model(overrides: Partial<Parameters<typeof buildTimelineLogicalRows>[0]
   });
 }
 
-describe("buildTimelineLogicalRows", () => {
-});
+describe("buildTimelineLogicalRows", () => {});
 
 describe("resolveTimelineNavigationTarget", () => {
   it("navigates horizontal items plus row Home and End", () => {
@@ -103,7 +102,6 @@ describe("resolveTimelineNavigationTarget", () => {
     );
   });
 
-
   it("supports modified Home and End across the whole logical model", () => {
     const rows = model();
     const current = timelineTrackRowId(2);
@@ -115,7 +113,6 @@ describe("resolveTimelineNavigationTarget", () => {
       resolveTimelineNavigationTarget(rows, current, "End", { timelineBoundary: true })?.id,
     ).toBe(timelineTrackRowId(3));
   });
-
 
   it("breaks equal-distance vertical ties by time then stable identity", () => {
     const rows = buildTimelineLogicalRows({

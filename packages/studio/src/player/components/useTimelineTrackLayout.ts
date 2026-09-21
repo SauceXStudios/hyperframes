@@ -6,11 +6,7 @@ import { elementAutomationLanes, groupAutomationLanes } from "./automationLaneDa
 import { usePlayerStore, type TimelineElement } from "../store/playerStore";
 import type { DraggedClipState } from "./timelineClipDragTypes";
 import { useTimelineTrackDerivations } from "./useTimelineTrackDerivations";
-import {
-  TRACK_H,
-  createTimelineRowGeometry,
-  type TimelineRowGeometry,
-} from "./timelineLayout";
+import { TRACK_H, createTimelineRowGeometry, type TimelineRowGeometry } from "./timelineLayout";
 import type { TimelineTrackGroupInfo } from "./useTimelineTrackDerivations";
 import { groupAutomationElement } from "./groupAutomationElement";
 import { AUTOMATION_LANE_H } from "./automationLaneHeight";
@@ -159,7 +155,12 @@ function useTimelineRowHeights(
     const rowHeights = applyGroupStripHeights(
       tracks,
       tracks.map(([, elements]) => {
-        const active = resolveTrackKeyframeClip(elements, laneCounts, selectedElementId, selectedElementIds);
+        const active = resolveTrackKeyframeClip(
+          elements,
+          laneCounts,
+          selectedElementId,
+          selectedElementIds,
+        );
         const activeId = active ? (active.key ?? active.id) : null;
         return activeId !== null && expandedLaneOwnerIds.has(activeId)
           ? TRACK_H + trackAutomationLaneCount(elements) * AUTOMATION_LANE_H
@@ -175,14 +176,7 @@ function useTimelineRowHeights(
         rowHeights,
       ),
     };
-  }, [
-    expandedLaneOwnerIds,
-    gsapAnimations,
-    groups,
-    tracks,
-    selectedElementId,
-    selectedElementIds,
-  ]);
+  }, [expandedLaneOwnerIds, gsapAnimations, groups, tracks, selectedElementId, selectedElementIds]);
   const rowGeometryRef = useRef<TimelineRowGeometry>(rowGeometry);
   rowGeometryRef.current = rowGeometry;
   return {
