@@ -3,33 +3,32 @@
   "name": "map-arrow-fanout",
   "type": "hyperframes:block",
   "title": "Map Arrow Fanout",
-  "description": "Arrow swarm fan-out from an origin - abstract schematic advances. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
-  "tags": ["map", "geography", "animation", "arrows", "fanout", "swarm", "newsreel", "svg"],
+  "description": "Berlin Airlift-style Germany map: west/east color grammar, Berlin pin and sectors, thick W-E arrow fan-out with glow trails, then endcard. Seek-safe SVG/GSAP; no MP4 wrapper. Inspired by Moving Image Archive Animated Maps (Germany / Berlin Airlift era footage) - not affiliated; code recreation. Fidelity ceilings: hotter glow vs film, sector purple-to-blue, faceted coasts, SVG endcard, Act1 color grammar, film grain.",
+  "tags": [
+    "map",
+    "geography",
+    "animation",
+    "arrows",
+    "fanout",
+    "berlin",
+    "newsreel",
+    "svg",
+    "mia",
+    "ceiling-only"
+  ],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
   "dimensions": {
     "width": 1920,
     "height": 1080
   },
-  "duration": 8,
+  "duration": 39,
   "variables": [
     {
-      "id": "title",
+      "id": "credit",
       "type": "string",
-      "label": "Title",
-      "default": "Advance Fan-Out"
-    },
-    {
-      "id": "subtitle",
-      "type": "string",
-      "label": "Subtitle",
-      "default": "Educational cartography · arrow swarm"
-    },
-    {
-      "id": "accent",
-      "type": "color",
-      "label": "Accent",
-      "default": "#c45c26"
+      "label": "Credit",
+      "default": "Inspired by Moving Image Archive - Animated Maps - not affiliated; footage not included"
     }
   ],
   "files": [
@@ -41,22 +40,10 @@
   ],
   "params": [
     {
-      "id": "title",
+      "id": "credit",
       "type": "string",
-      "label": "Title",
-      "default": "Advance Fan-Out"
-    },
-    {
-      "id": "subtitle",
-      "type": "string",
-      "label": "Subtitle",
-      "default": "Educational cartography · arrow swarm"
-    },
-    {
-      "id": "accent",
-      "type": "color",
-      "label": "Accent",
-      "default": "#c45c26"
+      "label": "Credit",
+      "default": "Inspired by Moving Image Archive - Animated Maps - not affiliated; footage not included"
     }
   ]
 }

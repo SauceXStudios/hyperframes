@@ -42,3 +42,9 @@ Ceilings: angular coasts, grain, SVG plane silhouette (not photoreal), radial li
 Source inspiration: Moving Image Archive, Network Broadcasting, 1934 (clip bbdd60a1-a3f6-5d22-8953-3419f5a17afd).
 Ported from video-reverse `reversals/mia-maps/radar-rings/recreate/index.html` (self-contained; no MP4 wrapper).
 Ceilings: grain/CRT bloom, blocky 320 coast, partial borders, live-action after iris OOS.
+
+## map-arrow-fanout (QC-gated CEILING_ONLY 2026-09-20)
+
+Source inspiration: Moving Image Archive Animated Maps (Germany / Berlin Airlift reference).
+Ported from video-reverse `reversals/mia-maps/arrow-fanout/recreate/map-arrow-fanout.html` (CDN GSAP; local gsap.min.js not shipped).
+Ceilings: hotter glow, sector purple-to-blue, faceted coasts, SVG endcard, Act1 grammar, grain.

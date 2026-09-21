@@ -5,65 +5,90 @@
     <meta name="viewport" content="width=1920, height=1080" />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
     <style>
-      *,
-      *::before,
-      *::after {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+      :root {
+        --maf-west: #703030;
+        --maf-west-deep: #603030;
+        --maf-land: #c8bca8;
+        --maf-land-alt: #b0a494;
+        --maf-sea: #1a1a28;
+        --maf-bg: #2a2420;
+        --maf-outer-tan: #c4a882;
+        --maf-sector-fr: #8e94a3;
+        --maf-sector-uk: #d6d2c9;
+        --maf-sector-us: #bda876;
+        --maf-sector-su: #703030;
+        --maf-circle: #703030;
+        --maf-arrow: #ffffff;
+        --maf-label: #ffffff;
+        --maf-border: #1a1210;
+        --maf-credit: rgba(232, 220, 196, 0.45);
       }
-      body {
-        background: #1a1714;
-        overflow: hidden;
-      }
+      *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+      body { background: #0e0c0b; overflow: hidden; }
       #root-map-arrow-fanout {
         position: relative;
         width: 1920px;
         height: 1080px;
         overflow: hidden;
-        background: #1a1714;
-        font-family: Georgia, "Times New Roman", serif;
+        background: var(--maf-bg);
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
       }
-      #maf-frame {
-        position: absolute;
-        inset: 48px;
-        border: 1px solid rgba(196, 181, 154, 0.14);
-        background: #221e19;
-      }
-      #maf-svg {
+      #maf-stage {
         position: absolute;
         inset: 0;
-        width: 100%;
-        height: 100%;
+        overflow: hidden;
+        background: var(--maf-bg);
       }
-      #maf-title {
+      #maf-camera {
         position: absolute;
-        top: 72px;
-        left: 96px;
-        color: rgba(232, 220, 196, 0.92);
-        font-size: 42px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        left: 0; top: 0;
+        width: 1920px; height: 1080px;
+        transform-origin: 1038px 482px; /* Berlin measured pin */
+        will-change: transform;
+      }
+      #maf-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+      #maf-berlin-layer {
+        position: absolute; inset: 0;
+        opacity: 0;
+        pointer-events: none;
+      }
+      #maf-berlin-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+      #maf-endcard {
+        position: absolute; inset: 0;
+        opacity: 0;
+        pointer-events: none;
+        background: linear-gradient(180deg, #4a4a6a 0%, #2a2a40 45%, #1a1828 100%);
+      }
+      #maf-endcard-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+      #maf-grain {
+        position: absolute; inset: 0;
+        pointer-events: none;
+        opacity: 0.22;
+        mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+        background-size: 180px 180px;
+      }
+      #maf-vignette {
+        position: absolute; inset: 0;
+        pointer-events: none;
+        background: radial-gradient(ellipse at center, transparent 42%, rgba(0,0,0,0.55) 100%);
+      }
+      #maf-credit {
+        position: absolute;
+        left: 48px; bottom: 28px;
+        z-index: 5;
+        color: var(--maf-credit);
+        font-size: 14px;
+        letter-spacing: 0.06em;
+        max-width: 1100px;
+        text-transform: none;
         font-weight: 400;
       }
-      #maf-subtitle {
-        position: absolute;
-        top: 128px;
-        left: 96px;
-        color: rgba(196, 181, 154, 0.55);
-        font-size: 22px;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-      }
-      #maf-note {
-        position: absolute;
-        bottom: 88px;
-        left: 96px;
-        color: rgba(196, 181, 154, 0.55);
-        font-size: 16px;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        max-width: 900px;
+      .maf-label {
+        fill: var(--maf-label);
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-weight: 700;
+        letter-spacing: 0.12em;
       }
     </style>
   </head>
@@ -72,209 +97,308 @@
       id="root-map-arrow-fanout"
       data-composition-id="map-arrow-fanout"
       data-start="0"
-      data-duration="8"
+      data-duration="39"
       data-width="1920"
       data-height="1080"
     >
-      <div id="maf-frame">
-        <svg
-          id="maf-svg"
-          viewBox="0 0 1920 1080"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <defs>
-            <pattern
-              id="maf-hatch"
-              width="12"
-              height="12"
-              patternUnits="userSpaceOnUse"
-              patternTransform="rotate(35)"
-            >
-              <line x1="0" y1="0" x2="0" y2="12" stroke="rgba(196,181,154,0.08)" stroke-width="1" />
-            </pattern>
-          </defs>
+      <div id="maf-stage">
+        <div id="maf-camera">
+          <svg id="maf-svg" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+              <pattern id="maf-hatch" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(32)">
+                <line x1="0" y1="0" x2="0" y2="14" stroke="rgba(0,0,0,0.06)" stroke-width="1" />
+              </pattern>
+            </defs>
+            <!-- Sea / land base -->
+                        <!-- GEOMETRY: stills-trace t5/t19/t23 + geojson bundeslaender fit; see geometry/measured-paths.json -->
+            <rect id="maf-sea" width="1920" height="1080" fill="var(--maf-sea)" />
+            <!-- Simplified Central Europe landmass (cream) -->
+            <path id="maf-neighbors" fill="var(--maf-land)" stroke="var(--maf-border)" stroke-width="2.5"
+              d="M 1689.0 47.2 L 1743.0 85.5 L 1809.0 101.2 L 1821.0 121.5 L 1866.0 119.2 L 1833.0 78.8 L 1908.0 90.0 L 1908.0 137.2 L 1887.0 144.0 L 1908.0 171.0 L 1866.0 184.5 L 1869.0 198.0 L 1908.0 195.8 L 1908.0 825.8 L 1854.0 884.2 L 1857.0 904.5 L 1875.0 904.5 L 1908.0 859.5 L 1908.0 987.8 L 1893.0 1005.8 L 1824.0 1005.8 L 1797.0 1026.0 L 1812.0 1041.8 L 1767.0 1041.8 L 1779.0 1021.5 L 1743.0 1017.0 L 1722.0 1046.2 L 1653.0 1032.8 L 1632.0 1055.2 L 1587.0 1046.2 L 1551.0 1071.0 L 1329.0 1071.0 L 1329.0 1037.2 L 1311.0 1037.2 L 1290.0 1071.0 L 1275.0 1028.2 L 1215.0 1053.0 L 1218.0 1017.0 L 1155.0 1014.8 L 1149.0 990.0 L 1107.0 1001.2 L 1101.0 969.8 L 1050.0 981.0 L 1011.0 967.5 L 993.0 972.0 L 1005.0 999.0 L 981.0 983.2 L 954.0 987.8 L 951.0 1001.2 L 975.0 1008.0 L 951.0 1021.5 L 936.0 1071.0 L 522.0 1071.0 L 483.0 1044.0 L 396.0 1062.0 L 351.0 1050.8 L 333.0 1026.0 L 369.0 915.8 L 411.0 882.0 L 339.0 852.8 L 312.0 864.0 L 282.0 850.5 L 261.0 805.5 L 225.0 805.5 L 252.0 803.2 L 261.0 756.0 L 240.0 715.5 L 216.0 715.5 L 264.0 693.0 L 216.0 609.8 L 252.0 580.5 L 261.0 492.8 L 315.0 490.5 L 333.0 474.8 L 342.0 447.8 L 327.0 429.8 L 369.0 380.2 L 411.0 279.0 L 516.0 283.5 L 567.0 252.0 L 552.0 200.2 L 576.0 159.8 L 570.0 123.8 L 669.0 130.5 L 672.0 117.0 L 696.0 157.5 L 714.0 135.0 L 726.0 168.8 L 702.0 191.2 L 774.0 204.8 L 792.0 189.0 L 783.0 249.8 L 882.0 216.0 L 882.0 202.5 L 828.0 193.5 L 825.0 166.5 L 858.0 171.0 L 861.0 141.8 L 891.0 195.8 L 954.0 198.0 L 990.0 175.5 L 1056.0 272.2 L 1083.0 272.2 L 1260.0 218.2 L 1326.0 177.8 L 1434.0 150.8 L 1473.0 209.2 L 1563.0 202.5 L 1602.0 137.2 L 1653.0 123.8 L 1677.0 96.8 L 1689.0 49.5 Z" />
+            <!-- West Germany silhouette (recognizable) -->
+            <path id="maf-west" fill="var(--maf-west)" stroke="var(--maf-border)" stroke-width="3"
+              d="M 570.0 123.8 L 654.0 130.5 L 678.0 139.5 L 690.0 157.5 L 726.0 162.0 L 723.0 173.2 L 702.0 177.8 L 702.0 191.2 L 723.0 202.5 L 798.0 204.8 L 783.0 227.2 L 735.0 243.0 L 738.0 256.5 L 720.0 265.5 L 720.0 276.8 L 738.0 285.8 L 738.0 299.2 L 708.0 321.8 L 723.0 330.8 L 744.0 328.5 L 771.0 357.8 L 804.0 366.8 L 777.0 384.8 L 744.0 380.2 L 720.0 391.5 L 726.0 409.5 L 741.0 416.2 L 753.0 465.8 L 741.0 486.0 L 705.0 490.5 L 708.0 549.0 L 684.0 544.5 L 636.0 571.5 L 666.0 596.2 L 636.0 654.8 L 651.0 672.8 L 702.0 699.8 L 756.0 695.2 L 768.0 708.8 L 768.0 684.0 L 780.0 677.2 L 798.0 695.2 L 840.0 688.5 L 867.0 715.5 L 852.0 733.5 L 852.0 756.0 L 879.0 796.5 L 882.0 828.0 L 918.0 839.2 L 930.0 859.5 L 954.0 868.5 L 954.0 886.5 L 1005.0 909.0 L 1002.0 940.5 L 957.0 945.0 L 951.0 965.2 L 897.0 1001.2 L 909.0 1044.0 L 921.0 1046.2 L 915.0 1071.0 L 891.0 1066.5 L 882.0 1055.2 L 831.0 1055.2 L 777.0 1062.0 L 759.0 1073.2 L 555.0 1073.2 L 525.0 1064.2 L 504.0 1044.0 L 441.0 1041.8 L 438.0 1055.2 L 408.0 1057.5 L 360.0 1055.2 L 333.0 1037.2 L 345.0 972.0 L 369.0 954.0 L 369.0 913.5 L 411.0 893.2 L 417.0 875.2 L 375.0 852.8 L 330.0 852.8 L 276.0 830.2 L 255.0 792.0 L 261.0 753.8 L 237.0 711.0 L 264.0 695.2 L 264.0 677.2 L 234.0 630.0 L 231.0 591.8 L 252.0 585.0 L 264.0 553.5 L 258.0 495.0 L 318.0 495.0 L 351.0 450.0 L 336.0 402.8 L 351.0 402.8 L 372.0 378.0 L 408.0 281.2 L 486.0 274.5 L 519.0 285.8 L 570.0 249.8 L 570.0 227.2 L 552.0 204.8 L 576.0 159.8 L 567.0 126.0 Z" />
+            <!-- East Germany silhouette -->
+            <path id="maf-east" fill="var(--maf-land-alt)" stroke="var(--maf-border)" stroke-width="3"
+              d="M 873.0 180.0 L 894.0 198.0 L 951.0 198.0 L 981.0 218.2 L 1017.0 220.5 L 1050.0 245.2 L 1053.0 288.0 L 1077.0 294.8 L 1068.0 315.0 L 1071.0 339.8 L 1080.0 342.0 L 1056.0 407.2 L 1101.0 432.0 L 1095.0 544.5 L 1128.0 594.0 L 1122.0 616.5 L 1149.0 630.0 L 1140.0 645.8 L 1062.0 641.2 L 963.0 681.8 L 954.0 693.0 L 870.0 713.2 L 837.0 690.8 L 798.0 695.2 L 783.0 679.5 L 771.0 681.8 L 771.0 708.8 L 738.0 693.0 L 717.0 693.0 L 714.0 702.0 L 729.0 711.0 L 705.0 713.2 L 705.0 699.8 L 672.0 677.2 L 648.0 677.2 L 645.0 659.2 L 630.0 663.8 L 645.0 636.8 L 636.0 627.8 L 660.0 614.2 L 660.0 594.0 L 636.0 571.5 L 681.0 544.5 L 708.0 546.8 L 708.0 499.5 L 699.0 492.8 L 735.0 488.2 L 750.0 468.0 L 750.0 445.5 L 720.0 389.2 L 738.0 389.2 L 744.0 380.2 L 780.0 384.8 L 798.0 373.5 L 798.0 362.2 L 780.0 364.5 L 741.0 326.2 L 729.0 333.0 L 702.0 326.2 L 741.0 292.5 L 720.0 276.8 L 720.0 265.5 L 750.0 236.2 L 783.0 229.5 L 777.0 247.5 L 798.0 252.0 L 825.0 236.2 L 870.0 227.2 L 882.0 218.2 L 879.0 200.2 L 828.0 198.0 L 828.0 191.2 L 870.0 182.2 Z" />
+            <!-- Both-filled state for act5 (hidden initially via opacity on group) -->
+                        <g id="maf-both-red" opacity="0">
+              <path fill="var(--maf-west)" stroke="var(--maf-border)" stroke-width="3"
+                d="M 570.0 123.8 L 654.0 130.5 L 678.0 139.5 L 690.0 157.5 L 726.0 162.0 L 723.0 173.2 L 702.0 177.8 L 702.0 191.2 L 723.0 202.5 L 798.0 204.8 L 783.0 227.2 L 735.0 243.0 L 738.0 256.5 L 720.0 265.5 L 720.0 276.8 L 738.0 285.8 L 738.0 299.2 L 708.0 321.8 L 723.0 330.8 L 744.0 328.5 L 771.0 357.8 L 804.0 366.8 L 777.0 384.8 L 744.0 380.2 L 720.0 391.5 L 726.0 409.5 L 741.0 416.2 L 753.0 465.8 L 741.0 486.0 L 705.0 490.5 L 708.0 549.0 L 684.0 544.5 L 636.0 571.5 L 666.0 596.2 L 636.0 654.8 L 651.0 672.8 L 702.0 699.8 L 756.0 695.2 L 768.0 708.8 L 768.0 684.0 L 780.0 677.2 L 798.0 695.2 L 840.0 688.5 L 867.0 715.5 L 852.0 733.5 L 852.0 756.0 L 879.0 796.5 L 882.0 828.0 L 918.0 839.2 L 930.0 859.5 L 954.0 868.5 L 954.0 886.5 L 1005.0 909.0 L 1002.0 940.5 L 957.0 945.0 L 951.0 965.2 L 897.0 1001.2 L 909.0 1044.0 L 921.0 1046.2 L 915.0 1071.0 L 891.0 1066.5 L 882.0 1055.2 L 831.0 1055.2 L 777.0 1062.0 L 759.0 1073.2 L 555.0 1073.2 L 525.0 1064.2 L 504.0 1044.0 L 441.0 1041.8 L 438.0 1055.2 L 408.0 1057.5 L 360.0 1055.2 L 333.0 1037.2 L 345.0 972.0 L 369.0 954.0 L 369.0 913.5 L 411.0 893.2 L 417.0 875.2 L 375.0 852.8 L 330.0 852.8 L 276.0 830.2 L 255.0 792.0 L 261.0 753.8 L 237.0 711.0 L 264.0 695.2 L 264.0 677.2 L 234.0 630.0 L 231.0 591.8 L 252.0 585.0 L 264.0 553.5 L 258.0 495.0 L 318.0 495.0 L 351.0 450.0 L 336.0 402.8 L 351.0 402.8 L 372.0 378.0 L 408.0 281.2 L 486.0 274.5 L 519.0 285.8 L 570.0 249.8 L 570.0 227.2 L 552.0 204.8 L 576.0 159.8 L 567.0 126.0 Z" />
+              <path fill="var(--maf-west)" stroke="var(--maf-border)" stroke-width="3"
+                d="M 873.0 180.0 L 894.0 198.0 L 951.0 198.0 L 981.0 218.2 L 1017.0 220.5 L 1050.0 245.2 L 1053.0 288.0 L 1077.0 294.8 L 1068.0 315.0 L 1071.0 339.8 L 1080.0 342.0 L 1056.0 407.2 L 1101.0 432.0 L 1095.0 544.5 L 1128.0 594.0 L 1122.0 616.5 L 1149.0 630.0 L 1140.0 645.8 L 1062.0 641.2 L 963.0 681.8 L 954.0 693.0 L 870.0 713.2 L 837.0 690.8 L 798.0 695.2 L 783.0 679.5 L 771.0 681.8 L 771.0 708.8 L 738.0 693.0 L 717.0 693.0 L 714.0 702.0 L 729.0 711.0 L 705.0 713.2 L 705.0 699.8 L 672.0 677.2 L 648.0 677.2 L 645.0 659.2 L 630.0 663.8 L 645.0 636.8 L 636.0 627.8 L 660.0 614.2 L 660.0 594.0 L 636.0 571.5 L 681.0 544.5 L 708.0 546.8 L 708.0 499.5 L 699.0 492.8 L 735.0 488.2 L 750.0 468.0 L 750.0 445.5 L 720.0 389.2 L 738.0 389.2 L 744.0 380.2 L 780.0 384.8 L 798.0 373.5 L 798.0 362.2 L 780.0 364.5 L 741.0 326.2 L 729.0 333.0 L 702.0 326.2 L 741.0 292.5 L 720.0 276.8 L 720.0 265.5 L 750.0 236.2 L 783.0 229.5 L 777.0 247.5 L 798.0 252.0 L 825.0 236.2 L 870.0 227.2 L 882.0 218.2 L 879.0 200.2 L 828.0 198.0 L 828.0 191.2 L 870.0 182.2 Z" />
+            </g>
+            <!-- Jagged inner border (draw N→S) -->
+            <path id="maf-inner-border" fill="none" stroke="#1a1010" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"
+              d="M 796.5 207.0 L 771.0 229.5 L 735.0 243.0 L 718.5 274.5 L 736.5 292.5 L 702.0 324.0 L 748.5 337.5 L 766.5 355.5 L 796.5 369.0 L 786.0 378.0 L 718.5 391.5 L 747.0 445.5 L 747.0 472.5 L 700.5 490.5 L 708.0 540.0 L 634.5 571.5 L 658.5 598.5 L 658.5 612.0 L 637.5 630.0 L 645.0 634.5 L 634.5 643.5 L 640.5 661.5 L 633.0 666.0 L 673.5 679.5 L 771.0 684.0 L 781.5 693.0 L 753.0 697.5 L 714.0 715.5" />
+            <rect width="1920" height="1080" fill="url(#maf-hatch)" opacity="0.5" />
+            <!-- Berlin pin + label on wide map -->
+            <g id="maf-berlin-pin" opacity="0">
+              <circle cx="1038" cy="482" r="7" fill="#ffffff" />
+              <text class="maf-label" x="1058" y="488" font-size="28">BERLIN</text>
+            </g>
+            <!-- Republic labels (act5) -->
+            <g id="maf-label-federal" opacity="0">
+              <text class="maf-label" x="575" y="664" font-size="26" text-anchor="middle">FEDERAL</text>
+              <text class="maf-label" x="575" y="696" font-size="26" text-anchor="middle">REPUBLIC</text>
+            </g>
+            <g id="maf-label-peoples" opacity="0">
+              <text class="maf-label" x="894" y="457" font-size="26" text-anchor="middle">PEOPLES</text>
+              <text class="maf-label" x="894" y="489" font-size="26" text-anchor="middle">REPUBLIC</text>
+            </g>
+          </svg>
+        </div>
 
-          <rect width="1920" height="1080" fill="#1f1b17" />
-          <rect width="1920" height="1080" fill="url(#maf-hatch)" />
-          <path
-            id="maf-land"
-            d="M 280 320 C 340 220 480 180 620 210 C 760 240 820 300 900 280 C 980 260 1080 300 1180 340 C 1280 380 1360 460 1380 560 C 1400 660 1340 760 1240 820 C 1140 880 980 900 860 860 C 740 820 700 780 620 800 C 540 820 420 780 360 700 C 300 620 240 500 280 320 Z"
-            fill="rgba(196,181,154,0.16)"
-            stroke="rgba(196,181,154,0.4)"
-            stroke-width="2"
-          />
-          <path
-            id="maf-island"
-            d="M 1480 420 C 1540 400 1600 430 1610 480 C 1620 530 1580 570 1520 560 C 1460 550 1450 450 1480 420 Z"
-            fill="rgba(196,181,154,0.12)"
-            stroke="rgba(196,181,154,0.3)"
-            stroke-width="1.5"
-          />
+        <!-- Berlin four-sector closeup (circular vignette) -->
+        <div id="maf-berlin-layer">
+          <svg id="maf-berlin-svg" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+              <!-- Soft luminous bloom (film-like) for divide + arrows -->
+              <filter id="maf-soft-glow" x="-120%" y="-120%" width="340%" height="340%" color-interpolation-filters="sRGB">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="core" />
+                <feGaussianBlur in="SourceGraphic" stdDeviation="9" result="mid" />
+                <feGaussianBlur in="SourceGraphic" stdDeviation="20" result="halo" />
+                <feMerge>
+                  <feMergeNode in="halo" />
+                  <feMergeNode in="mid" />
+                  <feMergeNode in="core" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+              <filter id="maf-divide-glow" x="-80%" y="-40%" width="260%" height="180%" color-interpolation-filters="sRGB">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="core" />
+                <feGaussianBlur in="SourceGraphic" stdDeviation="11" result="mid" />
+                <feGaussianBlur in="SourceGraphic" stdDeviation="22" result="halo" />
+                <feMerge>
+                  <feMergeNode in="halo" />
+                  <feMergeNode in="mid" />
+                  <feMergeNode in="core" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+              <!-- Anisotropic horizontal bloom for W→E fan-out glow trails -->
+              <filter id="maf-trail-glow" x="-120%" y="-280%" width="340%" height="660%" color-interpolation-filters="sRGB">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="42 6" result="streak" />
+                <feGaussianBlur in="SourceGraphic" stdDeviation="18 4" result="mid" />
+                <feGaussianBlur in="SourceGraphic" stdDeviation="7 2.5" result="core" />
+                <feMerge>
+                  <feMergeNode in="streak" />
+                  <feMergeNode in="streak" />
+                  <feMergeNode in="mid" />
+                  <feMergeNode in="core" />
+                </feMerge>
+              </filter>
+              <clipPath id="maf-circle-clip">
+                <circle cx="960" cy="540" r="460" />
+              </clipPath>
+              <radialGradient id="maf-circle-fill" gradientUnits="userSpaceOnUse" cx="960" cy="540" r="470">
+                <stop offset="0%" stop-color="#7a3838" />
+                <stop offset="55%" stop-color="#703030" />
+                <stop offset="100%" stop-color="#5a2828" />
+              </radialGradient>
+            </defs>
+            <rect width="1920" height="1080" fill="var(--maf-outer-tan)" />
+            <circle cx="960" cy="540" r="470" fill="url(#maf-circle-fill)" />
+            <g clip-path="url(#maf-circle-clip)">
+              <!-- Berlin city silhouette approx (irregular) -->
+              <!-- Soviet East -->
+              <path id="maf-su" fill="url(#maf-circle-fill)" stroke="none"
+                d="M 927.0 229.5 L 960.0 249.8 L 957.0 276.8 L 990.0 301.5 L 945.0 351.0 L 945.0 362.2 L 1023.0 425.2 L 1032.0 441.0 L 1029.0 508.5 L 1146.0 596.2 L 1134.0 632.2 L 1209.0 699.8 L 1209.0 715.5 L 1179.0 738.0 L 1179.0 753.8 L 1305.0 852.8 L 1296.0 882.0 L 1179.0 969.8 L 1095.0 983.2 L 1053.0 963.0 L 1005.0 999.0 L 927.0 999.0 L 927.0 956.2 L 942.0 956.2 L 957.0 942.8 L 948.0 861.8 L 1056.0 828.0 L 1074.0 882.0 L 1095.0 895.5 L 1146.0 888.8 L 1164.0 870.8 L 1164.0 855.0 L 1167.0 879.8 L 1179.0 879.8 L 1188.0 866.2 L 1188.0 852.8 L 1173.0 850.5 L 1158.0 825.8 L 1131.0 807.8 L 1104.0 807.8 L 1029.0 753.8 L 1029.0 726.8 L 1038.0 749.2 L 1062.0 747.0 L 1065.0 722.2 L 1050.0 720.0 L 1053.0 711.0 L 1065.0 708.8 L 1068.0 717.8 L 1092.0 715.5 L 1092.0 704.2 L 1071.0 702.0 L 1071.0 688.5 L 1050.0 684.0 L 1044.0 652.5 L 1017.0 643.5 L 1014.0 634.5 L 981.0 641.2 L 981.0 607.5 L 927.0 600.8 L 927.0 231.8 Z" />
+              <!-- French NW -->
+              <path id="maf-fr" fill="var(--maf-sector-fr)" stroke="#2a1818" stroke-width="2"
+                d="M 666.0 148.5 L 705.0 148.5 L 711.0 200.2 L 705.0 213.8 L 693.0 216.0 L 699.0 245.2 L 840.0 249.8 L 828.0 330.8 L 786.0 339.8 L 783.0 351.0 L 789.0 360.0 L 816.0 351.0 L 816.0 362.2 L 828.0 371.2 L 819.0 389.2 L 870.0 425.2 L 885.0 479.2 L 885.0 492.8 L 801.0 492.8 L 759.0 481.5 L 732.0 465.8 L 582.0 459.0 L 510.0 384.8 L 498.0 357.8 L 465.0 351.0 L 498.0 351.0 L 510.0 337.5 L 501.0 281.2 L 525.0 254.2 L 528.0 234.0 L 609.0 236.2 L 618.0 229.5 L 624.0 198.0 L 660.0 200.2 L 669.0 193.5 L 666.0 150.8 Z" />
+              <!-- British W -->
+              <path id="maf-uk" fill="var(--maf-sector-uk)" stroke="#2a1818" stroke-width="2"
+                d="M 411.0 335.2 L 429.0 346.5 L 453.0 346.5 L 492.0 360.0 L 504.0 389.2 L 516.0 391.5 L 579.0 463.5 L 729.0 470.2 L 771.0 490.5 L 816.0 501.8 L 846.0 492.8 L 864.0 540.0 L 864.0 560.2 L 849.0 562.5 L 849.0 576.0 L 864.0 578.2 L 870.0 591.8 L 828.0 582.8 L 825.0 591.8 L 780.0 596.2 L 762.0 612.0 L 750.0 657.0 L 726.0 670.5 L 717.0 690.8 L 450.0 681.8 L 387.0 706.5 L 372.0 666.0 L 396.0 661.5 L 396.0 639.0 L 387.0 612.0 L 354.0 607.5 L 351.0 596.2 L 426.0 594.0 L 435.0 578.2 L 354.0 546.8 L 348.0 537.8 L 396.0 524.2 L 396.0 504.0 L 384.0 499.5 L 384.0 470.2 L 411.0 468.0 L 420.0 456.8 L 417.0 429.8 L 375.0 434.2 L 360.0 450.0 L 381.0 384.8 L 399.0 378.0 L 414.0 396.0 L 441.0 396.0 L 447.0 389.2 L 447.0 369.0 L 432.0 357.8 L 411.0 357.8 L 408.0 337.5 Z" />
+              <!-- American SW -->
+              <path id="maf-us" fill="var(--maf-sector-us)" stroke="#2a1818" stroke-width="2"
+                d="M 909.0 600.8 L 990.0 612.0 L 975.0 627.8 L 978.0 641.2 L 996.0 643.5 L 1005.0 636.8 L 1041.0 652.5 L 1047.0 684.0 L 1065.0 686.2 L 1068.0 699.8 L 1026.0 726.8 L 1026.0 753.8 L 1104.0 810.0 L 1128.0 807.8 L 1164.0 832.5 L 1170.0 852.8 L 1161.0 855.0 L 1161.0 868.5 L 1146.0 886.5 L 1089.0 891.0 L 1077.0 882.0 L 1059.0 828.0 L 1044.0 825.8 L 942.0 864.0 L 954.0 942.8 L 942.0 954.0 L 912.0 954.0 L 891.0 947.2 L 885.0 933.8 L 855.0 915.8 L 828.0 911.2 L 813.0 884.2 L 777.0 861.8 L 723.0 873.0 L 687.0 859.5 L 675.0 839.2 L 660.0 839.2 L 633.0 861.8 L 609.0 861.8 L 579.0 846.0 L 570.0 825.8 L 555.0 816.8 L 519.0 814.5 L 477.0 823.5 L 447.0 794.2 L 405.0 731.2 L 453.0 704.2 L 729.0 704.2 L 747.0 677.2 L 768.0 663.8 L 774.0 627.8 L 786.0 612.0 L 906.0 603.0 Z" />
+              <!-- Glowing E/W divide -->
+              <path id="maf-sector-divide" d="M 705.0 148.5 L 711.0 198.0 L 693.0 216.0 L 693.0 238.5 L 840.0 252.0 L 837.0 292.5 L 870.0 301.5 L 852.0 328.5 L 816.0 351.0 L 828.0 373.5 L 819.0 387.0 L 870.0 396.0 L 897.0 418.5 L 912.0 441.0 L 915.0 495.0 L 849.0 499.5 L 864.0 540.0 L 864.0 558.0 L 849.0 562.5 L 849.0 576.0 L 1023.0 594.0 L 1026.0 607.5 L 1014.0 612.0 L 1014.0 634.5 L 1005.0 639.0 L 1041.0 652.5 L 1047.0 684.0 L 1089.0 702.0 L 1089.0 715.5 L 1065.0 724.5 L 1059.0 747.0 L 1026.0 751.5 L 1098.0 805.5 L 1131.0 810.0 L 1185.0 855.0 L 1176.0 882.0 L 1125.0 891.0 L 948.0 895.5 L 954.0 940.5 L 942.0 954.0"
+                fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"
+                filter="url(#maf-divide-glow)" />
+              <path id="maf-berlin-city-outline" fill="none" stroke="#1a1010" stroke-width="3.5" opacity="0"
+                d="M 762.0 103.5 L 825.0 148.5 L 828.0 159.8 L 840.0 159.8 L 960.0 249.8 L 957.0 276.8 L 990.0 306.0 L 945.0 351.0 L 945.0 362.2 L 1023.0 425.2 L 1032.0 441.0 L 1029.0 508.5 L 1146.0 596.2 L 1134.0 632.2 L 1209.0 699.8 L 1209.0 715.5 L 1179.0 738.0 L 1179.0 753.8 L 1302.0 848.2 L 1296.0 882.0 L 1167.0 974.2 L 1095.0 983.2 L 1053.0 963.0 L 1005.0 999.0 L 840.0 992.2 L 807.0 985.5 L 768.0 956.2 L 723.0 963.0 L 669.0 936.0 L 651.0 938.2 L 612.0 920.2 L 495.0 841.5 L 489.0 825.8 L 471.0 819.0 L 420.0 760.5 L 405.0 731.2 L 453.0 704.2 L 729.0 704.2 L 750.0 670.5 L 768.0 663.8 L 771.0 639.0 L 756.0 636.8 L 750.0 657.0 L 726.0 670.5 L 717.0 690.8 L 450.0 681.8 L 387.0 706.5 L 372.0 666.0 L 396.0 661.5 L 396.0 639.0 L 387.0 612.0 L 354.0 607.5 L 351.0 596.2 L 426.0 594.0 L 435.0 578.2 L 348.0 542.2 L 396.0 524.2 L 384.0 470.2 L 411.0 468.0 L 420.0 456.8 L 417.0 429.8 L 375.0 434.2 L 360.0 450.0 L 381.0 384.8 L 399.0 378.0 L 414.0 396.0 L 441.0 396.0 L 447.0 389.2 L 447.0 369.0 L 432.0 357.8 L 411.0 357.8 L 408.0 337.5 L 417.0 335.2 L 429.0 346.5 L 498.0 351.0 L 513.0 330.8 L 501.0 299.2 L 489.0 299.2 L 480.0 312.8 L 444.0 303.8 L 453.0 279.0 L 576.0 180.0 L 645.0 144.0 L 669.0 141.8 L 672.0 132.8 L 759.0 105.8 Z" />
+            </g>
+            <!-- Airlift arrows - short THICK shafts + soft fan-out wakes; start at W divide → E -->
+            <g id="maf-arrows" clip-path="url(#maf-circle-clip)" opacity="0">
+              <!-- Soft luminous wakes (no hard stroke - filter omits SourceGraphic) -->
+              <g id="maf-arrow-trails" filter="url(#maf-trail-glow)" opacity="1">
+                <path id="maf-a0-trail" class="maf-arrow-trail" d="M 845.0 318.0 L 980.0 318.0" fill="none" stroke="#ffffff" stroke-width="36" stroke-linecap="round" opacity="0.85" />
+                <path id="maf-a1-trail" class="maf-arrow-trail" d="M 888.0 426.5 L 1025.0 426.5" fill="none" stroke="#ffffff" stroke-width="36" stroke-linecap="round" opacity="0.85" />
+                <path id="maf-a2-trail" class="maf-arrow-trail" d="M 850.0 536.8 L 990.0 536.8" fill="none" stroke="#ffffff" stroke-width="38" stroke-linecap="round" opacity="0.88" />
+                <path id="maf-a3-trail" class="maf-arrow-trail" d="M 1000.0 632.4 L 1145.0 632.4" fill="none" stroke="#ffffff" stroke-width="36" stroke-linecap="round" opacity="0.85" />
+                <path id="maf-a4-trail" class="maf-arrow-trail" d="M 1020.0 758.1 L 1165.0 758.1" fill="none" stroke="#ffffff" stroke-width="36" stroke-linecap="round" opacity="0.85" />
+                <path id="maf-a5-trail" class="maf-arrow-trail" d="M 1130.0 821.1 L 1265.0 821.1" fill="none" stroke="#ffffff" stroke-width="32" stroke-linecap="round" opacity="0.8" />
+              </g>
+              <!-- Short thick cores + clear chevrons (soft bloom) -->
+              <g id="maf-arrow-cores" filter="url(#maf-soft-glow)">
+                <path id="maf-a0" class="maf-arrow-shaft" d="M 875.0 318.0 L 930.0 318.0" fill="none" stroke="#ffffff" stroke-width="28" stroke-linecap="butt" />
+                <path id="maf-a0-head" class="maf-arrow-head" d="M 972.0 318.0 L 928.0 292.0 L 928.0 344.0 Z" fill="#ffffff" opacity="0" />
+                <path id="maf-a1" class="maf-arrow-shaft" d="M 918.0 426.5 L 975.0 426.5" fill="none" stroke="#ffffff" stroke-width="28" stroke-linecap="butt" />
+                <path id="maf-a1-head" class="maf-arrow-head" d="M 1018.0 426.5 L 973.0 400.5 L 973.0 452.5 Z" fill="#ffffff" opacity="0" />
+                <path id="maf-a2" class="maf-arrow-shaft" d="M 880.0 536.8 L 938.0 536.8" fill="none" stroke="#ffffff" stroke-width="30" stroke-linecap="butt" />
+                <path id="maf-a2-head" class="maf-arrow-head" d="M 982.0 536.8 L 936.0 509.0 L 936.0 564.0 Z" fill="#ffffff" opacity="0" />
+                <path id="maf-a3" class="maf-arrow-shaft" d="M 1030.0 632.4 L 1088.0 632.4" fill="none" stroke="#ffffff" stroke-width="28" stroke-linecap="butt" />
+                <path id="maf-a3-head" class="maf-arrow-head" d="M 1132.0 632.4 L 1086.0 606.4 L 1086.0 658.4 Z" fill="#ffffff" opacity="0" />
+                <path id="maf-a4" class="maf-arrow-shaft" d="M 1050.0 758.1 L 1108.0 758.1" fill="none" stroke="#ffffff" stroke-width="28" stroke-linecap="butt" />
+                <path id="maf-a4-head" class="maf-arrow-head" d="M 1152.0 758.1 L 1106.0 732.1 L 1106.0 784.1 Z" fill="#ffffff" opacity="0" />
+                <path id="maf-a5" class="maf-arrow-shaft" d="M 1155.0 821.1 L 1208.0 821.1" fill="none" stroke="#ffffff" stroke-width="26" stroke-linecap="butt" />
+                <path id="maf-a5-head" class="maf-arrow-head" d="M 1248.0 821.1 L 1206.0 797.0 L 1206.0 845.0 Z" fill="#ffffff" opacity="0" />
+              </g>
+            </g>
+            <g id="maf-berlin-label-close" opacity="0">
+              <circle cx="1180" cy="360" r="6" fill="#ffffff" />
+              <text class="maf-label" x="1200" y="368" font-size="36">BERLIN</text>
+            </g>
+          </svg>
+        </div>
 
-          <defs>
-            <marker
-              id="maf-head"
-              markerWidth="10"
-              markerHeight="10"
-              refX="8"
-              refY="5"
-              orient="auto"
-              markerUnits="strokeWidth"
-            >
-              <path d="M 0 0 L 10 5 L 0 10 Z" fill="#c45c26" />
-            </marker>
-          </defs>
-          <circle id="maf-origin" cx="520" cy="600" r="12" fill="#c45c26" />
-          <path
-            id="maf-a0"
-            d="M 520 600 L 700 480"
-            fill="none"
-            stroke="#c45c26"
-            stroke-width="3.5"
-            stroke-linecap="round"
-            marker-end="url(#maf-head)"
-          />
-          <path
-            id="maf-a1"
-            d="M 520 600 L 780 540"
-            fill="none"
-            stroke="#c45c26"
-            stroke-width="3.5"
-            stroke-linecap="round"
-            marker-end="url(#maf-head)"
-          />
-          <path
-            id="maf-a2"
-            d="M 520 600 L 820 620"
-            fill="none"
-            stroke="#c45c26"
-            stroke-width="3.5"
-            stroke-linecap="round"
-            marker-end="url(#maf-head)"
-          />
-          <path
-            id="maf-a3"
-            d="M 520 600 L 760 700"
-            fill="none"
-            stroke="#c45c26"
-            stroke-width="3.5"
-            stroke-linecap="round"
-            marker-end="url(#maf-head)"
-          />
-          <path
-            id="maf-a4"
-            d="M 520 600 L 680 740"
-            fill="none"
-            stroke="#c45c26"
-            stroke-width="3.5"
-            stroke-linecap="round"
-            marker-end="url(#maf-head)"
-          />
-          <path
-            id="maf-a5"
-            d="M 520 600 L 860 500"
-            fill="none"
-            stroke="#c45c26"
-            stroke-width="3.5"
-            stroke-linecap="round"
-            marker-end="url(#maf-head)"
-          />
-          <path
-            id="maf-a6"
-            d="M 520 600 L 900 580"
-            fill="none"
-            stroke="#c45c26"
-            stroke-width="3.5"
-            stroke-linecap="round"
-            marker-end="url(#maf-head)"
-          />
-          <path
-            id="maf-a7"
-            d="M 520 600 L 880 660"
-            fill="none"
-            stroke="#c45c26"
-            stroke-width="3.5"
-            stroke-linecap="round"
-            marker-end="url(#maf-head)"
-          />
-        </svg>
+        <!-- Endcard: approximate ruins silhouette (SVG limit - not live-action) -->
+        <div id="maf-endcard">
+          <svg id="maf-endcard-svg" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+              <linearGradient id="maf-sky" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#6a6a88" />
+                <stop offset="40%" stop-color="#3a3a58" />
+                <stop offset="100%" stop-color="#1a1828" />
+              </linearGradient>
+            </defs>
+            <rect width="1920" height="1080" fill="url(#maf-sky)" />
+            <!-- soft clouds -->
+            <ellipse cx="420" cy="220" rx="180" ry="50" fill="rgba(220,220,240,0.35)" />
+            <ellipse cx="720" cy="180" rx="220" ry="60" fill="rgba(230,230,245,0.28)" />
+            <ellipse cx="1200" cy="200" rx="260" ry="55" fill="rgba(210,210,230,0.3)" />
+            <ellipse cx="1580" cy="240" rx="160" ry="45" fill="rgba(200,200,220,0.25)" />
+            <!-- ruins silhouette (approximate) -->
+            <path id="maf-ruins" fill="#050508"
+              d="M 0 1080 L 0 720
+                 L 40 700 L 60 640 L 90 660 L 110 580 L 140 600 L 160 520 L 200 540
+                 L 230 480 L 260 500 L 280 420 L 320 450 L 350 380 L 390 410 L 420 360
+                 L 460 400 L 500 340 L 540 390 L 580 320 L 620 370 L 660 300 L 700 350
+                 L 740 280 L 780 330 L 820 260 L 860 310 L 900 250 L 940 300 L 980 240
+                 L 1020 290 L 1060 230 L 1100 280 L 1140 220 L 1180 270 L 1220 210
+                 L 1260 260 L 1300 200 L 1340 250 L 1380 190 L 1420 240 L 1460 280
+                 L 1500 220 L 1540 270 L 1580 230 L 1620 290 L 1660 250 L 1700 310
+                 L 1740 270 L 1780 330 L 1820 290 L 1860 350 L 1900 320 L 1920 360
+                 L 1920 1080 Z" />
+            <text x="960" y="1000" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="18" font-family="Helvetica, Arial, sans-serif" letter-spacing="0.14em">
+              ENDCARD APPROXIMATION - LIVE-ACTION NOT EMBEDDED
+            </text>
+          </svg>
+        </div>
+
+        <div id="maf-grain"></div>
+        <div id="maf-vignette"></div>
       </div>
-      <div id="maf-title" data-var-text="title">Advance Fan-Out</div>
-      <div id="maf-subtitle" data-var-text="subtitle">Educational cartography · arrow swarm</div>
-      <div id="maf-note">Abstract arrow fan-out - educational schematic only</div>
+      <div id="maf-credit">
+        Inspired by Moving Image Archive - Animated Maps - not affiliated; footage not included
+      </div>
     </div>
     <script>
       (function () {
         window.__timelines = window.__timelines || {};
-        var vars =
-          window.__hyperframes && window.__hyperframes.getVariables
-            ? window.__hyperframes.getVariables()
-            : {};
-        var accent = /^#[0-9a-fA-F]{6}$/.test(String(vars.accent || ""))
-          ? String(vars.accent)
-          : "#c45c26";
-        var title = typeof vars.title === "string" && vars.title ? vars.title : "Advance Fan-Out";
-        var subtitle =
-          typeof vars.subtitle === "string" && vars.subtitle
-            ? vars.subtitle
-            : "Educational cartography \u00b7 arrow swarm";
-        document.getElementById("maf-title").textContent = title;
-        document.getElementById("maf-subtitle").textContent = subtitle;
-        document.getElementById("maf-origin").setAttribute("fill", accent);
-        var head = document.querySelector("#maf-head path");
-        if (head) head.setAttribute("fill", accent);
-        gsap.set(
-          ["#maf-land", "#maf-island", "#maf-title", "#maf-subtitle", "#maf-note", "#maf-origin"],
-          { opacity: 0 },
-        );
-        var a0 = document.getElementById("maf-a0");
-        a0.setAttribute("stroke", accent);
-        var len0 = a0.getTotalLength();
-        gsap.set(a0, { strokeDasharray: len0, strokeDashoffset: len0 });
-        var a1 = document.getElementById("maf-a1");
-        a1.setAttribute("stroke", accent);
-        var len1 = a1.getTotalLength();
-        gsap.set(a1, { strokeDasharray: len1, strokeDashoffset: len1 });
-        var a2 = document.getElementById("maf-a2");
-        a2.setAttribute("stroke", accent);
-        var len2 = a2.getTotalLength();
-        gsap.set(a2, { strokeDasharray: len2, strokeDashoffset: len2 });
-        var a3 = document.getElementById("maf-a3");
-        a3.setAttribute("stroke", accent);
-        var len3 = a3.getTotalLength();
-        gsap.set(a3, { strokeDasharray: len3, strokeDashoffset: len3 });
-        var a4 = document.getElementById("maf-a4");
-        a4.setAttribute("stroke", accent);
-        var len4 = a4.getTotalLength();
-        gsap.set(a4, { strokeDasharray: len4, strokeDashoffset: len4 });
-        var a5 = document.getElementById("maf-a5");
-        a5.setAttribute("stroke", accent);
-        var len5 = a5.getTotalLength();
-        gsap.set(a5, { strokeDasharray: len5, strokeDashoffset: len5 });
-        var a6 = document.getElementById("maf-a6");
-        a6.setAttribute("stroke", accent);
-        var len6 = a6.getTotalLength();
-        gsap.set(a6, { strokeDasharray: len6, strokeDashoffset: len6 });
-        var a7 = document.getElementById("maf-a7");
-        a7.setAttribute("stroke", accent);
-        var len7 = a7.getTotalLength();
-        gsap.set(a7, { strokeDasharray: len7, strokeDashoffset: len7 });
+        var border = document.getElementById("maf-inner-border");
+        var borderLen = border.getTotalLength();
+        gsap.set(border, { strokeDasharray: borderLen, strokeDashoffset: borderLen });
+
+        var arrowIds = ["maf-a0", "maf-a1", "maf-a2", "maf-a3", "maf-a4", "maf-a5"];
+        var arrowLens = [];
+        for (var i = 0; i < arrowIds.length; i++) {
+          var a = document.getElementById(arrowIds[i]);
+          var len = a.getTotalLength();
+          arrowLens.push(len);
+          gsap.set(a, { strokeDasharray: len, strokeDashoffset: len });
+          var tr = document.getElementById(arrowIds[i] + "-trail");
+          if (tr) {
+            var tlen = tr.getTotalLength();
+            gsap.set(tr, { strokeDasharray: tlen, strokeDashoffset: tlen });
+          }
+        }
+
+        gsap.set("#maf-camera", { scale: 1, x: 0, y: 0 });
+        gsap.set("#maf-berlin-layer", { opacity: 0 });
+        gsap.set("#maf-berlin-pin", { opacity: 0 });
+        gsap.set("#maf-label-federal", { opacity: 0 });
+        gsap.set("#maf-label-peoples", { opacity: 0 });
+        gsap.set("#maf-both-red", { opacity: 0 });
+        gsap.set("#maf-arrows", { opacity: 0 });
+        gsap.set("#maf-berlin-label-close", { opacity: 0 });
+        gsap.set("#maf-endcard", { opacity: 0 });
+        gsap.set("#maf-stage", { opacity: 0 });
+        gsap.set("#maf-east", { fill: "#909090" });
+
         var tl = gsap.timeline({ paused: true });
-        tl.to("#maf-land", { opacity: 1, duration: 0.5 }, 0);
-        tl.to("#maf-island", { opacity: 1, duration: 0.4 }, 0.1);
-        tl.to("#maf-title", { opacity: 1, duration: 0.4 }, 0.15);
-        tl.to("#maf-subtitle", { opacity: 1, duration: 0.35 }, 0.35);
-        tl.to("#maf-origin", { opacity: 1, duration: 0.3 }, 0.7);
-        tl.to(a0, { strokeDashoffset: 0, duration: 0.7, ease: "power2.out" }, 1.0);
-        tl.to(a1, { strokeDashoffset: 0, duration: 0.7, ease: "power2.out" }, 1.22);
-        tl.to(a2, { strokeDashoffset: 0, duration: 0.7, ease: "power2.out" }, 1.44);
-        tl.to(a3, { strokeDashoffset: 0, duration: 0.7, ease: "power2.out" }, 1.66);
-        tl.to(a4, { strokeDashoffset: 0, duration: 0.7, ease: "power2.out" }, 1.88);
-        tl.to(a5, { strokeDashoffset: 0, duration: 0.7, ease: "power2.out" }, 2.1);
-        tl.to(a6, { strokeDashoffset: 0, duration: 0.7, ease: "power2.out" }, 2.32);
-        tl.to(a7, { strokeDashoffset: 0, duration: 0.7, ease: "power2.out" }, 2.54);
-        tl.to("#maf-note", { opacity: 1, duration: 0.4 }, 5.2);
+
+        // Act1: fade in Germany
+        tl.to("#maf-stage", { opacity: 1, duration: 0.9, ease: "power1.out" }, 0);
+
+        // Act1 end: jagged border draws N→S (~8-10s)
+        tl.to(border, { strokeDashoffset: 0, duration: 2.0, ease: "none" }, 8.0);
+
+        // Act2: BERLIN callout + zoom (~11-15)
+        tl.to("#maf-berlin-pin", { opacity: 1, duration: 0.45, ease: "power1.out" }, 11.0);
+        tl.to(
+          "#maf-camera",
+          {
+            scale: 4.2,
+            x: -380,
+            y: 80,
+            duration: 3.8,
+            ease: "power1.inOut",
+            transformOrigin: "1038px 482px",
+          },
+          12.0
+        );
+
+        // Crossfade to Berlin sectors (~15.6)
+        tl.to("#maf-berlin-layer", { opacity: 1, duration: 0.7, ease: "power1.inOut" }, 15.6);
+        tl.to("#maf-camera", { opacity: 0.15, duration: 0.7 }, 15.6);
+        // BERLIN close-label: hidden on sector/airlift (not on ref t19/t23)
+        // tl.to("#maf-berlin-label-close", { opacity: 1, duration: 0.4 }, 16.2);
+
+        // Act4: airlift arrows fan W→E (~21-26) - thick short shafts + trail bloom + heads
+        tl.to("#maf-arrows", { opacity: 1, duration: 0.25 }, 20.8);
+        for (i = 0; i < arrowIds.length; i++) {
+          var start = 21.0 + i * 0.14;
+          var trailEl = document.getElementById(arrowIds[i] + "-trail");
+          if (trailEl) {
+            tl.to(trailEl, { strokeDashoffset: 0, duration: 0.7, ease: "power2.out" }, start);
+          }
+          tl.to(
+            document.getElementById(arrowIds[i]),
+            { strokeDashoffset: 0, duration: 0.55, ease: "power2.out" },
+            start + 0.05
+          );
+          tl.to(
+            document.getElementById(arrowIds[i] + "-head"),
+            { opacity: 1, duration: 0.25, ease: "power1.out" },
+            start + 0.4
+          );
+        }
+
+        // Act5: zoom out + republic labels (~26.5-34)
+        tl.to("#maf-arrows", { opacity: 0, duration: 0.8 }, 26.2);
+        tl.to("#maf-berlin-label-close", { opacity: 0, duration: 0.5 }, 26.2);
+        tl.to("#maf-berlin-layer", { opacity: 0, duration: 1.0, ease: "power1.inOut" }, 26.5);
+        tl.to("#maf-camera", { opacity: 1, scale: 1, x: 0, y: 0, duration: 3.5, ease: "power1.inOut" }, 26.5);
+        tl.to("#maf-both-red", { opacity: 1, duration: 0.6 }, 28.0);
+        tl.to("#maf-west", { opacity: 0, duration: 0.4 }, 28.0);
+        tl.to("#maf-east", { opacity: 0, duration: 0.4 }, 28.0);
+        tl.to("#maf-label-federal", { opacity: 1, duration: 0.5 }, 28.6);
+        tl.to("#maf-label-peoples", { opacity: 1, duration: 0.5 }, 28.75);
+        tl.to("#maf-berlin-pin", { opacity: 1, duration: 0.3 }, 28.5);
+
+        // Act6 endcard ruins (~34.8-39) - SVG approximation of live-action
+        tl.to("#maf-endcard", { opacity: 1, duration: 1.3, ease: "power1.inOut" }, 34.8);
+        tl.to("#maf-camera", { opacity: 0, duration: 1.2 }, 34.8);
+        tl.to("#maf-label-federal", { opacity: 0, duration: 0.8 }, 34.8);
+        tl.to("#maf-label-peoples", { opacity: 0, duration: 0.8 }, 34.8);
+        tl.to("#maf-berlin-pin", { opacity: 0, duration: 0.8 }, 34.8);
+
+        // Hold to 39s
+        tl.to({}, { duration: 0.01 }, 39.0);
+
         window.__timelines["map-arrow-fanout"] = tl;
       })();
     </script>
