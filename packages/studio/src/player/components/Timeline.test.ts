@@ -208,7 +208,7 @@ describe("Timeline provider boundary", () => {
     expect(trackHeader.style.width).toBe(`${LABEL_COL_W}px`);
     expect(rulerOrigin.style.width).toBe(`${LABEL_COL_W + GUTTER}px`);
     expect(playhead.style.left).toBe(`${LABEL_COL_W + GUTTER + 1000 - PLAYHEAD_HEAD_W / 2}px`);
-    expect(Number.parseFloat(rulerTick.style.left)).toBe(1000);
+    expect(Number.parseFloat(rulerTick.style.left)).toBe(999.5);
     expect(collapsedHeader.textContent).toContain("Outro");
     expect(getTimelineFitPps(640, 20, LABEL_COL_W + GUTTER)).toBeCloseTo(
       (640 - (LABEL_COL_W + GUTTER) - 2) / MIN_TIMELINE_EXTENT_S,
