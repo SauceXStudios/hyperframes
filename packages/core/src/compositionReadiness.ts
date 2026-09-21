@@ -18,6 +18,8 @@ export interface PendingCompositionAssets {
 
 export type CompositionReadinessScope = "all" | "first-frame";
 
+export const FIRST_FRAME_READINESS_SCOPE: CompositionReadinessScope = "first-frame";
+
 export interface CompositionReadinessOptions {
   scope?: CompositionReadinessScope;
 }
@@ -76,12 +78,6 @@ function shouldIncludeAsset(
   resolver: ReturnType<typeof createRuntimeStartTimeResolver>,
 ): boolean {
   if (scope === "all") return true;
-  if (
-    !isTimedElement(element) &&
-    !element.parentElement?.closest("[data-start], [data-track-index]")
-  ) {
-    return true;
-  }
   return isActiveAtFirstFrame(element, resolver);
 }
 

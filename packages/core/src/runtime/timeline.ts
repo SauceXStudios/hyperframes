@@ -16,10 +16,73 @@ import {
 } from "./playbackRate";
 import { resolveCssStackingContextId } from "./stackingContext";
 import { createRuntimeStartTimeResolver } from "./startResolver";
+import { isClipVisibleAt } from "./clipWindow";
+import { snapTimeToFrameBoundary } from "../inline-scripts/parityContract";
 import { isSceneLikeCompositionId } from "../slideshow/index.js";
 import { COMPOSITION_CONTRACT_VERSION } from "../compositionContract.js";
 import { runtimeProtocolMetadata } from "./protocol.js";
 import { isElementNode, isMediaElement } from "./domRealm";
+
+export function isRuntimeElementVisibleAt(
+  rawNode: HTMLElement,
+  options: {
+    currentTime: number;
+    compositionDuration: number;
+    canonicalFps: number;
+    exportRenderSeek: boolean;
+    timelineRegistry: Record<string, RuntimeTimelineLike | undefined>;
+    resolver: ReturnType<typeof createRuntimeStartTimeResolver>;
+  },
+): boolean {
+  const tag = rawNode.tagName.toLowerCase();
+  if (tag === "script" || tag === "style" || tag === "link" || tag === "meta") {
+    return false;
+  }
+
+  const isMedia = tag === "video" || tag === "audio";
+  const start = isMedia
+    ? options.resolver.resolveMediaStartForElement(rawNode)
+    : options.resolver.resolveStartForElement(rawNode, 0);
+  let duration = options.resolver.resolveDurationForElement(rawNode);
+  const compId = rawNode.getAttribute("data-composition-id");
+  if (compId) {
+    const compTimeline = options.timelineRegistry[compId];
+    const liveDuration =
+      compTimeline && typeof compTimeline.duration === "function"
+        ? Number(compTimeline.duration())
+        : null;
+    const hasAuthoredTiming =
+      rawNode.hasAttribute("data-duration") ||
+      rawNode.hasAttribute("data-end") ||
+      rawNode.hasAttribute("data-hf-authored-duration") ||
+      rawNode.hasAttribute("data-hf-authored-end");
+    if (
+      !hasAuthoredTiming &&
+      (duration == null || duration <= 0) &&
+      liveDuration != null &&
+      Number.isFinite(liveDuration) &&
+      liveDuration > 0
+    ) {
+      duration = liveDuration;
+    }
+  }
+  const computedEnd =
+    duration != null && duration > 0 ? start + duration : Number.POSITIVE_INFINITY;
+  // Export seeks snap to frame boundaries; interactive visibility uses authored seconds.
+  const visibilityStart = options.exportRenderSeek
+    ? snapTimeToFrameBoundary(start, options.canonicalFps)
+    : start;
+  const visibilityEnd =
+    options.exportRenderSeek && Number.isFinite(computedEnd)
+      ? snapTimeToFrameBoundary(computedEnd, options.canonicalFps)
+      : computedEnd;
+  return isClipVisibleAt(
+    options.currentTime,
+    visibilityStart,
+    visibilityEnd,
+    options.compositionDuration,
+  );
+}
 
 function parseNum(value: string | null | undefined): number | null {
   return parseStrictFiniteTimingNumber(value);

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   computeReadinessInput,
+  FIRST_FRAME_READINESS_SCOPE,
   mediaReadinessInput,
   paintAndIdleReadinessInput,
   scanPendingCompositionAssets,
@@ -326,6 +327,58 @@ describe("paintAndIdleReadinessInput", () => {
 });
 
 describe("settleCompositionReadiness", () => {
+  it("uses the shared first-frame scope for both runtime callsites", () => {
+    expect(FIRST_FRAME_READINESS_SCOPE).toBe("first-frame");
+  });
+
+  it("does not wait for a later video through the public first-frame path", async () => {
+    const doc = docWith(
+      '<img id="first" data-start="0" data-duration="5" src="first.png">' +
+        '<video id="later" data-start="30" data-duration="5" src="later.mp4"></video>',
+    );
+    const image = doc.querySelector<HTMLImageElement>("#first")!;
+    const video = doc.querySelector<HTMLVideoElement>("#later")!;
+    Object.defineProperty(image, "complete", { value: false });
+    image.decode = () => Promise.resolve();
+    Object.defineProperty(video, "readyState", { value: 0, configurable: true });
+
+    let result: { timedOut: boolean } | undefined;
+    settleCompositionReadiness(
+      doc,
+      (settled) => {
+        result = settled;
+      },
+      { scope: FIRST_FRAME_READINESS_SCOPE, timeoutMs: 1 },
+    );
+
+    await flushMicrotasks();
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    expect(result).toEqual({ timedOut: false });
+  });
+
+  it("keeps the explicit full-scan path waiting for a later video", async () => {
+    const doc = docWith(
+      '<img id="first" data-start="0" data-duration="5" src="first.png">' +
+        '<video id="later" data-start="30" data-duration="5" src="later.mp4"></video>',
+    );
+    const image = doc.querySelector<HTMLImageElement>("#first")!;
+    const video = doc.querySelector<HTMLVideoElement>("#later")!;
+    Object.defineProperty(image, "complete", { value: true });
+    Object.defineProperty(video, "readyState", { value: 0, configurable: true });
+
+    let result: { timedOut: boolean } | undefined;
+    settleCompositionReadiness(
+      doc,
+      (settled) => {
+        result = settled;
+      },
+      { scope: "all", timeoutMs: 1 },
+    );
+
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    expect(result).toEqual({ timedOut: true });
+  });
+
   it("defaults to media, compute and paint-and-idle together", async () => {
     vi.useFakeTimers();
     const { win, fireFrame } = docWithFakeWindow(false);

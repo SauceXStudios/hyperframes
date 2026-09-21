@@ -21,6 +21,7 @@ import { PLAYER_STYLES } from "./styles.js";
 import { type DirectTimelineAdapter } from "./timeline-adapters.js";
 import { runtimeProtocolMetadata } from "@hyperframes/core/runtime/protocol";
 import {
+  FIRST_FRAME_READINESS_SCOPE,
   scanPendingCompositionAssets,
   settleCompositionReadiness,
 } from "@hyperframes/core/composition-readiness";
@@ -1063,7 +1064,7 @@ class HyperframesPlayer extends HTMLElement {
         if (timedOut) this._warnStuckAssets(doc);
         this._settleAssetsReady(generation);
       },
-      { scope: "first-frame", timeoutMs: ASSETS_READY_TIMEOUT_MS },
+      { scope: FIRST_FRAME_READINESS_SCOPE, timeoutMs: ASSETS_READY_TIMEOUT_MS },
     );
     if (!this._assetsReady) this._startAssetsLoadingOverlayTimer(generation);
   }
@@ -1083,7 +1084,7 @@ class HyperframesPlayer extends HTMLElement {
    *  reported directly rather than inferred, since it can't be bounded. */
   private _warnStuckAssets(doc: Document): void {
     const { pendingMedia, pendingImages, fontsLoading } = scanPendingCompositionAssets(doc, {
-      scope: "first-frame",
+      scope: FIRST_FRAME_READINESS_SCOPE,
     });
     const win = doc.defaultView as (Window & { __renderReady?: boolean }) | null;
     console.warn(
