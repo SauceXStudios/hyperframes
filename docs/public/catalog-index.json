@@ -3426,16 +3426,17 @@
     "name": "map-radar-rings",
     "type": "block",
     "title": "Map Radar Rings",
-    "description": "Concentric radar and range rings that expand from a focal point with a seek-safe sweep. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
+    "description": "Multi-hub concentric white radar rings over a West US land silhouette with iris-out exit. Seek-safe SVG/GSAP; no MP4 wrapper. Inspired by Moving Image Archive, Network Broadcasting, 1934 (clip bbdd60a1-a3f6-5d22-8953-3419f5a17afd) - not affiliated; code recreation. Fidelity ceilings: film grain/CRT bloom, blocky 320-derived coast detail, partial state borders, live-action switchboard/operators after iris out of scope.",
     "tags": [
       "map",
       "geography",
       "animation",
       "radar",
       "rings",
-      "range",
       "newsreel",
-      "svg"
+      "svg",
+      "mia",
+      "ceiling-only"
     ],
     "href": "/catalog/blocks/map-radar-rings",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-radar-rings.png"

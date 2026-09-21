@@ -36,3 +36,9 @@ Source inspiration: Moving Image Archive, Our Shrinking World, 1946.
 Ported from video-reverse `reversals/mia-maps/globe-inset/recreate/`.
 Still plates: `assets/clouds.jpg`, `assets/switchboard.jpg` (not MP4 wrappers).
 Ceilings: angular coasts, grain, SVG plane silhouette (not photoreal), radial lighting, switchboard still.
+
+## map-radar-rings (QC-gated CEILING_ONLY 2026-09-20)
+
+Source inspiration: Moving Image Archive, Network Broadcasting, 1934 (clip bbdd60a1-a3f6-5d22-8953-3419f5a17afd).
+Ported from video-reverse `reversals/mia-maps/radar-rings/recreate/index.html` (self-contained; no MP4 wrapper).
+Ceilings: grain/CRT bloom, blocky 320 coast, partial borders, live-action after iris OOS.

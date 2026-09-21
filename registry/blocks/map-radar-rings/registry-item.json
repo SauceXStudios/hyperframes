@@ -3,33 +3,31 @@
   "name": "map-radar-rings",
   "type": "hyperframes:block",
   "title": "Map Radar Rings",
-  "description": "Concentric radar and range rings that expand from a focal point with a seek-safe sweep. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
-  "tags": ["map", "geography", "animation", "radar", "rings", "range", "newsreel", "svg"],
+  "description": "Multi-hub concentric white radar rings over a West US land silhouette with iris-out exit. Seek-safe SVG/GSAP; no MP4 wrapper. Inspired by Moving Image Archive, Network Broadcasting, 1934 (clip bbdd60a1-a3f6-5d22-8953-3419f5a17afd) - not affiliated; code recreation. Fidelity ceilings: film grain/CRT bloom, blocky 320-derived coast detail, partial state borders, live-action switchboard/operators after iris out of scope.",
+  "tags": [
+    "map",
+    "geography",
+    "animation",
+    "radar",
+    "rings",
+    "newsreel",
+    "svg",
+    "mia",
+    "ceiling-only"
+  ],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
   "dimensions": {
     "width": 1920,
     "height": 1080
   },
-  "duration": 9,
+  "duration": 5,
   "variables": [
     {
-      "id": "title",
+      "id": "credit",
       "type": "string",
-      "label": "Title",
-      "default": "Range Rings"
-    },
-    {
-      "id": "subtitle",
-      "type": "string",
-      "label": "Subtitle",
-      "default": "Educational cartography · radar rings"
-    },
-    {
-      "id": "accent",
-      "type": "color",
-      "label": "Accent",
-      "default": "#c45c26"
+      "label": "Credit",
+      "default": "Moving Image Archive, Network Broadcasting, 1934 - code recreation - not affiliated"
     }
   ],
   "files": [
@@ -41,22 +39,10 @@
   ],
   "params": [
     {
-      "id": "title",
+      "id": "credit",
       "type": "string",
-      "label": "Title",
-      "default": "Range Rings"
-    },
-    {
-      "id": "subtitle",
-      "type": "string",
-      "label": "Subtitle",
-      "default": "Educational cartography · radar rings"
-    },
-    {
-      "id": "accent",
-      "type": "color",
-      "label": "Accent",
-      "default": "#c45c26"
+      "label": "Credit",
+      "default": "Moving Image Archive, Network Broadcasting, 1934 - code recreation - not affiliated"
     }
   ]
 }
