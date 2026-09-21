@@ -30,24 +30,17 @@ Not affiliated; footage not included. Original HyperFrames GSAP/HTML composition
 - `map-conquest-fill-sequence` - sequential region conquest fill
 - `map-legend-build` - legend panel assemble
 
-## map-globe-inset (QC-gated CEILING_ONLY 2026-09-20)
+## map-globe-inset (REHOLD 2026-09-21)
 
-Source inspiration: Moving Image Archive, Our Shrinking World, 1946.
-Ported from video-reverse `reversals/mia-maps/globe-inset/recreate/`.
-Still plates: `assets/clouds.jpg`, `assets/switchboard.jpg` (not MP4 wrappers).
-Ceilings: angular coasts, grain, SVG plane silhouette (not photoreal), radial lighting, switchboard still.
+Miguel rejected CEILING_ONLY ports on #4237. Reverted to pre-port baseline SVG. Ungated until Lead+judge QC_PASS. No CEILING_ONLY without Miguel OK.
 
-## map-radar-rings (QC-gated CEILING_ONLY 2026-09-20)
+## map-radar-rings (REHOLD 2026-09-21)
 
-Source inspiration: Moving Image Archive, Network Broadcasting, 1934 (clip bbdd60a1-a3f6-5d22-8953-3419f5a17afd).
-Ported from video-reverse `reversals/mia-maps/radar-rings/recreate/index.html` (self-contained; no MP4 wrapper).
-Ceilings: grain/CRT bloom, blocky 320 coast, partial borders, live-action after iris OOS.
+Miguel rejected CEILING_ONLY ports on #4237. Reverted to pre-port baseline SVG. Ungated until Lead+judge QC_PASS. No CEILING_ONLY without Miguel OK.
 
-## map-arrow-fanout (QC-gated CEILING_ONLY 2026-09-20)
+## map-arrow-fanout (REHOLD 2026-09-21)
 
-Source inspiration: Moving Image Archive Animated Maps (Germany / Berlin Airlift reference).
-Ported from video-reverse `reversals/mia-maps/arrow-fanout/recreate/map-arrow-fanout.html` (CDN GSAP; local gsap.min.js not shipped).
-Ceilings: hotter glow, sector purple-to-blue, faceted coasts, SVG endcard, Act1 grammar, grain.
+Miguel rejected CEILING_ONLY ports on #4237. Reverted to pre-port baseline SVG. Ungated until Lead+judge QC_PASS. No CEILING_ONLY without Miguel OK.
 
 ## map-territory-wipe (REHOLD 2026-09-21)
 

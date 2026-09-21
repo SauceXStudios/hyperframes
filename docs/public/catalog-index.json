@@ -3140,18 +3140,16 @@
     "name": "map-arrow-fanout",
     "type": "block",
     "title": "Map Arrow Fanout",
-    "description": "Berlin Airlift-style Germany map: west/east color grammar, Berlin pin and sectors, thick W-E arrow fan-out with glow trails, then endcard. Seek-safe SVG/GSAP; no MP4 wrapper. Inspired by Moving Image Archive Animated Maps (Germany / Berlin Airlift era footage) - not affiliated; code recreation. Fidelity ceilings: hotter glow vs film, sector purple-to-blue, faceted coasts, SVG endcard, Act1 color grammar, film grain.",
+    "description": "Arrow swarm fan-out from an origin - abstract schematic advances. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
     "tags": [
       "map",
       "geography",
       "animation",
       "arrows",
       "fanout",
-      "berlin",
+      "swarm",
       "newsreel",
-      "svg",
-      "mia",
-      "ceiling-only"
+      "svg"
     ],
     "href": "/catalog/blocks/map-arrow-fanout",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-arrow-fanout.png"
@@ -3286,17 +3284,15 @@
     "name": "map-globe-inset",
     "type": "block",
     "title": "Map Globe Inset",
-    "description": "Newsreel globe with concentric rings, spinning continents, plane pass behind the disk, then switchboard still plate. Seek-safe SVG/GSAP + stills only (no MP4 wrapper). Inspired by Moving Image Archive, Our Shrinking World, 1946 (Animated Maps) - not affiliated; code recreation. Fidelity ceilings: angular coasts, film grain approximation, SVG plane silhouette (not photoreal), radial lighting vs physical globe, switchboard as still.",
+    "description": "Inset globe that rotates via seek-safe GSAP transform beside a main stylized map. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
     "tags": [
       "map",
       "geography",
       "animation",
       "globe",
-      "rings",
+      "inset",
       "newsreel",
-      "svg",
-      "mia",
-      "ceiling-only"
+      "svg"
     ],
     "href": "/catalog/blocks/map-globe-inset",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-globe-inset.png"
@@ -3429,17 +3425,16 @@
     "name": "map-radar-rings",
     "type": "block",
     "title": "Map Radar Rings",
-    "description": "Multi-hub concentric white radar rings over a West US land silhouette with iris-out exit. Seek-safe SVG/GSAP; no MP4 wrapper. Inspired by Moving Image Archive, Network Broadcasting, 1934 (clip bbdd60a1-a3f6-5d22-8953-3419f5a17afd) - not affiliated; code recreation. Fidelity ceilings: film grain/CRT bloom, blocky 320-derived coast detail, partial state borders, live-action switchboard/operators after iris out of scope.",
+    "description": "Concentric radar and range rings that expand from a focal point with a seek-safe sweep. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
     "tags": [
       "map",
       "geography",
       "animation",
       "radar",
       "rings",
+      "range",
       "newsreel",
-      "svg",
-      "mia",
-      "ceiling-only"
+      "svg"
     ],
     "href": "/catalog/blocks/map-radar-rings",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-radar-rings.png"
