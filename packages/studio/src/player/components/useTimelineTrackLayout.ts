@@ -158,7 +158,7 @@ function useTimelineRowHeights(
     const laneCounts = computeLaneCounts(tracks, gsapAnimations);
     const rowHeights = applyGroupStripHeights(
       tracks,
-      tracks.map(([, elements], index) => {
+      tracks.map(([, elements]) => {
         const active = resolveTrackKeyframeClip(elements, laneCounts, selectedElementId, selectedElementIds);
         const activeId = active ? (active.key ?? active.id) : null;
         return activeId !== null && expandedLaneOwnerIds.has(activeId)
