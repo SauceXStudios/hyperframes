@@ -82,3 +82,13 @@ export function rankMediaRows(query, rows) {
     .sort((a, b) => b.score - a.score)
     .map(({ row }) => row);
 }
+
+export async function rankMediaRowsWithVectors(query, rows, semanticRanking) {
+  const words = rankMediaRows(query, rows);
+  if (words.length > 0) return { rows: words, tier: "words" };
+  if (!semanticRanking) return { rows: [], tier: "words" };
+  const semantic = await semanticRanking(query, rows);
+  return semantic
+    ? { rows: semantic.map(({ row }) => row), tier: "on-device" }
+    : { rows: [], tier: "words" };
+}

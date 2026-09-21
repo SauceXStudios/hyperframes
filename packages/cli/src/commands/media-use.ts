@@ -34,7 +34,6 @@ function enginePath(): string {
   const candidates = [
     join(here, "..", "media-use", "resolve.mjs"),
     join(here, "skills", "media-use", "scripts", "resolve.mjs"),
-    join(here, "..", "..", "skills", "media-use", "scripts", "resolve.mjs"),
   ];
   const engine = candidates.find((candidate) => existsSync(candidate));
   if (!engine) throw new Error("media-use engine is missing from this CLI build");

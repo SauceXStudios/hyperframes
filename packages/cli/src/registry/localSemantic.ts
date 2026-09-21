@@ -13,7 +13,6 @@
  */
 
 // Vector metadata validation is intentionally defensive at this file boundary.
-// fallow-ignore-file complexity
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
@@ -45,6 +44,7 @@ export interface MediaVectorRow {
   dimensions?: { width: number; height: number };
 }
 
+// Defensive row validation keeps malformed downloaded metadata out of the ranker.
 // fallow-ignore-next-line high-crap-score
 function isMediaVectorRow(value: unknown): value is MediaVectorRow {
   if (!value || typeof value !== "object") return false;
@@ -102,6 +102,7 @@ function localVectorDirectory(): string {
  * contract. A pair that fails it is a truncated download or a different
  * model, never something worth caching.
  */
+// Pair validation checks the metadata, row coverage, dimensions, and byte count together.
 // fallow-ignore-next-line high-crap-score
 function vectorPairAgrees(
   fetched: Array<[string, Buffer]>,
@@ -194,14 +195,6 @@ export async function fetchLocalVectors(
   }
 }
 
-// fallow-ignore-next-line unused-export
-export function fetchMediaVectors(
-  registryBaseUrl: string,
-  options: Omit<FetchLocalVectorOptions, "artifactBasename"> = {},
-): Promise<boolean> {
-  return fetchLocalVectors(registryBaseUrl, { ...options, artifactBasename: "media-vectors" });
-}
-
 export function hasLocalVectors(directory = localVectorDirectory()): boolean {
   return (
     existsSync(join(directory, "local-vectors.bin")) &&
@@ -215,19 +208,6 @@ export function hasMediaVectors(directory = localVectorDirectory()): boolean {
     existsSync(join(directory, "media-vectors.bin")) &&
     existsSync(join(directory, "media-vectors.json"))
   );
-}
-
-// fallow-ignore-next-line unused-export
-export function mediaVectorRows(directory = localVectorDirectory()): MediaVectorRow[] {
-  if (!hasMediaVectors(directory)) return [];
-  try {
-    const metadata = JSON.parse(
-      readFileSync(join(directory, "media-vectors.json"), "utf-8"),
-    ) as LocalVectorMetadata;
-    return metadata.rows?.filter(isMediaVectorRow) ?? [];
-  } catch {
-    return [];
-  }
 }
 
 function loadLocalVectors(directory = localVectorDirectory()): LocalVectorSet {
@@ -346,6 +326,8 @@ export async function localSemanticRanking(
   return scored;
 }
 
+// Internal ranker entry used by the CLI's vector-aware media search library.
+// fallow-ignore-next-line unused-export
 export async function mediaSemanticRanking(
   query: string,
   directory = localVectorDirectory(),

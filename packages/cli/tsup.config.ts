@@ -17,7 +17,6 @@ export default defineConfig({
     runtimeVersion: "src/runtimeVersion.ts",
     renderSetupWorker: "src/renderSetupWorker.ts",
     shaderTransitionWorker: "../producer/src/services/shaderTransitionWorker.ts",
-    "registry/mediaSearch": "src/registry/mediaSearch.ts",
     "registry/localSemantic": "src/registry/localSemantic.ts",
   },
   format: ["esm"],

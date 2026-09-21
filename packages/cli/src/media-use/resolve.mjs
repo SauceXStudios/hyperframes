@@ -49,6 +49,11 @@ import {
   versionLessThan,
 } from "./lib/heygen-cli.mjs";
 import { BundledSfxAssetsError, inspectBundledSfxAssets } from "./lib/bundled-sfx-provider.mjs";
+import {
+  fetchMediaVectors,
+  mediaVectorRows,
+  rankMediaRowsWithVectors,
+} from "./lib/local-media-search.mjs";
 
 const INGEST_TYPES = listTypes();
 const DEFAULT_EXT = {
@@ -410,40 +415,43 @@ async function run() {
   // SFX search is bundled, local-index, then HeyGen.
   let searchResult = null;
   let providerFailure = null;
+  let localIndexFailure = null;
   try {
     if (type === "sfx" && !args.provider) {
       searchResult = await runCapability(type, "search", intent, {
         ...ctx,
         provider: "bundled.sfx",
       });
-      if (!searchResult) {
+      if (!searchResult && !localOnly) {
         const registry =
           process.env.HYPERFRAMES_REGISTRY ||
           "https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry";
-        const { fetchMediaVectors, mediaVectorRows } = await import("../registry/localSemantic.js");
-        const { rankMediaRowsWithVectors } = await import("../registry/mediaSearch.js");
-        await fetchMediaVectors(registry);
-        const ranked = await rankMediaRowsWithVectors(
-          intent,
-          mediaVectorRows().filter((row) => row.kind === "sfx"),
-        );
-        const row = ranked.rows[0];
-        const candidates = row
-          ? [resolve(row.file), join(import.meta.dirname, "..", "..", "..", row.file)]
-          : [];
-        const localPath = candidates.find((candidate) => existsSync(candidate));
-        if (row && localPath) {
-          searchResult = {
-            localPath,
-            ext: extname(localPath),
-            source: "local-index",
-            metadata: {
-              description: row.description,
-              duration: row.duration ?? null,
-              provider: "catalog.local",
-              provenance: { library_key: row.id, tier: ranked.tier },
-            },
-          };
+        try {
+          await fetchMediaVectors(registry);
+          const ranked = await rankMediaRowsWithVectors(
+            intent,
+            mediaVectorRows().filter((row) => row.kind === "sfx"),
+          );
+          const row = ranked.rows[0];
+          const candidates = row
+            ? [resolve(row.file), join(import.meta.dirname, "..", "..", "..", row.file)]
+            : [];
+          const localPath = candidates.find((candidate) => existsSync(candidate));
+          if (row && localPath) {
+            searchResult = {
+              localPath,
+              ext: extname(localPath),
+              source: "local-index",
+              metadata: {
+                description: row.description,
+                duration: row.duration ?? null,
+                provider: "catalog.local",
+                provenance: { library_key: row.id, tier: ranked.tier },
+              },
+            };
+          }
+        } catch (error) {
+          localIndexFailure = error;
         }
       }
       if (!searchResult) searchResult = await runCapability(type, "search", intent, ctx);
@@ -459,6 +467,12 @@ async function run() {
   } catch (error) {
     providerFailure = error;
     // search failed, try generate
+  }
+
+  if (localIndexFailure) {
+    throw new Error(`local SFX index unavailable: ${localIndexFailure.message}`, {
+      cause: localIndexFailure,
+    });
   }
 
   // 4. generate fallback — same ordered cascade for the generate capability
