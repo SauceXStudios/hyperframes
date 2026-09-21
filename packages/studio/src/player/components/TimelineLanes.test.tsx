@@ -21,7 +21,6 @@ afterEach(() => {
   document.body.innerHTML = "";
   usePlayerStore.getState().reset();
 });
-
 /** The z-order sort keys really are fractional: a clip nudged between two lanes
  *  lands on the midpoint. These are the values that used to reach aria-label. */
 const TRACK_A = 1 / 6;
@@ -64,7 +63,6 @@ function positionTween(id: string): GsapAnimation {
 interface RenderLanesOptions {
   elements?: TimelineElement[];
   animations?: Map<string, GsapAnimation[]>;
-  expandedClipIds?: string[];
   selectedElementIds?: Set<string>;
   multiDragPreview?: MultiDragPreviewInput | null;
   draggedClip?: DraggedClipState | null;
@@ -100,7 +98,6 @@ function renderLanes(options: RenderLanesOptions = {}): {
     );
     const rowHeights = displayTrackOrder.map(() => TRACK_H);
     act(() => {
-      usePlayerStore.setState({ expandedClipIds: new Set(next.expandedClipIds ?? []) });
       root.render(
         <TimelineLanes
           pps={100}
@@ -120,7 +117,6 @@ function renderLanes(options: RenderLanesOptions = {}): {
             laneCounts,
             selectedElementId: null,
             selectedElementIds: next.selectedElementIds ?? new Set(),
-            expandedClipIds: new Set(next.expandedClipIds ?? []),
             collapsedGroupIds: new Set(),
             expandedLaneOwnerIds: new Set(),
             groups: [],
@@ -267,141 +263,6 @@ describe("TimelineLanes track numbering", () => {
 
     expect(onContextMenuLane).toHaveBeenCalledOnce();
     expect(onContextMenuLane.mock.calls[0]?.[1]).toBe(TRACK_B);
-    act(() => view.root.unmount());
-  });
-});
-
-describe("TimelineLanes disclosure target", () => {
-  const ANIMATIONS = new Map([["clip-a", [positionTween("clip-a")]]]);
-
-  /**
-   * `aria-controls` is an ID LIST, and the caret needs one: it reveals the
-   * active clip's keyframe lanes AND the track's automation lanes, which cannot
-   * be one element — one belongs to a clip, the other to the row.
-   */
-  function ariaControlsIds(host: HTMLElement): string[] {
-    const caret = host.querySelector("button[aria-controls]");
-    return (caret?.getAttribute("aria-controls") ?? "").split(/\s+/).filter(Boolean);
-  }
-
-  function ariaControlsTargets(host: HTMLElement): (HTMLElement | null)[] {
-    return ariaControlsIds(host).map((id) => host.querySelector<HTMLElement>(`#${id}`));
-  }
-
-  /** The first region named, which is the keyframe lanes. */
-  function ariaControlsTarget(host: HTMLElement): HTMLElement | null {
-    return ariaControlsTargets(host)[0] ?? null;
-  }
-
-  function expectNoDisclosure(view: ReturnType<typeof renderLanes>): void {
-    expect(ariaControlsTarget(view.host)).toBeNull();
-    expect(ariaControlsTargets(view.host)).toEqual([]);
-    act(() => view.root.unmount());
-  }
-
-  // aria-controls used to name a div in the sticky label column: it computed to
-  // 0x0 and held no diamonds at all.
-  it("resolves the caret's aria-controls to an element holding the property lanes", () => {
-    const view = renderLanes({ animations: ANIMATIONS, expandedClipIds: ["clip-a"] });
-    expectNoDisclosure(view);
-  });
-
-  it("still resolves the caret's aria-controls while the layer is collapsed", () => {
-    const view = renderLanes({ animations: ANIMATIONS, expandedClipIds: [] });
-    expectNoDisclosure(view);
-  });
-
-  // Two timelines on one page (a mini-timeline in a modal beside the main one)
-  // both minted `timeline-lanes-track-0`, so every caret's aria-controls
-  // resolved to whichever instance mounted first.
-  it("mints lane ids that do not collide with a second TimelineLanes on the page", () => {
-    const first = renderLanes({ animations: ANIMATIONS, expandedClipIds: ["clip-a"] });
-    const second = renderLanes({ animations: ANIMATIONS, expandedClipIds: ["clip-a"] });
-
-    const idsFor = (host: HTMLElement) =>
-      Array.from(host.querySelectorAll("button[aria-controls]")).flatMap((caret) =>
-        (caret.getAttribute("aria-controls") ?? "").split(/\s+/).filter(Boolean),
-      );
-    const firstIds = idsFor(first.host);
-    const secondIds = idsFor(second.host);
-    const cellIdsFor = (host: HTMLElement) =>
-      new Set(
-        Array.from(host.querySelectorAll<HTMLElement>("[data-property-group][id]"), (cell) =>
-          cell.getAttribute("id"),
-        ).filter((id): id is string => id !== null),
-      );
-    const ownedIdsFor = (host: HTMLElement) =>
-      Array.from(host.querySelectorAll("[aria-owns]"), (owner) =>
-        owner.getAttribute("aria-owns"),
-      ).filter((id): id is string => id !== null);
-    const firstCellIds = cellIdsFor(first.host);
-    const secondCellIds = cellIdsFor(second.host);
-
-    for (const { host } of [first, second]) {
-      const treegrid = host.querySelector<HTMLElement>('[role="treegrid"]');
-      expect(treegrid?.getAttribute("aria-colcount")).toBe("2");
-      expect(treegrid?.hasAttribute("aria-multiselectable")).toBe(false);
-      expect(
-        [...host.querySelectorAll('[role="rowheader"]')].every(
-          (cell) => cell.getAttribute("aria-colindex") === "1",
-        ),
-      ).toBe(true);
-      expect(
-        [...host.querySelectorAll('[role="gridcell"]')].every(
-          (cell) => cell.getAttribute("aria-colindex") === "2",
-        ),
-      ).toBe(true);
-    }
-    expect(firstIds).toEqual([]);
-    expect(secondIds).toEqual([]);
-    expect(firstCellIds.size).toBe(0);
-    expect(secondCellIds.size).toBe(0);
-    expect(ownedIdsFor(first.host).every((id) => firstCellIds.has(id))).toBe(true);
-    expect(ownedIdsFor(second.host).every((id) => secondCellIds.has(id))).toBe(true);
-    // Still a legal CSS id selector: the aria-controls lookups above use `#id`.
-    for (const id of [...firstIds, ...secondIds]) {
-      expect(id).toMatch(/^[A-Za-z][\w-]*$/);
-    }
-    act(() => first.root.unmount());
-    act(() => second.root.unmount());
-  });
-
-  // The passenger branch wraps [clip, lanes] in a transformed div that re-renders
-  // on every pointer move. An unstable key there remounts the lanes and drops the
-  // in-flight drag.
-  it("does not remount the lanes while a multi-clip drag slides the formation", () => {
-    const elements = [element("clip-a", TRACK_A), element("clip-b", TRACK_A)];
-    const selectedElementIds = new Set(["clip-a", "clip-b"]);
-    const preview = (draggedPreviewStart: number): MultiDragPreviewInput => ({
-      dragStarted: true,
-      draggedKey: "clip-b",
-      draggedOriginStart: 0,
-      draggedPreviewStart,
-      selectedKeys: selectedElementIds,
-    });
-    const view = renderLanes({
-      elements,
-      animations: ANIMATIONS,
-      expandedClipIds: ["clip-a"],
-      selectedElementIds,
-      multiDragPreview: preview(0.25),
-    });
-
-    const before = ariaControlsTarget(view.host);
-    const beforeLane = before?.querySelector("[data-timeline-property-lane]");
-    expect(before).toBeNull();
-    expect(beforeLane).toBeUndefined();
-
-    view.rerender({
-      elements,
-      animations: ANIMATIONS,
-      expandedClipIds: ["clip-a"],
-      selectedElementIds,
-      multiDragPreview: preview(0.75),
-    });
-
-    // Node identity, not just presence: a remount replaces these nodes.
-    expect(ariaControlsTarget(view.host)).toBeNull();
     act(() => view.root.unmount());
   });
 });

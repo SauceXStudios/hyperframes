@@ -120,9 +120,6 @@ export function TimelineGroupRow({
       index={index}
       rowKey={rowKey}
       logicalRow={logicalRow}
-      propertyRows={[]}
-      lanesId=""
-      headerLanesId=""
       top={top}
       height={height}
       virtualized={virtualized}

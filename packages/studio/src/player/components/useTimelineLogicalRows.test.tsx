@@ -22,7 +22,6 @@ const tracks: TrackInput = Array.from(
 );
 const laneCounts = new Map<string, number>();
 const selectedElementIds = new Set<string>();
-const expandedClipIds = new Set<string>();
 const collapsedGroupIds = new Set<string>();
 const expandedLaneOwnerIds = new Set<string>();
 const groups: never[] = [];
@@ -43,7 +42,6 @@ function Harness({
     laneCounts,
     selectedElementId: null,
     selectedElementIds,
-    expandedClipIds,
     collapsedGroupIds,
     expandedLaneOwnerIds,
     groups,

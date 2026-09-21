@@ -1,4 +1,3 @@
-import type { GsapAnimation } from "@hyperframes/core/gsap-parser";
 import {
   HF_AUDIO_FX_ATTR,
   serializeAudioFxChain,
@@ -6,22 +5,20 @@ import {
 } from "@hyperframes/core/audio-fx";
 import { classifyAudioName } from "@hyperframes/core/audio-carve";
 import { usePlayerStore, type TimelineElement } from "../store/playerStore";
-import { VisibilityButton, PlainTrackHeader } from "./TimelineTrackPlainHeader";
+import { PlainTrackHeader } from "./TimelineTrackPlainHeader";
 import type { TimelineEditCallbacks } from "./timelineCallbacks";
 import { useTimelineEditContextOptional } from "../../contexts/TimelineEditContext";
 import { useDomEditActionsContextOptional } from "../../contexts/DomEditContext";
 import { mintGroupId } from "../../components/editor/useFxCarveGrouping";
 import { runtimeAudioId } from "../lib/timelineElementHelpers";
 import { TimelineFxButton } from "./TimelineFxButton";
-import { getTimelinePropertyLanes } from "./TimelinePropertyLanes";
 import { elementFxChain, groupAutomationLanes, isCarveLane } from "./automationLaneData";
 import { AUTOMATION_LANE_H } from "./automationLaneHeight";
-import { clipTimingStart } from "../../hooks/gsapShared";
-import { LaneToggleButton, LayerDisclosureRow } from "./LayerDisclosureRow";
+import { LaneToggleButton } from "./LayerDisclosureRow";
 import { LABEL_COL_W, TRACK_H, getTimelineLaneTop } from "./timelineLayout";
 import type { TimelineTheme } from "./timelineTheme";
 import { trackDisplaySuffix } from "./timelineTrackDisplay";
-import { AutomationLaneHeaderRow, PropertyGroupHeaderRow } from "./trackHeaderLabelRows";
+import { AutomationLaneHeaderRow } from "./trackHeaderLabelRows";
 import { useMemo } from "react";
 
 /** Accent rail + inset marking a row as a group MEMBER, matching the level-2
@@ -66,7 +63,6 @@ interface TimelineTrackHeaderProps {
   /** Clips on this track, so the header can say how many the row holds. */
   clipCount: number;
   isExpanded: boolean;
-  animations: readonly GsapAnimation[];
   currentTime: number;
   isTrackHidden: boolean;
   isAudioTrack: boolean;
@@ -76,7 +72,6 @@ interface TimelineTrackHeaderProps {
   theme: TimelineTheme;
   onToggleClipExpanded: () => void;
   onToggleTrackHidden: TimelineEditCallbacks["onToggleTrackHidden"];
-  onTogglePropertyGroupKeyframe?: TimelineEditCallbacks["onTogglePropertyGroupKeyframe"];
   /** Drop one envelope. Absent while the lanes are read-only, which is what
    *  hides the control rather than offering a button that cannot act. */
   onRemoveAutomationLane?: (target: string) => void;
@@ -94,7 +89,6 @@ export function TimelineTrackHeader({
   trackElements,
   clipCount,
   isExpanded,
-  animations,
   currentTime,
   isTrackHidden,
   isAudioTrack,
@@ -102,7 +96,6 @@ export function TimelineTrackHeader({
   theme,
   onToggleClipExpanded,
   onToggleTrackHidden,
-  onTogglePropertyGroupKeyframe,
   onRemoveAutomationLane,
   onSeek,
   rovingTargetId = null,
@@ -110,11 +103,6 @@ export function TimelineTrackHeader({
   const clipPercentage = keyframeClip
     ? ((currentTime - keyframeClip.start) / keyframeClip.duration) * 100
     : 0;
-  const lanes = keyframeClip
-    ? // clipTimingStart, not the raw start: an expanded sub-comp child's start is
-      // host-absolute while its tweens are local to its own file.
-      getTimelinePropertyLanes(animations, clipTimingStart(keyframeClip), keyframeClip.duration)
-    : [];
   // Label mode = keyframe view; the label column stays LABEL_COL_W (Timeline.tsx
   // owns the gutter past it, so a 0% diamond isn't clipped by this panel).
   const showTrackLabel = contentOrigin >= LABEL_COL_W;
@@ -202,7 +190,6 @@ export function TimelineTrackHeader({
   // the music glyph and the group indent and gains the `∿`. Tying layout to
   // disclosability swapped it for the keyframe-layer row (a `◇`, no indent) the
   // moment an envelope appeared.
-  const isKeyframeLayer = false;
   // What the lane disclosure calls this row. A row of several clips is named
   // for the TRACK, not for whichever is selected — the lanes are the track's,
   // shared per property, so "Narration 2 lanes" read as if they were that one
@@ -278,8 +265,7 @@ export function TimelineTrackHeader({
           : {}),
       }}
     >
-      {!isKeyframeLayer ? (
-        <>
+      <>
           {/* The two lines own exactly TRACK_H, not the whole header.
               `justify-center` on the header itself centred them in its FULL
               height — which grows by AUTOMATION_LANE_H per open lane — so
@@ -359,34 +345,7 @@ export function TimelineTrackHeader({
               }
             />
           </div>
-        </>
-      ) : (
-        <>
-          <LayerDisclosureRow
-            name={laneOwnerName}
-            clipCount={clipCount}
-            isExpanded={isExpanded}
-            gutterBackground={gutterFill(theme.gutterBackground, isGroupMember)}
-            columnWidth={showTrackLabel ? LABEL_COL_W : contentOrigin}
-            lanesId={lanesId}
-            onToggleClipExpanded={onToggleClipExpanded}
-          >
-            {/* The eye belongs to the LAYER, so it lives on the always-mounted
-                layer row exactly like a plain track's. Hanging it off a lane row
-                (hover-gated, and only while expanded) left a keyframed track with
-                no way to be hidden at all by keyboard, and put the control on a
-                row it does not act on. */}
-            <VisibilityButton
-              hidden={isTrackHidden}
-              trackNumber={trackNumber}
-              trackDisplayNumber={trackDisplayNumber}
-              // Audio: only while hidden — see the plain header.
-              visible={!isAudioTrack || isTrackHidden}
-              onToggle={onToggleTrackHidden}
-            />
-          </LayerDisclosureRow>
-        </>
-      )}
+      </>
       {/* Below the keyframe rows and stepping by its own height, which is how
             TimelineAutomationLaneSlot lays the envelopes out on the canvas. The
             two have to agree or a name labels the wrong curve. */}
@@ -405,7 +364,7 @@ export function TimelineTrackHeader({
               alsoAutomatedBy={
                 groupAutomatedTargets.has(row.key) ? (groupLabelForNote ?? groupOwner) : undefined
               }
-              top={getTimelineLaneTop(lanes.length) + index * AUTOMATION_LANE_H}
+              top={getTimelineLaneTop(0) + index * AUTOMATION_LANE_H}
               isLastLane={index === automationRows.length - 1}
               gutterBackground={gutterFill(theme.gutterBackground, isGroupMember)}
               columnWidth={showTrackLabel ? LABEL_COL_W : contentOrigin}

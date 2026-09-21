@@ -10,8 +10,6 @@ import {
   TRACK_H,
   createTimelineRowGeometry,
   type TimelineRowGeometry,
-  trackHeights,
-  type TimelineTrackHeightClip,
 } from "./timelineLayout";
 import type { TimelineTrackGroupInfo } from "./useTimelineTrackDerivations";
 import { groupAutomationElement } from "./groupAutomationElement";
@@ -130,11 +128,7 @@ function computeLaneCounts(
   return laneCounts;
 }
 
-/** Group anchor rows have no elements of their own (`groupTimelineTracks`
- *  pushes them as `[anchorKey, []]`), so `trackHeights` — which only ever
- *  looks at a row's clips — always gives them TRACK_H. Override those
- *  specific rows post-hoc: TRACK_H while collapsed, plus the group's own
- *  automation rows once its `∿` is open. */
+/** Group anchor rows have no elements of their own, so size their own automation rows explicitly. */
 function applyGroupStripHeights(
   tracks: readonly (readonly [number, readonly TimelineElement[]])[],
   rowHeights: number[],
@@ -162,26 +156,6 @@ function useTimelineRowHeights(
   const expandedLaneOwnerIds = usePlayerStore((s) => s.expandedLaneOwnerIds);
   const { laneCounts, rowGeometry } = useMemo(() => {
     const laneCounts = computeLaneCounts(tracks, gsapAnimations);
-    // Keyframe lanes follow only the active clip, so a track with several
-    // keyframed elements never reserves empty lanes for the ones not shown.
-    // Automation lanes follow the whole row: they are shared per property.
-    const heightTracks: TimelineTrackHeightClip[][] = tracks.map(([, elements]) => {
-      const active = resolveTrackKeyframeClip(
-        elements,
-        laneCounts,
-        selectedElementId,
-        selectedElementIds,
-      );
-      if (!active) return [];
-      const clipId = active.key ?? active.id;
-      return [
-        {
-          clipId,
-          laneCount: 0,
-          automationLaneCount: trackAutomationLaneCount(elements),
-        },
-      ];
-    });
     const rowHeights = applyGroupStripHeights(
       tracks,
       tracks.map(([, elements], index) => {
