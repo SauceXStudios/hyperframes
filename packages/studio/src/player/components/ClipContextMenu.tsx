@@ -9,7 +9,6 @@ interface ClipContextMenuProps {
   x: number;
   y: number;
   element: TimelineElement;
-  currentTime: number;
   onClose: () => void;
   onSplit: (element: TimelineElement, splitTime: number) => void;
   onDelete: (element: TimelineElement) => void;
@@ -25,7 +24,6 @@ export const ClipContextMenu = memo(function ClipContextMenu({
   x,
   y,
   element,
-  currentTime,
   onClose,
   onSplit,
   onDelete,
@@ -36,6 +34,7 @@ export const ClipContextMenu = memo(function ClipContextMenu({
 }: ClipContextMenuProps) {
   const menuRef = useContextMenuDismiss(onClose);
   useMenuKeyboardNav(menuRef);
+  const currentTime = usePlayerStore((s) => s.currentTime);
   // The right-clicked clip's own id: a member of the live multi-selection
   // means Copy/Duplicate act on the whole group, matching onContextMenuClip's
   // selection-preserving behaviour for a right-click inside it.

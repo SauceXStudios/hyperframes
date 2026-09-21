@@ -18,7 +18,6 @@ interface UseTimelinePlayheadInput {
   ppsRef: React.RefObject<number>;
   durationRef: React.RefObject<number>;
   isDragging: React.RefObject<boolean>;
-  currentTime: number;
   zoomMode: ZoomMode;
   manualZoomPercent: number;
   zoomModeRef: React.RefObject<ZoomMode>;
@@ -41,7 +40,6 @@ export function useTimelinePlayhead({
   ppsRef,
   durationRef,
   isDragging,
-  currentTime,
   zoomMode,
   zoomModeRef,
   manualZoomPercentRef,
@@ -97,8 +95,8 @@ export function useTimelinePlayhead({
   );
 
   useEffect(() => {
-    syncPlayheadPosition(currentTime);
-  }, [currentTime, pps, syncPlayheadPosition]);
+    syncPlayheadPosition(usePlayerStore.getState().currentTime);
+  }, [pps, syncPlayheadPosition]);
 
   useLayoutEffect(() => {
     const scroll = scrollRef.current;
@@ -121,6 +119,7 @@ export function useTimelinePlayhead({
   }, [zoomMode, scrollRef]);
 
   useMountEffect(() => {
+    syncPlayheadPosition(usePlayerStore.getState().currentTime);
     const unsub = liveTime.subscribe((t) => {
       if (!playheadRef.current || durationRef.current <= 0) return;
       const playheadX = contentOriginRef.current + Math.max(0, t) * ppsRef.current;

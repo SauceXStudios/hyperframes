@@ -108,7 +108,6 @@ function renderKeyframeOverlay(options: {
     onMoveKeyframeToPlayhead: vi.fn(),
     clipContextMenu: null,
     setClipContextMenu: vi.fn(),
-    currentTime: 0,
     onSplitElement: vi.fn(),
     pinZoomBeforeEdit: vi.fn(),
     onDeleteElement: vi.fn(),

@@ -32,6 +32,7 @@ import { queryTimelineClipIndex } from "../lib/timelineClipIndex";
 import { getTimelineElementIdentity } from "../lib/timelineElementHelpers";
 import { timelineClipFocusId } from "./timelineNavigationIdentity";
 import { useTimelineKeyboardActor } from "./useTimelineKeyboardActor";
+import { countTimelineRender } from "./timelineRenderCounter";
 
 export function TimelineLanes({
   pps,
@@ -80,7 +81,6 @@ export function TimelineLanes({
   keyframeCache,
   gsapAnimations,
   selectedKeyframes,
-  currentTime,
   onSeek,
   onSelectSegment,
   onClickKeyframe,
@@ -97,6 +97,8 @@ export function TimelineLanes({
   onRazorSplit,
   onRazorSplitAll,
 }: TimelineLanesProps) {
+  countTimelineRender("TimelineLanes");
+  const currentTime = usePlayerStore((s) => s.currentTime);
   // ponytail: One per-instance namespace prevents aria-controls and aria-owns
   // from resolving into a second timeline that renders the same logical rows.
   const lanesIdPrefix = `timeline-lanes${useId().replaceAll(":", "")}`;

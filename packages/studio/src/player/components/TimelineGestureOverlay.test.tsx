@@ -49,7 +49,6 @@ describe("TimelineGestureOverlay", () => {
           pixelsPerSecond={100}
           rowHeight={42}
           selectedElementId="hero"
-          currentTime={4}
           theme={defaultTimelineTheme}
           getTrackStyle={getTrackStyle}
         />,
@@ -84,7 +83,6 @@ describe("TimelineGestureOverlay", () => {
           pixelsPerSecond={100}
           rowHeight={42}
           selectedElementId="hero"
-          currentTime={4}
           theme={defaultTimelineTheme}
           getTrackStyle={getTrackStyle}
           renderClipContent={renderClipContent}
@@ -111,7 +109,6 @@ describe("TimelineGestureOverlay", () => {
           pixelsPerSecond={100}
           rowHeight={42}
           selectedElementId={null}
-          currentTime={0}
           theme={defaultTimelineTheme}
           getTrackStyle={getTrackStyle}
         />,

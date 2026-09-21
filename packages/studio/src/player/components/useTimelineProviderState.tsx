@@ -112,7 +112,6 @@ export function useTimelineProviderState({
   // The label column provides pre-t=0 space; otherwise keep TRACKS_LEFT_PAD after the gutter.
   const contentOrigin = labelMode ? LABEL_COL_W + GUTTER : GUTTER + TRACKS_LEFT_PAD;
   const setSelectedElementId = usePlayerStore((s) => s.setSelectedElementId);
-  const currentTime = usePlayerStore((s) => s.currentTime);
   const beatDragging = usePlayerStore((s) => s.beatDragging);
   const timelineSessionEpoch = usePlayerStore((s) => s.timelineSessionEpoch);
   const setFocusedEaseSegment = usePlayerStore((s) => s.setFocusedEaseSegment);
@@ -308,7 +307,6 @@ export function useTimelineProviderState({
     });
   useTimelineActiveClips({
     scrollRef,
-    currentTime,
     clipStateVersion: renderTimeRange,
     elementStateVersion: timelineElements,
   });
@@ -318,7 +316,6 @@ export function useTimelineProviderState({
     ppsRef,
     durationRef,
     isDragging,
-    currentTime,
     zoomMode,
     manualZoomPercent,
     zoomModeRef,
@@ -356,7 +353,6 @@ export function useTimelineProviderState({
     onMoveKeyframeToPlayhead,
     clipContextMenu,
     setClipContextMenu,
-    currentTime,
     onSplitElement,
     pinZoomBeforeEdit,
     onDeleteElement: _onDeleteElement,
@@ -484,7 +480,6 @@ export function useTimelineProviderState({
     keyframeCache,
     gsapAnimations,
     selectedKeyframes,
-    currentTime,
     onSeek,
     beatAnalysis: adjustedBeatAnalysis,
     onSelectSegment,

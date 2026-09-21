@@ -10,6 +10,7 @@ import type { DraggedClipState } from "./timelineClipDragTypes";
 import type { TrackVisualStyle } from "./timelineIcons";
 import { isTimelineClipActive } from "./useTimelineActiveClips";
 import type { TimelineClipRenderContext } from "./TimelineTypes";
+import { usePlayerStore } from "../store/playerStore";
 
 interface TimelineGestureOverlayProps {
   drag: DraggedClipState | null;
@@ -17,7 +18,6 @@ interface TimelineGestureOverlayProps {
   pixelsPerSecond: number;
   rowHeight: number;
   selectedElementId: string | null;
-  currentTime: number;
   theme: TimelineTheme;
   getTrackStyle: (tag: string) => TrackVisualStyle;
   renderClipContent?: (
@@ -35,12 +35,12 @@ export const TimelineGestureOverlay = memo(function TimelineGestureOverlay({
   pixelsPerSecond,
   rowHeight,
   selectedElementId,
-  currentTime,
   theme,
   getTrackStyle,
   renderClipContent,
   renderClipOverlay,
 }: TimelineGestureOverlayProps) {
+  const currentTime = usePlayerStore.getState().currentTime;
   const element =
     drag?.started === true
       ? getRenderedTimelineElement({

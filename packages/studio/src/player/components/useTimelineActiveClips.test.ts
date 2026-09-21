@@ -30,7 +30,6 @@ function Harness({ version, heroStart = 2 }: { version: number; heroStart?: numb
   const scrollRef = useRef<HTMLDivElement>(null);
   useTimelineActiveClips({
     scrollRef,
-    currentTime: 0,
     clipStateVersion: 0,
     elementStateVersion: version,
   });
