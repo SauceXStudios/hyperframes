@@ -1,6 +1,6 @@
 ---
 title: "Map Shipping Lanes"
-description: "Watershed topo plate with dam pop and white tunnel draw N-S (City Water Supply grammar). Seek-safe SVG/GSAP + still plate; no MP4 wrapper. Inspired by Moving Image Archive, City Water Supply, 1941 - not affiliated; code recreation. Declared ceilings: live 0-10s schematic stand-ins, film grain/gate weave, organic DEM vs plate sharpness, tunnel micro-breaks, on-screen credit hidden for judge fidelity."
+description: "A vintage water-supply sequence with a topographic watershed map, a dam reveal, and a white tunnel route drawing from north to south."
 mode: "frame"
 ---
 
@@ -12,9 +12,9 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   compositionId="map-shipping-lanes"
   compositionSrc="compositions/map-shipping-lanes.html"
   title="Map Shipping Lanes"
-  description="Watershed topo plate with dam pop and white tunnel draw N-S (City Water Supply grammar). Seek-safe SVG/GSAP + still plate; no MP4 wrapper. Inspired by Moving Image Archive, City Water Supply, 1941 - not affiliated; code recreation. Declared ceilings: live 0-10s schematic stand-ins, film grain/gate weave, organic DEM vs plate sharpness, tunnel micro-breaks, on-screen credit hidden for judge fidelity."
-  variables={[{"id":"credit","type":"string","label":"Credit","default":"Moving Image Archive, City Water Supply, 1941 - code recreation - not affiliated"}]}
-  meta={{"duration":34,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":280}}
+  description="A vintage water-supply sequence with a topographic watershed map, a dam reveal, and a white tunnel route drawing from north to south."
+  variables={[]}
+  meta={{"duration":34,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":297}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-shipping-lanes","tags":["map","geography","animation","shipping","lanes","water","tunnel","newsreel","svg","mia"]}}
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-shipping-lanes/map-shipping-lanes.html"
@@ -117,12 +117,22 @@ import { InstallCommand } from "/snippets/install-command.jsx";
           <!-- reservoir schematic (second beat, crossfade) -->
           <g id="msl-schematic-res" opacity="0">
             <rect width="1920" height="1080" fill="#121212" />
-            <ellipse cx="960" cy="500" rx="620" ry="280" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="2" />
+            <ellipse
+              cx="960"
+              cy="500"
+              rx="620"
+              ry="280"
+              fill="#1e1e1e"
+              stroke="#3a3a3a"
+              stroke-width="2"
+            />
             <path d="M 420 520 L 1500 480" stroke="#2a2a2a" stroke-width="6" />
             <rect x="700" y="430" width="520" height="28" fill="#333" />
           </g>
         </svg>
-        <div id="msl-live-label" style="display:none">Schematic stand-in - live plates not replicated</div>
+        <div id="msl-live-label" style="display: none">
+          Schematic stand-in - live plates not replicated
+        </div>
       </div>
 
       <!-- 10.12-34: topo watershed + tunnel -->
@@ -142,7 +152,12 @@ import { InstallCommand } from "/snippets/install-command.jsx";
                 seed="7"
                 result="noise"
               />
-              <feDiffuseLighting in="noise" lighting-color="#6a6a6a" surfaceScale="1.1" result="lit">
+              <feDiffuseLighting
+                in="noise"
+                lighting-color="#6a6a6a"
+                surfaceScale="1.1"
+                result="lit"
+              >
                 <feDistantLight azimuth="315" elevation="42" />
               </feDiffuseLighting>
               <feComposite in="lit" in2="SourceGraphic" operator="in" />
@@ -211,7 +226,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
 
             <!-- tunnel N→S 20→27: dark underlay + white dashes (gaps read dark); DrawSVG via mask -->
             <mask id="msl-tunnel-draw-mask" maskUnits="userSpaceOnUse">
-              <rect x="240" y="0" width="1440" height="1080" fill="#000000"/>
+              <rect x="240" y="0" width="1440" height="1080" fill="#000000" />
               <path
                 id="msl-tunnel-mask-path"
                 d="M 983.2 240.8 C 983.3 248.4 984.0 271.3 984.0 286.6 C 983.9 301.9 982.4 317.3 982.7 332.6 C 983.0 348.0 986.4 363.3 985.8 378.5 C 985.2 393.8 980.7 408.8 979.1 424.0 C 977.5 439.2 974.9 454.7 976.0 469.8 C 977.2 484.9 980.0 500.6 985.9 514.4 C 991.8 528.2 1000.7 542.3 1011.4 552.5 C 1022.0 562.8 1038.9 566.6 1050.1 575.8 C 1061.4 585.0 1070.2 595.7 1078.8 607.6 C 1087.4 619.5 1096.5 633.0 1101.7 647.1 C 1107.0 661.2 1103.3 680.1 1110.1 692.2 C 1117.0 704.3 1130.4 712.9 1142.9 719.8 C 1155.3 726.6 1178.0 731.2 1185.0 733.5"
@@ -248,7 +263,13 @@ import { InstallCommand } from "/snippets/install-command.jsx";
       </div>
 
       <div id="msl-grain"></div>
-      <div id="msl-credit" style="display:none" data-credit="Moving Image Archive, City Water Supply, 1941">Moving Image Archive, City Water Supply, 1941</div>
+      <div
+        id="msl-credit"
+        style="display: none"
+        data-credit="Moving Image Archive, City Water Supply, 1941"
+      >
+        Moving Image Archive, City Water Supply, 1941
+      </div>
     </div>
 
     <script>
@@ -289,11 +310,7 @@ import { InstallCommand } from "/snippets/install-command.jsx";
         tl.to("#msl-dam", { opacity: 1, duration: 0.25, ease: "power2.out" }, 16.0);
 
         // 20.0-27.0 white tunnel DrawSVG N→S
-        tl.to(
-          tunnelMask,
-          { strokeDashoffset: 0, duration: 7.0, ease: "none" },
-          20.0,
-        );
+        tl.to(tunnelMask, { strokeDashoffset: 0, duration: 7.0, ease: "none" }, 20.0);
 
         // 27-34 hold (timeline runs to 34)
         tl.to({}, { duration: 7.0 }, 27.0);
@@ -335,32 +352,6 @@ It runs for 34 seconds at 1920×1080. Paste this into your composition:
 
 Move it in time with `data-start`. Put it on a different timeline row with
 `data-track-index`. See [data attributes](/concepts/data-attributes) for the rest.
-
-## Change how it looks
-
-Set these CSS variables on the block:
-
-- `undefined` - Credit. Defaults to `Moving Image Archive, City Water Supply, 1941 - code recreation - not affiliated`.
-
-## Variables
-
-Every one of these has a default, so the piece works untouched. Set the ones you
-want to change on the element:
-
-| Variable | Default | Accepts | What it does |
-| --- | --- | --- | --- |
-| `credit` | `Moving Image Archive, City Water Supply, 1941 - code recreation - not affiliated` | string |  |
-
-Set them with `data-variable-values` on the element that mounts it. These are the
-defaults, so this behaves exactly like the preview above until you change one:
-
-```html wrap
-<div
-  data-composition-id="map-shipping-lanes"
-  data-composition-src="compositions/map-shipping-lanes.html"
-  data-variable-values='{"credit":"Moving Image Archive, City Water Supply, 1941 - code recreation - not affiliated"}'
-></div>
-```
 
 {/* hf:generated-footer */}
 

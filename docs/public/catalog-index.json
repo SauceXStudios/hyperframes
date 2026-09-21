@@ -3158,7 +3158,7 @@
     "name": "map-border-chase",
     "type": "block",
     "title": "Map Border Chase",
-    "description": "Alaska Highway reverse: static basemap plate with white border/feeder stroke draws and a black arrow riding the trunk to Dawson Creek tip. Seek-safe SVG/GSAP + MotionPath; PNG plate only (no MP4 wrapper). Inspired by Moving Image Archive animated-map clip map-border-chase - not affiliated; footage not included. QC_PASS 2026-09-21.",
+    "description": "A newsreel-style Alaska Highway map with white border and feeder routes drawing on as a black arrow follows the highway toward Dawson Creek.",
     "tags": [
       "map",
       "geography",
@@ -3425,7 +3425,7 @@
     "name": "map-radar-rings",
     "type": "block",
     "title": "Map Radar Rings",
-    "description": "Measured film hold-plate with soft-ink multi-hub concentric rings (pass8j-closer: 6 hubs incl NYC, sigma 0.62, stroke 1.48, expand 3.15s, pre-iris 3.5s). Seek-safe SVG/GSAP; PNG plate only (no MP4 wrapper). Inspired by Moving Image Archive, Network Broadcasting, 1934 - not affiliated; code recreation. QC_PASS (Lead + independent judge) 2026-09-21.",
+    "description": "Soft concentric rings expand from six broadcast hubs across a vintage map, including New York City.",
     "tags": [
       "map",
       "geography",
@@ -3478,7 +3478,7 @@
     "name": "map-shipping-lanes",
     "type": "block",
     "title": "Map Shipping Lanes",
-    "description": "Watershed topo plate with dam pop and white tunnel draw N-S (City Water Supply grammar). Seek-safe SVG/GSAP + still plate; no MP4 wrapper. Inspired by Moving Image Archive, City Water Supply, 1941 - not affiliated; code recreation. Declared ceilings: live 0-10s schematic stand-ins, film grain/gate weave, organic DEM vs plate sharpness, tunnel micro-breaks, on-screen credit hidden for judge fidelity.",
+    "description": "A vintage water-supply sequence with a topographic watershed map, a dam reveal, and a white tunnel route drawing from north to south.",
     "tags": [
       "map",
       "geography",

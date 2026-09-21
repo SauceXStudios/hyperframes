@@ -3,7 +3,7 @@
   "name": "map-radar-rings",
   "type": "hyperframes:block",
   "title": "Map Radar Rings",
-  "description": "Measured film hold-plate with soft-ink multi-hub concentric rings (pass8j-closer: 6 hubs incl NYC, sigma 0.62, stroke 1.48, expand 3.15s, pre-iris 3.5s). Seek-safe SVG/GSAP; PNG plate only (no MP4 wrapper). Inspired by Moving Image Archive, Network Broadcasting, 1934 - not affiliated; code recreation. QC_PASS (Lead + independent judge) 2026-09-21.",
+  "description": "Soft concentric rings expand from six broadcast hubs across a vintage map, including New York City.",
   "tags": ["map", "geography", "animation", "radar", "rings", "newsreel", "svg", "mia"],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
@@ -12,14 +12,6 @@
     "height": 1080
   },
   "duration": 3.5,
-  "variables": [
-    {
-      "id": "credit",
-      "type": "string",
-      "label": "Credit",
-      "default": "Moving Image Archive, Network Broadcasting, 1934 (clip bbdd60a1-a3f6-5d22-8953-3419f5a17afd; IA 0809_Network_Broadcasting_02_01_12_00) - code recreation - not affiliated"
-    }
-  ],
   "files": [
     {
       "path": "map-radar-rings.html",
@@ -35,14 +27,6 @@
       "path": "assets/measured-data.json",
       "target": "assets/measured-data.json",
       "type": "hyperframes:asset"
-    }
-  ],
-  "params": [
-    {
-      "id": "credit",
-      "type": "string",
-      "label": "Credit",
-      "default": "Moving Image Archive, Network Broadcasting, 1934 (clip bbdd60a1-a3f6-5d22-8953-3419f5a17afd; IA 0809_Network_Broadcasting_02_01_12_00) - code recreation - not affiliated"
     }
   ]
 }

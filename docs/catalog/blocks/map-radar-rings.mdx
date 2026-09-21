@@ -1,6 +1,6 @@
 ---
 title: "Map Radar Rings"
-description: "Measured film hold-plate with soft-ink multi-hub concentric rings (pass8j-closer: 6 hubs incl NYC, sigma 0.62, stroke 1.48, expand 3.15s, pre-iris 3.5s). Seek-safe SVG/GSAP; PNG plate only (no MP4 wrapper). Inspired by Moving Image Archive, Network Broadcasting, 1934 - not affiliated; code recreation. QC_PASS (Lead + independent judge) 2026-09-21."
+description: "Soft concentric rings expand from six broadcast hubs across a vintage map, including New York City."
 mode: "frame"
 ---
 
@@ -12,9 +12,9 @@ import { InstallCommand } from "/snippets/install-command.jsx";
   compositionId="map-radar-rings"
   compositionSrc="compositions/map-radar-rings.html"
   title="Map Radar Rings"
-  description="Measured film hold-plate with soft-ink multi-hub concentric rings (pass8j-closer: 6 hubs incl NYC, sigma 0.62, stroke 1.48, expand 3.15s, pre-iris 3.5s). Seek-safe SVG/GSAP; PNG plate only (no MP4 wrapper). Inspired by Moving Image Archive, Network Broadcasting, 1934 - not affiliated; code recreation. QC_PASS (Lead + independent judge) 2026-09-21."
-  variables={[{"id":"credit","type":"string","label":"Credit","default":"Moving Image Archive, Network Broadcasting, 1934 (clip bbdd60a1-a3f6-5d22-8953-3419f5a17afd; IA 0809_Network_Broadcasting_02_01_12_00) - code recreation - not affiliated"}]}
-  meta={{"duration":3.5,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":145}}
+  description="Soft concentric rings expand from six broadcast hubs across a vintage map, including New York City."
+  variables={[]}
+  meta={{"duration":3.5,"width":1920,"height":1080,"category":"Blocks","badge":"Stable","codeLines":346}}
   attribution={{"author":"HeyGen","authorUrl":"https://hyperframes.heygen.com","path":"registry/blocks/map-radar-rings","tags":["map","geography","animation","radar","rings","newsreel","svg","mia"]}}
   hasCode
   rawUrl="https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry/blocks/map-radar-rings/map-radar-rings.html"
@@ -23,150 +23,351 @@ import { InstallCommand } from "/snippets/install-command.jsx";
 <CatalogSlot slot="code">
 
 ```html map-radar-rings.html
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8"/>
-<title>radar-rings - measured reverse (rings-only) soft-ink pass8j-closer</title>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
-<style>
-  html,body{margin:0;background:#111;overflow:hidden}
-  #stage{width:1920px;height:1080px;position:relative;background:#B8B8B8}
-  #content{position:absolute;left:240px;top:0;width:1440px;height:1080px;overflow:hidden;background:#000}
-  #mapRoot{position:absolute;inset:0;transform-origin:0 0;transform:scale(4.5);width:320px;height:240px}
-  #plate{position:absolute;left:0;top:0;width:320px;height:240px;display:block}
-  /* P1: uniform film-black plate mask - kills structured ghost map at t0 */
-  #fade{position:absolute;inset:0;background:#0F0F0F;opacity:1;pointer-events:none;z-index:5}
-  #rings{
-    position:absolute;left:0;top:0;width:320px;height:240px;
-    overflow:visible;pointer-events:none;
-    /* P0: normal blend - kill screen additive neon stacking on overlaps */
-    mix-blend-mode:normal;
-  }
-  /* Soft-ink - pass8j-closer: stroke 1.48; single σ0.62; op 0.50; NYC op_scale; thin luminous not fog */
-  .ring{
-    fill:none;stroke:#FFFFFF;stroke-width:1.48;opacity:0;
-    stroke-linecap:round;stroke-linejoin:round;
-    filter:url(#filmBloom);
-  }
-</style>
-</head>
-<body>
-<div
-  id="root-map-radar-rings"
-  data-composition-id="map-radar-rings"
-  data-start="0"
-  data-duration="3.5"
-  data-width="1920"
-  data-height="1080"
->
-<div id="stage">
-  <div id="content">
-    <div id="mapRoot">
-      <img id="plate" src="assets/hold-plate.png" width="320" height="240" alt="measured film hold plate"/>
-      <svg id="rings" viewBox="0 0 320 240" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <filter id="filmBloom" filterUnits="userSpaceOnUse" x="-60" y="-60" width="440" height="360"
-                  color-interpolation-filters="sRGB">
-            <!-- pass8j-closer: single soft-ink σ0.62 - thin luminous stroke, no multi-σ/screen -->
-            <feGaussianBlur in="SourceGraphic" stdDeviation="0.62" result="soft"/>
-            <feMerge>
-              <feMergeNode in="soft"/>
-            </feMerge>
-          </filter>
-        </defs>
-      </svg>
-    </div>
-    <div id="fade"></div>
-  </div>
-</div>
-<div id="mrr-credit" style="position:absolute;left:260px;bottom:28px;color:rgba(0,0,0,0.4);font:13px/1.3 ui-monospace,monospace;letter-spacing:0.04em;text-transform:uppercase;z-index:6">
-  Moving Image Archive, Network Broadcasting, 1934 - code recreation - not affiliated
-</div>
-<script>
-const DATA = {"hubs":[{"id":"nyc","x":281,"y":82,"onset_rel":1.1,"r_max":17,"expand_s":3.15,"p":"measured","op_scale":1.7},{"id":"chicago","x":221,"y":94,"onset_rel":1.12,"r_max":17,"expand_s":3.15,"p":"measured"},{"id":"denver","x":109,"y":101,"onset_rel":1.06,"r_max":17,"expand_s":3.15,"op_scale":1.55,"p":"measured"},{"id":"kansas_city","x":167,"y":103,"onset_rel":1.08,"r_max":17,"expand_s":3.15,"op_scale":1.7,"p":"measured"},{"id":"nashville_area","x":220,"y":138,"onset_rel":1.2,"r_max":17,"expand_s":3.15,"p":"measured"},{"id":"atlanta","x":233,"y":140,"onset_rel":1.24,"r_max":17,"expand_s":3.15,"p":"measured"}],"ring":{"rings_per_pulse":2,"pulse_interval_s":0.75,"expand_duration_s":3.15,"r_max_px":17,"stroke_px":1.48,"intra_pulse_stagger_s":0.28,"color":"#FFFFFF","opacity":[0.5,0.0],"ease":"mildOut","opacity_ease":"power1.in","max_pulses":2,"p":"measured","opacity_hold_frac":0.65,"bloom":{"filter":"filmBloom","std_wide":0,"std_mid":0,"std_tight":0.62,"wide_weight":0,"mid_weight":0,"tight_weight":1.0,"blend":"normal","target_fwhm_px":1.6,"note":"pass8j-closer: stroke 1.48 + single soft-ink sigma0.62; op 0.50; NYC op_scale 1.70 (NE plate punch); KEEP normal; no multi-sigma/screen"}},"fade":{"black_overlay_start":1.0,"black_overlay_end":0.0,"duration_s":1.15,"ease":"power2.in","color":"#0F0F0F","p":"measured","note":"pass8i KEEP: stronger solid-to-fade hold power2.in over 1.15s; early SBS cols stay dark; ghost-dead t0"},"duration":3.5,"ease_r_pow":1.1};
-function main(){
-  window.gsap = gsap;
-  const svg = document.getElementById('rings');
-  const fade = document.getElementById('fade');
-  const RINGS_PER = DATA.ring.rings_per_pulse;
-  const INTERVAL = DATA.ring.pulse_interval_s;
-  const EXPAND_DEFAULT = DATA.ring.expand_duration_s;
-  const RMAX_DEFAULT = DATA.ring.r_max_px;
-  const STAGGER = DATA.ring.intra_pulse_stagger_s || 0.30;
-  const OP0 = DATA.ring.opacity[0];
-  const HOLD = DATA.ring.opacity_hold_frac || 0.55;
-  const MAX_PULSES = DATA.ring.max_pulses || 2;
-  const DUR = DATA.duration;
-  const FADE = DATA.fade;
-  const mildOut = (t) => 1 - Math.pow(1 - t, (DATA.ease_r_pow != null ? DATA.ease_r_pow : 1.55));
-  const EASE_R = mildOut;
-  const EASE_OP = DATA.ring.opacity_ease || 'power1.in';
-  const STROKE = DATA.ring.stroke_px;
-
-  const hubPulsePlan = [];
-  for (const h of DATA.hubs) {
-    const rMax = (h.r_max != null) ? h.r_max : RMAX_DEFAULT;
-    const expand = (h.expand_s != null) ? h.expand_s : EXPAND_DEFAULT;
-    const opPeak = OP0 * (h.op_scale != null ? h.op_scale : 1);
-    const pulses = [];
-    for (let p = 0; p < MAX_PULSES; p++) {
-      const start = h.onset_rel + p * INTERVAL;
-      if (start >= DUR - 0.2) break;
-      const group = [];
-      for (let k = 0; k < RINGS_PER; k++) {
-        const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        c.setAttribute('class', 'ring');
-        c.setAttribute('cx', h.x);
-        c.setAttribute('cy', h.y);
-        c.setAttribute('r', 0);
-        c.setAttribute('stroke-width', STROKE);
-        svg.appendChild(c);
-        group.push(c);
+  <head>
+    <meta charset="utf-8" />
+    <title>radar-rings - measured reverse (rings-only) soft-ink pass8j-closer</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #111;
+        overflow: hidden;
       }
-      pulses.push({ start, els: group, rMax, expand, opPeak });
-    }
-    hubPulsePlan.push({ hub: h, pulses });
-  }
+      #stage {
+        width: 1920px;
+        height: 1080px;
+        position: relative;
+        background: #b8b8b8;
+      }
+      #content {
+        position: absolute;
+        left: 240px;
+        top: 0;
+        width: 1440px;
+        height: 1080px;
+        overflow: hidden;
+        background: #000;
+      }
+      #mapRoot {
+        position: absolute;
+        inset: 0;
+        transform-origin: 0 0;
+        transform: scale(4.5);
+        width: 320px;
+        height: 240px;
+      }
+      #plate {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 320px;
+        height: 240px;
+        display: block;
+      }
+      /* P1: uniform film-black plate mask - kills structured ghost map at t0 */
+      #fade {
+        position: absolute;
+        inset: 0;
+        background: #0f0f0f;
+        opacity: 1;
+        pointer-events: none;
+        z-index: 5;
+      }
+      #rings {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 320px;
+        height: 240px;
+        overflow: visible;
+        pointer-events: none;
+        /* P0: normal blend - kill screen additive neon stacking on overlaps */
+        mix-blend-mode: normal;
+      }
+      /* Soft-ink - pass8j-closer: stroke 1.48; single σ0.62; op 0.50; NYC op_scale; thin luminous not fog */
+      .ring {
+        fill: none;
+        stroke: #ffffff;
+        stroke-width: 1.48;
+        opacity: 0;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        filter: url(#filmBloom);
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root-map-radar-rings"
+      data-composition-id="map-radar-rings"
+      data-start="0"
+      data-duration="3.5"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div id="stage">
+        <div id="content">
+          <div id="mapRoot">
+            <img
+              id="plate"
+              src="assets/hold-plate.png"
+              width="320"
+              height="240"
+              alt="measured film hold plate"
+            />
+            <svg id="rings" viewBox="0 0 320 240" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <filter
+                  id="filmBloom"
+                  filterUnits="userSpaceOnUse"
+                  x="-60"
+                  y="-60"
+                  width="440"
+                  height="360"
+                  color-interpolation-filters="sRGB"
+                >
+                  <!-- pass8j-closer: single soft-ink σ0.62 - thin luminous stroke, no multi-σ/screen -->
+                  <feGaussianBlur in="SourceGraphic" stdDeviation="0.62" result="soft" />
+                  <feMerge>
+                    <feMergeNode in="soft" />
+                  </feMerge>
+                </filter>
+              </defs>
+            </svg>
+          </div>
+          <div id="fade"></div>
+        </div>
+      </div>
+      <div
+        id="mrr-credit"
+        style="
+          position: absolute;
+          left: 260px;
+          bottom: 28px;
+          color: rgba(0, 0, 0, 0.4);
+          font:
+            13px/1.3 ui-monospace,
+            monospace;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          z-index: 6;
+        "
+      >
+        Moving Image Archive, Network Broadcasting, 1934 - code recreation - not affiliated
+      </div>
+      <script>
+        const DATA = {
+          hubs: [
+            {
+              id: "nyc",
+              x: 281,
+              y: 82,
+              onset_rel: 1.1,
+              r_max: 17,
+              expand_s: 3.15,
+              p: "measured",
+              op_scale: 1.7,
+            },
+            {
+              id: "chicago",
+              x: 221,
+              y: 94,
+              onset_rel: 1.12,
+              r_max: 17,
+              expand_s: 3.15,
+              p: "measured",
+            },
+            {
+              id: "denver",
+              x: 109,
+              y: 101,
+              onset_rel: 1.06,
+              r_max: 17,
+              expand_s: 3.15,
+              op_scale: 1.55,
+              p: "measured",
+            },
+            {
+              id: "kansas_city",
+              x: 167,
+              y: 103,
+              onset_rel: 1.08,
+              r_max: 17,
+              expand_s: 3.15,
+              op_scale: 1.7,
+              p: "measured",
+            },
+            {
+              id: "nashville_area",
+              x: 220,
+              y: 138,
+              onset_rel: 1.2,
+              r_max: 17,
+              expand_s: 3.15,
+              p: "measured",
+            },
+            {
+              id: "atlanta",
+              x: 233,
+              y: 140,
+              onset_rel: 1.24,
+              r_max: 17,
+              expand_s: 3.15,
+              p: "measured",
+            },
+          ],
+          ring: {
+            rings_per_pulse: 2,
+            pulse_interval_s: 0.75,
+            expand_duration_s: 3.15,
+            r_max_px: 17,
+            stroke_px: 1.48,
+            intra_pulse_stagger_s: 0.28,
+            color: "#FFFFFF",
+            opacity: [0.5, 0.0],
+            ease: "mildOut",
+            opacity_ease: "power1.in",
+            max_pulses: 2,
+            p: "measured",
+            opacity_hold_frac: 0.65,
+            bloom: {
+              filter: "filmBloom",
+              std_wide: 0,
+              std_mid: 0,
+              std_tight: 0.62,
+              wide_weight: 0,
+              mid_weight: 0,
+              tight_weight: 1.0,
+              blend: "normal",
+              target_fwhm_px: 1.6,
+              note: "pass8j-closer: stroke 1.48 + single soft-ink sigma0.62; op 0.50; NYC op_scale 1.70 (NE plate punch); KEEP normal; no multi-sigma/screen",
+            },
+          },
+          fade: {
+            black_overlay_start: 1.0,
+            black_overlay_end: 0.0,
+            duration_s: 1.15,
+            ease: "power2.in",
+            color: "#0F0F0F",
+            p: "measured",
+            note: "pass8i KEEP: stronger solid-to-fade hold power2.in over 1.15s; early SBS cols stay dark; ghost-dead t0",
+          },
+          duration: 3.5,
+          ease_r_pow: 1.1,
+        };
+        function main() {
+          window.gsap = gsap;
+          const svg = document.getElementById("rings");
+          const fade = document.getElementById("fade");
+          const RINGS_PER = DATA.ring.rings_per_pulse;
+          const INTERVAL = DATA.ring.pulse_interval_s;
+          const EXPAND_DEFAULT = DATA.ring.expand_duration_s;
+          const RMAX_DEFAULT = DATA.ring.r_max_px;
+          const STAGGER = DATA.ring.intra_pulse_stagger_s || 0.3;
+          const OP0 = DATA.ring.opacity[0];
+          const HOLD = DATA.ring.opacity_hold_frac || 0.55;
+          const MAX_PULSES = DATA.ring.max_pulses || 2;
+          const DUR = DATA.duration;
+          const FADE = DATA.fade;
+          const mildOut = (t) =>
+            1 - Math.pow(1 - t, DATA.ease_r_pow != null ? DATA.ease_r_pow : 1.55);
+          const EASE_R = mildOut;
+          const EASE_OP = DATA.ring.opacity_ease || "power1.in";
+          const STROKE = DATA.ring.stroke_px;
 
-  const tl = gsap.timeline({ paused: true });
-  tl.set(fade, { opacity: FADE.black_overlay_start }, 0);
-  // stronger solid hold (power2.in) so early SBS cols stay dark/uniform
-  tl.to(fade, { opacity: FADE.black_overlay_end, duration: FADE.duration_s, ease: (FADE.ease || 'power2.in') }, 0);
+          const hubPulsePlan = [];
+          for (const h of DATA.hubs) {
+            const rMax = h.r_max != null ? h.r_max : RMAX_DEFAULT;
+            const expand = h.expand_s != null ? h.expand_s : EXPAND_DEFAULT;
+            const opPeak = OP0 * (h.op_scale != null ? h.op_scale : 1);
+            const pulses = [];
+            for (let p = 0; p < MAX_PULSES; p++) {
+              const start = h.onset_rel + p * INTERVAL;
+              if (start >= DUR - 0.2) break;
+              const group = [];
+              for (let k = 0; k < RINGS_PER; k++) {
+                const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                c.setAttribute("class", "ring");
+                c.setAttribute("cx", h.x);
+                c.setAttribute("cy", h.y);
+                c.setAttribute("r", 0);
+                c.setAttribute("stroke-width", STROKE);
+                svg.appendChild(c);
+                group.push(c);
+              }
+              pulses.push({ start, els: group, rMax, expand, opPeak });
+            }
+            hubPulsePlan.push({ hub: h, pulses });
+          }
 
-  for (const { pulses } of hubPulsePlan) {
-    for (const pulse of pulses) {
-      pulse.els.forEach((el, k) => {
-        const delay = pulse.start + k * STAGGER;
-        if (delay >= DUR) return;
-        const holdT = pulse.expand * HOLD;
-        const fadeT = pulse.expand * (1 - HOLD);
-        const riseT = Math.min(0.14, holdT * 0.20);
-        const opPeak = pulse.opPeak;
+          const tl = gsap.timeline({ paused: true });
+          tl.set(fade, { opacity: FADE.black_overlay_start }, 0);
+          // stronger solid hold (power2.in) so early SBS cols stay dark/uniform
+          tl.to(
+            fade,
+            {
+              opacity: FADE.black_overlay_end,
+              duration: FADE.duration_s,
+              ease: FADE.ease || "power2.in",
+            },
+            0,
+          );
 
-        tl.set(el, { attr: { r: 0 }, opacity: 0 }, delay);
-        tl.to(el, { attr: { r: pulse.rMax }, duration: pulse.expand, ease: EASE_R }, delay);
-        tl.to(el, { opacity: opPeak, duration: riseT, ease: 'sine.out' }, delay);
-        tl.to(el, { opacity: 0, duration: fadeT, ease: EASE_OP }, delay + holdT);
-      });
-    }
-  }
+          for (const { pulses } of hubPulsePlan) {
+            for (const pulse of pulses) {
+              pulse.els.forEach((el, k) => {
+                const delay = pulse.start + k * STAGGER;
+                if (delay >= DUR) return;
+                const holdT = pulse.expand * HOLD;
+                const fadeT = pulse.expand * (1 - HOLD);
+                const riseT = Math.min(0.14, holdT * 0.2);
+                const opPeak = pulse.opPeak;
 
-  window.__radarTimeline = tl;
-  window.__timelines = window.__timelines || {};
-  window.__timelines["map-radar-rings"] = tl;
-  window.__duration = DUR;
-  window.__ready = true;
-  window.__bloom = DATA.ring.bloom;
-  window.__hubs = DATA.hubs.map(h => h.id);
-  console.log('ready hubs', DATA.hubs.map(h=>h.id), 'dur', DUR, 'r_max', RMAX_DEFAULT,
-              'hold', HOLD, 'bloom', DATA.ring.bloom, 'op', OP0, 'fade0', FADE.black_overlay_start,
-              'stroke', STROKE, 'fadeEase', FADE.ease, 'easePow', DATA.ease_r_pow);
-}
-main();
-</script>
-</div>
-</body>
+                tl.set(el, { attr: { r: 0 }, opacity: 0 }, delay);
+                tl.to(el, { attr: { r: pulse.rMax }, duration: pulse.expand, ease: EASE_R }, delay);
+                tl.to(el, { opacity: opPeak, duration: riseT, ease: "sine.out" }, delay);
+                tl.to(el, { opacity: 0, duration: fadeT, ease: EASE_OP }, delay + holdT);
+              });
+            }
+          }
+
+          window.__radarTimeline = tl;
+          window.__timelines = window.__timelines || {};
+          window.__timelines["map-radar-rings"] = tl;
+          window.__duration = DUR;
+          window.__ready = true;
+          window.__bloom = DATA.ring.bloom;
+          window.__hubs = DATA.hubs.map((h) => h.id);
+          console.log(
+            "ready hubs",
+            DATA.hubs.map((h) => h.id),
+            "dur",
+            DUR,
+            "r_max",
+            RMAX_DEFAULT,
+            "hold",
+            HOLD,
+            "bloom",
+            DATA.ring.bloom,
+            "op",
+            OP0,
+            "fade0",
+            FADE.black_overlay_start,
+            "stroke",
+            STROKE,
+            "fadeEase",
+            FADE.ease,
+            "easePow",
+            DATA.ease_r_pow,
+          );
+        }
+        main();
+      </script>
+    </div>
+  </body>
 </html>
 ```
 
@@ -200,32 +401,6 @@ It runs for 3.5 seconds at 1920×1080. Paste this into your composition:
 
 Move it in time with `data-start`. Put it on a different timeline row with
 `data-track-index`. See [data attributes](/concepts/data-attributes) for the rest.
-
-## Change how it looks
-
-Set these CSS variables on the block:
-
-- `undefined` - Credit. Defaults to `Moving Image Archive, Network Broadcasting, 1934 (clip bbdd60a1-a3f6-5d22-8953-3419f5a17afd; IA 0809_Network_Broadcasting_02_01_12_00) - code recreation - not affiliated`.
-
-## Variables
-
-Every one of these has a default, so the piece works untouched. Set the ones you
-want to change on the element:
-
-| Variable | Default | Accepts | What it does |
-| --- | --- | --- | --- |
-| `credit` | `Moving Image Archive, Network Broadcasting, 1934 (clip bbdd60a1-a3f6-5d22-8953-3419f5a17afd; IA 0809_Network_Broadcasting_02_01_12_00) - code recreation - not affiliated` | string |  |
-
-Set them with `data-variable-values` on the element that mounts it. These are the
-defaults, so this behaves exactly like the preview above until you change one:
-
-```html wrap
-<div
-  data-composition-id="map-radar-rings"
-  data-composition-src="compositions/map-radar-rings.html"
-  data-variable-values='{"credit":"Moving Image Archive, Network Broadcasting, 1934 (clip bbdd60a1-a3f6-5d22-8953-3419f5a17afd; IA 0809_Network_Broadcasting_02_01_12_00) - code recreation - not affiliated"}'
-></div>
-```
 
 {/* hf:generated-footer */}
 

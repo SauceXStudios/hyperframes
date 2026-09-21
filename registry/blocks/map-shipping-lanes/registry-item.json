@@ -3,7 +3,7 @@
   "name": "map-shipping-lanes",
   "type": "hyperframes:block",
   "title": "Map Shipping Lanes",
-  "description": "Watershed topo plate with dam pop and white tunnel draw N-S (City Water Supply grammar). Seek-safe SVG/GSAP + still plate; no MP4 wrapper. Inspired by Moving Image Archive, City Water Supply, 1941 - not affiliated; code recreation. Declared ceilings: live 0-10s schematic stand-ins, film grain/gate weave, organic DEM vs plate sharpness, tunnel micro-breaks, on-screen credit hidden for judge fidelity.",
+  "description": "A vintage water-supply sequence with a topographic watershed map, a dam reveal, and a white tunnel route drawing from north to south.",
   "tags": [
     "map",
     "geography",
@@ -23,14 +23,6 @@
     "height": 1080
   },
   "duration": 34,
-  "variables": [
-    {
-      "id": "credit",
-      "type": "string",
-      "label": "Credit",
-      "default": "Moving Image Archive, City Water Supply, 1941 - code recreation - not affiliated"
-    }
-  ],
   "files": [
     {
       "path": "map-shipping-lanes.html",
@@ -41,14 +33,6 @@
       "path": "assets/topo-plate.png",
       "target": "assets/topo-plate.png",
       "type": "hyperframes:asset"
-    }
-  ],
-  "params": [
-    {
-      "id": "credit",
-      "type": "string",
-      "label": "Credit",
-      "default": "Moving Image Archive, City Water Supply, 1941 - code recreation - not affiliated"
     }
   ]
 }

@@ -3,7 +3,7 @@
   "name": "map-border-chase",
   "type": "hyperframes:block",
   "title": "Map Border Chase",
-  "description": "Alaska Highway reverse: static basemap plate with white border/feeder stroke draws and a black arrow riding the trunk to Dawson Creek tip. Seek-safe SVG/GSAP + MotionPath; PNG plate only (no MP4 wrapper). Inspired by Moving Image Archive animated-map clip map-border-chase - not affiliated; footage not included. QC_PASS 2026-09-21.",
+  "description": "A newsreel-style Alaska Highway map with white border and feeder routes drawing on as a black arrow follows the highway toward Dawson Creek.",
   "tags": [
     "map",
     "geography",
@@ -22,14 +22,6 @@
     "height": 1080
   },
   "duration": 8.942,
-  "variables": [
-    {
-      "id": "credit",
-      "type": "string",
-      "label": "Credit",
-      "default": "Moving Image Archive inspiration - Alaska Highway / map-border-chase - code recreation - not affiliated"
-    }
-  ],
   "files": [
     {
       "path": "map-border-chase.html",
@@ -40,14 +32,6 @@
       "path": "assets/basemap-t0.png",
       "target": "assets/basemap-t0.png",
       "type": "hyperframes:asset"
-    }
-  ],
-  "params": [
-    {
-      "id": "credit",
-      "type": "string",
-      "label": "Credit",
-      "default": "Moving Image Archive inspiration - Alaska Highway / map-border-chase - code recreation - not affiliated"
     }
   ]
 }
