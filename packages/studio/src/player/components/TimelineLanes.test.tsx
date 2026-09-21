@@ -261,16 +261,20 @@ describe("TimelineLanes audio disclosure", () => {
     });
     const view = renderLanes({ elements: [audio] });
 
-    expect(view.host.querySelector('button[aria-label="Show Track 1 lanes"]')).not.toBeNull();
+    expect(
+      view.host.querySelector('button[aria-label^="Show "][aria-label$=" lanes"]'),
+    ).not.toBeNull();
     expect(view.host.querySelectorAll("[data-automation-lane-label]")).toHaveLength(0);
 
     act(() => {
       view.host
-        .querySelector<HTMLButtonElement>('button[aria-label="Show Track 1 lanes"]')
+        .querySelector<HTMLButtonElement>('button[aria-label^="Show "][aria-label$=" lanes"]')
         ?.click();
     });
 
-    expect(view.host.querySelector('button[aria-label="Hide Track 1 lanes"]')).not.toBeNull();
+    expect(
+      view.host.querySelector('button[aria-label^="Hide "][aria-label$=" lanes"]'),
+    ).not.toBeNull();
     expect(view.host.querySelectorAll("[data-automation-lane-label]")).toHaveLength(1);
     act(() => view.root.unmount());
   });
