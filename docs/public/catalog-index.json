@@ -3482,16 +3482,18 @@
     "name": "map-shipping-lanes",
     "type": "block",
     "title": "Map Shipping Lanes",
-    "description": "Dotted sea shipping lanes that draw on across open water between ports. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
+    "description": "Watershed topo plate with dam pop and white tunnel draw N-S (City Water Supply grammar). Seek-safe SVG/GSAP + still plate; no MP4 wrapper. Inspired by Moving Image Archive, City Water Supply, 1941 - not affiliated; code recreation. Declared ceilings: live 0-10s schematic stand-ins, film grain/gate weave, organic DEM vs plate sharpness, tunnel micro-breaks, on-screen credit hidden for judge fidelity.",
     "tags": [
       "map",
       "geography",
       "animation",
       "shipping",
       "lanes",
-      "sea",
+      "water",
+      "tunnel",
       "newsreel",
-      "svg"
+      "svg",
+      "mia"
     ],
     "href": "/catalog/blocks/map-shipping-lanes",
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/map-shipping-lanes.png"

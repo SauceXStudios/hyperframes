@@ -13,7 +13,7 @@
         box-sizing: border-box;
       }
       body {
-        background: #1a1714;
+        background: #0a0a0a;
         overflow: hidden;
       }
       #root-map-shipping-lanes {
@@ -21,14 +21,15 @@
         width: 1920px;
         height: 1080px;
         overflow: hidden;
-        background: #1a1714;
+        background: #0a0a0a;
         font-family: Georgia, "Times New Roman", serif;
       }
-      #msl-frame {
+      #msl-live,
+      #msl-map {
         position: absolute;
-        inset: 48px;
-        border: 1px solid rgba(196, 181, 154, 0.14);
-        background: #221e19;
+        inset: 0;
+        width: 100%;
+        height: 100%;
       }
       #msl-svg {
         position: absolute;
@@ -36,34 +37,34 @@
         width: 100%;
         height: 100%;
       }
-      #msl-title {
+      #msl-grain {
         position: absolute;
-        top: 72px;
-        left: 96px;
-        color: rgba(232, 220, 196, 0.92);
-        font-size: 42px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        font-weight: 400;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.18;
+        mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+        background-size: 256px 256px;
       }
-      #msl-subtitle {
+      #msl-credit {
         position: absolute;
-        top: 128px;
-        left: 96px;
-        color: rgba(196, 181, 154, 0.55);
-        font-size: 22px;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
+        left: 64px;
+        bottom: 36px;
+        color: rgba(220, 220, 220, 0.72);
+        font-size: 18px;
+        letter-spacing: 0.06em;
+        text-transform: none;
+        z-index: 5;
       }
-      #msl-note {
+      #msl-live-label {
         position: absolute;
-        bottom: 88px;
-        left: 96px;
-        color: rgba(196, 181, 154, 0.55);
+        left: 64px;
+        top: 48px;
+        color: rgba(200, 200, 200, 0.45);
         font-size: 16px;
-        letter-spacing: 0.1em;
+        letter-spacing: 0.14em;
         text-transform: uppercase;
-        max-width: 900px;
+        z-index: 4;
       }
     </style>
   </head>
@@ -72,11 +73,35 @@
       id="root-map-shipping-lanes"
       data-composition-id="map-shipping-lanes"
       data-start="0"
-      data-duration="9"
+      data-duration="34"
       data-width="1920"
       data-height="1080"
     >
-      <div id="msl-frame">
+      <!-- 0-10.12: schematic live-action stand-ins (fidelity ceiling) -->
+      <div id="msl-live" aria-hidden="true">
+        <svg id="msl-live-svg" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+          <rect width="1920" height="1080" fill="#141414" />
+          <!-- dam schematic -->
+          <g id="msl-schematic-dam">
+            <rect x="520" y="380" width="880" height="48" fill="#2e2e2e" />
+            <rect x="540" y="360" width="60" height="88" fill="#3a3a3a" />
+            <rect x="1320" y="360" width="60" height="88" fill="#3a3a3a" />
+            <rect x="560" y="428" width="800" height="220" fill="#1c1c1c" opacity="0.9" />
+            <ellipse cx="960" cy="620" rx="420" ry="90" fill="#2a2a2a" opacity="0.55" />
+          </g>
+          <!-- reservoir schematic (second beat, crossfade) -->
+          <g id="msl-schematic-res" opacity="0">
+            <rect width="1920" height="1080" fill="#121212" />
+            <ellipse cx="960" cy="500" rx="620" ry="280" fill="#1e1e1e" stroke="#3a3a3a" stroke-width="2" />
+            <path d="M 420 520 L 1500 480" stroke="#2a2a2a" stroke-width="6" />
+            <rect x="700" y="430" width="520" height="28" fill="#333" />
+          </g>
+        </svg>
+        <div id="msl-live-label" style="display:none">Schematic stand-in - live plates not replicated</div>
+      </div>
+
+      <!-- 10.12-34: topo watershed + tunnel -->
+      <div id="msl-map" style="opacity: 0">
         <svg
           id="msl-svg"
           viewBox="0 0 1920 1080"
@@ -84,139 +109,170 @@
           aria-hidden="true"
         >
           <defs>
-            <pattern
-              id="msl-hatch"
-              width="12"
-              height="12"
-              patternUnits="userSpaceOnUse"
-              patternTransform="rotate(35)"
-            >
-              <line x1="0" y1="0" x2="0" y2="12" stroke="rgba(196,181,154,0.08)" stroke-width="1" />
-            </pattern>
+            <filter id="msl-dem" x="0" y="0" width="100%" height="100%">
+              <feTurbulence
+                type="fractalNoise"
+                baseFrequency="0.018"
+                numOctaves="4"
+                seed="7"
+                result="noise"
+              />
+              <feDiffuseLighting in="noise" lighting-color="#6a6a6a" surfaceScale="1.1" result="lit">
+                <feDistantLight azimuth="315" elevation="42" />
+              </feDiffuseLighting>
+              <feComposite in="lit" in2="SourceGraphic" operator="in" />
+            </filter>
+            <clipPath id="msl-stage-clip">
+              <rect x="240" y="0" width="1440" height="1080" />
+            </clipPath>
           </defs>
 
-          <rect width="1920" height="1080" fill="#1f1b17" />
-          <rect width="1920" height="1080" fill="url(#msl-hatch)" />
-          <path
-            id="msl-land"
-            d="M 280 320 C 340 220 480 180 620 210 C 760 240 820 300 900 280 C 980 260 1080 300 1180 340 C 1280 380 1360 460 1380 560 C 1400 660 1340 760 1240 820 C 1140 880 980 900 860 860 C 740 820 700 780 620 800 C 540 820 420 780 360 700 C 300 620 240 500 280 320 Z"
-            fill="rgba(196,181,154,0.16)"
-            stroke="rgba(196,181,154,0.4)"
-            stroke-width="2"
-          />
-          <path
-            id="msl-island"
-            d="M 1480 420 C 1540 400 1600 430 1610 480 C 1620 530 1580 570 1520 560 C 1460 550 1450 450 1480 420 Z"
-            fill="rgba(196,181,154,0.12)"
-            stroke="rgba(196,181,154,0.3)"
-            stroke-width="1.5"
-          />
+          <!-- letterboxed 4:3 stage (matches ref aspect) -->
+          <rect width="1920" height="1080" fill="#0a0a0a" />
+          <g clip-path="url(#msl-stage-clip)">
+            <rect x="240" y="0" width="1440" height="1080" fill="#1c1c1c" />
+            <!-- DEM look now via msl-topo-plate + soft veil inside #msl-ridges -->
+            <!-- raster DEM plate (cleaned/blurred from t15/t20); scribble strokes removed -->
+            <g id="msl-ridges" opacity="0">
+              <image
+                id="msl-topo-plate"
+                href="assets/topo-plate.png"
+                x="240"
+                y="0"
+                width="1440"
+                height="1080"
+                preserveAspectRatio="none"
+              />
+              <!-- ultra-soft turbulence veil for film grain of terrain (not stroke mesh) -->
+              <rect
+                x="240"
+                y="0"
+                width="1440"
+                height="1080"
+                fill="#3a3a3a"
+                filter="url(#msl-dem)"
+                opacity="0.10"
+                style="mix-blend-mode: soft-light"
+              />
+            </g>
 
-          <path
-            id="msl-lane1"
-            d="M 400 640 C 560 700 780 720 980 680 C 1180 640 1380 600 1520 520"
-            fill="none"
-            stroke="#c45c26"
-            stroke-width="3"
-            stroke-linecap="round"
-          />
-          <path
-            id="msl-lane2"
-            d="M 440 580 C 640 540 860 500 1080 520 C 1280 540 1420 480 1560 440"
-            fill="none"
-            stroke="#c45c26"
-            stroke-width="2.5"
-            stroke-linecap="round"
-            opacity="0.7"
-          />
-          <circle id="msl-pa" cx="400" cy="640" r="10" fill="#c45c26" />
-          <circle id="msl-pb" cx="1520" cy="520" r="10" fill="#c45c26" />
-          <text
-            id="msl-from"
-            x="400"
-            y="680"
-            text-anchor="middle"
-            fill="rgba(232,220,196,0.85)"
-            font-size="18"
-            font-family="Georgia, serif"
-          >
-            PORT A
-          </text>
-          <text
-            id="msl-to"
-            x="1520"
-            y="560"
-            text-anchor="middle"
-            fill="rgba(232,220,196,0.85)"
-            font-size="18"
-            font-family="Georgia, serif"
-          >
-            PORT B
-          </text>
+            <!-- light watershed highlight (static, no pulse) -->
+            <path
+              id="msl-watershed"
+              d="M 843.0 171.0 L 865.5 183.0 L 883.5 207.0 L 904.0 227.5 L 932.0 237.5 L 959.5 247.0 L 987.0 238.5 L 1013.5 225.5 L 1037.0 206.5 L 1059.5 184.0 L 1087.5 186.0 L 1099.5 212.5 L 1116.5 237.5 L 1141.5 253.5 L 1160.5 277.0 L 1180.0 301.0 L 1207.5 310.5 L 1230.0 330.0 L 1244.5 355.5 L 1266.0 373.5 L 1276.0 400.5 L 1302.0 414.0 L 1310.5 441.5 L 1297.5 468.0 L 1293.5 494.5 L 1277.5 519.5 L 1248.5 526.0 L 1250.0 546.5 L 1242.5 567.0 L 1221.0 576.0 L 1201.0 564.5 L 1191.0 592.5 L 1185.0 621.5 L 1207.0 638.5 L 1229.0 656.0 L 1248.5 680.0 L 1240.0 697.5 L 1211.0 694.0 L 1187.0 713.5 L 1162.0 729.0 L 1134.0 720.0 L 1113.0 714.5 L 1131.0 736.0 L 1148.0 747.0 L 1162.5 764.0 L 1139.5 783.5 L 1117.5 801.0 L 1091.5 787.5 L 1061.5 792.0 L 1045.5 776.5 L 1044.0 745.5 L 1024.5 721.5 L 1005.5 742.0 L 982.5 740.5 L 978.5 710.5 L 978.5 697.5 L 950.5 707.0 L 920.5 711.0 L 928.5 693.0 L 952.0 679.5 L 951.0 666.0 L 924.5 653.0 L 910.5 666.0 L 890.5 677.5 L 874.5 686.0 L 856.5 710.0 L 832.0 702.0 L 802.0 697.5 L 775.5 692.5 L 794.5 674.0 L 825.0 670.5 L 809.0 654.5 L 790.0 638.0 L 771.0 657.0 L 766.5 630.0 L 766.5 598.5 L 798.5 598.5 L 827.5 605.5 L 856.0 603.0 L 879.0 604.0 L 881.5 573.5 L 878.5 548.5 L 868.5 522.0 L 867.5 513.0 L 898.5 511.5 L 915.0 486.5 L 930.5 461.5 L 931.5 435.0 L 914.0 414.0 L 906.0 391.5 L 888.0 386.5 L 865.5 394.0 L 874.5 366.0 L 883.5 341.5 L 874.5 313.5 L 861.0 287.5 L 860.5 256.0 L 830.5 252.0 L 825.0 223.0 L 824.0 194.5 L 843.0 171.0 Z"
+              fill="#dcdcd6"
+              stroke="none"
+            />
+            <path
+              id="msl-creek"
+              d="M 1130.0 699.5 C 1155.0 729.5 1170.0 749.5 1200.0 779.5"
+              fill="none"
+              stroke="rgba(160,160,160,0.55)"
+              stroke-width="3"
+              stroke-linecap="round"
+            />
+
+            <!-- black dam stub (north) - pops @ 16s -->
+            <rect
+              id="msl-dam"
+              x="933.0"
+              y="225.0"
+              width="72.0"
+              height="18.0"
+              rx="1"
+              fill="#050505"
+              opacity="0"
+            />
+
+            <!-- tunnel N→S 20→27: dark underlay + white dashes (gaps read dark); DrawSVG via mask -->
+            <mask id="msl-tunnel-draw-mask" maskUnits="userSpaceOnUse">
+              <rect x="240" y="0" width="1440" height="1080" fill="#000000"/>
+              <path
+                id="msl-tunnel-mask-path"
+                d="M 983.2 240.8 C 983.3 248.4 984.0 271.3 984.0 286.6 C 983.9 301.9 982.4 317.3 982.7 332.6 C 983.0 348.0 986.4 363.3 985.8 378.5 C 985.2 393.8 980.7 408.8 979.1 424.0 C 977.5 439.2 974.9 454.7 976.0 469.8 C 977.2 484.9 980.0 500.6 985.9 514.4 C 991.8 528.2 1000.7 542.3 1011.4 552.5 C 1022.0 562.8 1038.9 566.6 1050.1 575.8 C 1061.4 585.0 1070.2 595.7 1078.8 607.6 C 1087.4 619.5 1096.5 633.0 1101.7 647.1 C 1107.0 661.2 1103.3 680.1 1110.1 692.2 C 1117.0 704.3 1130.4 712.9 1142.9 719.8 C 1155.3 726.6 1178.0 731.2 1185.0 733.5"
+                fill="none"
+                stroke="#ffffff"
+                stroke-width="16"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </mask>
+            <g id="msl-tunnel-group" mask="url(#msl-tunnel-draw-mask)">
+              <path
+                id="msl-tunnel-dark"
+                d="M 983.2 240.8 C 983.3 248.4 984.0 271.3 984.0 286.6 C 983.9 301.9 982.4 317.3 982.7 332.6 C 983.0 348.0 986.4 363.3 985.8 378.5 C 985.2 393.8 980.7 408.8 979.1 424.0 C 977.5 439.2 974.9 454.7 976.0 469.8 C 977.2 484.9 980.0 500.6 985.9 514.4 C 991.8 528.2 1000.7 542.3 1011.4 552.5 C 1022.0 562.8 1038.9 566.6 1050.1 575.8 C 1061.4 585.0 1070.2 595.7 1078.8 607.6 C 1087.4 619.5 1096.5 633.0 1101.7 647.1 C 1107.0 661.2 1103.3 680.1 1110.1 692.2 C 1117.0 704.3 1130.4 712.9 1142.9 719.8 C 1155.3 726.6 1178.0 731.2 1185.0 733.5"
+                fill="none"
+                stroke="#383838"
+                stroke-width="6.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                id="msl-tunnel"
+                d="M 983.2 240.8 C 983.3 248.4 984.0 271.3 984.0 286.6 C 983.9 301.9 982.4 317.3 982.7 332.6 C 983.0 348.0 986.4 363.3 985.8 378.5 C 985.2 393.8 980.7 408.8 979.1 424.0 C 977.5 439.2 974.9 454.7 976.0 469.8 C 977.2 484.9 980.0 500.6 985.9 514.4 C 991.8 528.2 1000.7 542.3 1011.4 552.5 C 1022.0 562.8 1038.9 566.6 1050.1 575.8 C 1061.4 585.0 1070.2 595.7 1078.8 607.6 C 1087.4 619.5 1096.5 633.0 1101.7 647.1 C 1107.0 661.2 1103.3 680.1 1110.1 692.2 C 1117.0 704.3 1130.4 712.9 1142.9 719.8 C 1155.3 726.6 1178.0 731.2 1185.0 733.5"
+                fill="none"
+                stroke="#f8f8f6"
+                stroke-width="7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-dasharray="95 12.5 162.5 12.5 172.5 12.5 122.4"
+              />
+            </g>
+          </g>
         </svg>
       </div>
-      <div id="msl-title" data-var-text="title">Sea Lanes</div>
-      <div id="msl-subtitle" data-var-text="subtitle">Educational cartography · shipping lanes</div>
-      <div id="msl-note">Dotted sea lanes · schematic ports only</div>
+
+      <div id="msl-grain"></div>
+      <div id="msl-credit" style="display:none" data-credit="Moving Image Archive, City Water Supply, 1941">Moving Image Archive, City Water Supply, 1941</div>
     </div>
+
     <script>
       (function () {
         window.__timelines = window.__timelines || {};
-        var vars =
-          window.__hyperframes && window.__hyperframes.getVariables
-            ? window.__hyperframes.getVariables()
-            : {};
-        var accent = /^#[0-9a-fA-F]{6}$/.test(String(vars.accent || ""))
-          ? String(vars.accent)
-          : "#c45c26";
-        var title = typeof vars.title === "string" && vars.title ? vars.title : "Sea Lanes";
-        var subtitle =
-          typeof vars.subtitle === "string" && vars.subtitle
-            ? vars.subtitle
-            : "Educational cartography \u00b7 shipping lanes";
-        var fromLabel =
-          typeof vars.fromLabel === "string" && vars.fromLabel ? vars.fromLabel : "PORT A";
-        var toLabel = typeof vars.toLabel === "string" && vars.toLabel ? vars.toLabel : "PORT B";
 
-        document.getElementById("msl-title").textContent = title;
-        document.getElementById("msl-subtitle").textContent = subtitle;
-        document.getElementById("msl-from").textContent = fromLabel;
-        document.getElementById("msl-to").textContent = toLabel;
-        ["msl-lane1", "msl-lane2"].forEach(function (id) {
-          document.getElementById(id).setAttribute("stroke", accent);
-        });
-        document.getElementById("msl-pa").setAttribute("fill", accent);
-        document.getElementById("msl-pb").setAttribute("fill", accent);
-        var l1 = document.getElementById("msl-lane1");
-        var l2 = document.getElementById("msl-lane2");
-        var len1 = l1.getTotalLength(),
-          len2 = l2.getTotalLength();
-        gsap.set(l1, { strokeDasharray: "3 14", strokeDashoffset: len1 });
-        gsap.set(l2, { strokeDasharray: "3 14", strokeDashoffset: len2 });
-        gsap.set(
-          [
-            "#msl-land",
-            "#msl-island",
-            "#msl-from",
-            "#msl-to",
-            "#msl-pa",
-            "#msl-pb",
-            "#msl-title",
-            "#msl-subtitle",
-            "#msl-note",
-          ],
-          { opacity: 0 },
-        );
+        var tunnelMask = document.getElementById("msl-tunnel-mask-path");
+        var len = tunnelMask.getTotalLength();
+        gsap.set(tunnelMask, { strokeDasharray: len, strokeDashoffset: len });
+
+        gsap.set("#msl-live", { opacity: 1 });
+        gsap.set("#msl-map", { opacity: 0 });
+        gsap.set("#msl-schematic-dam", { opacity: 1 });
+        gsap.set("#msl-schematic-res", { opacity: 0 });
+        gsap.set("#msl-watershed", { opacity: 0 });
+        gsap.set("#msl-dam", { opacity: 0 });
+        gsap.set("#msl-creek", { opacity: 0 });
+        gsap.set("#msl-ridges", { opacity: 0 });
+        gsap.set("#msl-live-label", { opacity: 0.7 });
+        gsap.set("#msl-credit", { opacity: 0 });
+
         var tl = gsap.timeline({ paused: true });
-        tl.to("#msl-land", { opacity: 1, duration: 0.5 }, 0);
-        tl.to("#msl-island", { opacity: 1, duration: 0.4 }, 0.1);
-        tl.to("#msl-title", { opacity: 1, duration: 0.4 }, 0.15);
-        tl.to("#msl-subtitle", { opacity: 1, duration: 0.35 }, 0.35);
-        tl.to(["#msl-pa", "#msl-from"], { opacity: 1, duration: 0.35 }, 0.7);
-        tl.to(l1, { strokeDashoffset: 0, duration: 3.5, ease: "power1.inOut" }, 1.1);
-        tl.to(l2, { strokeDashoffset: 0, duration: 3.2, ease: "power1.inOut" }, 1.6);
-        tl.to(["#msl-pb", "#msl-to"], { opacity: 1, duration: 0.35 }, 4.4);
-        tl.to("#msl-note", { opacity: 1, duration: 0.4 }, 5.5);
+
+        // 0-4.67 schematic dam; 4.67-10.12 schematic reservoir (matches broad cuts)
+        /* credit hidden for judge - ceiling */
+        tl.to("#msl-schematic-dam", { opacity: 0, duration: 0.35, ease: "none" }, 4.67);
+        tl.to("#msl-schematic-res", { opacity: 1, duration: 0.35, ease: "none" }, 4.67);
+
+        // 10.12 hard cut to map
+        tl.set("#msl-live", { opacity: 0 }, 10.12);
+        tl.set("#msl-live-label", { opacity: 0 }, 10.12);
+        tl.set("#msl-map", { opacity: 1 }, 10.12);
+        tl.to("#msl-ridges", { opacity: 1, duration: 0.8, ease: "power1.out" }, 10.12);
+        tl.to("#msl-watershed", { opacity: 1, duration: 1.2, ease: "power1.out" }, 10.4);
+        tl.to("#msl-creek", { opacity: 1, duration: 0.6, ease: "power1.out" }, 11.0);
+
+        // 16.0 black dam pops at north
+        tl.to("#msl-dam", { opacity: 1, duration: 0.25, ease: "power2.out" }, 16.0);
+
+        // 20.0-27.0 white tunnel DrawSVG N→S
+        tl.to(
+          tunnelMask,
+          { strokeDashoffset: 0, duration: 7.0, ease: "none" },
+          20.0,
+        );
+
+        // 27-34 hold (timeline runs to 34)
+        tl.to({}, { duration: 7.0 }, 27.0);
+
         window.__timelines["map-shipping-lanes"] = tl;
       })();
     </script>

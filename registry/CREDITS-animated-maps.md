@@ -54,3 +54,9 @@ Ceilings: hotter glow, sector purple-to-blue, faceted coasts, SVG endcard, Act1 
 Source: Moving Image Archive, Evolution of the Oil Industry (1934) shot 49; NARA/FedFlix PD (clip a36b3d33-8c6b-5748-b606-e7841020121f).
 Ported from `reversals/mia-maps/territory-wipe/recreate/map-territory-wipe.html` only (demo mp4 not shipped).
 Ceilings: painterly topo/grain, vector outline, flare tips, 8s compress, live-action OOS.
+
+## map-shipping-lanes (QC_PASS 2026-09-20)
+
+Source: Moving Image Archive, City Water Supply, 1941.
+Ported from `reversals/mia-maps/shipping-lanes/recreate/` with topo plate externalized to `assets/topo-plate.png` (no base64 blob; no MP4 wrapper).
+Ceilings: live open stand-ins, grain/weave, DEM sharpness, tunnel micro-breaks, hidden credit.

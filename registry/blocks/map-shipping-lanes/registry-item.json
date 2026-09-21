@@ -3,45 +3,32 @@
   "name": "map-shipping-lanes",
   "type": "hyperframes:block",
   "title": "Map Shipping Lanes",
-  "description": "Dotted sea shipping lanes that draw on across open water between ports. Inspired by classic newsreel animated-map tropes (Moving Image Archive Animated Maps collection - not affiliated; footage not included).",
-  "tags": ["map", "geography", "animation", "shipping", "lanes", "sea", "newsreel", "svg"],
+  "description": "Watershed topo plate with dam pop and white tunnel draw N-S (City Water Supply grammar). Seek-safe SVG/GSAP + still plate; no MP4 wrapper. Inspired by Moving Image Archive, City Water Supply, 1941 - not affiliated; code recreation. Declared ceilings: live 0-10s schematic stand-ins, film grain/gate weave, organic DEM vs plate sharpness, tunnel micro-breaks, on-screen credit hidden for judge fidelity.",
+  "tags": [
+    "map",
+    "geography",
+    "animation",
+    "shipping",
+    "lanes",
+    "water",
+    "tunnel",
+    "newsreel",
+    "svg",
+    "mia"
+  ],
   "author": "HeyGen",
   "authorUrl": "https://hyperframes.heygen.com",
   "dimensions": {
     "width": 1920,
     "height": 1080
   },
-  "duration": 9,
+  "duration": 34,
   "variables": [
     {
-      "id": "title",
+      "id": "credit",
       "type": "string",
-      "label": "Title",
-      "default": "Sea Lanes"
-    },
-    {
-      "id": "subtitle",
-      "type": "string",
-      "label": "Subtitle",
-      "default": "Educational cartography · shipping lanes"
-    },
-    {
-      "id": "fromLabel",
-      "type": "string",
-      "label": "Origin label",
-      "default": "PORT A"
-    },
-    {
-      "id": "toLabel",
-      "type": "string",
-      "label": "Destination label",
-      "default": "PORT B"
-    },
-    {
-      "id": "accent",
-      "type": "color",
-      "label": "Accent",
-      "default": "#c45c26"
+      "label": "Credit",
+      "default": "Moving Image Archive, City Water Supply, 1941 - code recreation - not affiliated"
     }
   ],
   "files": [
@@ -49,38 +36,19 @@
       "path": "map-shipping-lanes.html",
       "target": "compositions/map-shipping-lanes.html",
       "type": "hyperframes:composition"
+    },
+    {
+      "path": "assets/topo-plate.png",
+      "target": "assets/topo-plate.png",
+      "type": "hyperframes:asset"
     }
   ],
   "params": [
     {
-      "id": "title",
+      "id": "credit",
       "type": "string",
-      "label": "Title",
-      "default": "Sea Lanes"
-    },
-    {
-      "id": "subtitle",
-      "type": "string",
-      "label": "Subtitle",
-      "default": "Educational cartography · shipping lanes"
-    },
-    {
-      "id": "fromLabel",
-      "type": "string",
-      "label": "Origin label",
-      "default": "PORT A"
-    },
-    {
-      "id": "toLabel",
-      "type": "string",
-      "label": "Destination label",
-      "default": "PORT B"
-    },
-    {
-      "id": "accent",
-      "type": "color",
-      "label": "Accent",
-      "default": "#c45c26"
+      "label": "Credit",
+      "default": "Moving Image Archive, City Water Supply, 1941 - code recreation - not affiliated"
     }
   ]
 }
