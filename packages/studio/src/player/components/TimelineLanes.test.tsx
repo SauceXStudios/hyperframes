@@ -251,6 +251,31 @@ describe("TimelineLanes track numbering", () => {
   });
 });
 
+describe("TimelineLanes audio disclosure", () => {
+  it("keeps a keyframed audio lane collapsed until its owner is expanded", () => {
+    const audio = element("audio-clip", TRACK_A);
+    audio.tag = "audio";
+    audio.automation = JSON.stringify({
+      version: 1,
+      lanes: [{ target: "volume", points: [{ t: 0, v: 1 }] }],
+    });
+    const view = renderLanes({ elements: [audio] });
+
+    expect(view.host.querySelector('button[aria-label="Show Track 1 lanes"]')).not.toBeNull();
+    expect(view.host.querySelectorAll("[data-automation-lane-label]")).toHaveLength(0);
+
+    act(() => {
+      view.host
+        .querySelector<HTMLButtonElement>('button[aria-label="Show Track 1 lanes"]')
+        ?.click();
+    });
+
+    expect(view.host.querySelector('button[aria-label="Hide Track 1 lanes"]')).not.toBeNull();
+    expect(view.host.querySelectorAll("[data-automation-lane-label]")).toHaveLength(1);
+    act(() => view.root.unmount());
+  });
+});
+
 describe("TimelineLanes selection", () => {
   it("keeps a selected clip selected when it is clicked again", () => {
     const selected = element("clip-a", TRACK_A);
