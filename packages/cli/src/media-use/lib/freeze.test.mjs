@@ -1,6 +1,14 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
-import { isDirectMediaUrl } from "./freeze.mjs";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { isDirectMediaUrl, freezeUrl, freezeLocalFile } from "./freeze.mjs";
+
+const HOSTILE_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script>' +
+  '<rect onload="alert(2)" width="1" height="1"/>' +
+  '<a href="javascript:alert(3)"><circle r="1"/></a></svg>';
 
 test("accepts direct public media URLs", () => {
   assert.equal(isDirectMediaUrl("https://cdn.example.com/clip.mp4"), true);
@@ -43,4 +51,40 @@ test("rejects local / private hosts (SSRF guard, m11)", () => {
   // A public host that merely starts with similar digits is still allowed.
   assert.equal(isDirectMediaUrl("https://172.40.0.1/a.mp4"), true, "172.40 is public");
   assert.equal(isDirectMediaUrl("https://11.example.com/a.mp4"), true);
+});
+
+test("freezeUrl strips <script>, on* handlers and javascript: hrefs from a fetched SVG", async (t) => {
+  t.mock.method(
+    globalThis,
+    "fetch",
+    async () =>
+      new Response(HOSTILE_SVG, { status: 200, headers: { "content-type": "image/svg+xml" } }),
+  );
+  const dest = join(mkdtempSync(join(tmpdir(), "media-use-freeze-")), "logo.svg");
+  await freezeUrl("https://example.com/hostile.svg", dest);
+  const out = readFileSync(dest, "utf8");
+  assert.ok(!out.includes("<script"), "script element stripped");
+  assert.ok(!out.includes("onload="), "event handler stripped");
+  assert.ok(!out.includes("javascript:"), "javascript: href stripped");
+  assert.ok(out.includes("<circle"), "benign markup survives");
+});
+
+test("freezeLocalFile strips the same hostile SVG content from a local source", () => {
+  const srcDir = mkdtempSync(join(tmpdir(), "media-use-freeze-src-"));
+  const src = join(srcDir, "in.svg");
+  writeFileSync(src, HOSTILE_SVG);
+  const dest = join(mkdtempSync(join(tmpdir(), "media-use-freeze-dest-")), "logo.svg");
+  freezeLocalFile(src, dest);
+  const out = readFileSync(dest, "utf8");
+  assert.ok(!out.includes("<script"));
+  assert.ok(!out.includes("onload="));
+});
+
+test("freezeLocalFile still byte-copies a non-SVG file untouched", () => {
+  const srcDir = mkdtempSync(join(tmpdir(), "media-use-freeze-src-"));
+  const src = join(srcDir, "in.png");
+  writeFileSync(src, Buffer.from([0x89, 0x50, 0x4e, 0x47]));
+  const dest = join(mkdtempSync(join(tmpdir(), "media-use-freeze-dest-")), "logo.png");
+  freezeLocalFile(src, dest);
+  assert.deepEqual(readFileSync(dest), Buffer.from([0x89, 0x50, 0x4e, 0x47]));
 });

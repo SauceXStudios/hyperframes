@@ -41,6 +41,7 @@ const ICONS = [
     title: "Slack",
     aliases: [],
     collection: "auth-badges",
+    license: "CC0-1.0",
     variants: { default: "/icons/slack-badge/default.svg" },
   },
   {
@@ -48,6 +49,7 @@ const ICONS = [
     title: "Slack",
     aliases: [],
     collection: "brands",
+    license: "CC0-1.0",
     variants: { default: "/icons/slack/default.svg", wordmark: "/icons/slack/wordmark.svg" },
   },
   {
@@ -63,6 +65,7 @@ const ICONS = [
     title: "Coca-Cola",
     aliases: [],
     collection: "brands",
+    license: "CC0-1.0",
     variants: { default: "/icons/coca-cola/default.svg" },
   },
   {
@@ -70,7 +73,27 @@ const ICONS = [
     title: "Slackware",
     aliases: [],
     collection: "brands",
+    license: "CC0-1.0",
     variants: { default: "/icons/slackware/default.svg" },
+  },
+  // Mirrors the real manifest's Microsoft entries verbatim (theSVG's own
+  // "needs maintainer review" wording) — never a valid match.
+  {
+    slug: "power-bi",
+    title: "Power BI",
+    aliases: [],
+    collection: "brands",
+    license:
+      "Microsoft proprietary product icon; no express redistribution license supplied; maintainer review required",
+    variants: { default: "/icons/power-bi/default.svg" },
+  },
+  {
+    slug: "acme-unresolved",
+    title: "Acme Unresolved",
+    aliases: [],
+    collection: "brands",
+    license: "brand-use",
+    variants: { default: "/icons/acme-unresolved/default.svg" },
   },
 ];
 
@@ -88,6 +111,41 @@ test("thesvgMatch prefers the brand mark over an auth badge with the same title"
 test("thesvgMatch never returns a lookalike", () => {
   assert.equal(thesvgMatch(ICONS, "slackwa"), null);
   assert.equal(thesvgMatch(ICONS, ""), null);
+});
+
+test("thesvgMatch skips an entry outside theSVG's ten accepted SPDX licenses", () => {
+  assert.equal(
+    thesvgMatch(ICONS, "power bi"),
+    null,
+    "Microsoft's own 'needs maintainer review' text",
+  );
+  assert.equal(
+    thesvgMatch(ICONS, "acme unresolved"),
+    null,
+    "brand-use is not on the accepted list",
+  );
+});
+
+test("thesvgMatch falls through to a lower-ranked accepted entry when the top match is unlicensed", () => {
+  const icons = [
+    {
+      slug: "acme",
+      title: "Acme",
+      aliases: [],
+      collection: "brands",
+      license: "Proprietary",
+      variants: { default: "/icons/acme/default.svg" },
+    },
+    {
+      slug: "acme-community",
+      title: "Acme",
+      aliases: [],
+      collection: "community",
+      license: "CC0-1.0",
+      variants: { default: "/icons/acme-community/default.svg" },
+    },
+  ];
+  assert.equal(thesvgMatch(icons, "acme").slug, "acme-community");
 });
 
 test("github avatar tier never guesses an org", () => {
@@ -148,6 +206,20 @@ test("thesvgSearch returns null when the network is down, then retries next call
 test("thesvgSearch treats a non-array manifest as a miss", async (t) => {
   resetThesvgManifest();
   t.mock.method(globalThis, "fetch", async () => json({ error: "unexpected shape" }));
+  assert.equal(await thesvgSearch("slack logo", {}), null);
+});
+
+test("thesvgSearch rejects a manifest body over the size cap instead of buffering it whole", async (t) => {
+  resetThesvgManifest();
+  t.mock.method(globalThis, "fetch", async () => ({
+    ok: true,
+    status: 200,
+    headers: { get: () => null },
+    // 4 × 6MB > the 20MB cap, no content-length header (matches jsDelivr).
+    body: (async function* () {
+      for (let i = 0; i < 4; i++) yield new Uint8Array(6 * 1024 * 1024);
+    })(),
+  }));
   assert.equal(await thesvgSearch("slack logo", {}), null);
 });
 

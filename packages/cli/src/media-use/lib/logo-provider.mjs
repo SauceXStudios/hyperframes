@@ -9,6 +9,8 @@ import { fetchMedia } from "./media-fetch.mjs";
 //                      locally, so "Next.js", "nextjs" and "next js" all hit
 //                      the same entry. Pinned to a commit on jsDelivr for
 //                      determinism; resolves the default (full-color) mark.
+//                      Entries outside theSVG's ten accepted SPDX licenses
+//                      are skipped (THESVG_ACCEPTED_LICENSES below).
 //   2. github avatar — the org's official logo for brands theSVG lacks but
 //                      that have a GitHub presence. Known orgs only: guessing
 //                      a login risks a same-named personal account.
@@ -30,11 +32,32 @@ const THESVG_REV = "e5957fa742c1ebf6da07ac40665bdd01d8add35f";
 const THESVG_CDN = `https://cdn.jsdelivr.net/gh/glincker/thesvg@${THESVG_REV}`;
 const THESVG_MANIFEST = `${THESVG_CDN}/src/data/icons.json`;
 const FAVICON_MIN_BYTES = 500;
+// ponytail: same cap discipline as freeze.mjs's MAX_FREEZE_BYTES — the
+// manifest is ~3.3MB today; 20MB leaves headroom without trusting an
+// unbounded body from a CDN edge.
+const MAX_MANIFEST_BYTES = 20 * 1024 * 1024;
 
 // When several entries share a normalized name (e.g. "slack" and the
 // "slack-badge" auth button), the brand mark wins over cloud/infra and badge
 // collections.
 const THESVG_COLLECTION_RANK = ["brands", "community", "aws", "azure", "gcp", "k8s", "auth-badges"];
+
+// The ten SPDX ids theSVG's submission form accepts and verifies before merge
+// (thesvg.org LICENSING.md §5); anything else routes through their unaudited
+// "Other/custom" path. A rejected entry falls through to the next theSVG
+// match, then to github/favicon.
+const THESVG_ACCEPTED_LICENSES = new Set([
+  "CC0-1.0",
+  "Unlicense",
+  "MIT",
+  "Apache-2.0",
+  "BSD-3-Clause",
+  "ISC",
+  "CC-BY-4.0",
+  "CC-BY-SA-4.0",
+  "CC-BY-ND-4.0",
+  "MPL-2.0",
+]);
 
 // Known GitHub orgs. Only mapped entities resolve at this tier — a brand name
 // is NOT a GitHub login, and guessing hits same-named personal accounts.
@@ -79,7 +102,8 @@ export function titleMatches(title, entity) {
 
 /**
  * The best theSVG manifest entry for an entity, or null. Exact slug beats
- * exact title beats alias; ties go to the brands collection.
+ * exact title beats alias; ties go to the brands collection. An entry whose
+ * license isn't in THESVG_ACCEPTED_LICENSES is never returned.
  */
 export function thesvgMatch(icons, entity) {
   const want = norm(entity);
@@ -92,6 +116,7 @@ export function thesvgMatch(icons, entity) {
   let bestScore = Infinity;
   for (const icon of icons) {
     if (!icon || typeof icon.slug !== "string" || !icon.variants?.default) continue;
+    if (!THESVG_ACCEPTED_LICENSES.has(icon.license)) continue;
     let field;
     if (norm(icon.slug) === want) field = 0;
     else if (titleMatches(icon.title, want)) field = 1;
@@ -117,7 +142,16 @@ export function faviconDomainFor(entity) {
 async function fetchJson(url) {
   const res = await fetchMedia(url, { signal: AbortSignal.timeout(10_000) });
   if (!res.ok) return null;
-  return res.json();
+  const declared = Number(res.headers.get("content-length"));
+  if (declared > MAX_MANIFEST_BYTES) throw new Error(`fetchJson: ${declared} bytes exceeds cap`);
+  const chunks = [];
+  let total = 0;
+  for await (const chunk of res.body) {
+    total += chunk.length;
+    if (total > MAX_MANIFEST_BYTES) throw new Error("fetchJson: stream exceeds cap");
+    chunks.push(chunk);
+  }
+  return JSON.parse(Buffer.concat(chunks, total).toString("utf8"));
 }
 
 async function urlExists(url) {

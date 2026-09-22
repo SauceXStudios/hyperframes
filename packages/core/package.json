@@ -58,6 +58,12 @@
       "import": "./src/utils/richTextSanitize.ts",
       "types": "./src/utils/richTextSanitize.ts"
     },
+    "./sanitize-svg": {
+      "bun": "./src/figma/sanitizeSvg.ts",
+      "node": "./dist/figma/sanitizeSvg.js",
+      "import": "./src/figma/sanitizeSvg.ts",
+      "types": "./src/figma/sanitizeSvg.ts"
+    },
     "./composition-contract": {
       "bun": "./src/compositionContract.ts",
       "node": "./dist/compositionContract.js",
@@ -461,6 +467,10 @@
       "./rich-text-sanitize": {
         "import": "./dist/utils/richTextSanitize.js",
         "types": "./dist/utils/richTextSanitize.d.ts"
+      },
+      "./sanitize-svg": {
+        "import": "./dist/figma/sanitizeSvg.js",
+        "types": "./dist/figma/sanitizeSvg.d.ts"
       },
       "./composition-contract": {
         "import": "./dist/compositionContract.js",

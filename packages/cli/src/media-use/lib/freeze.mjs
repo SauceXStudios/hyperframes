@@ -1,10 +1,24 @@
 import { fetchMedia, isPublicMediaUrl } from "./media-fetch.mjs";
-import { writeFileSync, copyFileSync, mkdirSync } from "node:fs";
+import { sanitizeSvg } from "@hyperframes/core/sanitize-svg";
+import { writeFileSync, copyFileSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname } from "node:path";
 
 // ponytail: bound the download so a hostile/runaway URL can't fill the disk.
 // 256MB covers any real media asset; raise if 4K video sources ever exceed it.
 const MAX_FREEZE_BYTES = 256 * 1024 * 1024;
+
+const isSvgPath = (destPath) => /\.svg$/i.test(destPath);
+
+// Every logo/icon SVG comes from a third-party host (theSVG, a user's --from
+// URL, a local file). Strip <script>/<style>/<foreignObject>, on* handlers,
+// and non-local href/xlink:href before it ever touches disk — the same
+// lexical pass already trusted for Figma exports.
+function writeFrozen(destPath, buffer) {
+  mkdirSync(dirname(destPath), { recursive: true });
+  const bytes = isSvgPath(destPath) ? Buffer.from(sanitizeSvg(buffer.toString("utf8"))) : buffer;
+  writeFileSync(destPath, bytes);
+  return bytes.byteLength;
+}
 
 export async function freezeUrl(url, destPath) {
   const where = String(url).slice(0, 80);
@@ -30,12 +44,14 @@ export async function freezeUrl(url, destPath) {
   }
   if (total === 0) throw new Error(`freeze failed: empty response for ${where}`);
 
-  mkdirSync(dirname(destPath), { recursive: true });
-  writeFileSync(destPath, Buffer.concat(chunks, total));
-  return total;
+  return writeFrozen(destPath, Buffer.concat(chunks, total));
 }
 
 export function freezeLocalFile(srcPath, destPath) {
+  if (isSvgPath(destPath)) {
+    writeFrozen(destPath, readFileSync(srcPath));
+    return;
+  }
   mkdirSync(dirname(destPath), { recursive: true });
   copyFileSync(srcPath, destPath);
 }
