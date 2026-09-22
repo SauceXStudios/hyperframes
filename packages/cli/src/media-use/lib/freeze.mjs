@@ -1,5 +1,5 @@
 import { fetchMedia, isPublicMediaUrl } from "./media-fetch.mjs";
-import { sanitizeSvg } from "@hyperframes/core/sanitize-svg";
+import { sanitizeSvg } from "./svg-sanitize.mjs";
 import { writeFileSync, copyFileSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname } from "node:path";
 
