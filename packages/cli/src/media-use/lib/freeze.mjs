@@ -22,7 +22,7 @@ function writeFrozen(destPath, buffer) {
 
 export async function freezeUrl(url, destPath) {
   const where = String(url).slice(0, 80);
-  const res = await fetchMedia(url);
+  const res = await fetchMedia(url, { signal: AbortSignal.timeout(10_000) });
   if (!res.ok) throw new Error(`freeze failed: HTTP ${res.status} for ${where}`);
 
   // Fail fast on an advertised oversize body before reading a single byte.

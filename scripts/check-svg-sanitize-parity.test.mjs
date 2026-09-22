@@ -35,6 +35,22 @@ const HOSTILE_CORPUS = [
   ],
   ["<svg><rect onMouseOver=\"alert('x')\" ONCLICK='y'/></svg>", "mixed-case on* handler names"],
   ['<svg><a HREF="javascript:alert(1)"><rect/></a></svg>', "mixed-case href attribute name"],
+  // Reported against b7ace99b4 — see hyperframes-4291-b7ace99b.md BLOCKER 1-3.
+  ["<svg><a href=javascript:alert(1)><rect/></a></svg>", "unquoted javascript: href"],
+  ["<svg><use href=https://evil.example/x.svg#p/></svg>", "unquoted external use href"],
+  ['<svg><rect style="fill:url(https://evil.example/x)"/></svg>', "style url() exfil"],
+  ['<svg><rect style="background:@import url(evil)"/></svg>', "style @import exfil"],
+  ['<svg><rect style="width:expression(alert(1))"/></svg>', "style expression() exfil"],
+  [`<svg><rect style="background:url('javascript:alert(1)')"/></svg>`, "style javascript: exfil"],
+  ['<svg><rect style="fill:#123456"/></svg>', "benign style attribute survives"],
+  [
+    '<svg><path clip-path="url(#clip0)" fill="url(#grad)"/></svg>',
+    "url(#id) on non-style attrs survives",
+  ],
+  [
+    '<svg xmlns:x="http://www.w3.org/1999/xlink"><use x:href="https://evil.example/x.svg#p"/></svg>',
+    "href via a renamed xlink namespace prefix",
+  ],
 ];
 
 describe("svg-sanitize parity: core vs media-use port", () => {

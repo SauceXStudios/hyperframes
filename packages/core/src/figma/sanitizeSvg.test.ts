@@ -78,6 +78,44 @@ describe("sanitizeSvg hardening", () => {
     expect(clean).not.toContain("blob:");
     expect(clean).not.toContain("//evil");
   });
+  // Reported against b7ace99b4: quoted-only regexes let three adversarial
+  // shapes survive — unquoted href/xlink:href, style="" attributes, and any
+  // namespace prefix bound to href other than the literal string "xlink:".
+  it("drops an unquoted javascript: href", () => {
+    const clean = sanitizeSvg(`<svg><a href=javascript:alert(1)><rect/></a></svg>`);
+    expect(clean).not.toContain("javascript:");
+  });
+  it("drops an unquoted external use href", () => {
+    const clean = sanitizeSvg(`<svg><use href=https://evil.example/x.svg#p/></svg>`);
+    expect(clean).not.toContain("evil.example");
+  });
+  it("drops style attributes carrying url(, @import, expression( or javascript:", () => {
+    const cases = [
+      `<svg><rect style="fill:url(https://evil.example/x)"/></svg>`,
+      `<svg><rect style="background:@import url(evil)"/></svg>`,
+      `<svg><rect style="width:expression(alert(1))"/></svg>`,
+      `<svg><rect style="background:url('javascript:alert(1)')"/></svg>`,
+    ];
+    for (const dirty of cases) {
+      const clean = sanitizeSvg(dirty);
+      expect(clean, dirty).not.toContain("style=");
+      expect(clean, dirty).not.toContain("evil");
+    }
+  });
+  it("keeps a benign style attribute with no dangerous function", () => {
+    const clean = sanitizeSvg(`<svg><rect style="fill:#123456"/></svg>`);
+    expect(clean).toContain('style="fill:#123456"');
+  });
+  it("does not touch url(#id) references on non-style attributes (clip-path, fill)", () => {
+    const clean = `<svg><path clip-path="url(#clip0)" fill="url(#grad)"/></svg>`;
+    expect(sanitizeSvg(clean)).toBe(clean);
+  });
+  it("drops href bound through a renamed xlink namespace prefix", () => {
+    const dirty = `<svg xmlns:x="http://www.w3.org/1999/xlink"><use x:href="https://evil.example/x.svg#p"/></svg>`;
+    const clean = sanitizeSvg(dirty);
+    expect(clean).not.toContain("evil.example");
+    expect(clean).toContain('xmlns:x="http://www.w3.org/1999/xlink"');
+  });
 });
 
 describe("sanitizeSvg close-tag variants (js/bad-tag-filter)", () => {

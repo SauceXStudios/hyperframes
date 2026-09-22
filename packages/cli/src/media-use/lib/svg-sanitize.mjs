@@ -10,9 +10,45 @@ function replaceStable(input, pattern, replacement) {
   return out;
 }
 
+const TAG_RE = /<([a-zA-Z][\w:-]*)((?:[^"'>]|"[^"]*"|'[^']*')*)>/g;
+const ATTR_RE = /([a-zA-Z_][\w:.-]*)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]*))/g;
+
+function localName(name) {
+  const i = name.lastIndexOf(":");
+  return (i === -1 ? name : name.slice(i + 1)).toLowerCase();
+}
+
 function isAllowedHref(value) {
   const v = value.trim().toLowerCase();
   return v.startsWith("#") || v.startsWith("data:image/");
+}
+
+function isDangerousStyle(value) {
+  const v = value.toLowerCase();
+  return (
+    v.includes("url(") ||
+    v.includes("@import") ||
+    v.includes("expression(") ||
+    v.includes("javascript:")
+  );
+}
+
+function isDangerousAttr(name, value) {
+  const local = localName(name);
+  if (local.startsWith("on")) return true;
+  if (local === "href") return !isAllowedHref(value);
+  if (local === "style") return isDangerousStyle(value);
+  return false;
+}
+
+function sanitizeAttributes(svg) {
+  return svg.replace(TAG_RE, (tag, tagName, attrs) => {
+    const kept = attrs.replace(ATTR_RE, (match, name, dq, sq, uq) => {
+      const value = dq ?? sq ?? uq ?? "";
+      return isDangerousAttr(name, value) ? "" : match;
+    });
+    return `<${tagName}${kept}>`;
+  });
 }
 
 export function sanitizeSvg(svg) {
@@ -23,14 +59,6 @@ export function sanitizeSvg(svg) {
   out = replaceStable(out, /<foreignObject\b[\s\S]*?<\/foreignObject\b[^>]*>/gi, "");
   out = replaceStable(out, /<foreignObject\b[^>]*\/>/gi, "");
   out = out.replace(/<\/(?:script|style|foreignObject)\b[^>]*>/gi, "");
-  out = replaceStable(out, /\son[a-z]+\s*=\s*"[^"]*"/gi, "");
-  out = replaceStable(out, /\son[a-z]+\s*=\s*'[^']*'/gi, "");
-  out = replaceStable(out, /\son[a-z]+\s*=\s*[^\s>'"]+/gi, "");
-  out = out.replace(/\s(href|xlink:href)\s*=\s*"([^"]*)"/gi, (m, _attr, value) =>
-    isAllowedHref(value) ? m : "",
-  );
-  out = out.replace(/\s(href|xlink:href)\s*=\s*'([^']*)'/gi, (m, _attr, value) =>
-    isAllowedHref(value) ? m : "",
-  );
+  out = sanitizeAttributes(out);
   return out;
 }
