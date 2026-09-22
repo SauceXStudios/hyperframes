@@ -13,16 +13,12 @@ function validateRule(rule, files) {
   )
     throw new Error("Owner rules require id, pattern and owner");
   if (!files.includes(rule.owner)) throw new Error(`${rule.id}: missing owner ${rule.owner}`);
-  for (const entry of rule.allowlist) {
-    if (
-      ![
-        files.includes(entry.file),
-        typeof entry.reason === "string",
-        Boolean(entry.reason?.trim()),
-      ].every(Boolean)
-    )
-      throw new Error(`${rule.id}: allowlist needs an existing file and reason`);
-  }
+  rule.allowlist.forEach((entry) => validateAllowance(entry, rule.id, files));
+}
+function validateAllowance(entry, id, files) {
+  if (typeof entry.reason !== "string") throw new Error(`${id}: allowlist reason must be text`);
+  if (![files.includes(entry.file), entry.reason.trim()].every(Boolean))
+    throw new Error(`${id}: allowlist needs an existing file and reason`);
 }
 
 function compileRule(rule, files, read) {
@@ -70,10 +66,10 @@ export function ratchet(violations, baseline, previous = baseline) {
   const issues = Object.entries(violations)
     .filter(([key, count]) => count > (baseline.files[key] ?? 0))
     .map(([key, count]) => `${key}: ${count} matches outside the owner`);
-  for (const [key, count] of Object.entries(baseline.files)) {
-    const issue = budgetIssue(key, count, violations[key] ?? 0, previous.files[key] ?? 0);
-    if (issue) issues.push(issue);
-  }
+  const budgets = Object.entries(baseline.files)
+    .map(([key, count]) => budgetIssue(key, count, violations[key] ?? 0, previous.files[key] ?? 0))
+    .filter(Boolean);
+  issues.push(...budgets);
   const total = Object.values(baseline.files).reduce((sum, count) => sum + count, 0);
   if (baseline.total !== total) issues.push("Incorrect baseline total");
   return issues;
