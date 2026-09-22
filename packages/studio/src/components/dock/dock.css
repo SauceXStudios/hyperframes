@@ -62,7 +62,10 @@
 }
 
 /* A lone preview or timeline tab is a pill, not a bar stretched across the header. */
-.hf-dock .dv-tabs-and-actions-container.dv-single-tab.dv-full-width-single-tab .dv-tabs-container .dv-tab {
+.hf-dock
+  .dv-tabs-and-actions-container.dv-single-tab.dv-full-width-single-tab
+  .dv-tabs-container
+  .dv-tab {
   flex-grow: 0;
   width: auto;
   padding: 0 10px;
@@ -72,20 +75,36 @@
   padding-right: 6px;
 }
 
-.hf-dock .dv-groupview.dv-active-group > .dv-tabs-and-actions-container .dv-tabs-container > .dv-tab.dv-inactive-tab:hover,
-.hf-dock .dv-groupview.dv-inactive-group > .dv-tabs-and-actions-container .dv-tabs-container > .dv-tab.dv-inactive-tab:hover {
+.hf-dock
+  .dv-groupview.dv-active-group
+  > .dv-tabs-and-actions-container
+  .dv-tabs-container
+  > .dv-tab.dv-inactive-tab:hover,
+.hf-dock
+  .dv-groupview.dv-inactive-group
+  > .dv-tabs-and-actions-container
+  .dv-tabs-container
+  > .dv-tab.dv-inactive-tab:hover {
   background-color: var(--panel-tab-bg-hover);
   color: var(--color-panel-text-2);
 }
 
-.hf-dock .dv-groupview.dv-active-group > .dv-tabs-and-actions-container .dv-tabs-container > .dv-tab.dv-active-tab {
+.hf-dock
+  .dv-groupview.dv-active-group
+  > .dv-tabs-and-actions-container
+  .dv-tabs-container
+  > .dv-tab.dv-active-tab {
   background-image: linear-gradient(var(--panel-tab-indicator), var(--panel-tab-indicator));
   background-repeat: no-repeat;
   background-position: center bottom;
   background-size: 16px 2px;
 }
 
-.hf-dock .dv-groupview.dv-inactive-group > .dv-tabs-and-actions-container .dv-tabs-container > .dv-tab.dv-active-tab {
+.hf-dock
+  .dv-groupview.dv-inactive-group
+  > .dv-tabs-and-actions-container
+  .dv-tabs-container
+  > .dv-tab.dv-active-tab {
   background-image: linear-gradient(
     color-mix(in srgb, var(--panel-tab-indicator) 50%, transparent),
     color-mix(in srgb, var(--panel-tab-indicator) 50%, transparent)
