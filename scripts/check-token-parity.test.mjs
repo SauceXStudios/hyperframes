@@ -114,3 +114,9 @@ test("a deleted declaration cannot supply another selector's old colour", () => 
     "--- a/a.css\n+++ b/a.css\n@@ -1,2 +1 @@\n-.a { color: #fff; }\n-.b { color: #000; }\n+.b { color: var(--white); }";
   assert.equal(findTokenParityIssues(change, "--white: #fff;").length, 1);
 });
+
+test("a deleted nonliteral declaration cannot hide an ambiguous colour migration", () => {
+  const change =
+    "--- a/a.css\n+++ b/a.css\n@@ -1,6 +1,3 @@\n-.a {\n- color: inherit;\n-}\n-.b {\n- color: #000;\n-}\n+.b {\n+ color: var(--white);\n+}";
+  assert.equal(findTokenParityIssues(change, "--white: #fff;").length, 1);
+});

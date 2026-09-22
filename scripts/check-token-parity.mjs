@@ -147,22 +147,25 @@ function slots(line) {
   return result.length ? result : [{ key: "line", value: line }];
 }
 
+function literalSlot(slot) {
+  return /#[\da-f]{3,8}\b|\b(?:rgba?|hsla?)\(|-(?:white|black)(?:\/\d+)?\b/i.test(slot.value);
+}
+function replacementMatch(before, candidates, slot, values, names) {
+  const ambiguous = new Set(candidates.map((old) => canonical(old.value))).size > 1;
+  const literal = candidates.find(literalSlot);
+  if (!literal) return undefined;
+  if (ambiguous) return { before: literal, equal: false, names };
+  const expanded = canonical(expandTokens(slot.value, values));
+  return { before, equal: canonical(before.value) === expanded, names };
+}
 function matchReplacement(slot, oldSlots, values) {
   const candidates = oldSlots.filter((old) => old.key === slot.key);
-  const ambiguous = new Set(candidates.map((old) => canonical(old.value))).size > 1;
   const index = oldSlots.findIndex((old) => old.key === slot.key);
   if (index < 0) return undefined;
   const [before] = oldSlots.splice(index, 1);
   const names = [...slot.value.matchAll(TOKEN)].map((match) => match[1]);
   if (!names.length) return undefined;
-  if (!/#[\da-f]{3,8}\b|\b(?:rgba?|hsla?)\(|-(?:white|black)(?:\/\d+)?\b/i.test(before.value))
-    return undefined;
-  const expanded = canonical(expandTokens(slot.value, values));
-  return {
-    before,
-    equal: [!ambiguous, canonical(before.value) === expanded].every(Boolean),
-    names,
-  };
+  return replacementMatch(before, candidates, slot, values, names);
 }
 function compareSlot(file, line, slot, oldSlots, values, allowlist) {
   const match = matchReplacement(slot, oldSlots, values);
