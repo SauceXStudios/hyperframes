@@ -69,6 +69,54 @@ test("freezeUrl strips <script>, on* handlers and javascript: hrefs from a fetch
   assert.ok(out.includes("<circle"), "benign markup survives");
 });
 
+// Puts setTimeout and AbortSignal.timeout on node:test's fake clock.
+function fakeClock(t) {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  t.mock.method(AbortSignal, "timeout", (ms) => {
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(new DOMException("timed out", "TimeoutError")), ms);
+    return controller.signal;
+  });
+}
+
+test("freezeUrl keeps streaming a slow body past the header timeout", async (t) => {
+  fakeClock(t);
+  let body;
+  t.mock.method(globalThis, "fetch", async (_url, { signal }) => {
+    const stream = new ReadableStream({
+      start(controller) {
+        body = controller;
+        // undici aborts the body stream too when the request signal fires.
+        signal.addEventListener("abort", () => controller.error(signal.reason));
+        controller.enqueue(new Uint8Array([1, 2, 3]));
+      },
+    });
+    return new Response(stream, { status: 200 });
+  });
+  const dest = join(mkdtempSync(join(tmpdir(), "media-use-freeze-")), "clip.mp4");
+  const frozen = freezeUrl("https://cdn.example.com/clip.mp4", dest);
+  await new Promise(setImmediate);
+  t.mock.timers.tick(60_000);
+  body.enqueue(new Uint8Array([4, 5]));
+  body.close();
+  assert.equal(await frozen, 5);
+  assert.deepEqual([...readFileSync(dest)], [1, 2, 3, 4, 5]);
+});
+
+test("freezeUrl times out when no response headers arrive", { timeout: 5_000 }, async (t) => {
+  fakeClock(t);
+  t.mock.method(
+    globalThis,
+    "fetch",
+    (_url, { signal }) =>
+      new Promise((_, reject) => signal.addEventListener("abort", () => reject(signal.reason))),
+  );
+  const dest = join(mkdtempSync(join(tmpdir(), "media-use-freeze-")), "clip.mp4");
+  const frozen = freezeUrl("https://cdn.example.com/clip.mp4", dest);
+  t.mock.timers.tick(10_000);
+  await assert.rejects(frozen, /no response within 10000 ms/);
+});
+
 test("freezeLocalFile strips the same hostile SVG content from a local source", () => {
   const srcDir = mkdtempSync(join(tmpdir(), "media-use-freeze-src-"));
   const src = join(srcDir, "in.svg");

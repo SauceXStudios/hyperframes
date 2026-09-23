@@ -6,6 +6,8 @@ import { dirname } from "node:path";
 // ponytail: bound the download so a hostile/runaway URL can't fill the disk.
 // 256MB covers any real media asset; raise if 4K video sources ever exceed it.
 const MAX_FREEZE_BYTES = 256 * 1024 * 1024;
+// Bounds only the wait for response headers; a large video body may stream for minutes.
+const FREEZE_HEADERS_TIMEOUT_MS = 10_000;
 
 const isSvgPath = (destPath) => /\.svg$/i.test(destPath);
 
@@ -20,7 +22,15 @@ function writeFrozen(destPath, buffer) {
 
 export async function freezeUrl(url, destPath) {
   const where = String(url).slice(0, 80);
-  const res = await fetchMedia(url, { signal: AbortSignal.timeout(10_000) });
+  const headers = new AbortController();
+  const timer = setTimeout(
+    () =>
+      headers.abort(
+        new Error(`freeze failed: no response within ${FREEZE_HEADERS_TIMEOUT_MS} ms for ${where}`),
+      ),
+    FREEZE_HEADERS_TIMEOUT_MS,
+  );
+  const res = await fetchMedia(url, { signal: headers.signal }).finally(() => clearTimeout(timer));
   if (!res.ok) throw new Error(`freeze failed: HTTP ${res.status} for ${where}`);
 
   const body = await readCappedBody(res, MAX_FREEZE_BYTES, `freeze failed for ${where}`);
