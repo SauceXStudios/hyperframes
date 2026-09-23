@@ -79,6 +79,24 @@ const HOSTILE_CORPUS = [
   ],
 ];
 
+// Returns one failure string per unsafe marker still present in `out`, prefixed with
+// `${name}/${label}` so a failure points straight at which copy and which payload leaked.
+function survivingUnsafeMarkers(name, label, out) {
+  const prefix = `${name}/${label}`;
+  const failures = [];
+  if (/<script\b/i.test(out)) failures.push(`${prefix}: <script survived`);
+  if (/<foreignobject\b/i.test(out)) failures.push(`${prefix}: <foreignObject survived`);
+  if (/\son\w+\s*=/i.test(out)) failures.push(`${prefix}: on* handler survived`);
+  if (/javascript:/i.test(out)) failures.push(`${prefix}: javascript: survived`);
+  if (/data:image/i.test(out) && /<a[\s>]/i.test(out)) {
+    failures.push(`${prefix}: data:image href survived on <a>`);
+  }
+  for (const m of out.matchAll(/url\(\s*(['"]?)([^)]*)\1\s*\)/gi)) {
+    if (!m[2].trim().startsWith("#")) failures.push(`${prefix}: non-local url(${m[2]}) survived`);
+  }
+  return failures;
+}
+
 describe("svg-sanitize parity: core vs media-use (generated) port", () => {
   for (const [input, label] of HOSTILE_CORPUS) {
     it(`matches core output for: ${label}`, () => {
@@ -93,20 +111,7 @@ describe("svg-sanitize parity: core vs media-use (generated) port", () => {
         ["core", coreSanitizeSvg],
         ["media-use", mediaUseSanitizeSvg],
       ]) {
-        const out = sanitize(input);
-        if (/<script\b/i.test(out)) failures.push(`${name}/${label}: <script survived`);
-        if (/<foreignobject\b/i.test(out))
-          failures.push(`${name}/${label}: <foreignObject survived`);
-        if (/\son\w+\s*=/i.test(out)) failures.push(`${name}/${label}: on* handler survived`);
-        if (/javascript:/i.test(out)) failures.push(`${name}/${label}: javascript: survived`);
-        if (/data:image/i.test(out) && /<a[\s>]/i.test(out)) {
-          failures.push(`${name}/${label}: data:image href survived on <a>`);
-        }
-        const urlMatches = [...out.matchAll(/url\(\s*(['"]?)([^)]*)\1\s*\)/gi)];
-        for (const m of urlMatches) {
-          if (!m[2].trim().startsWith("#"))
-            failures.push(`${name}/${label}: non-local url(${m[2]}) survived`);
-        }
+        failures.push(...survivingUnsafeMarkers(name, label, sanitize(input)));
       }
     }
     assert.deepEqual(failures, []);

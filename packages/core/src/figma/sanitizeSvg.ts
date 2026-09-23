@@ -244,15 +244,21 @@ function hasDangerousStyleToken(value: string): boolean {
   return v.includes("@import") || v.includes("expression(") || v.includes("javascript:");
 }
 
+function isXmlnsAttribute(name: string): boolean {
+  return name === "xmlns" || name.startsWith("xmlns:");
+}
+
+// aria-*/data-* are inert key/value pairs everywhere else; still url()-checked below,
+// defensively, rather than trusted just because no browser resolves url() from them today.
+function isKnownAttribute(local: string): boolean {
+  return SAFE_ATTRIBUTES.has(local) || local.startsWith("aria-") || local.startsWith("data-");
+}
+
 function isSafeAttribute(tagLocalName: string, name: string, value: string): boolean {
-  if (name === "xmlns" || name.startsWith("xmlns:")) return true;
+  if (isXmlnsAttribute(name)) return true;
   const local = localName(name);
   if (local === "href") return isAllowedHref(value, tagLocalName);
-  // aria-*/data-* are inert key/value pairs everywhere else; still url()-checked below,
-  // defensively, rather than trusted just because no browser resolves url() from them today.
-  const known =
-    SAFE_ATTRIBUTES.has(local) || local.startsWith("aria-") || local.startsWith("data-");
-  if (!known) return false;
+  if (!isKnownAttribute(local)) return false;
   if (!everyUrlIsLocalFragment(value)) return false;
   if (local === "style" && hasDangerousStyleToken(value)) return false;
   return true;
