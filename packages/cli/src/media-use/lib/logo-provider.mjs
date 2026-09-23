@@ -88,9 +88,8 @@ export function titleMatches(title, entity) {
   return norm(title) === norm(entity);
 }
 
-// The best theSVG manifest entry for an entity, or null. Exact slug beats exact title
-// beats alias; ties go to the brands collection. An entry whose license isn't in
-// THESVG_ACCEPTED_LICENSES is never returned.
+/** Best theSVG entry for an entity, or null: slug > title > alias, ties to the brands
+ * collection; entries outside THESVG_ACCEPTED_LICENSES are never returned. */
 export function thesvgMatch(icons, entity) {
   const want = norm(entity);
   if (!want || !Array.isArray(icons)) return null;
@@ -169,6 +168,7 @@ export async function thesvgSearch(intent, ctx = {}) {
   }
   const hit = thesvgMatch(icons, entity);
   if (!hit) return null;
+  // theSVG also ships mono, light/dark and wordmark variants; default is the full-color mark.
   const route = hit.variants.default;
   return {
     url: `${THESVG_CDN}/public${route.startsWith("/") ? "" : "/"}${route}`,

@@ -22,15 +22,17 @@ function writeFrozen(destPath, buffer) {
 
 export async function freezeUrl(url, destPath) {
   const where = String(url).slice(0, 80);
-  const headers = new AbortController();
+  const headerWait = new AbortController();
   const timer = setTimeout(
     () =>
-      headers.abort(
+      headerWait.abort(
         new Error(`freeze failed: no response within ${FREEZE_HEADERS_TIMEOUT_MS} ms for ${where}`),
       ),
     FREEZE_HEADERS_TIMEOUT_MS,
   );
-  const res = await fetchMedia(url, { signal: headers.signal }).finally(() => clearTimeout(timer));
+  const res = await fetchMedia(url, { signal: headerWait.signal }).finally(() =>
+    clearTimeout(timer),
+  );
   if (!res.ok) throw new Error(`freeze failed: HTTP ${res.status} for ${where}`);
 
   const body = await readCappedBody(res, MAX_FREEZE_BYTES, `freeze failed for ${where}`);
