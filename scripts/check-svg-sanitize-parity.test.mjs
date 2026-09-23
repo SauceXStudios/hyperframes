@@ -77,13 +77,29 @@ const HOSTILE_CORPUS = [
     '<svg><a href="data:image/svg+xml;base64,PHN2Zz48c2NyaXB0PmFsZXJ0KDEpPC9zY3JpcHQ+PC9zdmc+">click</a></svg>',
     "data:image/svg+xml navigation on <a>",
   ],
+  [
+    String.raw`<svg><rect style="fill:\75 rl(https://evil.example/b)"/></svg>`,
+    "CSS-escaped url() in style=",
+  ],
+  [String.raw`<svg><rect fill="\75rl(https://evil.example/b)"/></svg>`, "CSS-escaped url() in fill"],
+  [
+    String.raw`<svg><style>@\69mport 'https://evil.example/x.css';</style></svg>`,
+    "CSS-escaped @import in <style>",
+  ],
+  [
+    `<svg><style>svg{background-image:image-set("https://evil.example/b" 1x)}</style></svg>`,
+    "image-set() string URL in <style>",
+  ],
 ];
 
+// The attacker host is checked as plain text so the oracle can't share a CSS-parsing blind
+// spot with the sanitizer: however a payload spells its URL, the host must not survive.
 const UNSAFE_MARKERS = [
   [/<script\b/i, "<script survived"],
   [/<foreignobject\b/i, "<foreignObject survived"],
   [/\son\w+\s*=/i, "on* handler survived"],
   [/javascript:/i, "javascript: survived"],
+  [/evil\.example/i, "attacker host survived"],
 ];
 
 function hasDataImageOnAnchor(out) {

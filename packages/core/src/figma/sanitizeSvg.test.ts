@@ -25,6 +25,41 @@ const HOSTILE_CASES: Array<[label: string, input: string, mustNotContain: string
     ["expression("],
   ],
   [
+    "CSS-escaped url() in style=",
+    String.raw`<svg><rect style="fill:\75 rl(https://evil.example/b)"/></svg>`,
+    ["evil.example"],
+  ],
+  [
+    "CSS-escaped url() in a presentation attribute",
+    String.raw`<svg><rect fill="\75rl(https://evil.example/b)"/></svg>`,
+    ["evil.example"],
+  ],
+  [
+    "CSS-escaped parens around a url in style=",
+    String.raw`<svg><rect style="fill:url\28 https://evil.example/b\29 "/></svg>`,
+    ["evil.example"],
+  ],
+  [
+    "CSS-escaped url() in a style element",
+    String.raw`<svg><style>.a{fill:\55 RL(https://evil.example/b)}</style></svg>`,
+    ["evil.example"],
+  ],
+  [
+    "CSS-escaped @import in a style element",
+    String.raw`<svg><style>@\69mport 'https://evil.example/x.css';</style></svg>`,
+    ["evil.example"],
+  ],
+  [
+    "image-set() string URL in a style element (no url() at all)",
+    `<svg><style>svg{background-image:image-set("https://evil.example/b" 1x)}</style></svg>`,
+    ["evil.example"],
+  ],
+  [
+    "CSS-escaped image-set() in style=",
+    String.raw`<svg><rect style="background:\69mage-set('https://evil.example/b' 1x)"/></svg>`,
+    ["evil.example"],
+  ],
+  [
     "foreignObject subtree",
     `<svg><foreignObject><body onload="alert(1)"/></foreignObject></svg>`,
     ["foreignObject", "onload"],
@@ -156,6 +191,11 @@ const LEGITIMATE_CASES: Array<[label: string, input: string, mustContain: string
     "benign <style> block with class selectors survives (Illustrator-exported logos rely on this for fill color)",
     `<svg><style>.st0{fill:#5757F5;}</style><path class="st0" d="M1 1"/></svg>`,
     [".st0{fill:#5757F5;}", 'class="st0"'],
+  ],
+  [
+    "compute-only CSS functions survive (real theSVG shapes: display-p3 color, transforms, @media)",
+    `<svg><style>@media (prefers-color-scheme:dark){.a{fill:rgb(1,2,3)}}</style><path style="fill:#EBF0F0;fill:color(display-p3 0.92 0.94 0.94)" transform="matrix(1 0 0 1 2 3) skewX(4)" d="M1 1"/></svg>`,
+    ["@media (prefers-color-scheme:dark)", "color(display-p3 0.92 0.94 0.94)", "skewX(4)"],
   ],
   [
     "case-sensitive SVG attributes/elements survive (viewBox, linearGradient)",

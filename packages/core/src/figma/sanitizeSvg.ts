@@ -223,49 +223,119 @@ function isAllowedHref(value: string, tagLocalName: string): boolean {
   return /^data:image\//i.test(v) && tagLocalName.toLowerCase() !== "a";
 }
 
-/** Every `url(...)` in the value must resolve to a same-document fragment — kept for
- * presentation attributes (fill, filter, mask, clip-path, marker-*, ...) and `style=` alike, so
- * a new url()-bearing attribute doesn't need its own carve-out to be covered. */
-function everyUrlIsLocalFragment(value: string): boolean {
-  const rawCount = (value.match(/url\(/gi) || []).length;
-  if (rawCount === 0) return true;
-  const URL_RE = /url\(\s*(['"]?)([^)]*)\1\s*\)/gi;
+/** CSS loads a resource only through a function (`url()`, `image-set()`, `src()`, ...) or
+ * `@import`, so CSS text passes only if every function is on this compute-only list, every
+ * `url()` is a same-document fragment, and there is no `@import`. `""` is a bare `(...)` group. */
+const SAFE_CSS_FUNCTIONS = new Set([
+  "",
+  "url",
+  "rgb",
+  "rgba",
+  "hsl",
+  "hsla",
+  "hwb",
+  "lab",
+  "lch",
+  "oklab",
+  "oklch",
+  "color",
+  "color-mix",
+  "var",
+  "calc",
+  "min",
+  "max",
+  "clamp",
+  "matrix",
+  "matrix3d",
+  "translate",
+  "translatex",
+  "translatey",
+  "translatez",
+  "translate3d",
+  "scale",
+  "scalex",
+  "scaley",
+  "scalez",
+  "scale3d",
+  "rotate",
+  "rotatex",
+  "rotatey",
+  "rotatez",
+  "rotate3d",
+  "skew",
+  "skewx",
+  "skewy",
+  "perspective",
+  "cubic-bezier",
+  "steps",
+  "blur",
+  "brightness",
+  "contrast",
+  "drop-shadow",
+  "grayscale",
+  "hue-rotate",
+  "invert",
+  "opacity",
+  "saturate",
+  "sepia",
+]);
+
+function decodeCssEscape(hex: string | undefined, char: string | undefined): string {
+  if (hex === undefined) return char ?? "";
+  const cp = parseInt(hex, 16);
+  const invalid = cp === 0 || cp > 0x10ffff || (cp >= 0xd800 && cp <= 0xdfff);
+  return invalid ? "�" : String.fromCodePoint(cp);
+}
+
+// A browser reads `\75 rl(` as `url(`, so every check runs on escape-decoded, lowercased text.
+// Comments stay in: CSS never lets one join a function name or `@import`, only split tokens.
+function canonicalCss(text: string): string {
+  return text
+    .replace(/\\([0-9a-f]{1,6})[ \t\n\r\f]?|\\([\s\S])/gi, (_, hex, char) =>
+      decodeCssEscape(hex, char),
+    )
+    .toLowerCase();
+}
+
+function everyFunctionIsSafe(css: string): boolean {
+  for (const m of css.matchAll(/([-\w]*)\(/g)) {
+    if (!SAFE_CSS_FUNCTIONS.has(m[1] ?? "")) return false;
+  }
+  return true;
+}
+
+function everyUrlIsLocalFragment(css: string): boolean {
+  const rawCount = (css.match(/url\(/g) || []).length;
   let matched = 0;
-  let m: RegExpExecArray | null;
-  while ((m = URL_RE.exec(value))) {
+  for (const m of css.matchAll(/url\(\s*(['"]?)([^)]*)\1\s*\)/g)) {
     matched++;
     if (!(m[2] ?? "").trim().startsWith("#")) return false;
   }
   return matched === rawCount;
 }
 
-function hasDangerousStyleToken(value: string): boolean {
-  const v = value.toLowerCase();
-  return v.includes("@import") || v.includes("expression(") || v.includes("javascript:");
+function isSafeCss(text: string): boolean {
+  const css = canonicalCss(text);
+  return !css.includes("@import") && everyFunctionIsSafe(css) && everyUrlIsLocalFragment(css);
 }
 
 function isXmlnsAttribute(name: string): boolean {
   return name === "xmlns" || name.startsWith("xmlns:");
 }
 
-// aria-*/data-* are inert key/value pairs everywhere else; still url()-checked below,
-// defensively, rather than trusted just because no browser resolves url() from them today.
+// aria-*/data-* are inert key/value pairs everywhere else; still CSS-checked below,
+// defensively, rather than trusted just because no browser reads CSS from them today.
 function isKnownAttribute(local: string): boolean {
   return SAFE_ATTRIBUTES.has(local) || local.startsWith("aria-") || local.startsWith("data-");
 }
 
+// Every kept value goes through isSafeCss (style= and presentation attributes are CSS); a
+// non-CSS value that merely looks like a call, e.g. id="XRP-(XRP)", is dropped: fails closed.
 function isSafeAttribute(tagLocalName: string, name: string, value: string): boolean {
   if (isXmlnsAttribute(name)) return true;
   const local = localName(name);
   if (local === "href") return isAllowedHref(value, tagLocalName);
-  if (!isKnownAttribute(local)) return false;
-  if (!everyUrlIsLocalFragment(value)) return false;
-  if (local === "style" && hasDangerousStyleToken(value)) return false;
-  return true;
-}
-
-function isSafeStyleText(text: string): boolean {
-  return everyUrlIsLocalFragment(text) && !hasDangerousStyleToken(text);
+  return isKnownAttribute(local) && isSafeCss(value);
 }
 
 export function sanitizeSvg(svg: string): string {
@@ -279,7 +349,7 @@ export function sanitizeSvg(svg: string): string {
       el.remove();
       continue;
     }
-    if (el.tagName === "style" && !isSafeStyleText(el.textContent)) {
+    if (el.tagName === "style" && !isSafeCss(el.textContent)) {
       el.remove();
       continue;
     }
