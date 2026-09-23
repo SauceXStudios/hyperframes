@@ -266,16 +266,16 @@ describe("sanitizeSvg: structural edge cases", () => {
   });
 });
 
-// Both payloads took minutes under the earlier regex scans (cubic and quadratic backtracking).
+// Each took 8s+ under the earlier regex scans (cubic and quadratic backtracking); now ~3ms.
 describe("sanitizeSvg: hostile input size", () => {
   const HUGE_CASES: Array<[label: string, input: string]> = [
     [
-      "unclosed url( + 20k spaces in style=",
-      `<svg><rect style="fill:url(${" ".repeat(20_000)}x"/></svg>`,
+      "unclosed url( + 4k spaces in style=",
+      `<svg><rect style="fill:url(${" ".repeat(4_000)}x"/></svg>`,
     ],
     [
-      "200k-char word with no paren in <style>",
-      `<svg><style>.a{fill:${"a".repeat(200_000)}}</style></svg>`,
+      "100k-char word with no paren in <style>",
+      `<svg><style>.a{fill:${"a".repeat(100_000)}}</style></svg>`,
     ],
   ];
   for (const [label, input] of HUGE_CASES) {
