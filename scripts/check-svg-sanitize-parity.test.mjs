@@ -81,7 +81,10 @@ const HOSTILE_CORPUS = [
     String.raw`<svg><rect style="fill:\75 rl(https://evil.example/b)"/></svg>`,
     "CSS-escaped url() in style=",
   ],
-  [String.raw`<svg><rect fill="\75rl(https://evil.example/b)"/></svg>`, "CSS-escaped url() in fill"],
+  [
+    String.raw`<svg><rect fill="\75rl(https://evil.example/b)"/></svg>`,
+    "CSS-escaped url() in fill",
+  ],
   [
     String.raw`<svg><style>@\69mport 'https://evil.example/x.css';</style></svg>`,
     "CSS-escaped @import in <style>",
