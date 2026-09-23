@@ -297,21 +297,38 @@ function canonicalCss(text: string): string {
     .toLowerCase();
 }
 
+// The scans below are single-pass indexOf loops, not regexes: the input is attacker-controlled
+// and a backtracking regex here stalled the CLI for seconds on a few KB of padding.
+function isCssNameChar(c: string | undefined): boolean {
+  return c !== undefined && /[-\w]/.test(c);
+}
+
+function functionNameBefore(css: string, paren: number): string {
+  let start = paren;
+  while (isCssNameChar(css[start - 1])) start--;
+  return css.slice(start, paren);
+}
+
 function everyFunctionIsSafe(css: string): boolean {
-  for (const m of css.matchAll(/([-\w]*)\(/g)) {
-    if (!SAFE_CSS_FUNCTIONS.has(m[1] ?? "")) return false;
+  for (let at = css.indexOf("("); at !== -1; at = css.indexOf("(", at + 1)) {
+    if (!SAFE_CSS_FUNCTIONS.has(functionNameBefore(css, at))) return false;
   }
   return true;
 }
 
+// A value holding "(" is rejected, so no second url( can hide inside the one being checked.
+function isLocalUrlValue(raw: string): boolean {
+  const value = raw.trim().replace(/^['"]/, "");
+  return value.startsWith("#") && !value.includes("(");
+}
+
 function everyUrlIsLocalFragment(css: string): boolean {
-  const rawCount = (css.match(/url\(/g) || []).length;
-  let matched = 0;
-  for (const m of css.matchAll(/url\(\s*(['"]?)([^)]*)\1\s*\)/g)) {
-    matched++;
-    if (!(m[2] ?? "").trim().startsWith("#")) return false;
+  for (let at = css.indexOf("url("); at !== -1; ) {
+    const close = css.indexOf(")", at + 4);
+    if (close === -1 || !isLocalUrlValue(css.slice(at + 4, close))) return false;
+    at = css.indexOf("url(", close + 1);
   }
-  return matched === rawCount;
+  return true;
 }
 
 function isSafeCss(text: string): boolean {

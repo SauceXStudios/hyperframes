@@ -265,3 +265,24 @@ describe("sanitizeSvg: structural edge cases", () => {
     expect(clean).not.toContain("iframe");
   });
 });
+
+// Both payloads took minutes under the earlier regex scans (cubic and quadratic backtracking).
+describe("sanitizeSvg: hostile input size", () => {
+  const HUGE_CASES: Array<[label: string, input: string]> = [
+    [
+      "unclosed url( + 20k spaces in style=",
+      `<svg><rect style="fill:url(${" ".repeat(20_000)}x"/></svg>`,
+    ],
+    [
+      "200k-char word with no paren in <style>",
+      `<svg><style>.a{fill:${"a".repeat(200_000)}}</style></svg>`,
+    ],
+  ];
+  for (const [label, input] of HUGE_CASES) {
+    it(`stays fast on ${label}`, () => {
+      const started = performance.now();
+      sanitizeSvg(input);
+      expect(performance.now() - started).toBeLessThan(2_000);
+    });
+  }
+});
