@@ -79,22 +79,29 @@ const HOSTILE_CORPUS = [
   ],
 ];
 
-// Returns one failure string per unsafe marker still present in `out`, prefixed with
-// `${name}/${label}` so a failure points straight at which copy and which payload leaked.
+const UNSAFE_MARKERS = [
+  [/<script\b/i, "<script survived"],
+  [/<foreignobject\b/i, "<foreignObject survived"],
+  [/\son\w+\s*=/i, "on* handler survived"],
+  [/javascript:/i, "javascript: survived"],
+];
+
+function hasDataImageOnAnchor(out) {
+  return /data:image/i.test(out) && /<a[\s>]/i.test(out);
+}
+
+function nonLocalUrls(out) {
+  return [...out.matchAll(/url\(\s*(['"]?)([^)]*)\1\s*\)/gi)]
+    .map((m) => m[2])
+    .filter((url) => !url.trim().startsWith("#"));
+}
+
+// Prefixed with `${name}/${label}` so a failure names the copy and the payload that leaked.
 function survivingUnsafeMarkers(name, label, out) {
-  const prefix = `${name}/${label}`;
-  const failures = [];
-  if (/<script\b/i.test(out)) failures.push(`${prefix}: <script survived`);
-  if (/<foreignobject\b/i.test(out)) failures.push(`${prefix}: <foreignObject survived`);
-  if (/\son\w+\s*=/i.test(out)) failures.push(`${prefix}: on* handler survived`);
-  if (/javascript:/i.test(out)) failures.push(`${prefix}: javascript: survived`);
-  if (/data:image/i.test(out) && /<a[\s>]/i.test(out)) {
-    failures.push(`${prefix}: data:image href survived on <a>`);
-  }
-  for (const m of out.matchAll(/url\(\s*(['"]?)([^)]*)\1\s*\)/gi)) {
-    if (!m[2].trim().startsWith("#")) failures.push(`${prefix}: non-local url(${m[2]}) survived`);
-  }
-  return failures;
+  const found = UNSAFE_MARKERS.filter(([re]) => re.test(out)).map(([, message]) => message);
+  if (hasDataImageOnAnchor(out)) found.push("data:image href survived on <a>");
+  for (const url of nonLocalUrls(out)) found.push(`non-local url(${url}) survived`);
+  return found.map((message) => `${name}/${label}: ${message}`);
 }
 
 describe("svg-sanitize parity: core vs media-use (generated) port", () => {
