@@ -1,79 +1,285 @@
-/** Sanitize a figma-exported SVG before it touches disk (design spec §5). Lexical
- * tokenizer: strips script/style/foreignObject, on* handlers, non-local href/
- * xlink:href (any namespace prefix), and style= with url()/@import/expression()/javascript:.
+/** Sanitize a figma-exported SVG before it touches disk (design spec §5). DOM-walk allowlist
+ * (linkedom): unknown elements and attributes are dropped by default rather than pattern-matched
+ * as dangerous, so a new SVG feature can't reopen a class of bug the way regex denylisting did.
  */
+import { DOMParser } from "linkedom";
 
-/** Apply a replacement until the output stops changing (defeats nesting). */
-function replaceStable(input: string, pattern: RegExp, replacement: string): string {
-  let out = input;
-  let prev;
-  do {
-    prev = out;
-    out = out.replace(pattern, replacement);
-  } while (out !== prev);
-  return out;
-}
+const SAFE_ELEMENTS = new Set([
+  "svg",
+  "g",
+  "defs",
+  "symbol",
+  "use",
+  "image",
+  "a",
+  "switch",
+  "rect",
+  "circle",
+  "ellipse",
+  "line",
+  "polyline",
+  "polygon",
+  "path",
+  "text",
+  "tspan",
+  "textPath",
+  "linearGradient",
+  "radialGradient",
+  "stop",
+  "pattern",
+  "mask",
+  "clipPath",
+  "marker",
+  "filter",
+  "feBlend",
+  "feColorMatrix",
+  "feComponentTransfer",
+  "feComposite",
+  "feConvolveMatrix",
+  "feDiffuseLighting",
+  "feDisplacementMap",
+  "feDistantLight",
+  "feDropShadow",
+  "feFlood",
+  "feFuncA",
+  "feFuncB",
+  "feFuncG",
+  "feFuncR",
+  "feGaussianBlur",
+  "feImage",
+  "feMerge",
+  "feMergeNode",
+  "feMorphology",
+  "feOffset",
+  "fePointLight",
+  "feSpecularLighting",
+  "feSpotLight",
+  "feTile",
+  "feTurbulence",
+  "title",
+  "desc",
+  "metadata",
+  "style",
+]);
 
-// Matches one opening/self-closing tag at a time, correctly skipping over
-// `>` inside quoted attribute values so a value like `data:text/html,<x>`
-// doesn't end the tag early. Closing tags (`</...>`) never match (the tag
-// name must start right after `<`, not a `/`).
-const TAG_RE = /<([a-zA-Z][\w:-]*)((?:[^"'>]|"[^"]*"|'[^']*')*)>/g;
+// Local names only — a namespace prefix (xlink:href, x:href, ...) is stripped before this
+// lookup, so it doesn't matter which prefix an attacker aliases onto a real or fake namespace.
+const SAFE_ATTRIBUTES = new Set([
+  "id",
+  "class",
+  "style",
+  "transform",
+  "viewBox",
+  "width",
+  "height",
+  "x",
+  "y",
+  "x1",
+  "y1",
+  "x2",
+  "y2",
+  "cx",
+  "cy",
+  "r",
+  "rx",
+  "ry",
+  "fx",
+  "fy",
+  "points",
+  "d",
+  "offset",
+  "enable-background",
+  "gradientUnits",
+  "gradientTransform",
+  "spreadMethod",
+  "patternUnits",
+  "patternContentUnits",
+  "patternTransform",
+  "maskUnits",
+  "maskContentUnits",
+  "clipPathUnits",
+  "clip-rule",
+  "filterUnits",
+  "primitiveUnits",
+  "preserveAspectRatio",
+  "space",
+  "lang",
+  "role",
+  "focusable",
+  "tabindex",
+  "version",
+  "baseProfile",
+  "fill",
+  "fill-opacity",
+  "fill-rule",
+  "stroke",
+  "stroke-width",
+  "stroke-opacity",
+  "stroke-linecap",
+  "stroke-linejoin",
+  "stroke-miterlimit",
+  "stroke-dasharray",
+  "stroke-dashoffset",
+  "opacity",
+  "color",
+  "stop-color",
+  "stop-opacity",
+  "font-family",
+  "font-size",
+  "font-weight",
+  "font-style",
+  "text-anchor",
+  "dominant-baseline",
+  "alignment-baseline",
+  "letter-spacing",
+  "word-spacing",
+  "text-decoration",
+  "clip-path",
+  "mask",
+  "filter",
+  "marker-start",
+  "marker-mid",
+  "marker-end",
+  "marker",
+  "cursor",
+  "pointer-events",
+  "visibility",
+  "display",
+  "overflow",
+  "vector-effect",
+  "paint-order",
+  "color-interpolation",
+  "color-interpolation-filters",
+  "isolation",
+  "mix-blend-mode",
+  "startOffset",
+  "method",
+  "spacing",
+  "side",
+  "textLength",
+  "lengthAdjust",
+  "in",
+  "in2",
+  "result",
+  "mode",
+  "type",
+  "values",
+  "dx",
+  "dy",
+  "stdDeviation",
+  "edgeMode",
+  "k1",
+  "k2",
+  "k3",
+  "k4",
+  "operator",
+  "radius",
+  "scale",
+  "xChannelSelector",
+  "yChannelSelector",
+  "baseFrequency",
+  "numOctaves",
+  "seed",
+  "stitchTiles",
+  "tableValues",
+  "slope",
+  "intercept",
+  "amplitude",
+  "exponent",
+  "order",
+  "divisor",
+  "bias",
+  "targetX",
+  "targetY",
+  "kernelMatrix",
+  "preserveAlpha",
+  "kernelUnitLength",
+  "surfaceScale",
+  "diffuseConstant",
+  "specularConstant",
+  "specularExponent",
+  "lighting-color",
+  "flood-color",
+  "flood-opacity",
+  "azimuth",
+  "elevation",
+  "pointsAtX",
+  "pointsAtY",
+  "pointsAtZ",
+  "limitingConeAngle",
+]);
 
-// One attribute within a tag's attribute blob, in any of the three HTML
-// quoting forms. Exactly one of the three value groups is defined per match.
-const ATTR_RE = /([a-zA-Z_][\w:.-]*)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]*))/g;
-
-/** The attribute's local name, ignoring any XML namespace prefix (`ns:name` -> `name`). */
 function localName(name: string): string {
   const i = name.lastIndexOf(":");
-  return (i === -1 ? name : name.slice(i + 1)).toLowerCase();
+  return i === -1 ? name : name.slice(i + 1);
 }
 
-function isAllowedHref(value: string): boolean {
-  const v = value.trim().toLowerCase();
-  return v.startsWith("#") || v.startsWith("data:image/");
+/** href/xlink:href (any prefix): a same-document fragment always, `data:image/` only off `<a>`
+ * (an `<a>` navigates the top-level document on click; `<use>`/`<image>`/`<feImage>` only fetch
+ * it as an inert image resource). */
+function isAllowedHref(value: string, tagLocalName: string): boolean {
+  const v = value.trim();
+  if (v.startsWith("#")) return true;
+  return /^data:image\//i.test(v) && tagLocalName.toLowerCase() !== "a";
 }
 
-function isDangerousStyle(value: string): boolean {
+/** Every `url(...)` in the value must resolve to a same-document fragment — kept for
+ * presentation attributes (fill, filter, mask, clip-path, marker-*, ...) and `style=` alike, so
+ * a new url()-bearing attribute doesn't need its own carve-out to be covered. */
+function everyUrlIsLocalFragment(value: string): boolean {
+  const rawCount = (value.match(/url\(/gi) || []).length;
+  if (rawCount === 0) return true;
+  const URL_RE = /url\(\s*(['"]?)([^)]*)\1\s*\)/gi;
+  let matched = 0;
+  let m: RegExpExecArray | null;
+  while ((m = URL_RE.exec(value))) {
+    matched++;
+    if (!(m[2] ?? "").trim().startsWith("#")) return false;
+  }
+  return matched === rawCount;
+}
+
+function hasDangerousStyleToken(value: string): boolean {
   const v = value.toLowerCase();
-  return (
-    v.includes("url(") ||
-    v.includes("@import") ||
-    v.includes("expression(") ||
-    v.includes("javascript:")
-  );
+  return v.includes("@import") || v.includes("expression(") || v.includes("javascript:");
 }
 
-/** True if this attribute (any namespace prefix) must be dropped. */
-function isDangerousAttr(name: string, value: string): boolean {
+function isSafeAttribute(tagLocalName: string, name: string, value: string): boolean {
+  if (name === "xmlns" || name.startsWith("xmlns:")) return true;
   const local = localName(name);
-  if (local.startsWith("on")) return true;
-  if (local === "href") return !isAllowedHref(value);
-  if (local === "style") return isDangerousStyle(value);
-  return false;
+  if (local === "href") return isAllowedHref(value, tagLocalName);
+  // aria-*/data-* are inert key/value pairs everywhere else; still url()-checked below,
+  // defensively, rather than trusted just because no browser resolves url() from them today.
+  const known =
+    SAFE_ATTRIBUTES.has(local) || local.startsWith("aria-") || local.startsWith("data-");
+  if (!known) return false;
+  if (!everyUrlIsLocalFragment(value)) return false;
+  if (local === "style" && hasDangerousStyleToken(value)) return false;
+  return true;
 }
 
-/** Rewrite every tag, dropping dangerous attributes by local name, not literal spelling. */
-function sanitizeAttributes(svg: string): string {
-  return svg.replace(TAG_RE, (tag, tagName: string, attrs: string) => {
-    const kept = attrs.replace(ATTR_RE, (match, name: string, dq, sq, uq) => {
-      const value = dq ?? sq ?? uq ?? "";
-      return isDangerousAttr(name, value) ? "" : match;
-    });
-    return `<${tagName}${kept}>`;
-  });
+function isSafeStyleText(text: string): boolean {
+  return everyUrlIsLocalFragment(text) && !hasDangerousStyleToken(text);
 }
 
 export function sanitizeSvg(svg: string): string {
-  let out = svg;
-  out = replaceStable(out, /<script\b[\s\S]*?<\/script\b[^>]*>/gi, "");
-  out = replaceStable(out, /<script\b[^>]*\/>/gi, "");
-  out = replaceStable(out, /<style\b[\s\S]*?<\/style\b[^>]*>/gi, "");
-  out = replaceStable(out, /<foreignObject\b[\s\S]*?<\/foreignObject\b[^>]*>/gi, "");
-  out = replaceStable(out, /<foreignObject\b[^>]*\/>/gi, "");
-  // Nesting leaves inert orphan close tags after the stable pass — drop them.
-  out = out.replace(/<\/(?:script|style|foreignObject)\b[^>]*>/gi, "");
-  out = sanitizeAttributes(out);
-  return out;
+  const doc = new DOMParser().parseFromString(svg, "image/svg+xml");
+  const root = doc.documentElement;
+  if (!root) return "";
+
+  for (const el of [...doc.querySelectorAll("*")]) {
+    if (!el.isConnected) continue;
+    if (!SAFE_ELEMENTS.has(el.tagName)) {
+      el.remove();
+      continue;
+    }
+    if (el.tagName === "style" && !isSafeStyleText(el.textContent)) {
+      el.remove();
+      continue;
+    }
+    for (const attr of [...el.attributes]) {
+      if (!isSafeAttribute(el.tagName, attr.name, attr.value)) el.removeAttribute(attr.name);
+    }
+  }
+  return root.isConnected ? root.outerHTML : "";
 }
