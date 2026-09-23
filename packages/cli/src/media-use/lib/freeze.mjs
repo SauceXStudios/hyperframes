@@ -1,4 +1,4 @@
-import { fetchMedia, isPublicMediaUrl } from "./media-fetch.mjs";
+import { fetchMedia, isPublicMediaUrl, readCappedBody } from "./media-fetch.mjs";
 import { sanitizeSvg } from "./svg-sanitize.mjs";
 import { writeFileSync, copyFileSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname } from "node:path";
@@ -9,10 +9,8 @@ const MAX_FREEZE_BYTES = 256 * 1024 * 1024;
 
 const isSvgPath = (destPath) => /\.svg$/i.test(destPath);
 
-// Every logo/icon SVG comes from a third-party host (theSVG, a user's --from
-// URL, a local file). Strip <script>/<style>/<foreignObject>, on* handlers,
-// and non-local href/xlink:href before it ever touches disk — the same
-// lexical pass already trusted for Figma exports.
+// Every logo/icon SVG comes from a third-party host (theSVG, a --from URL, a local file), so it
+// passes the Figma import's sanitizeSvg allowlist before it touches disk.
 function writeFrozen(destPath, buffer) {
   mkdirSync(dirname(destPath), { recursive: true });
   const bytes = isSvgPath(destPath) ? Buffer.from(sanitizeSvg(buffer.toString("utf8"))) : buffer;
@@ -25,26 +23,10 @@ export async function freezeUrl(url, destPath) {
   const res = await fetchMedia(url, { signal: AbortSignal.timeout(10_000) });
   if (!res.ok) throw new Error(`freeze failed: HTTP ${res.status} for ${where}`);
 
-  // Fail fast on an advertised oversize body before reading a single byte.
-  const declared = Number(res.headers.get("content-length"));
-  if (declared > MAX_FREEZE_BYTES)
-    throw new Error(
-      `freeze failed: ${declared} bytes exceeds ${MAX_FREEZE_BYTES} cap for ${where}`,
-    );
+  const body = await readCappedBody(res, MAX_FREEZE_BYTES, `freeze failed for ${where}`);
+  if (body.byteLength === 0) throw new Error(`freeze failed: empty response for ${where}`);
 
-  // Stream and abort once the cap is crossed, so a lying/chunked hostile URL
-  // can't buffer the whole payload into memory before the check (M1).
-  const chunks = [];
-  let total = 0;
-  for await (const chunk of res.body) {
-    total += chunk.length;
-    if (total > MAX_FREEZE_BYTES)
-      throw new Error(`freeze failed: stream exceeds ${MAX_FREEZE_BYTES} cap for ${where}`);
-    chunks.push(chunk);
-  }
-  if (total === 0) throw new Error(`freeze failed: empty response for ${where}`);
-
-  return writeFrozen(destPath, Buffer.concat(chunks, total));
+  return writeFrozen(destPath, body);
 }
 
 export function freezeLocalFile(srcPath, destPath) {

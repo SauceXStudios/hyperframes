@@ -1,4 +1,4 @@
-import { fetchMedia } from "./media-fetch.mjs";
+import { fetchMedia, readCappedBody } from "./media-fetch.mjs";
 // Official brand marks — the `logo` type's provider tiers, tried in registry
 // order.
 //
@@ -32,8 +32,7 @@ const THESVG_REV = "e5957fa742c1ebf6da07ac40665bdd01d8add35f";
 const THESVG_CDN = `https://cdn.jsdelivr.net/gh/glincker/thesvg@${THESVG_REV}`;
 const THESVG_MANIFEST = `${THESVG_CDN}/src/data/icons.json`;
 const FAVICON_MIN_BYTES = 500;
-// ponytail: same cap discipline as freeze.mjs's MAX_FREEZE_BYTES — the
-// manifest is ~3.3MB today; 20MB leaves headroom without trusting an
+// ponytail: the manifest is ~3.3MB today; 20MB leaves headroom without trusting an
 // unbounded body from a CDN edge.
 const MAX_MANIFEST_BYTES = 20 * 1024 * 1024;
 
@@ -44,8 +43,7 @@ const THESVG_COLLECTION_RANK = ["brands", "community", "aws", "azure", "gcp", "k
 
 // The ten SPDX ids theSVG's submission form accepts and verifies before merge
 // (thesvg.org LICENSING.md §5); anything else routes through their unaudited
-// "Other/custom" path. A rejected entry falls through to the next theSVG
-// match, then to github/favicon.
+// "Other/custom" path.
 const THESVG_ACCEPTED_LICENSES = new Set([
   "CC0-1.0",
   "Unlicense",
@@ -142,16 +140,8 @@ export function faviconDomainFor(entity) {
 async function fetchJson(url) {
   const res = await fetchMedia(url, { signal: AbortSignal.timeout(10_000) });
   if (!res.ok) return null;
-  const declared = Number(res.headers.get("content-length"));
-  if (declared > MAX_MANIFEST_BYTES) throw new Error(`fetchJson: ${declared} bytes exceeds cap`);
-  const chunks = [];
-  let total = 0;
-  for await (const chunk of res.body) {
-    total += chunk.length;
-    if (total > MAX_MANIFEST_BYTES) throw new Error("fetchJson: stream exceeds cap");
-    chunks.push(chunk);
-  }
-  return JSON.parse(Buffer.concat(chunks, total).toString("utf8"));
+  const body = await readCappedBody(res, MAX_MANIFEST_BYTES, "fetchJson");
+  return JSON.parse(body.toString("utf8"));
 }
 
 async function urlExists(url) {
