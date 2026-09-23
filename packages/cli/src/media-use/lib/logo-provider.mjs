@@ -2,20 +2,10 @@ import { fetchMedia, readCappedBody } from "./media-fetch.mjs";
 // Official brand marks — the `logo` type's provider tiers, tried in registry
 // order.
 //
-//   1. thesvg        — theSVG (thesvg.org), 7,400+ official brand SVGs with
-//                      full-color, mono, light/dark and wordmark variants.
-//                      One pinned manifest (slug, title, aliases, variant
-//                      paths) is fetched once per process and matched
-//                      locally, so "Next.js", "nextjs" and "next js" all hit
-//                      the same entry. Pinned to a commit on jsDelivr for
-//                      determinism; resolves the default (full-color) mark.
-//                      Entries outside theSVG's ten accepted SPDX licenses
-//                      are skipped (THESVG_ACCEPTED_LICENSES below).
-//   2. github avatar — the org's official logo for brands theSVG lacks but
-//                      that have a GitHub presence. Known orgs only: guessing
-//                      a login risks a same-named personal account.
-//   3. domain favicon — small-raster last resort (DuckDuckGo ip3). Responses
-//                      under ~500B are DDG's globe placeholder, not a hit.
+//   1. thesvg: one pinned manifest matched locally ("Next.js", "nextjs", "next js" hit one
+//      entry); default full-color mark; skips licenses outside THESVG_ACCEPTED_LICENSES.
+//   2. github avatar: known orgs only; guessing a login risks a same-named personal account.
+//   3. domain favicon: DuckDuckGo ip3 last resort; under ~500B is its globe placeholder.
 //
 // HeyGen asset search is deliberately absent: for brand queries it returns
 // generic look-alike icons (0/3 in testing) — worse than a miss. A total miss
@@ -98,11 +88,9 @@ export function titleMatches(title, entity) {
   return norm(title) === norm(entity);
 }
 
-/**
- * The best theSVG manifest entry for an entity, or null. Exact slug beats
- * exact title beats alias; ties go to the brands collection. An entry whose
- * license isn't in THESVG_ACCEPTED_LICENSES is never returned.
- */
+// The best theSVG manifest entry for an entity, or null. Exact slug beats exact title
+// beats alias; ties go to the brands collection. An entry whose license isn't in
+// THESVG_ACCEPTED_LICENSES is never returned.
 export function thesvgMatch(icons, entity) {
   const want = norm(entity);
   if (!want || !Array.isArray(icons)) return null;
